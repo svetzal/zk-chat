@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from chroma_gateway import ChromaGateway
 from markdown import load_markdown
 from embedding_gateway import ollama_calculate_embedding
-from rag import split_to_chunks
+from rag.splitter import split_to_chunks
 
 
 class ZkDocument(BaseModel):

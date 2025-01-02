@@ -1,6 +1,6 @@
 import pytest
 
-from markdown.markdown import parse_metadata
+from markdown.loader import parse_metadata
 
 
 @pytest.fixture
