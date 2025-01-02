@@ -1,46 +1,14 @@
 import hashlib
 import os
-import re
 from typing import List
 
 import tiktoken
-from pydantic import BaseModel
 
 from chroma_gateway import ChromaGateway
 from markdown import load_markdown
 from embedding_gateway import ollama_calculate_embedding
+from models import ZkDocument, ZkDocumentChunk, QueryResult
 from rag.splitter import split_to_chunks
-
-
-class ZkDocument(BaseModel):
-    relative_path: str
-    metadata: dict
-    content: str
-
-    @property
-    def title(self) -> str:
-        return self.strip_identifier_prefix(self.base_filename_without_extension())
-
-    @property
-    def id(self) -> str:
-        return self.relative_path
-
-    def strip_identifier_prefix(self, string):
-        return re.sub(r'^[@!]\s*', '', string)
-
-    def base_filename_without_extension(self):
-        return os.path.splitext(os.path.basename(self.relative_path))[0]
-
-
-class ZkDocumentChunk(BaseModel):
-    document_id: str
-    document_title: str
-    text: str
-
-
-class QueryResult(BaseModel):
-    chunk: ZkDocumentChunk
-    distance: float
 
 
 class Zettelkasten:
