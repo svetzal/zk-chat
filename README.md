@@ -10,12 +10,21 @@ in order to generate the responses.
 This project has many limitations, it is simply a starting point upon which I am building a larger system. Treat it like
 an example project, and build your own work on top of it.
 
-Limitations:
+## Limitations
+
 - no chat history
 - requires tweaking python code to run on your system
 - command-line only
 
 That said, it includes all of the critical elements for doing RAG queries across a document base.
+
+## Requirements
+
+You must have [ollama](https://ollama.com/) installed and functional.
+
+You must have a local knowledgebase / zettelkasten with content in markdown format. I
+use [Obsidian](https://obsidian.md/), because I favour working locally, and I favour using the markdown format for
+notes - because everything's local, and in plain text, I can simply point this tool at a Vault folder.
 
 ## Workstation setup
 
