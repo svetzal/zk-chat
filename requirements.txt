@@ -1,3 +1,5 @@
 ollama
 chromadb
 tiktoken
+pyyaml
+pytest
