@@ -10,8 +10,8 @@ llm = LLMGateway(ollama_model)
 
 while True:
     query = input("Query: ")
-    if query:
+    if not query:
+        break
+    else:
         response = rag_query(llm, zk, query)
         print(response)
-    else:
-        break
