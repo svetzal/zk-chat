@@ -42,4 +42,5 @@ Use `ollama list` to check which ones you have set up.
 Run `python zk_reindex.py` to re-index the contents of your zettelkasten.
 
 Run `python zk_query.py` to query your Zettelkasten. Note that this is not a true chat, it will not take into account
-the history of your queries, every query is answered as a stand-alone question.
+the history of your queries, every query is answered as a stand-alone question. Press enter (blank line) to exit the
+query loop.
