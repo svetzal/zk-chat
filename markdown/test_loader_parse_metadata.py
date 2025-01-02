@@ -41,6 +41,6 @@ def test_parse_metadata_with_invalid_metadata(invalid_metadata_str):
     assert metadata == expected_metadata
 
 def test_parse_metadata_with_empty_metadata(empty_metadata_str):
-    expected_metadata = None
+    expected_metadata = {}
     metadata = parse_metadata(empty_metadata_str)
     assert metadata == expected_metadata

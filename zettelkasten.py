@@ -5,8 +5,8 @@ from typing import List
 import tiktoken
 
 from chroma_gateway import ChromaGateway
-from markdown import load_markdown
 from embedding_gateway import ollama_calculate_embedding
+from markdown.loader import load_markdown
 from models import ZkDocument, ZkDocumentChunk, ZkQueryResult
 from rag.splitter import split_to_chunks
 

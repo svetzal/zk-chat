@@ -49,6 +49,12 @@ def file_content_with_no_content():
 ---"""
 
 @pytest.fixture
+def file_content_with_no_metadata_and_separators_in_body_content():
+    return """This is part one of the content.
+---
+This is part two of the content."""
+
+@pytest.fixture
 def file_content_empty():
     return ""
 
@@ -74,8 +80,12 @@ def test_split_metadata_and_content_with_yaml_metadata(file_content_with_yaml_me
 
 def test_split_metadata_and_content_with_incorrect_metadata_start_marker(
         file_content_with_incorrect_metadata_start_marker):
-    expected_metadata = {'author': 'John Doe', 'title': 'Sample Document'}
-    expected_content = """This is the content of the document."""
+    expected_metadata = {}
+    expected_content = """--
+title: Sample Document
+author: John Doe
+---
+This is the content of the document."""
     metadata, content = split_metadata_and_content(file_content_with_incorrect_metadata_start_marker)
     assert metadata == expected_metadata
     assert content == expected_content
@@ -113,5 +123,15 @@ def test_split_metadata_and_content_with_empty_file(file_content_empty):
     expected_metadata = {}
     expected_content = ""
     metadata, content = split_metadata_and_content(file_content_empty)
+    assert metadata == expected_metadata
+    assert content == expected_content
+
+def test_split_metadata_and_content_with_no_metadata_and_separators_in_body_content(
+        file_content_with_no_metadata_and_separators_in_body_content):
+    expected_metadata = {}
+    expected_content = """This is part one of the content.
+---
+This is part two of the content."""
+    metadata, content = split_metadata_and_content(file_content_with_no_metadata_and_separators_in_body_content)
     assert metadata == expected_metadata
     assert content == expected_content
