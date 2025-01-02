@@ -7,7 +7,7 @@ import tiktoken
 from chroma_gateway import ChromaGateway
 from markdown import load_markdown
 from embedding_gateway import ollama_calculate_embedding
-from models import ZkDocument, ZkDocumentChunk, QueryResult
+from models import ZkDocument, ZkDocumentChunk, ZkQueryResult
 from rag.splitter import split_to_chunks
 
 
@@ -71,7 +71,7 @@ class Zettelkasten:
                     embeddings=[ollama_calculate_embedding(chunk) for chunk in text_chunks]
                 )
 
-    def query_chunks(self, query: str, n_results: int = 5, max_distance: float = 1.0) -> List[QueryResult]:
+    def query_chunks(self, query: str, n_results: int = 5, max_distance: float = 1.0) -> List[ZkQueryResult]:
         query_embedding = ollama_calculate_embedding(query)
         response = self.document_db.query(query_embedding, n_results=n_results)
         # print(response.keys()) # ids, embeddings, documents, uris, data, metadata, distances, included
@@ -83,5 +83,5 @@ class Zettelkasten:
                     document_title=response['metadatas'][0][i]['title'],
                     text=response['documents'][0][i]
                 )
-                results.append(QueryResult(chunk=chunk, distance=distance))
+                results.append(ZkQueryResult(chunk=chunk, distance=distance))
         return results

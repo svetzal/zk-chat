@@ -30,6 +30,6 @@ class ZkDocumentChunk(BaseModel):
     text: str
 
 
-class QueryResult(BaseModel):
+class ZkQueryResult(BaseModel):
     chunk: ZkDocumentChunk
     distance: float
