@@ -1,10 +1,7 @@
 import logging
+
 logging.basicConfig(
-  level=logging.WARN
-)
-import structlog
-structlog.configure(
-    wrapper_class=structlog.make_filtering_bound_logger(logging.WARN),
+    level=logging.WARN
 )
 
 from mojentic.llm import LLMBroker
@@ -16,7 +13,6 @@ from chroma_gateway import ChromaGateway
 from rag.query import rag_query
 from settings import vault_root, ollama_model
 from zettelkasten import Zettelkasten
-
 
 chroma = ChromaGateway()
 zk = Zettelkasten(root_path=vault_root, embeddings_gateway=EmbeddingsGateway(), tokenizer_gateway=TokenizerGateway(),
