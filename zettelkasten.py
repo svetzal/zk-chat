@@ -86,7 +86,7 @@ class Zettelkasten:
                 "id": document.id,
                 "title": document.title,
             } for _ in text_chunks],
-            embeddings=[ollama_calculate_embedding(chunk) for chunk in text_chunks]
+            embeddings=[self.tokenizer_gateway.encode(chunk) for chunk in text_chunks]
         )
 
     def _decode_tokens_to_text(self, tokenizer, token_chunks):

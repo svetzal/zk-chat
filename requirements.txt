@@ -1,5 +1,5 @@
-ollama
 chromadb
-tiktoken
 pyyaml
 pytest
+
+mojentic >= 0.2.0
