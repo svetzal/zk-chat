@@ -1,5 +1,7 @@
 from mojentic.llm import LLMBroker
+from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
 from mojentic.llm.gateways.models import LLMMessage, MessageRole
+from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
 from chroma_gateway import ChromaGateway
 from rag.query import rag_query
@@ -7,7 +9,8 @@ from settings import vault_root, ollama_model
 from zettelkasten import Zettelkasten
 
 chroma = ChromaGateway()
-zk = Zettelkasten(vault_root, chroma)
+zk = Zettelkasten(root_path=vault_root, embeddings_gateway=EmbeddingsGateway(), tokenizer_gateway=TokenizerGateway(),
+                  document_db=chroma)
 llm = LLMBroker(ollama_model)
 
 chat_history = [

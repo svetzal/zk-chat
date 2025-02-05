@@ -2,4 +2,4 @@ chromadb
 pyyaml
 pytest
 
-mojentic >= 0.2.0
+mojentic >= 0.2.2

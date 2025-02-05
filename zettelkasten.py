@@ -3,17 +3,20 @@ import os
 from typing import List
 
 import tiktoken
+from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
+from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
 from chroma_gateway import ChromaGateway
-from embedding_gateway import ollama_calculate_embedding
 from markdown.loader import load_markdown
 from models import ZkDocument, ZkDocumentChunk, ZkQueryResult
 from rag.splitter import split_to_chunks
 
 
 class Zettelkasten:
-    def __init__(self, root_path: str, document_db: ChromaGateway):
+    def __init__(self, root_path: str, embeddings_gateway: EmbeddingsGateway, tokenizer_gateway: TokenizerGateway, document_db: ChromaGateway):
         self.root_path = root_path
+        self.embeddings_gateway: EmbeddingsGateway = embeddings_gateway
+        self.tokenizer_gateway: TokenizerGateway = tokenizer_gateway
         self.document_db: ChromaGateway = document_db
         self.document_cache = None
 
@@ -45,13 +48,12 @@ class Zettelkasten:
 
     def chunk_and_index(self, chunk_size=200, chunk_overlap=20):
         self.document_db.reset_indexes()
-        tokenizer = tiktoken.get_encoding("cl100k_base")
         documents = self.all_markdown_documents()
         for document in documents:
-            self._chunk_document(tokenizer, document, chunk_size, chunk_overlap)
+            self._chunk_document(document, chunk_size, chunk_overlap)
 
     def query_chunks(self, query: str, n_results: int = 5, max_distance: float = 1.0) -> List[ZkQueryResult]:
-        query_embedding = ollama_calculate_embedding(query)
+        query_embedding = self.embeddings_gateway.calculate(query)
         response = self.document_db.query(query_embedding, n_results=n_results)
         # print(response.keys()) # ids, embeddings, documents, uris, data, metadata, distances, included
         results = []
@@ -65,16 +67,16 @@ class Zettelkasten:
                 results.append(ZkQueryResult(chunk=chunk, distance=distance))
         return results
 
-    def _chunk_document(self, tokenizer, document, chunk_size=200, chunk_overlap=20):
+    def _chunk_document(self, document, chunk_size=200, chunk_overlap=20):
         print(f"Processing {document.title}")
-        tokens = tokenizer.encode(document.content)
+        tokens = self.tokenizer_gateway.encode(document.content)
         print(f"    Content is {len(document.content)} bytes, or {len(tokens)} tokens long")
         token_chunks = split_to_chunks(tokens, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         if len(token_chunks) > 0:
             print(f"    Split into {len(token_chunks)} chunks")
             print([len(chunk) for chunk in token_chunks])
 
-            text_chunks = self._decode_tokens_to_text(tokenizer, token_chunks)
+            text_chunks = self._decode_tokens_to_text(token_chunks)
 
             self._add_text_chunks_to_index(document, text_chunks)
 
@@ -86,8 +88,8 @@ class Zettelkasten:
                 "id": document.id,
                 "title": document.title,
             } for _ in text_chunks],
-            embeddings=[self.tokenizer_gateway.encode(chunk) for chunk in text_chunks]
+            embeddings=[self.embeddings_gateway.calculate(chunk) for chunk in text_chunks]
         )
 
-    def _decode_tokens_to_text(self, tokenizer, token_chunks):
-        return [tokenizer.decode(chunk) for chunk in token_chunks]
+    def _decode_tokens_to_text(self, token_chunks):
+        return [self.tokenizer_gateway.decode(chunk) for chunk in token_chunks]
