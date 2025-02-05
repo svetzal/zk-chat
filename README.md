@@ -12,7 +12,7 @@ an example project, and build your own work on top of it.
 
 ## Limitations
 
-- no chat history
+- chat history grows but no safeguards exist to prevent it from growing beyond the LLM's context window
 - requires tweaking python code to run on your system
 - command-line only
 
