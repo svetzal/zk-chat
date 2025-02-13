@@ -4,9 +4,7 @@ logging.basicConfig(
     level=logging.WARN
 )
 
-from rag.chat_session import ChatSession
-
-from mojentic.llm import LLMBroker
+from mojentic.llm import LLMBroker, ChatSession
 from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 

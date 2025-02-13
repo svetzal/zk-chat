@@ -3,4 +3,4 @@ pyyaml
 pytest
 pytest-mock
 
-mojentic >= 0.2.2
+mojentic >= 0.2.3
