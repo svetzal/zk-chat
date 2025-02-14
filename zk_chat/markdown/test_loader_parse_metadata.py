@@ -1,6 +1,6 @@
 import pytest
 
-from markdown.loader import parse_metadata
+from zk_chat.markdown.loader import parse_metadata
 
 
 @pytest.fixture

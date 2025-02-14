@@ -1,5 +1,5 @@
 import pytest
-from markdown.loader import split_metadata_and_content
+from zk_chat.markdown.loader import split_metadata_and_content
 
 @pytest.fixture
 def file_content_with_json_metadata():

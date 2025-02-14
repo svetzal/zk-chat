@@ -1,6 +1,3 @@
 chromadb
 pyyaml
-pytest
-pytest-mock
-
 mojentic >= 0.2.3

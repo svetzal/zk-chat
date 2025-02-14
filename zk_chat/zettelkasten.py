@@ -2,14 +2,13 @@ import hashlib
 import os
 from typing import List
 
-import tiktoken
 from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
-from chroma_gateway import ChromaGateway
-from markdown.loader import load_markdown
-from models import ZkDocument, ZkDocumentChunk, ZkQueryResult
-from rag.splitter import split_to_chunks
+from zk_chat.chroma_gateway import ChromaGateway
+from zk_chat.markdown.loader import load_markdown
+from zk_chat.models import ZkDocument, ZkDocumentChunk, ZkQueryResult
+from zk_chat.rag.splitter import split_to_chunks
 
 
 class Zettelkasten:

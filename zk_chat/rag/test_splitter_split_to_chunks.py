@@ -1,5 +1,4 @@
-import pytest
-from rag.splitter import split_to_chunks
+from zk_chat.rag.splitter import split_to_chunks
 
 def test_split_to_chunks_exact_chunk_size():
     tokens = list(range(500))

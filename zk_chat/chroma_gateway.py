@@ -1,11 +1,17 @@
+import os
 import chromadb
 from chromadb import Settings
 
-
-class   ChromaGateway:
-    def __init__(self, partition_name: str = "zettelkasten"):
+class ChromaGateway:
+    def __init__(self, partition_name: str = "zettelkasten", db_dir: str = None):
+        # Set default db directory if not provided
+        if db_dir is None:
+            db_dir = os.path.expanduser("~/.zk_chat/")
         self.partition_name = partition_name
-        self.chroma_client = chromadb.PersistentClient(settings=Settings(allow_reset=True))
+        # Update Settings with persist_directory
+        self.chroma_client = chromadb.PersistentClient(
+            settings=Settings(allow_reset=True, persist_directory=db_dir)
+        )
         self.collection = self.init_collection()
 
     def init_collection(self):
