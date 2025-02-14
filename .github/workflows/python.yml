@@ -1,4 +1,4 @@
-name: Mojentic Library
+name: Build and Test
 
 on:
   push:
