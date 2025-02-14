@@ -6,11 +6,13 @@ class ChromaGateway:
     def __init__(self, partition_name: str = "zettelkasten", db_dir: str = None):
         # Set default db directory if not provided
         if db_dir is None:
-            db_dir = os.path.expanduser("~/.zk_chat/")
+            db_dir = os.path.expanduser("~/.zk_chat_db/")
+            print("DB DIR is", db_dir)
         self.partition_name = partition_name
         # Update Settings with persist_directory
         self.chroma_client = chromadb.PersistentClient(
-            settings=Settings(allow_reset=True, persist_directory=db_dir)
+            path=db_dir,
+            settings=Settings(allow_reset=True),
         )
         self.collection = self.init_collection()
 
