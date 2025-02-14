@@ -1,7 +1,8 @@
-import os
 import configparser
+import os
 
 CONFIG_PATH = os.path.expanduser("~/.zk_chat")
+
 
 def load_or_initialize_config():
     config = configparser.ConfigParser()

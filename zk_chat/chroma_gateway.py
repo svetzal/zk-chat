@@ -1,6 +1,8 @@
 import os
+
 import chromadb
 from chromadb import Settings
+
 
 class ChromaGateway:
     def __init__(self, partition_name: str = "zettelkasten", db_dir: str = None):
@@ -17,7 +19,8 @@ class ChromaGateway:
         self.collection = self.init_collection()
 
     def init_collection(self):
-        return self.chroma_client.get_or_create_collection(name=self.partition_name)#, embedding_function=OllamaEmbeddingFunction())
+        return self.chroma_client.get_or_create_collection(
+            name=self.partition_name)  # , embedding_function=OllamaEmbeddingFunction())
 
     def add_items(self, ids, documents, metadatas, embeddings):
         self.collection.upsert(

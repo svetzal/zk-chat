@@ -6,7 +6,7 @@ def rag_query(chat_session, zk, query):
 
     for result in results:
         chat_session.insert_message(LLMMessage(role=MessageRole.Assistant,
-                                               content=f"Excerpt from: {result.chunk.document_title}\n" \
+                                               content=f"Excerpt from: {result.chunk.document_title}\n"
                                                        + result.chunk.text))
 
     return chat_session.send(query)

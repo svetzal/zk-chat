@@ -12,7 +12,8 @@ from zk_chat.rag.splitter import split_to_chunks
 
 
 class Zettelkasten:
-    def __init__(self, root_path: str, embeddings_gateway: EmbeddingsGateway, tokenizer_gateway: TokenizerGateway, document_db: ChromaGateway):
+    def __init__(self, root_path: str, embeddings_gateway: EmbeddingsGateway, tokenizer_gateway: TokenizerGateway,
+                 document_db: ChromaGateway):
         self.root_path = root_path
         self.embeddings_gateway: EmbeddingsGateway = embeddings_gateway
         self.tokenizer_gateway: TokenizerGateway = tokenizer_gateway
