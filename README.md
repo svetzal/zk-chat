@@ -12,8 +12,6 @@ an example project, and build your own work on top of it.
 
 ## Limitations
 
-- chat history grows but no safeguards exist to prevent it from growing beyond the LLM's context window
-- requires tweaking python code to run on your system
 - command-line only
 
 That said, it includes all of the critical elements for doing RAG queries across a document base.
@@ -28,19 +26,19 @@ notes - because everything's local, and in plain text, I can simply point this t
 
 ## Workstation setup
 
-I recommend you setting up a local virtual Python environment, to keep it clean.
+I recommend you setting up a local virtual Python environment, to keep it clean, but you can install it globally.
 
 ```bash
-python3 -mvenv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+pip install zk-rag
 ```
 
-Adjust `settings.py` to point to your Zettelkasten directory, and the model you want to use in your ollama installation.
+Run `zk_reindex` to start the configuration. You will need to provide the path to your root Zettelkasten / Obsidian
+vault folder, and the name of the LLM model you want to use in your Ollama installation.
+
 Use `ollama list` to check which ones you have set up.
 
-Run `python zk_reindex.py` to re-index the contents of your zettelkasten.
+Run `zk_reindex` to re-index the contents of your zettelkasten.
 
-Run `python zk_query.py` to query your Zettelkasten. Note that this is not a true chat, it will not take into account
+Run `zk_chat` to query your Zettelkasten. Note that this is not a true chat, it will not take into account
 the history of your queries, every query is answered as a stand-alone question. Press enter (blank line) to exit the
 query loop.

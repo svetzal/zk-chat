@@ -1,6 +1,6 @@
 [project]
 name = "zk-rag"
-version = "1.0.2"
+version = "1.0.3"
 authors = [
     { name = "Stacey Vetzal", email = "stacey@vetzal.com" },
 ]
@@ -12,7 +12,6 @@ classifiers = [
     'License :: OSI Approved :: MIT License',
     'Operating System :: OS Independent',
 ]
-
 dependencies = [
     "chromadb",
     "pyyaml",
@@ -29,3 +28,7 @@ where = ["zk_chat"]
 [project.urls]
 Homepage = "https://github.com/svetzal/zk-rag"
 Issues = "https://github.com/svetzal/zk-rag/issues"
+
+[project.scripts]
+zk_reindex = "zk_chat.reindex:main"
+zk_chat = "zk_chat.chat:main"
