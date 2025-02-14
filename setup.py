@@ -7,7 +7,7 @@ with open("requirements.txt", "r") as req_file:
 
 setup(
     name='zk-rag',
-    version='1.0.0',
+    version='1.0.1',
     packages=find_packages(),  # replaced py_modules with packages=find_packages()
     install_requires=requirements,  # added to install modules from requirements.txt
     entry_points={
