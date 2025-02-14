@@ -23,7 +23,8 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-where = ["zk_chat"]
+where = ["."]
+include = ["zk_chat", "zk_chat.*"]
 
 [project.urls]
 Homepage = "https://github.com/svetzal/zk-rag"

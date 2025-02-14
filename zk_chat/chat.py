@@ -4,9 +4,9 @@ from mojentic.llm import LLMBroker, ChatSession
 from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
-from config import load_or_initialize_config
+from zk_chat.config import load_or_initialize_config
 from zk_chat.chroma_gateway import ChromaGateway
-from zk_chat.rag import rag_query
+from zk_chat.rag.query import rag_query
 from zk_chat.zettelkasten import Zettelkasten
 
 logging.basicConfig(

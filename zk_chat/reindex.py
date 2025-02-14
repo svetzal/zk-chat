@@ -15,7 +15,7 @@ def reindex(vault):
 
 
 def main():
-    print("Running zk_reindex main function")
+    print("Running reindex...")
     vault, model = load_or_initialize_config()
     reindex(vault)
 
