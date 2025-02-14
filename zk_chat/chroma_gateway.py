@@ -9,7 +9,6 @@ class ChromaGateway:
         # Set default db directory if not provided
         if db_dir is None:
             db_dir = os.path.expanduser("~/.zk_chat_db/")
-            print("DB DIR is", db_dir)
         self.partition_name = partition_name
         # Update Settings with persist_directory
         self.chroma_client = chromadb.PersistentClient(
