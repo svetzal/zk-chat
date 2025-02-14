@@ -1,6 +1,6 @@
 [project]
 name = "zk-rag"
-version = "1.0.4"
+version = "1.0.5"
 authors = [
     { name = "Stacey Vetzal", email = "stacey@vetzal.com" },
 ]
