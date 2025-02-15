@@ -8,7 +8,7 @@ from mojentic.llm import LLMBroker, ChatSession
 from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
-from zk_chat.config import load_or_initialize_config, Config
+from zk_chat.config import Config
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.rag.query import rag_query
 from zk_chat.zettelkasten import Zettelkasten
@@ -16,7 +16,8 @@ from zk_chat.zettelkasten import Zettelkasten
 
 def chat(config: Config):
     chroma = ChromaGateway()
-    zk = Zettelkasten(root_path=config.vault, embeddings_gateway=EmbeddingsGateway(), tokenizer_gateway=TokenizerGateway(),
+    zk = Zettelkasten(root_path=config.vault, embeddings_gateway=EmbeddingsGateway(),
+                      tokenizer_gateway=TokenizerGateway(),
                       document_db=chroma)
     llm = LLMBroker(config.model)
 
@@ -32,7 +33,7 @@ def chat(config: Config):
 
 
 def main():
-    config = load_or_initialize_config()
+    config = Config.load_or_initialize()
     chat(config)
 
 
