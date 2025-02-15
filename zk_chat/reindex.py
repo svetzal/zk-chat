@@ -2,22 +2,21 @@ from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
 from zk_chat.chroma_gateway import ChromaGateway
-from zk_chat.config import load_or_initialize_config
+from zk_chat.config import load_or_initialize_config, Config
 from zk_chat.zettelkasten import Zettelkasten
 
 
-def reindex(vault):
+def reindex(config: Config):
     chroma = ChromaGateway()
-    zk = Zettelkasten(root_path=vault, embeddings_gateway=EmbeddingsGateway(), tokenizer_gateway=TokenizerGateway(),
+    zk = Zettelkasten(root_path=config.vault, embeddings_gateway=EmbeddingsGateway(), tokenizer_gateway=TokenizerGateway(),
                       document_db=chroma)
 
-    zk.chunk_and_index(chunk_size=200, chunk_overlap=20)
+    zk.chunk_and_index(chunk_size=config.chunk_size, chunk_overlap=config.chunk_overlap)
 
 
 def main():
-    print("Running reindex...")
-    vault, model = load_or_initialize_config()
-    reindex(vault)
+    config = load_or_initialize_config()
+    reindex(config)
 
 
 if __name__ == '__main__':
