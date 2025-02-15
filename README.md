@@ -33,12 +33,11 @@ pip install zk-rag
 ```
 
 Run `zk_reindex` to start the configuration. You will need to provide the path to your root Zettelkasten / Obsidian
-vault folder, and the name of the LLM model you want to use in your Ollama installation.
+vault folder, and the name of the LLM model you want to use in your Ollama installation. After configuration, it
+will start a full index build of your Zettelkasten.
 
-Use `ollama list` to check which ones you have set up.
+Run `zk_reindex` to re-index the contents of your zettelkasten at any time. As of v1.0.6 it will do an incremental
+index, processing only documents that have changed since the last run.
 
-Run `zk_reindex` to re-index the contents of your zettelkasten.
-
-Run `zk_chat` to query your Zettelkasten. Note that this is not a true chat, it will not take into account
-the history of your queries, every query is answered as a stand-alone question. Press enter (blank line) to exit the
-query loop.
+Run `zk_chat` to query your Zettelkasten. As of v1.0.4 it will be a real chat, and it will remember the history of
+your questions and the lookups it made within your Zettelkasten. Press enter (blank line) to exit the query loop.
