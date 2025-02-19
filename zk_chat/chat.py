@@ -21,23 +21,27 @@ from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.zettelkasten import Zettelkasten
 
 
-def chat(config: Config):
+def chat(config: Config, unsafe: bool = False):
     chroma = ChromaGateway()
     zk = Zettelkasten(root_path=config.vault,
                       tokenizer_gateway=TokenizerGateway(),
                       vector_db=VectorDatabase(chroma_gateway=chroma, embeddings_gateway=EmbeddingsGateway()))
     llm = LLMBroker(config.model)
 
+    tools = [
+        ResolveDateTool(),
+        ReadZkDocument(zk),
+        FindExcerptsRelatedTo(zk),
+        FindZkDocumentsRelatedTo(zk),
+    ]
+
+    if unsafe:
+        tools.append(WriteZkDocument(zk))
+
     chat_session = ChatSession(
         llm,
         system_prompt="You are a helpful research assistant.",
-        tools=[
-            ResolveDateTool(),
-            ReadZkDocument(zk),
-            WriteZkDocument(zk),
-            FindExcerptsRelatedTo(zk),
-            FindZkDocumentsRelatedTo(zk),
-        ]
+        tools=tools
     )
 
     while True:
