@@ -1,7 +1,8 @@
 import os
 import re
+from typing import List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ZkDocument(BaseModel):
@@ -33,3 +34,35 @@ class ZkDocumentChunk(BaseModel):
 class ZkQueryResult(BaseModel):
     chunk: ZkDocumentChunk
     distance: float
+
+
+class VectorDocument(BaseModel):
+    id: str = Field(..., description="Unique identifier for the document")
+    content: str = Field(..., description="The text content")
+    metadata: dict = Field(..., description="Additional metadata about the document")
+
+
+class VectorDocumentForStorage(VectorDocument):
+    """Document ready for storage, before embedding calculation"""
+    pass
+
+
+class QueryResult(BaseModel):
+    """Document with its distance from the query vector"""
+    document: VectorDocumentForStorage
+    distance: float
+
+
+class VectorDocumentWithEmbeddings(VectorDocument):
+    """Document with calculated embeddings, ready for vector database storage"""
+    embedding: List[float] = Field(..., description="The vector embedding of the content")
+
+    @classmethod
+    def from_document(cls, document: VectorDocumentForStorage,
+                      embedding: List[float]) -> 'VectorDocumentWithEmbeddings':
+        return cls(
+            id=document.id,
+            content=document.content,
+            metadata=document.metadata,
+            embedding=embedding
+        )
