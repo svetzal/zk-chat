@@ -60,3 +60,16 @@ class Config(BaseModel):
     def save(self) -> None:
         with open(config_filename, 'w') as f:
             f.write(self.model_dump_json())
+
+    def update_model(self, model_name: str = None) -> None:
+        """Update the model in config. If model_name is None, interactive selection will be used."""
+        if model_name:
+            available_models = get_available_models()
+            if model_name in available_models:
+                self.model = model_name
+            else:
+                print(f"Model '{model_name}' not found in available models.")
+                self.model = select_model()
+        else:
+            self.model = select_model()
+        self.save()

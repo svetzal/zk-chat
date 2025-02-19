@@ -29,7 +29,17 @@ I recommend you setting up a local virtual Python environment, to keep it clean,
 pip install zk-rag
 ```
 
+## Usage
+
 Run `zkchat` to start chatting.
+
+Command-line options:
+- `--model [model_name]`: Change the LLM model to use for chat
+  - With model name: `zkchat --model llama2` - configure to use specified model
+  - Without model name: `zkchat --model` - interactively select from available models
+- `--reindex`: Reindex the Zettelkasten vault
+- `--full`: Force full reindex (only used with --reindex)
+- `--unsafe`: Enable operations that can write to your Zettelkasten
 
 When first run, `zkchat` will start the configuration. You will need to provide the path to your root Zettelkasten /
 Obsidian vault folder, and the name of the LLM model you want to use in your Ollama installation. After configuration,
