@@ -23,10 +23,29 @@ notes - because everything's local, and in plain text, I can simply point this t
 
 ## Workstation setup
 
+**_Right now, while this tool should run on Windows, we've only written instructions for Mac._**
+
 I recommend you setting up a local virtual Python environment, to keep it clean, but you can install it globally.
+
+Setting up a local environment, and activating it (recommended):
+
+```bash
+cd $HOME
+python3 -mvenv .venv
+source .venv/bin/activate
+```
+
+Installing the zk-rag module from PyPi:
 
 ```bash
 pip install zk-rag
+```
+
+Setting up Ollama and installing a local model:
+
+```bash
+brew install ollama
+ollama pull qwen2.5:14b
 ```
 
 ## Usage
@@ -37,7 +56,7 @@ Command-line options:
 - `--model [model_name]`: Change the LLM model to use for chat
   - With model name: `zkchat --model llama2` - configure to use specified model
   - Without model name: `zkchat --model` - interactively select from available models
-- `--reindex`: Reindex the Zettelkasten vault
+- `--reindex`: Reindex the Zettelkasten vault, will attempt to do so incrementally
 - `--full`: Force full reindex (only used with --reindex)
 - `--unsafe`: Enable operations that can write to your Zettelkasten
 
