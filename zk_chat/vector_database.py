@@ -1,9 +1,11 @@
 from typing import List
 
+import structlog
 from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
 from zk_chat.models import VectorDocumentForStorage, VectorDocumentWithEmbeddings, QueryResult
 from zk_chat.chroma_gateway import ChromaGateway
 
+logger = structlog.get_logger()
 
 class VectorDatabase:
     def __init__(self, chroma_gateway: ChromaGateway, embeddings_gateway: EmbeddingsGateway):
@@ -42,5 +44,15 @@ class VectorDatabase:
             )
             distance = results['distances'][0][i]
             query_results.append(QueryResult(document=doc, distance=distance))
-        
+
+        logger.info(
+            "Vector query results",
+            extra = {
+                "query_text": query_text,
+                "num_results": len(query_results),
+                "min_distance": min(r.distance for r in query_results) if query_results else None,
+                "max_distance": max(r.distance for r in query_results) if query_results else None
+            }
+        )
+
         return query_results
