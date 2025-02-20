@@ -67,7 +67,7 @@ class Zettelkasten:
         return None
 
     def chunk_and_index(self, chunk_size=500, chunk_overlap=100):
-        self.vector_db.reset_indexes()
+        self.vector_db.reset()
         for full_path, relative_path in self._iterate_markdown_files():
             document = self.read_zk_document(relative_path)
             self._chunk_document(document, chunk_size, chunk_overlap)

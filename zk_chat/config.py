@@ -46,10 +46,18 @@ class Config(BaseModel):
     last_indexed: Optional[datetime] = None
 
     @classmethod
-    def load_or_initialize(cls) -> 'Config':
+    def load(cls) -> Optional['Config']:
         if os.path.exists(config_filename):
             with open(config_filename, 'r') as f:
                 return cls.model_validate_json(f.read())
+        else:
+            return None
+
+    @classmethod
+    def load_or_initialize(cls) -> 'Config':
+        config = cls.load()
+        if config:
+            return config
 
         vault = input("Enter path to your zettelkasten vault: ")
         model = select_model()
@@ -59,7 +67,7 @@ class Config(BaseModel):
 
     def save(self) -> None:
         with open(config_filename, 'w') as f:
-            f.write(self.model_dump_json())
+            f.write(self.model_dump_json(indent=2))
 
     def update_model(self, model_name: str = None) -> None:
         """Update the model in config. If model_name is None, interactive selection will be used."""

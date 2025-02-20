@@ -5,13 +5,15 @@ from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config
+from zk_chat.vector_database import VectorDatabase
 from zk_chat.zettelkasten import Zettelkasten
 
 
 def reindex(config: Config, force_full: bool = False):
     chroma = ChromaGateway()
-    zk = Zettelkasten(root_path=config.vault, embeddings_gateway=EmbeddingsGateway(), tokenizer_gateway=TokenizerGateway(),
-                      document_db=chroma)
+    zk = Zettelkasten(root_path=config.vault,
+                      tokenizer_gateway=TokenizerGateway(),
+                      vector_db=VectorDatabase(chroma_gateway=chroma, embeddings_gateway=EmbeddingsGateway()))
 
     if force_full or config.last_indexed is None:
         print("Performing full reindex...")
