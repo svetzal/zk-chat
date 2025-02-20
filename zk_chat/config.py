@@ -72,4 +72,6 @@ class Config(BaseModel):
                 self.model = select_model()
         else:
             self.model = select_model()
+
+        print("Model selected:", self.model)
         self.save()
