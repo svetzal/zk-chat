@@ -15,7 +15,8 @@ classifiers = [
 dependencies = [
     "chromadb",
     "pyyaml",
-    "mojentic",
+    "mojentic>=0.2.5",
+    "PySide6>=6.6.0",
 ]
 
 [build-system]
@@ -32,3 +33,4 @@ Issues = "https://github.com/svetzal/zk-rag/issues"
 
 [project.scripts]
 zkchat = "zk_chat.cli:main"
+zkchat-gui = "zk_chat.qt:main"
