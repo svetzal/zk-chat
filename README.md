@@ -65,7 +65,9 @@ Command-line options:
 - `--full`: Force full reindex (only used with --reindex)
 - `--unsafe`: Enable operations that can write to your Zettelkasten
 
-### Graphical Interface
+### Graphical Interface (Experimental)
+
+**_The GUI is experimental and may not work as expected. It is provided as a preview feature only._**
 
 Run `zkchat-gui` to start the graphical interface. The GUI provides:
 
