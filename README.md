@@ -7,11 +7,14 @@ entire documents, and generate responses based on the content in your Zettelkast
 For "AI" it communicates with a local running instance of Ollama. Ollama must be installed and running for zkchat to
 function.
 
-## Limitations
+## Features
 
-- command-line only
-
-That said, it includes all of the critical elements for doing RAG queries across a document base.
+- Command-line interface for quick access
+- Graphical user interface for a more user-friendly experience
+- RAG queries across your document base
+- Interactive chat with context from your Zettelkasten
+- Configurable LLM model selection
+- Easy Zettelkasten folder configuration
 
 ## Requirements
 
@@ -50,7 +53,9 @@ ollama pull qwen2.5:14b
 
 ## Usage
 
-Run `zkchat` to start chatting.
+### Command-line Interface
+
+Run `zkchat` to start the command-line interface.
 
 Command-line options:
 - `--model [model_name]`: Change the LLM model to use for chat
@@ -60,6 +65,20 @@ Command-line options:
 - `--full`: Force full reindex (only used with --reindex)
 - `--unsafe`: Enable operations that can write to your Zettelkasten
 
-When first run, `zkchat` will start the configuration. You will need to provide the path to your root Zettelkasten /
-Obsidian vault folder, and the name of the LLM model you want to use in your Ollama installation. After configuration,
-it will start a full index build of your Zettelkasten.
+### Graphical Interface
+
+Run `zkchat-gui` to start the graphical interface. The GUI provides:
+
+- A multi-line chat input for composing messages
+- A scrollable chat history showing the entire conversation
+- A resizable divider between chat history and input areas
+- Settings menu (accessible via Settings -> Configure...) for:
+  - Selecting the LLM model from available Ollama models
+  - Configuring the Zettelkasten folder location
+- Asynchronous chat responses that keep the interface responsive
+
+When first run, both `zkchat` and `zkchat-gui` will prompt for initial configuration. You will need to provide:
+- The path to your root Zettelkasten / Obsidian vault folder
+- The LLM model you want to use from your Ollama installation
+
+In the command-line interface, you'll be prompted for this information directly. In the GUI, you can configure these settings through the Settings menu. After initial configuration, the tool will start a full index build of your Zettelkasten.
