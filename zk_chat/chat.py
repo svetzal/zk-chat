@@ -1,5 +1,9 @@
 import logging
 
+from zk_chat.memory.smart_memory import SmartMemory
+from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory
+from zk_chat.tools.store_in_smart_memory import StoreInSmartMemory
+
 logging.basicConfig(
     level=logging.WARN
 )
@@ -23,11 +27,14 @@ from zk_chat.zettelkasten import Zettelkasten
 
 
 def chat(config: Config, unsafe: bool = False):
-    chroma = ChromaGateway()
+    zk_chroma = ChromaGateway()
     zk = Zettelkasten(root_path=config.vault,
                       tokenizer_gateway=TokenizerGateway(),
-                      vector_db=VectorDatabase(chroma_gateway=chroma, embeddings_gateway=EmbeddingsGateway()))
+                      vector_db=VectorDatabase(chroma_gateway=zk_chroma, embeddings_gateway=EmbeddingsGateway()))
     llm = LLMBroker(config.model)
+
+    sm_chroma = ChromaGateway(partition_name="smart_memory")
+    smart_memory = SmartMemory(chroma_gateway=sm_chroma, embeddings_gateway=EmbeddingsGateway())
 
     tools = [
         ResolveDateTool(),
@@ -35,6 +42,8 @@ def chat(config: Config, unsafe: bool = False):
         FindExcerptsRelatedTo(zk),
         FindZkDocumentsRelatedTo(zk),
         LookUpTopicOnWikipedia(),
+        StoreInSmartMemory(smart_memory),
+        RetrieveFromSmartMemory(smart_memory),
     ]
 
     if unsafe:
