@@ -1,6 +1,6 @@
 # Chat With Your Zettelkasten
 
-This is a simple tool that lets you chat with an "AI" that has access to the documents in your Zettelkasten. It will
+This is a simple tool that lets you chat with a local "AI" that has access to the documents in your Zettelkasten. It will
 index your markdown documents, and in your chat session it may choose to query your content, retrieve excerpts, read
 entire documents, and generate responses based on the content in your Zettelkasten.
 
