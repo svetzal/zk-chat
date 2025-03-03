@@ -64,6 +64,15 @@ Command-line options:
 - `--reindex`: Reindex the Zettelkasten vault, will attempt to do so incrementally
 - `--full`: Force full reindex (only used with --reindex)
 - `--unsafe`: Enable operations that can write to your Zettelkasten
+- `--reset-memory`: Clear the smart memory storage
+
+### Smart Memory
+
+The tool includes a Smart Memory mechanism that allows the AI to store and retrieve information during conversations. This memory:
+- Persists between chat sessions
+- Uses vector embeddings for semantic similarity search
+- Enables the AI to recall previous context and information
+- Can be cleared using the `--reset-memory` CLI option
 
 ### Graphical Interface (Experimental)
 
