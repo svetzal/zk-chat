@@ -10,7 +10,7 @@ from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.read_zk_document import ReadZkDocument
 from zk_chat.tools.write_zk_document import WriteZkDocument
-from zk_chat.tools.wikipedia_content import WikipediaContentTool
+from zk_chat.tools.wikipedia_content import LookUpTopicOnWikipedia
 from zk_chat.vector_database import VectorDatabase
 
 from mojentic.llm import LLMBroker, ChatSession
@@ -34,7 +34,7 @@ def chat(config: Config, unsafe: bool = False):
         ReadZkDocument(zk),
         FindExcerptsRelatedTo(zk),
         FindZkDocumentsRelatedTo(zk),
-        WikipediaContentTool(),
+        LookUpTopicOnWikipedia(),
     ]
 
     if unsafe:

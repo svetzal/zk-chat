@@ -11,7 +11,7 @@ class WikipediaContentResult(BaseModel):
     url: Optional[str]
 
 
-class WikipediaContentTool(LLMTool):
+class LookUpTopicOnWikipedia(LLMTool):
     """Tool for retrieving content from Wikipedia for a given entity."""
 
     def run(self, topic: str) -> WikipediaContentResult:
@@ -62,7 +62,7 @@ class WikipediaContentTool(LLMTool):
         return {
             "type": "function",
             "function": {
-                "name": "wikipedia_content",
+                "name": "lookup_topic_on_wikipedia",
                 "description": "Retrieves information about a given topic from Wikipedia.",
                 "parameters": {
                     "type": "object",
