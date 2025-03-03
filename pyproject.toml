@@ -17,6 +17,7 @@ dependencies = [
     "pyyaml",
     "mojentic>=0.2.5",
     "PySide6>=6.6.0",
+    "wikipedia",
 ]
 
 [build-system]
