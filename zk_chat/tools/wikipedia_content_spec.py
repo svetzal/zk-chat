@@ -1,13 +1,13 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from wikipedia.exceptions import DisambiguationError
-from .wikipedia_content import WikipediaContentTool, WikipediaContentResult
+from .wikipedia_content import LookUpTopicOnWikipedia, WikipediaContentResult
 
 
 class DescribeWikipediaContentTool:
     @pytest.fixture
     def tool(self):
-        return WikipediaContentTool()
+        return LookUpTopicOnWikipedia()
 
     def should_retrieve_article_content_successfully(self, tool):
         with patch('wikipedia.search') as mock_search, \
