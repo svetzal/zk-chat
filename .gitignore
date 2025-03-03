@@ -4,4 +4,4 @@ __pycache__
 chroma
 dist
 zk_rag.egg-info
-
+.coverage
