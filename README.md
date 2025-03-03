@@ -16,6 +16,23 @@ function.
 - Configurable LLM model selection
 - Easy Zettelkasten folder configuration
 
+### Tools
+
+The chat interface provides access to several tools that enhance its capabilities:
+
+- **Document Search Tools**
+  - Find Documents: Locates relevant documents in your Zettelkasten based on your query
+  - Find Excerpts: Retrieves specific passages from your documents that match your search criteria
+  - Read Document: Accesses the full content of a specific document in your Zettelkasten
+  - Write Document: Creates or updates documents in your Zettelkasten (requires --unsafe flag)
+
+- **Smart Memory Tools**
+  - Store Information: Saves important facts and context from conversations for future reference
+  - Retrieve Information: Recalls previously stored information to provide more personalized responses
+
+- **External Knowledge Tools**
+  - Wikipedia Lookup: Retrieves information about entities, concepts, and topics from Wikipedia to supplement your Zettelkasten content
+
 ## Requirements
 
 You must have [ollama](https://ollama.com/) installed and running.
@@ -63,7 +80,7 @@ Command-line options:
   - Without model name: `zkchat --model` - interactively select from available models
 - `--reindex`: Reindex the Zettelkasten vault, will attempt to do so incrementally
 - `--full`: Force full reindex (only used with --reindex)
-- `--unsafe`: Enable operations that can write to your Zettelkasten
+- `--unsafe`: Enable operations that can write to your Zettelkasten. This flag is required for using tools that modify your Zettelkasten content, such as the Write Document tool. Use with caution as it allows the AI to make changes to your files.
 - `--reset-memory`: Clear the smart memory storage
 
 ### Smart Memory
