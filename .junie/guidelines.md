@@ -62,11 +62,11 @@ class DescribeComponent:
     """
 
     def should_behave_in_specific_way(self):
-# Set up your test prerequisites
-
-# Execute the behavior you're testing
-
-# Verify the expected outcomes
+      # Set up your test prerequisites
+      
+      # Execute the behavior you're testing
+      
+      # Verify the expected outcomes
 ```
 
 #### Best Practices

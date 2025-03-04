@@ -17,24 +17,24 @@ def read_tool(mock_zk):
 
 def test_read_document_when_exists(read_tool, mock_zk):
     relative_path = "test/path.md"
-    mock_zk.zk_document_exists.return_value = True
+    mock_zk.document_exists.return_value = True
     expected_result = ZkDocument(relative_path=relative_path, metadata={"title": "Test"},
                       content="# Test Content")
-    mock_zk.read_zk_document.return_value = expected_result
+    mock_zk.read_document.return_value = expected_result
 
     result = read_tool.run(relative_path=relative_path)
 
-    mock_zk.zk_document_exists.assert_called_once_with(relative_path)
-    mock_zk.read_zk_document.assert_called_once_with(relative_path)
+    mock_zk.document_exists.assert_called_once_with(relative_path)
+    mock_zk.read_document.assert_called_once_with(relative_path)
     assert result == expected_result.model_dump_json()
 
 
 def test_read_document_when_not_exists(read_tool, mock_zk):
     relative_path = "test/nonexistent.md"
-    mock_zk.zk_document_exists.return_value = False
+    mock_zk.document_exists.return_value = False
 
     result = read_tool.run(relative_path=relative_path)
 
-    mock_zk.zk_document_exists.assert_called_once_with(relative_path)
-    mock_zk.read_zk_document.assert_not_called()
+    mock_zk.document_exists.assert_called_once_with(relative_path)
+    mock_zk.read_document.assert_not_called()
     assert result == f"Document not found at {relative_path}"

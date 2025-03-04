@@ -12,10 +12,10 @@ class ReadZkDocument(LLMTool):
 
     def run(self, relative_path: str) -> str:
         print("Reading document at", relative_path)
-        if not self.zk.zk_document_exists(relative_path):
+        if not self.zk.document_exists(relative_path):
             return f"Document not found at {relative_path}"
 
-        document = self.zk.read_zk_document(relative_path)
+        document = self.zk.read_document(relative_path)
         return document.model_dump_json()
 
     @property

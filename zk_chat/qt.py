@@ -14,7 +14,6 @@ from zk_chat.config import Config, get_available_models
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.read_zk_document import ReadZkDocument
-from zk_chat.tools.wikipedia_content import LookUpTopicOnWikipedia
 from zk_chat.vector_database import VectorDatabase
 
 
@@ -264,7 +263,6 @@ class MainWindow(QMainWindow):
             ReadZkDocument(zk),
             FindExcerptsRelatedTo(zk),
             FindZkDocumentsRelatedTo(zk),
-            LookUpTopicOnWikipedia(),
         ]
 
         self.chat_session = ChatSession(
