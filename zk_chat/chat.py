@@ -1,4 +1,5 @@
 import logging
+from importlib.metadata import entry_points
 
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory
@@ -13,8 +14,7 @@ from mojentic.llm.tools.date_resolver import ResolveDateTool
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.read_zk_document import ReadZkDocument
-from zk_chat.tools.write_zk_document import WriteZkDocument
-from zk_chat.tools.wikipedia_content import LookUpTopicOnWikipedia
+from zk_chat.tools.create_or_overwrite_zk_document import CreateOrOverwriteZkDocument
 from zk_chat.vector_database import VectorDatabase
 
 from mojentic.llm import LLMBroker, ChatSession
@@ -41,13 +41,14 @@ def chat(config: Config, unsafe: bool = False):
         ReadZkDocument(zk),
         FindExcerptsRelatedTo(zk),
         FindZkDocumentsRelatedTo(zk),
-        LookUpTopicOnWikipedia(),
         StoreInSmartMemory(smart_memory),
         RetrieveFromSmartMemory(smart_memory),
     ]
 
     if unsafe:
-        tools.append(WriteZkDocument(zk))
+        tools.append(CreateOrOverwriteZkDocument(zk))
+
+    _add_available_plugins(tools)
 
     chat_session = ChatSession(
         llm,
@@ -63,6 +64,15 @@ def chat(config: Config, unsafe: bool = False):
             # response = rag_query(chat_session, zk, query)
             response = chat_session.send(query)
             print(response)
+
+
+def _add_available_plugins(tools):
+    eps = entry_points()
+    plugin_entr_points = eps.select(group="zk_rag_plugins")
+    for ep in plugin_entr_points:
+        logging.info(f"Adding Plugin {ep.name}")
+        plugin_class = ep.load()
+        tools.append(plugin_class())
 
 
 def main():

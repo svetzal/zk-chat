@@ -1,27 +1,27 @@
 import os
 import re
-from typing import List
+from typing import List, Any
 
 from pydantic import BaseModel, Field
 
 
 class ZkDocument(BaseModel):
     relative_path: str
-    metadata: dict
+    metadata: dict[str,Any]
     content: str
 
     @property
     def title(self) -> str:
-        return self.strip_identifier_prefix(self.base_filename_without_extension())
+        return self._strip_identifier_prefix(self._base_filename_without_extension())
 
     @property
     def id(self) -> str:
         return self.relative_path
 
-    def strip_identifier_prefix(self, string):
+    def _strip_identifier_prefix(self, string):
         return re.sub(r'^[@!]\s*', '', string)
 
-    def base_filename_without_extension(self):
+    def _base_filename_without_extension(self):
         return os.path.splitext(os.path.basename(self.relative_path))[0]
 
 

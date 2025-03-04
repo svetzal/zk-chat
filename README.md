@@ -30,8 +30,8 @@ The chat interface provides access to several tools that enhance its capabilitie
   - Store Information: Saves important facts and context from conversations for future reference
   - Retrieve Information: Recalls previously stored information to provide more personalized responses
 
-- **External Knowledge Tools**
-  - Wikipedia Lookup: Retrieves information about entities, concepts, and topics from Wikipedia to supplement your Zettelkasten content
+- **Available Tool Plugins**
+  - [zk-rag-wikipedia](https://pypi.org/project/zk-rag-wikipedia/): A plugin for looking up information on Wikipedia and creating documents from the results
 
 ## Requirements
 
@@ -59,6 +59,12 @@ Installing the zk-rag module from PyPi:
 
 ```bash
 pip install zk-rag
+```
+
+Optionally install tool plugins from PyPi:
+
+```bash
+pip install zk-rag-wikipedia
 ```
 
 Setting up Ollama and installing a local model:
