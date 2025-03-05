@@ -1,4 +1,4 @@
-from zk_chat.rag.splitter import split_to_chunks
+from zk_chat.rag.splitter import split_tokens
 
 
 class DescribeSplitter:
@@ -7,7 +7,7 @@ class DescribeSplitter:
         chunk_size = 500
         chunk_overlap = 100
         expected_chunks = [tokens]
-        chunks = split_to_chunks(tokens, chunk_size, chunk_overlap)
+        chunks = split_tokens(tokens, chunk_size, chunk_overlap)
         assert chunks == expected_chunks
 
     def should_split_tokens_with_specified_overlap(self):
@@ -15,7 +15,7 @@ class DescribeSplitter:
         chunk_size = 500
         chunk_overlap = 100
         expected_chunks = [tokens[:500], tokens[400:600]]
-        chunks = split_to_chunks(tokens, chunk_size, chunk_overlap)
+        chunks = split_tokens(tokens, chunk_size, chunk_overlap)
         assert chunks == expected_chunks
 
     def should_split_tokens_without_overlap(self):
@@ -23,7 +23,7 @@ class DescribeSplitter:
         chunk_size = 500
         chunk_overlap = 0
         expected_chunks = [tokens[:500], tokens[500:1000]]
-        chunks = split_to_chunks(tokens, chunk_size, chunk_overlap)
+        chunks = split_tokens(tokens, chunk_size, chunk_overlap)
         assert chunks == expected_chunks
 
     def should_keep_tokens_as_single_chunk_when_smaller_than_chunk_size(self):
@@ -31,7 +31,7 @@ class DescribeSplitter:
         chunk_size = 500
         chunk_overlap = 100
         expected_chunks = [tokens]
-        chunks = split_to_chunks(tokens, chunk_size, chunk_overlap)
+        chunks = split_tokens(tokens, chunk_size, chunk_overlap)
         assert chunks == expected_chunks
 
     def should_handle_remainder_tokens_in_last_chunk(self):
@@ -39,7 +39,7 @@ class DescribeSplitter:
         chunk_size = 500
         chunk_overlap = 100
         expected_chunks = [tokens[:500], tokens[400:750]]
-        chunks = split_to_chunks(tokens, chunk_size, chunk_overlap)
+        chunks = split_tokens(tokens, chunk_size, chunk_overlap)
         assert chunks == expected_chunks
 
     def should_return_empty_list_for_empty_input(self):
@@ -47,5 +47,5 @@ class DescribeSplitter:
         chunk_size = 500
         chunk_overlap = 100
         expected_chunks = []
-        chunks = split_to_chunks(tokens, chunk_size, chunk_overlap)
+        chunks = split_tokens(tokens, chunk_size, chunk_overlap)
         assert chunks == expected_chunks

@@ -8,9 +8,9 @@ from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
 from zk_chat.filesystem_gateway import FilesystemGateway
 from zk_chat.markdown.loader import load_markdown
-from zk_chat.models import ZkDocument, ZkDocumentChunk, ZkQueryResult, VectorDocumentForStorage
+from zk_chat.models import ZkDocument, ZkDocumentExcerpt, ZkQueryResult, VectorDocumentForStorage
+from zk_chat.rag.splitter import split_tokens
 from zk_chat.vector_database import VectorDatabase
-from zk_chat.rag.splitter import split_to_chunks
 
 logger = structlog.get_logger()
 
@@ -66,8 +66,8 @@ class Zettelkasten:
                 metadata_yaml = yaml.dump(document.metadata, Dumper=yaml.SafeDumper)
             except yaml.YAMLError as e:
                 logger.error("Failed to serialize document metadata",
-                           path=document.relative_path,
-                           error=str(e))
+                             path=document.relative_path,
+                             error=str(e))
                 raise
 
             content = f"---\n{metadata_yaml}---\n{document.content}"
@@ -76,45 +76,33 @@ class Zettelkasten:
             logger.info("Document written successfully", path=document.relative_path)
 
         except OSError as e:
-            logger.error("Failed to write document", 
-                        path=document.relative_path, 
-                        error=str(e))
+            logger.error("Failed to write document",
+                         path=document.relative_path,
+                         error=str(e))
             raise
         except yaml.YAMLError as e:
-            logger.error("Failed to serialize document metadata", 
-                        path=document.relative_path, 
-                        error=str(e))
+            logger.error("Failed to serialize document metadata",
+                         path=document.relative_path,
+                         error=str(e))
             raise
 
     def iterate_documents(self) -> Iterator[ZkDocument]:
         for relative_path in self._iterate_markdown_files():
             yield self.read_document(relative_path)
 
-    def find_by_id(self, id: str) -> ZkDocument:
-        """
-        So, this is just the same as load_document now, as `id` is just the `relative path`. Consider this deprecated.
-        :param id:
-        :return:
-        """
-        for relative_path in self._iterate_markdown_files():
-            document = self.read_document(relative_path)
-            if document.id == id:
-                return document
-        return None
-
-    def chunk_and_index(self, chunk_size=500, chunk_overlap=100):
+    def split_and_index(self, excerpt_size=500, excerpt_overlap=100):
         self.vector_db.reset()
         for relative_path in self._iterate_markdown_files():
             document = self.read_document(relative_path)
-            self._chunk_document(document, chunk_size, chunk_overlap)
+            self._split_document(document, excerpt_size, excerpt_overlap)
 
-    def incremental_chunk_and_index(self, since: datetime, chunk_size=500, chunk_overlap=100):
+    def incremental_split_and_index(self, since: datetime, excerpt_size=500, excerpt_overlap=100):
         for relative_path in self._iterate_markdown_files():
             if self._needs_reindex(relative_path, since):
                 document = self.read_document(relative_path)
-                self._chunk_document(document, chunk_size, chunk_overlap)
+                self._split_document(document, excerpt_size, excerpt_overlap)
 
-    def query_chunks(self, query: str, n_results: int = 5, max_distance: float = 1.0) -> List[ZkQueryResult]:
+    def query_excerpts(self, query: str, n_results: int = 5, max_distance: float = 1.0) -> List[ZkQueryResult]:
         return [
             self._create_query_result(result)
             for result in (self.vector_db.query(query, n_results=n_results))
@@ -123,7 +111,7 @@ class Zettelkasten:
 
     def _create_query_result(self, result):
         return ZkQueryResult(
-            chunk=ZkDocumentChunk(
+            excerpt=ZkDocumentExcerpt(
                 document_id=result.document.metadata['id'],
                 document_title=result.document.metadata['title'],
                 text=result.document.content
@@ -131,28 +119,28 @@ class Zettelkasten:
             distance=result.distance
         )
 
-    def _chunk_document(self, document, chunk_size=200, chunk_overlap=20):
+    def _split_document(self, document, excerpt_size=200, excerpt_overlap=100):
         logger.info(f"Processing", document_title=document.title)
         tokens = self.tokenizer_gateway.encode(document.content)
         logger.info("Content length", text=len(document.content), tokens=len(tokens))
-        token_chunks = split_to_chunks(tokens, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        token_chunks = split_tokens(tokens, excerpt_size=excerpt_size, excerpt_overlap=excerpt_overlap)
         if len(token_chunks) > 0:
-            logger.info("Document split into", n_chunks=len(token_chunks),
-                        chunk_lengths=[len(chunk) for chunk in token_chunks])
-            text_chunks = self._decode_tokens_to_text(token_chunks)
-            self._add_text_chunks_to_index(document, text_chunks)
+            logger.info("Document split into", n_excerpts=len(token_chunks),
+                        excerpt_lengths=[len(chunk) for chunk in token_chunks])
+            excerpts = self._decode_tokens_to_text(token_chunks)
+            self._add_text_excerpts_to_index(document, excerpts)
 
-    def _add_text_chunks_to_index(self, document, text_chunks):
+    def _add_text_excerpts_to_index(self, document, text_excerpts):
         docs_for_storage = [
-            self._create_vector_document_for_storage(chunk, document)
-            for chunk in text_chunks
+            self._create_vector_document_for_storage(excerpt, document)
+            for excerpt in text_excerpts
         ]
         self.vector_db.add_documents(docs_for_storage)
 
-    def _create_vector_document_for_storage(self, chunk, document):
+    def _create_vector_document_for_storage(self, excerpt, document):
         return VectorDocumentForStorage(
-            id=hashlib.md5(bytes(chunk, "utf-8")).hexdigest(),
-            content=chunk,
+            id=hashlib.md5(bytes(excerpt, "utf-8")).hexdigest(),
+            content=excerpt,
             metadata={
                 "id": document.id,
                 "title": document.title,

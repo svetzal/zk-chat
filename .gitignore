@@ -5,3 +5,4 @@ chroma
 dist
 zk_rag.egg-info
 .coverage
+.DS_Store

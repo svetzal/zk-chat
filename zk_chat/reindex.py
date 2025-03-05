@@ -17,10 +17,10 @@ def reindex(config: Config, force_full: bool = False):
 
     if force_full or config.last_indexed is None:
         print("Performing full reindex...")
-        zk.chunk_and_index(chunk_size=config.chunk_size, chunk_overlap=config.chunk_overlap)
+        zk.split_and_index(excerpt_size=config.chunk_size, excerpt_overlap=config.chunk_overlap)
     else:
         print(f"Performing incremental reindex since {config.last_indexed}...")
-        zk.incremental_chunk_and_index(since=config.last_indexed, chunk_size=config.chunk_size, chunk_overlap=config.chunk_overlap)
+        zk.incremental_split_and_index(since=config.last_indexed, excerpt_size=config.chunk_size, excerpt_overlap=config.chunk_overlap)
     
     config.last_indexed = datetime.now()
     config.save()

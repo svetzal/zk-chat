@@ -5,7 +5,7 @@ import pytest
 from mojentic.llm.tools.llm_tool import LLMTool
 from pytest_mock import MockerFixture
 
-from zk_chat.models import ZkDocumentChunk, ZkQueryResult
+from zk_chat.models import ZkDocumentExcerpt, ZkQueryResult
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.zettelkasten import Zettelkasten
 
@@ -26,7 +26,7 @@ def test_run_returns_document_ids_and_titles(
 ):
     query_results = [
         ZkQueryResult(
-            chunk=ZkDocumentChunk(
+            excerpt=ZkDocumentExcerpt(
                 document_id="doc1",
                 document_title="First Document",
                 text="chunk1"
@@ -34,7 +34,7 @@ def test_run_returns_document_ids_and_titles(
             distance=0.8
         ),
         ZkQueryResult(
-            chunk=ZkDocumentChunk(
+            excerpt=ZkDocumentExcerpt(
                 document_id="doc2",
                 document_title="Second Document",
                 text="chunk2"
@@ -42,7 +42,7 @@ def test_run_returns_document_ids_and_titles(
             distance=0.7
         )
     ]
-    mock_zk.query_chunks.return_value = query_results
+    mock_zk.query_excerpts.return_value = query_results
 
     result = tool.run("test query")
     expected = [
