@@ -16,8 +16,10 @@ logger = structlog.get_logger()
 
 
 class Zettelkasten:
-    def __init__(self, tokenizer_gateway: TokenizerGateway,
-                 vector_db: VectorDatabase, filesystem_gateway: FilesystemGateway):
+    def __init__(self,
+                 tokenizer_gateway: TokenizerGateway,
+                 vector_db: VectorDatabase,
+                 filesystem_gateway: FilesystemGateway):
         self.tokenizer_gateway: TokenizerGateway = tokenizer_gateway
         self.vector_db: VectorDatabase = vector_db
         self.filesystem_gateway: FilesystemGateway = filesystem_gateway
