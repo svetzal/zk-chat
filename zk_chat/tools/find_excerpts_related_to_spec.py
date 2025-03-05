@@ -3,7 +3,7 @@ import json
 import pytest
 from pytest_mock import MockerFixture
 
-from zk_chat.models import ZkQueryResult, ZkDocumentChunk
+from zk_chat.models import ZkQueryResult, ZkDocumentExcerpt
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 
 
@@ -21,7 +21,7 @@ def test_find_excerpts_related_to(find_excerpts_tool, mock_zk):
     query = "test query"
     mock_results = [
         ZkQueryResult(
-            chunk=ZkDocumentChunk(
+            excerpt=ZkDocumentExcerpt(
                 document_id="doc1",
                 document_title="Test Doc 1",
                 text="Sample text 1"
@@ -29,7 +29,7 @@ def test_find_excerpts_related_to(find_excerpts_tool, mock_zk):
             distance=0.1
         ),
         ZkQueryResult(
-            chunk=ZkDocumentChunk(
+            excerpt=ZkDocumentExcerpt(
                 document_id="doc2",
                 document_title="Test Doc 2",
                 text="Sample text 2"
@@ -37,9 +37,9 @@ def test_find_excerpts_related_to(find_excerpts_tool, mock_zk):
             distance=0.2
         )
     ]
-    mock_zk.query_chunks.return_value = mock_results
+    mock_zk.query_excerpts.return_value = mock_results
 
     result = find_excerpts_tool.run(query)
 
-    mock_zk.query_chunks.assert_called_once_with(query)
+    mock_zk.query_excerpts.assert_called_once_with(query)
     assert result == json.dumps([result.model_dump() for result in mock_results])

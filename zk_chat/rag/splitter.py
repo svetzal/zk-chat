@@ -1,10 +1,10 @@
-def split_to_chunks(tokens, chunk_size=500, chunk_overlap=100):
+def split_tokens(tokens, excerpt_size=500, excerpt_overlap=100):
     start_index = 0
     chunks = []
     while start_index < len(tokens):
-        end_index = min(start_index + chunk_size, len(tokens))
+        end_index = min(start_index + excerpt_size, len(tokens))
         chunks.append(tokens[start_index:end_index])
         if end_index == len(tokens):
             break
-        start_index += chunk_size - chunk_overlap
+        start_index += excerpt_size - excerpt_overlap
     return chunks

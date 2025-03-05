@@ -25,14 +25,14 @@ class ZkDocument(BaseModel):
         return os.path.splitext(os.path.basename(self.relative_path))[0]
 
 
-class ZkDocumentChunk(BaseModel):
+class ZkDocumentExcerpt(BaseModel):
     document_id: str
     document_title: str
     text: str
 
 
 class ZkQueryResult(BaseModel):
-    chunk: ZkDocumentChunk
+    excerpt: ZkDocumentExcerpt
     distance: float
 
 

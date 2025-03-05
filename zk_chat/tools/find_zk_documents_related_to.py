@@ -14,11 +14,11 @@ class FindZkDocumentsRelatedTo(LLMTool):
 
     def run(self, query: str) -> str:
         print("Querying documents related to ", query)
-        results = self.zk.query_chunks(query)
+        results = self.zk.query_excerpts(query)
         documents = [
-            {"id": result.chunk.document_id, "title": result.chunk.document_title}
+            {"id": result.excerpt.document_id, "title": result.excerpt.document_title}
             for result in results
-            if result.chunk.document_id is not None
+            if result.excerpt.document_id is not None
         ]
         # Remove duplicates while preserving order
         seen = set()
