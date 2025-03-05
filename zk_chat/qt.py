@@ -11,6 +11,7 @@ from mojentic.llm.tools.date_resolver import ResolveDateTool
 
 from zk_chat.chat import ChatSession, LLMBroker, ChromaGateway, Zettelkasten
 from zk_chat.config import Config, get_available_models
+from zk_chat.filesystem_gateway import FilesystemGateway
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.read_zk_document import ReadZkDocument
@@ -115,6 +116,7 @@ class ChatMessageWidget(QWidget):
         # Add a small buffer to ensure all content is visible
         self.frame.setMinimumHeight(int(doc_height + 15))
         self.frame.setMaximumHeight(int(doc_height + 15))
+
 
 class ChatWorker(QThread):
     response_ready = Signal(str)
@@ -252,10 +254,9 @@ class MainWindow(QMainWindow):
     def initialize_chat_session(self):
         chroma = ChromaGateway()
         zk = Zettelkasten(
-            root_path=self.config.vault,
             tokenizer_gateway=TokenizerGateway(),
-            vector_db=VectorDatabase(chroma_gateway=chroma, embeddings_gateway=EmbeddingsGateway())
-        )
+            vector_db=VectorDatabase(chroma_gateway=chroma, embeddings_gateway=EmbeddingsGateway()),
+            filesystem_gateway=FilesystemGateway(self.config.vault))
         llm = LLMBroker(self.config.model)
 
         tools = [
@@ -328,6 +329,7 @@ def main():
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()

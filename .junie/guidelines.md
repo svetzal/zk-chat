@@ -52,6 +52,7 @@ tests more readable and focuses on describing the behavior of our components.
     - Put fixtures in module scope so that they could be shared between classes
 8. Use pytest's `mocker` for mocking dependencies
 9. Do not use conditional statements in tests. Each test should fail for only one clear reason.
+10. Do not test private methods (starting with a _, eg _private_method) directly. Test them through the public API.
 
 #### Example
 

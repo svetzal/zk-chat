@@ -1,6 +1,7 @@
 import logging
 from importlib.metadata import entry_points
 
+from zk_chat.filesystem_gateway import FilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory
 from zk_chat.tools.store_in_smart_memory import StoreInSmartMemory
@@ -28,9 +29,10 @@ from zk_chat.zettelkasten import Zettelkasten
 
 def chat(config: Config, unsafe: bool = False):
     zk_chroma = ChromaGateway()
-    zk = Zettelkasten(root_path=config.vault,
-                      tokenizer_gateway=TokenizerGateway(),
-                      vector_db=VectorDatabase(chroma_gateway=zk_chroma, embeddings_gateway=EmbeddingsGateway()))
+    zk = Zettelkasten(tokenizer_gateway=TokenizerGateway(),
+                      vector_db=VectorDatabase(chroma_gateway=zk_chroma, embeddings_gateway=EmbeddingsGateway()),
+                      filesystem_gateway=FilesystemGateway(config.vault))
+
     llm = LLMBroker(config.model)
 
     sm_chroma = ChromaGateway(partition_name="smart_memory")
