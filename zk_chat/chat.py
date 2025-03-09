@@ -50,7 +50,7 @@ def chat(config: Config, unsafe: bool = False):
     if unsafe:
         tools.append(CreateOrOverwriteZkDocument(zk))
 
-    _add_available_plugins(tools)
+    _add_available_plugins(tools, config)
 
     chat_session = ChatSession(
         llm,
@@ -68,13 +68,13 @@ def chat(config: Config, unsafe: bool = False):
             print(response)
 
 
-def _add_available_plugins(tools):
+def _add_available_plugins(tools, config: Config):
     eps = entry_points()
     plugin_entr_points = eps.select(group="zk_rag_plugins")
     for ep in plugin_entr_points:
         logging.info(f"Adding Plugin {ep.name}")
         plugin_class = ep.load()
-        tools.append(plugin_class())
+        tools.append(plugin_class(vault=config.vault))
 
 
 def main():
