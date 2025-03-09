@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.4.0] - 2024-03-19
+## [Next]
+
+- Restructure Zettelkasten so that indexing is externalized and we can have multiple indexers (on the path to one for
+  the excerpts and one for document titles/summaries).
+
+## [1.4.0] - 2025-03-09
 
 ### Added
 
@@ -18,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Extracted filesystem operations into a dedicated filesystem gateway
 - Improved code organization and structure
 
-## [1.3.0] - 2024-03-12
+## [1.3.0] - 2025-03-03
 
 ### Added
 
@@ -28,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed wikipedia lookup tool and [made it a plugin](https://pypi.org/project/zk-rag-wikipedia/) instead
 
-## [1.2.0] - 2024-03-05
+## [1.2.0] - 2025-03-02
 
 ### Added
 
@@ -40,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced configuration options through both CLI and GUI
 - Improved model selection interface
 
-## [1.1.0] - 2024-02-19
+## [1.1.0] - 2025-02-19
 
 ### Added
 
