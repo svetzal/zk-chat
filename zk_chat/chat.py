@@ -68,13 +68,13 @@ def chat(config: Config, unsafe: bool = False):
             print(response)
 
 
-def _add_available_plugins(tools, config: Config):
+def _add_available_plugins(tools, config: Config, llm: LLMBroker):
     eps = entry_points()
     plugin_entr_points = eps.select(group="zk_rag_plugins")
     for ep in plugin_entr_points:
         logging.info(f"Adding Plugin {ep.name}")
         plugin_class = ep.load()
-        tools.append(plugin_class(vault=config.vault))
+        tools.append(plugin_class(vault=config.vault, llm=llm))
 
 
 def main():
