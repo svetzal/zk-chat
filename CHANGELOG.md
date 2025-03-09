@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
-## [1.5.0] - 2025-03-10
+## [1.5.1] - 2025-03-09
+
+### Fixed
+
+- Properly passing LLM instance to plugins to enable LLM capabilities
+
+## [1.5.0] - 2025-03-09
 
 ### Added
 

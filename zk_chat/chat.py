@@ -50,7 +50,7 @@ def chat(config: Config, unsafe: bool = False):
     if unsafe:
         tools.append(CreateOrOverwriteZkDocument(zk))
 
-    _add_available_plugins(tools, config)
+    _add_available_plugins(tools, config, llm)
 
     chat_session = ChatSession(
         llm,
