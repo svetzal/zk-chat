@@ -7,8 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
-- Restructure Zettelkasten so that indexing is externalized and we can have multiple indexers (on the path to one for
-  the excerpts and one for document titles/summaries).
+## [1.5.0] - 2025-03-10
+
+### Added
+
+- **Breaking**: Enhanced plugin system to provide plugins with access to LLM capabilities
+- Support for multiple indexers in Zettelkasten (one for excerpts and one for document titles/summaries)
+
+### Changed
+
+- Restructured Zettelkasten to externalize indexing functionality
 
 ## [1.4.0] - 2025-03-09
 
