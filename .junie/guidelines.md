@@ -20,6 +20,7 @@
 2. Include return type hints when the return type isn't obvious
 3. Use docstrings for methods that aren't self-explanatory
 4. Class docstrings should describe the purpose and behavior of the component
+5. Follow numpy docstring style
 
 ### Logging Conventions
 1. Use structlog for all logging
@@ -32,67 +33,63 @@
    - ERROR for critical issues
 5. Use print statements only for direct user feedback
 
-## Testing Style Guide
+## Testing Guidelines
+
+### General Rules
+1. Use pytest for all testing
+2. Test files:
+   - Named with `_spec.py` suffix
+   - Co-located with implementation files (same folder as the test subject)
+3. Code style:
+   - Max line length: 127
+   - Max complexity: 10
+4. Run tests with: `pytest`
+5. Run linting with: `flake8 src`
 
 ### BDD-Style Tests
+We follow a Behavior-Driven Development (BDD) style using the "Describe/should" pattern to make tests readable and focused on component behavior.
 
-We follow a Behavior-Driven Development (BDD) style for our tests using the "Describe/should" pattern. This style makes
-tests more readable and focuses on describing the behavior of our components.
+#### Test Structure
+1. Tests are organized in classes that start with "Describe" followed by the component name
+2. Test methods:
+   - Start with "should_"
+   - Describe the expected behavior in plain English
+   - Follow the Arrange/Act/Assert pattern (separated by blank lines)
+3. No conditional statements in tests - each test should fail for only one clear reason
+4. Do not test private methods directly (those starting with '_') - test through the public API
 
-#### Structure
-
-1. Use pytest, do not use unittest
-2. Test files should be named with a `_spec.py` suffix
-3. The test file must be placed in the same folder as the file containing the test subject.
-4. Tests are organized in classes that start with "Describe" followed by the name of the component being tested
-5. Test methods start with "should_" and describe the expected behavior in plain English
-6. Do not put comments above the Arrange / Act / Assert sections of the test, just put a blank line between them
-7. Use pytest @fixture functions for initializing test prerequisites so that fixtures can be re-used.
-    - Break up fixtures into smaller fixtures if they are too large
-    - Put fixtures in module scope so that they could be shared between classes
-8. Use pytest's `mocker` for mocking dependencies
-9. Do not use conditional statements in tests. Each test should fail for only one clear reason.
-10. Do not test private methods (starting with a _, eg _private_method) directly. Test them through the public API.
-
-#### Example
-
-```python
-class DescribeComponent:
-    """
-    Describe in plain language the purpose and behaviour of the component
-    """
-
-    def should_behave_in_specific_way(self):
-      # Set up your test prerequisites
-      
-      # Execute the behavior you're testing
-      
-      # Verify the expected outcomes
-```
+#### Fixtures and Mocking
+1. Use pytest @fixture for test prerequisites:
+   - Break large fixtures into smaller, reusable ones
+   - Place fixtures in module scope for sharing between classes
+   - Place module-level fixtures at the top of the file
+2. Mocking:
+   - Use pytest's `mocker` for dependencies
+   - Use Mock's spec parameter for type safety (e.g., `Mock(spec=SmartMemory)`)
+   - Only mock our own gateway classes
+   - Do not mock library internals or private functions
+   - Do not use unittest or MagicMock directly
 
 #### Best Practices
-
-1. Use clear, descriptive names for test methods that explain the expected behavior
-2. Follow the Arrange/Act/Assert pattern within test methods
-3. Keep tests focused on a single behavior
-4. Use meaningful assertions that verify the expected behavior
-5. Organize test methods in a logical sequence:
+1. Test organization:
    - Place instantiation/initialization tests first
-   - Group related test scenarios together (e.g., success and failure cases)
-6. Write assertions following these guidelines:
+   - Group related scenarios together (success and failure cases)
+   - Keep tests focused on single behaviors
+2. Assertions:
    - One assertion per line for better error identification
    - Use 'in' operator for partial string matches
    - Use '==' for exact matches
-7. Use Mock's spec parameter to ensure type safety (e.g., `Mock(spec=SmartMemory)`)
-8. Handle test data appropriately:
+3. Test data:
    - Use fixtures for reusable prerequisites
    - Define complex test data structures within test methods
-   - Place module-level fixtures at the top of the file
 
-#### Real Example
+### Example
 
 ```python
 class DescribeSmartMemory:
+    """
+    Tests for the SmartMemory component which handles memory operations
+    """
     def should_be_instantiated_with_chroma_gateway(self):
         mock_chroma_gateway = Mock(spec=ChromaGateway)
 
