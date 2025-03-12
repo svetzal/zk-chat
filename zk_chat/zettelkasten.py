@@ -7,7 +7,7 @@ import yaml
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
 from zk_chat.filesystem_gateway import FilesystemGateway
-from zk_chat.markdown.loader import load_markdown
+from zk_chat.markdown.markdown_utilities import MarkdownUtilities
 from zk_chat.models import ZkDocument, ZkDocumentExcerpt, ZkQueryResult, VectorDocumentForStorage
 from zk_chat.rag.splitter import split_tokens
 from zk_chat.vector_database import VectorDatabase
@@ -32,7 +32,7 @@ class Zettelkasten:
         return self.filesystem_gateway.path_exists(relative_path)
 
     def read_document(self, relative_path: str) -> ZkDocument:
-        (metadata, content) = load_markdown(self.filesystem_gateway.get_full_path(relative_path))
+        (metadata, content) = MarkdownUtilities.load_markdown(self.filesystem_gateway.get_full_path(relative_path))
         document = ZkDocument(
             relative_path=relative_path,
             metadata=metadata,
