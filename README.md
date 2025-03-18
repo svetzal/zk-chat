@@ -1,4 +1,4 @@
-# Chat With Your Zettelkasten
+# 💬 Chat With Your Zettelkasten
 
 This is a simple tool that lets you chat with a local "AI" that has access to the documents in your Zettelkasten. It will
 index your markdown documents, and in your chat session it may choose to query your content, retrieve excerpts, read
@@ -7,7 +7,7 @@ entire documents, and generate responses based on the content in your Zettelkast
 For "AI" it communicates with a local running instance of Ollama. Ollama must be installed and running for zkchat to
 function.
 
-## Features
+## ✨ Features
 
 - Command-line interface for quick access
 - Graphical user interface for a more user-friendly experience
@@ -16,7 +16,7 @@ function.
 - Configurable LLM model selection
 - Easy Zettelkasten folder configuration
 
-### Tools
+### 🛠️ Tools
 
 The chat interface provides access to several tools that enhance its capabilities:
 
@@ -33,7 +33,7 @@ The chat interface provides access to several tools that enhance its capabilitie
 - **Available Tool Plugins**
   - [zk-rag-wikipedia](https://pypi.org/project/zk-rag-wikipedia/): A plugin for looking up information on Wikipedia and creating documents from the results
 
-## Requirements
+## 🔧 Requirements
 
 You must have [ollama](https://ollama.com/) installed and running.
 
@@ -41,7 +41,7 @@ You must have a local knowledgebase / zettelkasten with content in markdown form
 use [Obsidian](https://obsidian.md/), because I favour working locally, and I favour using the markdown format for
 notes - because everything's local, and in plain text, I can simply point this tool at a Vault folder.
 
-## Workstation setup
+## 💻 Workstation setup
 
 **_Right now, while this tool should run on Windows, we've only written instructions for Mac._**
 
@@ -74,9 +74,9 @@ brew install ollama
 ollama pull qwen2.5:14b
 ```
 
-## Usage
+## 🚀 Usage
 
-### Command-line Interface
+### 📟 Command-line Interface
 
 Run `zkchat` to start the command-line interface.
 
@@ -89,7 +89,7 @@ Command-line options:
 - `--unsafe`: Enable operations that can write to your Zettelkasten. This flag is required for using tools that modify your Zettelkasten content, such as the Write Document tool. Use with caution as it allows the AI to make changes to your files.
 - `--reset-memory`: Clear the smart memory storage
 
-### Smart Memory
+### 🧠 Smart Memory
 
 The tool includes a Smart Memory mechanism that allows the AI to store and retrieve information during conversations. This memory:
 - Persists between chat sessions
@@ -97,7 +97,7 @@ The tool includes a Smart Memory mechanism that allows the AI to store and retri
 - Enables the AI to recall previous context and information
 - Can be cleared using the `--reset-memory` CLI option
 
-### Graphical Interface (Experimental)
+### 🖥️ Graphical Interface (Experimental)
 
 **_The GUI is experimental and may not work as expected. It is provided as a preview feature only._**
 
