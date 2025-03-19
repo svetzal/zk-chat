@@ -11,7 +11,7 @@ from mojentic.llm.tools.date_resolver import ResolveDateTool
 
 from zk_chat.chat import ChatSession, LLMBroker, ChromaGateway, Zettelkasten
 from zk_chat.config import Config, get_available_models
-from zk_chat.filesystem_gateway import FilesystemGateway
+from zk_chat.filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.read_zk_document import ReadZkDocument
@@ -253,10 +253,9 @@ class MainWindow(QMainWindow):
 
     def initialize_chat_session(self):
         chroma = ChromaGateway()
-        zk = Zettelkasten(
-            tokenizer_gateway=TokenizerGateway(),
-            vector_db=VectorDatabase(chroma_gateway=chroma, embeddings_gateway=EmbeddingsGateway()),
-            filesystem_gateway=FilesystemGateway(self.config.vault))
+        zk = Zettelkasten(tokenizer_gateway=TokenizerGateway(),
+                          vector_db=VectorDatabase(chroma_gateway=chroma, embeddings_gateway=EmbeddingsGateway()),
+                          filesystem_gateway=MarkdownFilesystemGateway(self.config.vault))
         llm = LLMBroker(self.config.model)
 
         tools = [

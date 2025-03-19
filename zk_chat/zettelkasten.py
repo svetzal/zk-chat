@@ -6,8 +6,7 @@ import structlog
 import yaml
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
-from zk_chat.filesystem_gateway import FilesystemGateway
-from zk_chat.markdown.markdown_utilities import MarkdownUtilities
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.models import ZkDocument, ZkDocumentExcerpt, ZkQueryResult, VectorDocumentForStorage
 from zk_chat.rag.splitter import split_tokens
 from zk_chat.vector_database import VectorDatabase
@@ -16,13 +15,11 @@ logger = structlog.get_logger()
 
 
 class Zettelkasten:
-    def __init__(self,
-                 tokenizer_gateway: TokenizerGateway,
-                 vector_db: VectorDatabase,
-                 filesystem_gateway: FilesystemGateway):
+    def __init__(self, tokenizer_gateway: TokenizerGateway, vector_db: VectorDatabase,
+                 filesystem_gateway: MarkdownFilesystemGateway):
         self.tokenizer_gateway: TokenizerGateway = tokenizer_gateway
         self.vector_db: VectorDatabase = vector_db
-        self.filesystem_gateway: FilesystemGateway = filesystem_gateway
+        self.filesystem_gateway: MarkdownFilesystemGateway = filesystem_gateway
 
     def _iterate_markdown_files(self) -> Iterator[str]:
         """Yields relative paths for all markdown files in the zk"""
@@ -32,7 +29,7 @@ class Zettelkasten:
         return self.filesystem_gateway.path_exists(relative_path)
 
     def read_document(self, relative_path: str) -> ZkDocument:
-        (metadata, content) = MarkdownUtilities.load_markdown(self.filesystem_gateway.get_full_path(relative_path))
+        (metadata, content) = self.filesystem_gateway.read_markdown(relative_path)
         document = ZkDocument(
             relative_path=relative_path,
             metadata=metadata,
@@ -63,27 +60,18 @@ class Zettelkasten:
                 logger.info("Creating directory", directory=directory)
                 self.filesystem_gateway.create_directory(directory)
 
-            # Try to serialize metadata before writing the file
+            logger.debug("Writing document", path=document.relative_path)
             try:
-                metadata_yaml = yaml.dump(document.metadata, Dumper=yaml.SafeDumper)
+                self.filesystem_gateway.write_markdown(document.relative_path, document.metadata, document.content)
+                logger.info("Document written successfully", path=document.relative_path)
             except yaml.YAMLError as e:
                 logger.error("Failed to serialize document metadata",
                              path=document.relative_path,
                              error=str(e))
                 raise
 
-            content = f"---\n{metadata_yaml}---\n{document.content}"
-            logger.debug("Writing document", path=document.relative_path)
-            self.filesystem_gateway.write_file(document.relative_path, content)
-            logger.info("Document written successfully", path=document.relative_path)
-
         except OSError as e:
             logger.error("Failed to write document",
-                         path=document.relative_path,
-                         error=str(e))
-            raise
-        except yaml.YAMLError as e:
-            logger.error("Failed to serialize document metadata",
                          path=document.relative_path,
                          error=str(e))
             raise
