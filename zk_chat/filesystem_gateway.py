@@ -118,15 +118,3 @@ class FilesystemGateway:
         with open(full_path, "w") as f:
             f.write(content)
 
-    def iterate_markdown_files(self) -> Iterator[str]:
-        """Iterate through all markdown files in the root directory.
-
-        Yields:
-            str: Relative path for each markdown file
-        """
-        for root, _, files in os.walk(self.root_path):
-            for file in files:
-                if file.endswith('.md'):
-                    full_path = os.path.join(root, file)
-                    relative_path = os.path.relpath(full_path, self.root_path)
-                    yield relative_path

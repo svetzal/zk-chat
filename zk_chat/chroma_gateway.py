@@ -19,7 +19,7 @@ class ChromaGateway:
 
     def init_collection(self):
         return self.chroma_client.get_or_create_collection(
-            name=self.partition_name)  # , embedding_function=OllamaEmbeddingFunction())
+            name=self.partition_name)
 
     def add_items(self, ids, documents, metadatas, embeddings):
         self.collection.upsert(

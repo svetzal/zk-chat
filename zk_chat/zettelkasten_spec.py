@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from zk_chat.filesystem_gateway import FilesystemGateway
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.models import ZkDocument
 from zk_chat.zettelkasten import Zettelkasten
 
@@ -18,11 +18,14 @@ class DescribeZettelkasten:
 
     @pytest.fixture
     def mock_filesystem_gateway(self):
-        mock = Mock(spec=FilesystemGateway)
+        mock = Mock(spec=MarkdownFilesystemGateway)
         mock.path_exists.return_value = True
         mock.join_paths.side_effect = lambda *args: "/".join(args)
         mock.get_full_path.side_effect = lambda path: f"test_root/{path}"
         mock.root_path = "test_root"
+        # Add mock methods for the new MarkdownFilesystemGateway methods
+        mock.read_markdown.side_effect = lambda path: ({}, "Test content")
+        mock.write_markdown.return_value = None
         return mock
 
     @pytest.fixture
@@ -61,7 +64,7 @@ class DescribeZettelkasten:
                 content="Appended content"
             )
 
-            with patch.object(zk, 'read_document', return_value=original_doc), \
+            with patch.object(zk.filesystem_gateway, 'read_markdown', return_value=(original_doc.metadata, original_doc.content)), \
                  patch.object(zk, 'create_or_overwrite_document') as mock_write, \
                  patch.object(zk.filesystem_gateway, 'get_directory_path', return_value='test_dir'), \
                  patch.object(zk.filesystem_gateway, 'path_exists', return_value=True), \
@@ -103,7 +106,7 @@ class DescribeZettelkasten:
                 content="Appended content"
             )
 
-            with patch.object(zk, 'read_document', return_value=original_doc), \
+            with patch.object(zk.filesystem_gateway, 'read_markdown', return_value=(original_doc.metadata, original_doc.content)), \
                  patch.object(zk, 'create_or_overwrite_document') as mock_write, \
                  patch.object(zk.filesystem_gateway, 'get_directory_path', return_value='test_dir'), \
                  patch.object(zk.filesystem_gateway, 'path_exists', return_value=True), \
@@ -141,7 +144,7 @@ class DescribeZettelkasten:
                 content="Appended content"
             )
 
-            with patch.object(zk, 'read_document', return_value=original_doc), \
+            with patch.object(zk.filesystem_gateway, 'read_markdown', return_value=(original_doc.metadata, original_doc.content)), \
                  patch.object(zk, 'create_or_overwrite_document') as mock_write, \
                  patch.object(zk.filesystem_gateway, 'get_directory_path', return_value='test_dir'), \
                  patch.object(zk.filesystem_gateway, 'path_exists', return_value=True), \
@@ -175,7 +178,7 @@ class DescribeZettelkasten:
                 content="Appended content here."
             )
 
-            with patch.object(zk, 'read_document', return_value=original_doc), \
+            with patch.object(zk.filesystem_gateway, 'read_markdown', return_value=(original_doc.metadata, original_doc.content)), \
                  patch.object(zk, 'create_or_overwrite_document') as mock_write, \
                  patch.object(zk.filesystem_gateway, 'get_directory_path', return_value='test_dir'), \
                  patch.object(zk.filesystem_gateway, 'path_exists', return_value=True), \

@@ -11,9 +11,9 @@ from zk_chat.zettelkasten import Zettelkasten
 
 def reindex(config: Config, force_full: bool = False):
     chroma = ChromaGateway()
-    zk = Zettelkasten(root_path=config.vault,
-                      tokenizer_gateway=TokenizerGateway(),
-                      vector_db=VectorDatabase(chroma_gateway=chroma, embeddings_gateway=EmbeddingsGateway()))
+    zk = Zettelkasten(tokenizer_gateway=TokenizerGateway(),
+                      vector_db=VectorDatabase(chroma_gateway=chroma, embeddings_gateway=EmbeddingsGateway()),
+                      filesystem_gateway=)
 
     if force_full or config.last_indexed is None:
         print("Performing full reindex...")
