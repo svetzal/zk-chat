@@ -5,6 +5,7 @@ from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
 
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.memory.smart_memory import SmartMemory
+from zk_chat.chroma_collections import ZkCollectionName
 
 
 @pytest.fixture
@@ -44,7 +45,8 @@ class DescribeSmartMemory:
             ids=[ANY],
             documents=["some information"],
             metadatas=None,
-            embeddings=[mock_embeddings]
+            embeddings=[mock_embeddings],
+            collection_name=ZkCollectionName.SMART_MEMORY
         )
 
     def should_retrieve_information_from_chroma_db_with_default_results(self, mock_chroma_gateway, mock_embeddings_gateway):
@@ -55,7 +57,8 @@ class DescribeSmartMemory:
         mock_embeddings_gateway.calculate.assert_called_once_with("some information")
         mock_chroma_gateway.query.assert_called_once_with(
             query_embeddings=ANY,
-            n_results=5
+            n_results=5,
+            collection_name=ZkCollectionName.SMART_MEMORY
         )
 
     def should_retrieve_information_from_chroma_db_with_custom_results(self, mock_chroma_gateway, mock_embeddings_gateway):
@@ -66,7 +69,8 @@ class DescribeSmartMemory:
         mock_embeddings_gateway.calculate.assert_called_once_with("some information")
         mock_chroma_gateway.query.assert_called_once_with(
             query_embeddings=ANY,
-            n_results=10
+            n_results=10,
+            collection_name=ZkCollectionName.SMART_MEMORY
         )
 
     def should_reset_smart_memory(self, mock_chroma_gateway, mock_embeddings_gateway):
@@ -75,4 +79,4 @@ class DescribeSmartMemory:
 
         memory.reset()
 
-        mock_chroma_gateway.reset_indexes.assert_called_once()
+        mock_chroma_gateway.reset_indexes.assert_called_once_with(collection_name=ZkCollectionName.SMART_MEMORY)

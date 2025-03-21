@@ -16,6 +16,7 @@ from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.read_zk_document import ReadZkDocument
 from zk_chat.vector_database import VectorDatabase
+from zk_chat.chroma_collections import ZkCollectionName
 
 
 class LoadingSpinnerWidget(QWidget):
@@ -253,9 +254,14 @@ class MainWindow(QMainWindow):
 
     def initialize_chat_session(self):
         chroma = ChromaGateway()
-        zk = Zettelkasten(tokenizer_gateway=TokenizerGateway(),
-                          vector_db=VectorDatabase(chroma_gateway=chroma, embeddings_gateway=EmbeddingsGateway()),
-                          filesystem_gateway=MarkdownFilesystemGateway(self.config.vault))
+        zk = Zettelkasten(
+            tokenizer_gateway=TokenizerGateway(),
+            vector_db=VectorDatabase(
+                chroma_gateway=chroma, 
+                embeddings_gateway=EmbeddingsGateway(),
+                collection_name=ZkCollectionName.EXCERPTS
+            ),
+            filesystem_gateway=MarkdownFilesystemGateway(self.config.vault))
         llm = LLMBroker(self.config.model)
 
         tools = [
