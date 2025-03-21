@@ -2,6 +2,11 @@
 
 ## Code Organization
 
+### Program Entry Points
+1. All code is located in the `zk_chat` folder
+2. The UI is launched by running `zk_chat/qt.py`
+3. The CLI tool is launched by running `zk_chat/cli.py`
+
 ### Import Structure
 1. Imports should be grouped in the following order, with one blank line between groups:
    - Standard library imports
