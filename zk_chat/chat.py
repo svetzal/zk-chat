@@ -6,6 +6,7 @@ from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGatew
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory
 from zk_chat.tools.store_in_smart_memory import StoreInSmartMemory
+from zk_chat.chroma_collections import ZkCollectionName
 
 logging.basicConfig(
     level=logging.WARN
@@ -29,15 +30,27 @@ from zk_chat.zettelkasten import Zettelkasten
 
 
 def chat(config: Config, unsafe: bool = False):
-    zk_chroma = ChromaGateway()
-    zk = Zettelkasten(tokenizer_gateway=TokenizerGateway(),
-                      vector_db=VectorDatabase(chroma_gateway=zk_chroma, embeddings_gateway=EmbeddingsGateway()),
-                      filesystem_gateway=MarkdownFilesystemGateway(config.vault))
+    # Create a single ChromaGateway instance to access multiple collections
+    chroma_gateway = ChromaGateway()
+
+    # Create Zettelkasten with the excerpts collection
+    zk = Zettelkasten(
+        tokenizer_gateway=TokenizerGateway(),
+        vector_db=VectorDatabase(
+            chroma_gateway=chroma_gateway, 
+            embeddings_gateway=EmbeddingsGateway(),
+            collection_name=ZkCollectionName.EXCERPTS
+        ),
+        filesystem_gateway=MarkdownFilesystemGateway(config.vault)
+    )
 
     llm = LLMBroker(config.model)
 
-    sm_chroma = ChromaGateway(partition_name="smart_memory")
-    smart_memory = SmartMemory(chroma_gateway=sm_chroma, embeddings_gateway=EmbeddingsGateway())
+    # Create SmartMemory with the smart_memory collection
+    smart_memory = SmartMemory(
+        chroma_gateway=chroma_gateway, 
+        embeddings_gateway=EmbeddingsGateway()
+    )
 
     tools = [
         ResolveDateTool(),
