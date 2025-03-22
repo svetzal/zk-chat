@@ -256,10 +256,15 @@ class MainWindow(QMainWindow):
         chroma = ChromaGateway()
         zk = Zettelkasten(
             tokenizer_gateway=TokenizerGateway(),
-            vector_db=VectorDatabase(
+            excerpts_db=VectorDatabase(
                 chroma_gateway=chroma, 
                 embeddings_gateway=EmbeddingsGateway(),
                 collection_name=ZkCollectionName.EXCERPTS
+            ),
+            documents_db=VectorDatabase(
+                chroma_gateway=chroma_gateway,
+                embeddings_gateway=EmbeddingsGateway(),
+                collection_name=ZkCollectionName.DOCUMENTS
             ),
             filesystem_gateway=MarkdownFilesystemGateway(self.config.vault))
         llm = LLMBroker(self.config.model)

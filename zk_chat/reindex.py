@@ -17,19 +17,24 @@ def reindex(config: Config, force_full: bool = False):
     chroma = ChromaGateway(db_dir=db_dir)
     zk = Zettelkasten(
         tokenizer_gateway=TokenizerGateway(),
-        vector_db=VectorDatabase(
+        excerpts_db=VectorDatabase(
             chroma_gateway=chroma, 
             embeddings_gateway=EmbeddingsGateway(),
             collection_name=ZkCollectionName.EXCERPTS
+        ),
+        documents_db=VectorDatabase(
+            chroma_gateway=chroma,
+            embeddings_gateway=EmbeddingsGateway(),
+            collection_name=ZkCollectionName.DOCUMENTS
         ),
         filesystem_gateway=MarkdownFilesystemGateway(config.vault))
 
     if force_full or config.last_indexed is None:
         print("Performing full reindex...")
-        zk.split_and_index(excerpt_size=config.chunk_size, excerpt_overlap=config.chunk_overlap)
+        zk.index_excerpts(excerpt_size=config.chunk_size, excerpt_overlap=config.chunk_overlap)
     else:
         print(f"Performing incremental reindex since {config.last_indexed}...")
-        zk.incremental_split_and_index(since=config.last_indexed, excerpt_size=config.chunk_size, excerpt_overlap=config.chunk_overlap)
+        zk.incremental_index_excerpts(since=config.last_indexed, excerpt_size=config.chunk_size, excerpt_overlap=config.chunk_overlap)
 
     config.last_indexed = datetime.now()
     config.save()
