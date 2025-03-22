@@ -15,10 +15,11 @@ logger = structlog.get_logger()
 
 
 class Zettelkasten:
-    def __init__(self, tokenizer_gateway: TokenizerGateway, vector_db: VectorDatabase,
-                 filesystem_gateway: MarkdownFilesystemGateway):
+    def __init__(self, tokenizer_gateway: TokenizerGateway, excerpts_db: VectorDatabase,
+                 documents_db: VectorDatabase, filesystem_gateway: MarkdownFilesystemGateway):
         self.tokenizer_gateway: TokenizerGateway = tokenizer_gateway
-        self.vector_db: VectorDatabase = vector_db
+        self.excerpts_db: VectorDatabase = excerpts_db
+        self.documents_db: VectorDatabase = documents_db
         self.filesystem_gateway: MarkdownFilesystemGateway = filesystem_gateway
 
     def _iterate_markdown_files(self) -> Iterator[str]:
@@ -80,22 +81,25 @@ class Zettelkasten:
         for relative_path in self._iterate_markdown_files():
             yield self.read_document(relative_path)
 
-    def split_and_index(self, excerpt_size=500, excerpt_overlap=100):
-        self.vector_db.reset()
+    def index_excerpts(self, excerpt_size=500, excerpt_overlap=100):
+        self.excerpts_db.reset()
         for relative_path in self._iterate_markdown_files():
-            document = self.read_document(relative_path)
-            self._split_document(document, excerpt_size, excerpt_overlap)
+            self._index_document(relative_path, excerpt_size, excerpt_overlap)
 
-    def incremental_split_and_index(self, since: datetime, excerpt_size=500, excerpt_overlap=100):
+    def incremental_index_excerpts(self, since: datetime, excerpt_size=500, excerpt_overlap=100):
         for relative_path in self._iterate_markdown_files():
             if self._needs_reindex(relative_path, since):
-                document = self.read_document(relative_path)
-                self._split_document(document, excerpt_size, excerpt_overlap)
+                self._index_document(relative_path, excerpt_size, excerpt_overlap)
+
+    def _index_document(self, relative_path, excerpt_size, excerpt_overlap):
+        document = self.read_document(relative_path)
+        self._split_document(document, excerpt_size, excerpt_overlap)
+
 
     def query_excerpts(self, query: str, n_results: int = 5, max_distance: float = 1.0) -> List[ZkQueryResult]:
         return [
             self._create_query_result(result)
-            for result in (self.vector_db.query(query, n_results=n_results))
+            for result in (self.excerpts_db.query(query, n_results=n_results))
             if result.distance <= max_distance
         ]
 
@@ -125,7 +129,7 @@ class Zettelkasten:
             self._create_vector_document_for_storage(excerpt, document)
             for excerpt in text_excerpts
         ]
-        self.vector_db.add_documents(docs_for_storage)
+        self.excerpts_db.add_documents(docs_for_storage)
 
     def _create_vector_document_for_storage(self, excerpt, document):
         return VectorDocumentForStorage(

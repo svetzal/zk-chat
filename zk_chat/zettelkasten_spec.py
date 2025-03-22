@@ -30,7 +30,7 @@ class DescribeZettelkasten:
 
     @pytest.fixture
     def zk(self, mock_tokenizer_gateway, mock_vector_db, mock_filesystem_gateway):
-        return Zettelkasten(mock_tokenizer_gateway, mock_vector_db, mock_filesystem_gateway)
+        return Zettelkasten(mock_tokenizer_gateway, mock_vector_db, mock_vector_db, mock_filesystem_gateway)
 
     class DescribeAppendToDocument:
         def should_merge_metadata_dictionaries_recursively(self, zk):

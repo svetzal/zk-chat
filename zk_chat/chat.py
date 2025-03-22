@@ -39,10 +39,15 @@ def chat(config: Config, unsafe: bool = False):
     # Create Zettelkasten with the excerpts collection
     zk = Zettelkasten(
         tokenizer_gateway=TokenizerGateway(),
-        vector_db=VectorDatabase(
+        excerpts_db=VectorDatabase(
             chroma_gateway=chroma_gateway, 
             embeddings_gateway=EmbeddingsGateway(),
             collection_name=ZkCollectionName.EXCERPTS
+        ),
+        documents_db=VectorDatabase(
+            chroma_gateway=chroma_gateway,
+            embeddings_gateway=EmbeddingsGateway(),
+            collection_name=ZkCollectionName.DOCUMENTS
         ),
         filesystem_gateway=MarkdownFilesystemGateway(config.vault)
     )
