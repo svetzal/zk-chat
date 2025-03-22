@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+## [2.0.0] - 2025-03-22
+
+### Added
+
+- Vault path argument for command-line tools
+- Bookmark management for vault paths in CLI
+- Global configuration handling
+- MarkdownUtilities for handling markdown files with metadata
+- MarkdownFilesystemGateway for markdown file operations
+
+### Changed
+
+- **Breaking**: Refactored ChromaGateway to support multiple collections
+- **Breaking**: Updated Zettelkasten integration with new gateway architecture
+- Streamlined bookmark handling in CLI by removing deprecated options
+
 ## [1.5.1] - 2025-03-09
 
 ### Fixed

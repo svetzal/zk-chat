@@ -81,7 +81,11 @@ ollama pull qwen2.5:14b
 Run `zkchat --vault /path/to/vault` to start the command-line interface.
 
 Command-line options:
-- `--vault PATH`: Specify the path to your Zettelkasten vault (required)
+- `--vault PATH`: Specify the path to your Zettelkasten vault (required if no bookmarks are set)
+- `--bookmark NAME`: Use a bookmarked vault path instead of specifying the path directly
+- `--add-bookmark NAME PATH`: Add a new bookmark for a vault path
+- `--remove-bookmark NAME`: Remove a bookmarked vault path
+- `--list-bookmarks`: List all bookmarked vault paths
 - `--model [model_name]`: Change the LLM model to use for chat
   - With model name: `zkchat --vault /path/to/vault --model llama2` - configure to use specified model
   - Without model name: `zkchat --vault /path/to/vault --model` - interactively select from available models
