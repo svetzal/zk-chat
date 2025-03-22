@@ -28,7 +28,7 @@ class CreateOrOverwriteZkDocument(LLMTool):
         relative_path = f"{self._sanitize_filename(title)}.md"
         print("Writing document at", relative_path)
         try:
-            augmented_metadata = metadata or {} | {"reviewed": False}
+            augmented_metadata = (metadata and isinstance(metadata, dict)) or {} | {"reviewed": False}
             logger.info("writing file", relative_path=relative_path, metadata=augmented_metadata, content=content)
             document = ZkDocument(relative_path=relative_path, metadata=augmented_metadata or {}, content=content)
             self.zk.create_or_overwrite_document(document)
