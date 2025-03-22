@@ -31,10 +31,10 @@ def reindex(config: Config, force_full: bool = False):
 
     if force_full or config.last_indexed is None:
         print("Performing full reindex...")
-        zk.index_excerpts(excerpt_size=config.chunk_size, excerpt_overlap=config.chunk_overlap)
+        zk.reindex(excerpt_size=config.chunk_size, excerpt_overlap=config.chunk_overlap)
     else:
         print(f"Performing incremental reindex since {config.last_indexed}...")
-        zk.incremental_index_excerpts(since=config.last_indexed, excerpt_size=config.chunk_size, excerpt_overlap=config.chunk_overlap)
+        zk.update_index(since=config.last_indexed, excerpt_size=config.chunk_size, excerpt_overlap=config.chunk_overlap)
 
     config.last_indexed = datetime.now()
     config.save()

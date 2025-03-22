@@ -46,7 +46,7 @@ class CreateOrOverwriteZkDocument(LLMTool):
             return error_message
 
     @property
-    def descriptor(self):
+    def descriptor(self) -> dict:
         return {
             "type": "function",
             "function": {

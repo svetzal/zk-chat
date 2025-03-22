@@ -19,7 +19,7 @@ class ReadZkDocument(LLMTool):
         return document.model_dump_json()
 
     @property
-    def descriptor(self):
+    def descriptor(self) -> dict:
         return {
             "type": "function",
             "function": {
