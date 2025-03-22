@@ -16,6 +16,12 @@ logger = structlog.get_logger()
 
 
 class Zettelkasten:
+    """
+    Manages a Zettelkasten (note-taking system) with vector database integration.
+
+    This class provides functionality for reading, writing, and querying Zettelkasten documents,
+    as well as indexing document content for vector search capabilities.
+    """
     def __init__(self, tokenizer_gateway: TokenizerGateway, excerpts_db: VectorDatabase,
                  documents_db: VectorDatabase, filesystem_gateway: MarkdownFilesystemGateway):
         self.tokenizer_gateway: TokenizerGateway = tokenizer_gateway
@@ -141,7 +147,7 @@ class Zettelkasten:
         )
 
     def _split_document(self, document: ZkDocument, excerpt_size: int = 200, excerpt_overlap: int = 100) -> None:
-        logger.info(f"Processing", document_title=document.title)
+        logger.info("Processing", document_title=document.title)
         tokens = self.tokenizer_gateway.encode(document.content)
         logger.info("Content length", text=len(document.content), tokens=len(tokens))
         token_chunks = split_tokens(tokens, excerpt_size=excerpt_size, excerpt_overlap=excerpt_overlap)
