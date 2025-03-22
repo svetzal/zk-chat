@@ -28,9 +28,12 @@ class CreateOrOverwriteZkDocument(LLMTool):
         relative_path = f"{self._sanitize_filename(title)}.md"
         print("Writing document at", relative_path)
         try:
-            augmented_metadata = (metadata and isinstance(metadata, dict)) or {} | {"reviewed": False}
+            # Use metadata only if it's a dictionary, otherwise use empty dict
+            base_metadata = {} if metadata is None or not isinstance(metadata, dict) else metadata
+            # Merge with {"reviewed": False}
+            augmented_metadata = base_metadata | {"reviewed": False}
             logger.info("writing file", relative_path=relative_path, metadata=augmented_metadata, content=content)
-            document = ZkDocument(relative_path=relative_path, metadata=augmented_metadata or {}, content=content)
+            document = ZkDocument(relative_path=relative_path, metadata=augmented_metadata, content=content)
             self.zk.create_or_overwrite_document(document)
             return f"Successfully wrote to {document.relative_path}\n{document.model_dump_json()}"
         except OSError as e:

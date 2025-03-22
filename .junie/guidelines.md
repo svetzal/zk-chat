@@ -98,3 +98,84 @@ class DescribeSmartMemory:
         assert isinstance(memory, SmartMemory)
         assert memory.chroma == mock_chroma_gateway
 ```
+
+## Release Process
+
+This project follows [Semantic Versioning](https://semver.org/) (SemVer) for version numbering. The version format is MAJOR.MINOR.PATCH, where:
+
+1. MAJOR version increases for incompatible API changes
+2. MINOR version increases for backward-compatible functionality additions
+3. PATCH version increases for backward-compatible bug fixes
+
+### Preparing a Release
+
+When preparing a release, follow these steps:
+
+1. **Update CHANGELOG.md**:
+   - Move items from the "[Next]" section to a new version section
+   - Add the new version number and release date: `## [x.y.z] - YYYY-MM-DD`
+   - Ensure all changes are properly categorized under "Added", "Changed", "Deprecated", "Removed", "Fixed", or "Security"
+   - Keep the empty "[Next]" section at the top for future changes
+
+2. **Update Version Number**:
+   - Update the version number in `pyproject.toml`
+   - Ensure the version number follows semantic versioning principles based on the nature of changes:
+     - **Major Release**: Breaking changes that require users to modify their code
+     - **Minor Release**: New features that don't break backward compatibility
+     - **Patch Release**: Bug fixes that don't add features or break compatibility
+
+3. **Update Documentation**:
+   - Review and update `README.md` to reflect any new features, changed behavior, or updated requirements
+   - Update any other documentation files that reference features or behaviors that have changed
+   - Ensure installation instructions and examples are up to date
+
+4. **Synchronize Dependencies**:
+   - Ensure that dependencies in `requirements.txt` match those in `pyproject.toml`
+   - Update version constraints if necessary
+   - If new dependencies were added to one file, make sure they're added to the other
+
+5. **Final Verification**:
+   - Run all tests to ensure they pass
+   - Verify that the application works as expected with the updated version
+   - Check that all documentation accurately reflects the current state of the project
+
+### Release Types
+
+#### Major Releases (x.0.0)
+
+Major releases may include:
+- Breaking API changes (eg tool plugin interfacing)
+- Significant architectural changes
+- Removal of deprecated features
+- Changes that require users to modify their code or workflow
+
+For major releases, consider:
+- Providing migration guides
+- Updating all documentation thoroughly
+- Highlighting breaking changes prominently in the CHANGELOG
+
+#### Minor Releases (0.x.0)
+
+Minor releases may include:
+- New features
+- Non-breaking enhancements
+- Deprecation notices (but not removal of deprecated features)
+- Performance improvements
+
+For minor releases:
+- Document all new features
+- Update README to highlight new capabilities
+- Ensure backward compatibility
+
+#### Patch Releases (0.0.x)
+
+Patch releases should be limited to:
+- Bug fixes
+- Security updates
+- Performance improvements that don't change behavior
+- Documentation corrections
+
+For patch releases:
+- Clearly describe the issues fixed
+- Avoid introducing new features
+- Maintain strict backward compatibility
