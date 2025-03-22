@@ -14,22 +14,14 @@ class FindZkDocumentsRelatedTo(LLMTool):
 
     def run(self, query: str) -> str:
         print("Querying documents related to ", query)
-        results = self.zk.query_excerpts(query)
-        documents = [
-            {"id": result.excerpt.document_id, "title": result.excerpt.document_title}
-            for result in results
-            if result.excerpt.document_id is not None
-        ]
-        # Remove duplicates while preserving order
-        seen = set()
-        unique_documents = [
-            doc for doc in documents
-            if not (doc["id"] in seen or seen.add(doc["id"]))
-        ]
-        return json.dumps(unique_documents)
+        documents = self.zk.query_documents(query)
+        return json.dumps([
+            document.model_dump()
+            for document in documents
+        ])
 
     @property
-    def descriptor(self):
+    def descriptor(self) -> dict:
         return {
             "type": "function",
             "function": {

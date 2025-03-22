@@ -29,7 +29,7 @@ class VectorDatabase:
         self.embeddings_gateway = embeddings_gateway
         self.collection_name = collection_name
 
-    def add_documents(self, documents: List[VectorDocumentForStorage]):
+    def add_documents(self, documents: List[VectorDocumentForStorage]) -> None:
         """
         Add documents to the vector database.
 
@@ -49,7 +49,7 @@ class VectorDatabase:
             collection_name=self.collection_name
         )
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the vector database.
         """

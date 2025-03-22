@@ -1,13 +1,14 @@
 import hashlib
 from datetime import datetime
-from typing import List, Iterator
+from typing import List, Iterator, Any
 
 import structlog
 import yaml
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
-from zk_chat.models import ZkDocument, ZkDocumentExcerpt, ZkQueryResult, VectorDocumentForStorage
+from zk_chat.models import ZkDocument, ZkDocumentExcerpt, ZkQueryExcerptResult, VectorDocumentForStorage, \
+    ZkQueryDocumentResult, QueryResult
 from zk_chat.rag.splitter import split_tokens
 from zk_chat.vector_database import VectorDatabase
 
@@ -38,13 +39,13 @@ class Zettelkasten:
         )
         return document
 
-    def create_or_append_document(self, document: ZkDocument):
+    def create_or_append_document(self, document: ZkDocument) -> None:
         if self.document_exists(document.relative_path):
             self.append_to_document(document)
         else:
             self.create_or_overwrite_document(document)
 
-    def create_or_overwrite_document(self, document: ZkDocument):
+    def create_or_overwrite_document(self, document: ZkDocument) -> None:
         """Write a Zettelkasten document to the filesystem.
 
         Args:
@@ -81,30 +82,56 @@ class Zettelkasten:
         for relative_path in self._iterate_markdown_files():
             yield self.read_document(relative_path)
 
-    def index_excerpts(self, excerpt_size=500, excerpt_overlap=100):
+    def reindex(self, excerpt_size: int = 500, excerpt_overlap: int = 100) -> None:
         self.excerpts_db.reset()
+        self.documents_db.reset()
         for relative_path in self._iterate_markdown_files():
             self._index_document(relative_path, excerpt_size, excerpt_overlap)
 
-    def incremental_index_excerpts(self, since: datetime, excerpt_size=500, excerpt_overlap=100):
+    def update_index(self, since: datetime, excerpt_size: int = 500, excerpt_overlap: int = 100) -> None:
         for relative_path in self._iterate_markdown_files():
             if self._needs_reindex(relative_path, since):
                 self._index_document(relative_path, excerpt_size, excerpt_overlap)
 
-    def _index_document(self, relative_path, excerpt_size, excerpt_overlap):
+    def _index_document(self, relative_path: str, excerpt_size: int, excerpt_overlap: int) -> None:
         document = self.read_document(relative_path)
-        self._split_document(document, excerpt_size, excerpt_overlap)
+        if document.content:
+            self._add_document_to_index(document)
+            self._split_document(document, excerpt_size, excerpt_overlap)
 
 
-    def query_excerpts(self, query: str, n_results: int = 5, max_distance: float = 1.0) -> List[ZkQueryResult]:
+    def query_excerpts(self, query: str, n_results: int = 5, max_distance: float = 1.0) -> List[ZkQueryExcerptResult]:
         return [
-            self._create_query_result(result)
+            self._create_excerpt_query_result(result)
             for result in (self.excerpts_db.query(query, n_results=n_results))
             if result.distance <= max_distance
         ]
 
-    def _create_query_result(self, result):
-        return ZkQueryResult(
+    def query_documents(self, query: str, n_results: int = 5, max_distance: float = 1.0) -> List[ZkQueryDocumentResult]:
+        """Query the document index for whole documents.
+
+        Args:
+            query: The query text
+            n_results: The number of results to return
+            max_distance: The maximum distance to consider
+
+        Returns:
+            A list of query results
+        """
+        return [
+            self._create_document_query_result(result)
+            for result in (self.documents_db.query(query, n_results=n_results))
+            if result.distance <= max_distance
+        ]
+
+    def _create_document_query_result(self, result: QueryResult) -> ZkQueryDocumentResult:
+        return ZkQueryDocumentResult(
+            document=self.read_document(result.document.id),
+            distance=result.distance
+        )
+
+    def _create_excerpt_query_result(self, result: QueryResult) -> ZkQueryExcerptResult:
+        return ZkQueryExcerptResult(
             excerpt=ZkDocumentExcerpt(
                 document_id=result.document.metadata['id'],
                 document_title=result.document.metadata['title'],
@@ -113,7 +140,7 @@ class Zettelkasten:
             distance=result.distance
         )
 
-    def _split_document(self, document, excerpt_size=200, excerpt_overlap=100):
+    def _split_document(self, document: ZkDocument, excerpt_size: int = 200, excerpt_overlap: int = 100) -> None:
         logger.info(f"Processing", document_title=document.title)
         tokens = self.tokenizer_gateway.encode(document.content)
         logger.info("Content length", text=len(document.content), tokens=len(tokens))
@@ -124,14 +151,14 @@ class Zettelkasten:
             excerpts = self._decode_tokens_to_text(token_chunks)
             self._add_text_excerpts_to_index(document, excerpts)
 
-    def _add_text_excerpts_to_index(self, document, text_excerpts):
+    def _add_text_excerpts_to_index(self, document: ZkDocument, text_excerpts: List[str]):
         docs_for_storage = [
             self._create_vector_document_for_storage(excerpt, document)
             for excerpt in text_excerpts
         ]
         self.excerpts_db.add_documents(docs_for_storage)
 
-    def _create_vector_document_for_storage(self, excerpt, document):
+    def _create_vector_document_for_storage(self, excerpt: str, document: ZkDocument) -> VectorDocumentForStorage:
         return VectorDocumentForStorage(
             id=hashlib.md5(bytes(excerpt, "utf-8")).hexdigest(),
             content=excerpt,
@@ -141,7 +168,24 @@ class Zettelkasten:
             }
         )
 
-    def _decode_tokens_to_text(self, token_chunks):
+    def _add_document_to_index(self, document: ZkDocument) -> None:
+        """Add the whole document to the document index.
+
+        Args:
+            document: The ZkDocument to index
+        """
+        logger.info("Indexing whole document", document_title=document.title)
+        doc_for_storage = VectorDocumentForStorage(
+            id=document.id,
+            content=document.content,
+            metadata={
+                "id": document.id,
+                "title": document.title,
+            }
+        )
+        self.documents_db.add_documents([doc_for_storage])
+
+    def _decode_tokens_to_text(self, token_chunks: List[List[int]]) -> List[str]:
         return [self.tokenizer_gateway.decode(chunk) for chunk in token_chunks]
 
     def _get_file_mtime(self, relative_path: str) -> datetime:
@@ -150,7 +194,7 @@ class Zettelkasten:
     def _needs_reindex(self, relative_path: str, since: datetime) -> bool:
         return self._get_file_mtime(relative_path) > since
 
-    def _merge_metadata(self, original_metadata: dict, new_metadata: dict) -> dict:
+    def _merge_metadata(self, original_metadata: dict[str, Any], new_metadata: dict[str, Any]) -> dict[str, Any]:
         """Merge two metadata dictionaries with special handling for nested structures and arrays.
 
         Args:
@@ -192,7 +236,7 @@ class Zettelkasten:
 
         return result
 
-    def append_to_document(self, document: ZkDocument):
+    def append_to_document(self, document: ZkDocument) -> None:
         """Append content to an existing document and merge metadata.
 
         Args:

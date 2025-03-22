@@ -18,10 +18,10 @@ class ZkDocument(BaseModel):
     def id(self) -> str:
         return self.relative_path
 
-    def _strip_identifier_prefix(self, string):
+    def _strip_identifier_prefix(self, string: str) -> str:
         return re.sub(r'^[@!]\s*', '', string)
 
-    def _base_filename_without_extension(self):
+    def _base_filename_without_extension(self) -> str:
         return os.path.splitext(os.path.basename(self.relative_path))[0]
 
 
@@ -31,15 +31,19 @@ class ZkDocumentExcerpt(BaseModel):
     text: str
 
 
-class ZkQueryResult(BaseModel):
+class ZkQueryExcerptResult(BaseModel):
     excerpt: ZkDocumentExcerpt
+    distance: float
+
+class ZkQueryDocumentResult(BaseModel):
+    document: ZkDocument
     distance: float
 
 
 class VectorDocument(BaseModel):
     id: str = Field(..., description="Unique identifier for the document")
     content: str = Field(..., description="The text content")
-    metadata: dict = Field(..., description="Additional metadata about the document")
+    metadata: dict[str, Any] = Field(..., description="Additional metadata about the document")
 
 
 class VectorDocumentForStorage(VectorDocument):

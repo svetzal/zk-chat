@@ -4,7 +4,7 @@ from typing import List
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.models import ZkQueryResult
+from zk_chat.models import ZkQueryExcerptResult
 from zk_chat.zettelkasten import Zettelkasten
 
 logger = structlog.get_logger()
@@ -16,14 +16,14 @@ class FindExcerptsRelatedTo(LLMTool):
 
     def run(self, query: str) -> str:
         print("Querying excerpts related to ", query)
-        results: List[ZkQueryResult] = self.zk.query_excerpts(query)
+        results: List[ZkQueryExcerptResult] = self.zk.query_excerpts(query)
         return json.dumps([
             result.model_dump()
             for result in results
         ])
 
     @property
-    def descriptor(self):
+    def descriptor(self) -> dict:
         return {
             "type": "function",
             "function": {
