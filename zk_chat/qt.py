@@ -262,7 +262,7 @@ class MainWindow(QMainWindow):
                 collection_name=ZkCollectionName.EXCERPTS
             ),
             documents_db=VectorDatabase(
-                chroma_gateway=chroma_gateway,
+                chroma_gateway=chroma,
                 embeddings_gateway=EmbeddingsGateway(),
                 collection_name=ZkCollectionName.DOCUMENTS
             ),
