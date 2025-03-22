@@ -1,4 +1,6 @@
 import logging
+import os
+import argparse
 from importlib.metadata import entry_points
 
 from zk_chat.filesystem_gateway import FilesystemGateway
@@ -31,7 +33,8 @@ from zk_chat.zettelkasten import Zettelkasten
 
 def chat(config: Config, unsafe: bool = False):
     # Create a single ChromaGateway instance to access multiple collections
-    chroma_gateway = ChromaGateway()
+    db_dir = os.path.join(config.vault, ".zk_chat_db")
+    chroma_gateway = ChromaGateway(db_dir=db_dir)
 
     # Create Zettelkasten with the excerpts collection
     zk = Zettelkasten(
@@ -92,8 +95,21 @@ def _add_available_plugins(tools, config: Config, llm: LLMBroker):
 
 
 def main():
-    config = Config.load_or_initialize()
-    chat(config)
+    parser = argparse.ArgumentParser(description='Chat with your Zettelkasten vault')
+    parser.add_argument('--vault', required=True, help='Path to your Zettelkasten vault')
+    parser.add_argument('--unsafe', action='store_true', help='Allow write operations in chat mode')
+    args = parser.parse_args()
+
+    # Ensure vault path exists
+    if not os.path.exists(args.vault):
+        print(f"Error: Vault path '{args.vault}' does not exist.")
+        return
+
+    # Get absolute path to vault
+    vault_path = os.path.abspath(args.vault)
+
+    config = Config.load_or_initialize(vault_path)
+    chat(config, unsafe=args.unsafe)
 
 
 if __name__ == '__main__':
