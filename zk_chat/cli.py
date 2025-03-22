@@ -17,11 +17,8 @@ from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
 def main():
     parser = argparse.ArgumentParser(description='Zettelkasten Chat Tool')
     parser.add_argument('--vault', required=False, help='Path to your Zettelkasten vault (can be relative)')
-    parser.add_argument('--bookmark', help='Path of a bookmarked vault to use (can be relative)')
     parser.add_argument('--save', action='store_true', 
                         help='Save the provided vault path as a bookmark')
-    parser.add_argument('--bookmark-vault', action='store_true', 
-                        help='Bookmark the current vault (used with --vault)')
     parser.add_argument('--remove-bookmark', metavar='PATH', help='Remove a bookmark for PATH (can be relative)')
     parser.add_argument('--list-bookmarks', action='store_true', help='List all bookmarks')
     parser.add_argument('--reindex', action='store_true', help='Reindex the Zettelkasten vault')
@@ -72,17 +69,8 @@ def main():
     # Determine vault path
     vault_path = None
 
-    # If bookmark is specified, use it
-    if args.bookmark:
-        bookmark_path = os.path.abspath(args.bookmark)
-        vault_path = global_config.get_bookmark(bookmark_path)
-        if not vault_path:
-            print(f"Error: Bookmark for '{bookmark_path}' not found.")
-            return
-        # Set as last opened bookmark
-        global_config.set_last_opened_bookmark(bookmark_path)
     # If vault is specified, use it
-    elif args.vault:
+    if args.vault:
         vault_path = os.path.abspath(args.vault)
 
         # Check if this vault path is already bookmarked
@@ -100,7 +88,7 @@ def main():
         # Try to use last opened bookmark
         vault_path = global_config.get_last_opened_bookmark_path()
         if not vault_path:
-            print("Error: No vault specified. Use --vault or --bookmark, or set a bookmark first.")
+            print("Error: No vault specified. Use --vault or set a bookmark first.")
             return
         print(f"Using last-used vault: {vault_path}")
 
@@ -108,12 +96,6 @@ def main():
     if not os.path.exists(vault_path):
         print(f"Error: Vault path '{vault_path}' does not exist.")
         return
-
-    # Handle bookmark-vault option
-    if args.bookmark_vault:
-        global_config.add_bookmark(vault_path)
-        global_config.set_last_opened_bookmark(vault_path)
-        print(f"Vault bookmarked: '{vault_path}'.")
 
     config = Config.load(vault_path)
     if config:
