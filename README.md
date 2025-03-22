@@ -78,12 +78,13 @@ ollama pull qwen2.5:14b
 
 ### 📟 Command-line Interface
 
-Run `zkchat` to start the command-line interface.
+Run `zkchat --vault /path/to/vault` to start the command-line interface.
 
 Command-line options:
+- `--vault PATH`: Specify the path to your Zettelkasten vault (required)
 - `--model [model_name]`: Change the LLM model to use for chat
-  - With model name: `zkchat --model llama2` - configure to use specified model
-  - Without model name: `zkchat --model` - interactively select from available models
+  - With model name: `zkchat --vault /path/to/vault --model llama2` - configure to use specified model
+  - Without model name: `zkchat --vault /path/to/vault --model` - interactively select from available models
 - `--reindex`: Reindex the Zettelkasten vault, will attempt to do so incrementally
 - `--full`: Force full reindex (only used with --reindex)
 - `--unsafe`: Enable operations that can write to your Zettelkasten. This flag is required for using tools that modify your Zettelkasten content, such as the Write Document tool. Use with caution as it allows the AI to make changes to your files.
@@ -101,6 +102,8 @@ The tool includes a Smart Memory mechanism that allows the AI to store and retri
 
 **_The GUI is experimental and may not work as expected. It is provided as a preview feature only._**
 
+**Note:** The GUI has not yet been updated to use the new command-line vault path configuration. It still uses the old method of storing the configuration file in the user's home directory.
+
 Run `zkchat-gui` to start the graphical interface. The GUI provides:
 
 - A multi-line chat input for composing messages
@@ -111,8 +114,19 @@ Run `zkchat-gui` to start the graphical interface. The GUI provides:
   - Configuring the Zettelkasten folder location
 - Asynchronous chat responses that keep the interface responsive
 
-When first run, both `zkchat` and `zkchat-gui` will prompt for initial configuration. You will need to provide:
-- The path to your root Zettelkasten / Obsidian vault folder
-- The LLM model you want to use from your Ollama installation
+When first run, both `zkchat` and `zkchat-gui` will need initial configuration:
 
-In the command-line interface, you'll be prompted for this information directly. In the GUI, you can configure these settings through the Settings menu. After initial configuration, the tool will start a full index build of your Zettelkasten.
+For the command-line interface:
+- You must provide the path to your Zettelkasten vault using the `--vault` argument
+- You'll be prompted to select an LLM model from your Ollama installation (or you can specify it with `--model`)
+
+For the GUI:
+- You can configure these settings through the Settings menu
+
+After initial configuration, the tool will start a full index build of your Zettelkasten.
+
+### 📁 Storage Location
+
+The tool stores its configuration and database in your Zettelkasten vault:
+- `.zk_chat` - Configuration file stored in the vault root
+- `.zk_chat_db/` - Chroma vector database folder stored in the vault root

@@ -1,5 +1,6 @@
 from datetime import datetime
 import argparse
+import os
 from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
@@ -12,7 +13,8 @@ from zk_chat.chroma_collections import ZkCollectionName
 
 
 def reindex(config: Config, force_full: bool = False):
-    chroma = ChromaGateway()
+    db_dir = os.path.join(config.vault, ".zk_chat_db")
+    chroma = ChromaGateway(db_dir=db_dir)
     zk = Zettelkasten(
         tokenizer_gateway=TokenizerGateway(),
         vector_db=VectorDatabase(
@@ -35,10 +37,19 @@ def reindex(config: Config, force_full: bool = False):
 
 def main():
     parser = argparse.ArgumentParser(description='Reindex the Zettelkasten vault')
+    parser.add_argument('--vault', required=True, help='Path to your Zettelkasten vault')
     parser.add_argument('--full', action='store_true', default=False, help='Force full reindex')
     args = parser.parse_args()
 
-    config = Config.load_or_initialize()
+    # Ensure vault path exists
+    if not os.path.exists(args.vault):
+        print(f"Error: Vault path '{args.vault}' does not exist.")
+        return
+
+    # Get absolute path to vault
+    vault_path = os.path.abspath(args.vault)
+
+    config = Config.load_or_initialize(vault_path)
     reindex(config, force_full=args.full)
 
 

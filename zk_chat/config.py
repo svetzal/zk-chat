@@ -35,7 +35,9 @@ def select_model() -> str:
         print("Invalid selection. Please try again.")
 
 
-config_filename: str = os.path.expanduser("~/.zk_chat")
+def get_config_path(vault_path: str) -> str:
+    """Get the path to the config file in the vault directory."""
+    return os.path.join(vault_path, ".zk_chat")
 
 
 class Config(BaseModel):
@@ -46,27 +48,28 @@ class Config(BaseModel):
     last_indexed: Optional[datetime] = None
 
     @classmethod
-    def load(cls) -> Optional['Config']:
-        if os.path.exists(config_filename):
-            with open(config_filename, 'r') as f:
+    def load(cls, vault_path: str) -> Optional['Config']:
+        config_path = get_config_path(vault_path)
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
                 return cls.model_validate_json(f.read())
         else:
             return None
 
     @classmethod
-    def load_or_initialize(cls) -> 'Config':
-        config = cls.load()
+    def load_or_initialize(cls, vault_path: str) -> 'Config':
+        config = cls.load(vault_path)
         if config:
             return config
 
-        vault = input("Enter path to your zettelkasten vault: ")
         model = select_model()
-        config = cls(vault=vault, model=model)
+        config = cls(vault=vault_path, model=model)
         config.save()
         return config
 
     def save(self) -> None:
-        with open(config_filename, 'w') as f:
+        config_path = get_config_path(self.vault)
+        with open(config_path, 'w') as f:
             f.write(self.model_dump_json(indent=2))
 
     def update_model(self, model_name: str = None) -> None:
