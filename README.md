@@ -4,13 +4,12 @@ This is a simple tool that lets you chat with a local "AI" that has access to th
 index your markdown documents, and in your chat session it may choose to query your content, retrieve excerpts, read
 entire documents, and generate responses based on the content in your Zettelkasten.
 
-For "AI" it communicates with a local running instance of Ollama. Ollama must be installed and running for zkchat to
-function.
+For "AI" it communicates with either a local running instance of Ollama or OpenAI's API. By default, Ollama is used and must be installed and running for zkchat to function, but you can also configure it to use OpenAI with the `--gateway openai` option.
 
 ## ✨ Features
 
 - Command-line interface for quick access
-- Graphical user interface for a more user-friendly experience
+- (Experimental) Graphical user interface for a more user-friendly experience
 - RAG queries across your document base
 - Interactive chat with context from your Zettelkasten
 - Configurable LLM model selection
@@ -39,7 +38,9 @@ The chat interface provides access to several tools that enhance its capabilitie
 
 ## 🔧 Requirements
 
-You must have [ollama](https://ollama.com/) installed and running.
+If using the default Ollama gateway, you must have [ollama](https://ollama.com/) installed and running.
+
+If using the OpenAI gateway, you must have the OPENAI_API_KEY environment variable set with your OpenAI API key.
 
 You must have a local knowledgebase / zettelkasten with content in markdown format. I
 use [Obsidian](https://obsidian.md/), because I favour working locally, and I favour using the markdown format for
@@ -102,11 +103,17 @@ pipx inject zk-rag zk-rag-wikipedia
 
 The benefit of using pipx is that it creates isolated environments for each application, avoiding dependency conflicts while still making the commands globally available.
 
-Setting up Ollama and installing a local model:
+Setting up Ollama and installing a local model (if using the Ollama gateway):
 
 ```bash
 brew install ollama
 ollama pull qwen2.5:14b
+```
+
+Setting up OpenAI (if using the OpenAI gateway):
+
+```bash
+export OPENAI_API_KEY=your_api_key_here
 ```
 
 ## 🚀 Usage
@@ -121,6 +128,7 @@ Command-line options:
 - `--add-bookmark NAME PATH`: Add a new bookmark for a vault path
 - `--remove-bookmark NAME`: Remove a bookmarked vault path
 - `--list-bookmarks`: List all bookmarked vault paths
+- `--gateway {ollama,openai}`: Set the model gateway to use (ollama or openai). OpenAI requires OPENAI_API_KEY environment variable
 - `--model [model_name]`: Change the LLM model to use for chat
   - With model name: `zkchat --vault /path/to/vault --model llama2` - configure to use specified model
   - Without model name: `zkchat --vault /path/to/vault --model` - interactively select from available models
@@ -150,7 +158,7 @@ Run `zkchat-gui` to start the graphical interface. The GUI provides:
 - A scrollable chat history showing the entire conversation
 - A resizable divider between chat history and input areas
 - Settings menu (accessible via Settings -> Configure...) for:
-  - Selecting the LLM model from available Ollama models
+  - Selecting the LLM model from available models (based on the configured gateway)
   - Configuring the Zettelkasten folder location
 - Asynchronous chat responses that keep the interface responsive
 
@@ -158,7 +166,8 @@ When first run, both `zkchat` and `zkchat-gui` will need initial configuration:
 
 For the command-line interface:
 - You must provide the path to your Zettelkasten vault using the `--vault` argument
-- You'll be prompted to select an LLM model from your Ollama installation (or you can specify it with `--model`)
+- You can select which gateway to use (Ollama or OpenAI) with the `--gateway` argument
+- You'll be prompted to select an LLM model from the available models for your chosen gateway (or you can specify it with `--model`)
 
 For the GUI:
 - You can configure these settings through the Settings menu

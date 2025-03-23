@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+## [2.3.0] - 2025-03-24
+
+### Changed
+
+- Added the ability to select (per vault) which gateway to use (Ollama or OpenAI) for chat
+- Improved code organization and documentation
+- Enhanced error handling and logging
+- Performance optimizations
+
 ## [2.2.0] - 2025-03-23
 
 ### Added
