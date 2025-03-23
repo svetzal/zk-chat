@@ -113,7 +113,7 @@ class Zettelkasten:
             if result.distance <= max_distance
         ]
 
-    def query_documents(self, query: str, n_results: int = 5, max_distance: float = 1.0) -> List[ZkQueryDocumentResult]:
+    def query_documents(self, query: str, n_results: int = 5, max_distance: float = 0.0) -> List[ZkQueryDocumentResult]:
         """Query the document index for whole documents.
 
         Args:
@@ -127,7 +127,7 @@ class Zettelkasten:
         return [
             self._create_document_query_result(result)
             for result in (self.documents_db.query(query, n_results=n_results))
-            if result.distance <= max_distance
+            if max_distance > 0.0 and result.distance <= max_distance
         ]
 
     def _create_document_query_result(self, result: QueryResult) -> ZkQueryDocumentResult:
