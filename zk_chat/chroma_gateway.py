@@ -82,9 +82,8 @@ class ChromaGateway:
         """
         if collection_name:
             # Reset a specific collection
-            if collection_name in self._collections:
-                self.chroma_client.delete_collection(collection_name.value)
-                self._collections.pop(collection_name, None)
+            self.chroma_client.delete_collection(collection_name.value)
+            self._collections.pop(collection_name, None)
         else:
             # Reset all collections
             self.chroma_client.reset()

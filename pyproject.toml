@@ -15,7 +15,7 @@ classifiers = [
 dependencies = [
     "chromadb",
     "pyyaml",
-    "mojentic>=0.3.0",
+    "mojentic>=0.4.1",
     "PySide6>=6.6.0",
     "rich",
 ]
