@@ -6,12 +6,12 @@ import sys
 logging.basicConfig(level=logging.WARN)
 
 from zk_chat.chat import chat
-from zk_chat.config import Config
+from zk_chat.config import Config, ModelGateway
 from zk_chat.global_config import GlobalConfig
 from zk_chat.reindex import reindex
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.chroma_gateway import ChromaGateway
-from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
+from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 from zk_chat.tools.git_gateway import GitGateway
 
 
@@ -25,6 +25,8 @@ def main():
     parser.add_argument('--reindex', action='store_true', help='Reindex the Zettelkasten vault')
     parser.add_argument('--full', action='store_true', help='Force full reindex (only with --reindex)')
     parser.add_argument('--unsafe', action='store_true', help='Allow write operations in chat mode')
+    parser.add_argument('--gateway', choices=['ollama', 'openai'], default=None,
+                        help='Set the model gateway to use (ollama or openai). OpenAI requires OPENAI_API_KEY environment variable')
     parser.add_argument('--model', nargs='?', const="choose",
                         help='Set the model to use for chat. Use without a value to select from available models')
     parser.add_argument('--reset-memory', action='store_true', help='Reset the smart memory')
@@ -101,18 +103,50 @@ def main():
 
     config = Config.load(vault_path)
     if config:
-        if args.model:
+        # Handle gateway selection first
+        gateway = None
+        gateway_changed = False
+
+        if args.gateway:
+            gateway = ModelGateway(args.gateway)
+            # Check if OpenAI gateway is selected and OPENAI_API_KEY is not set
+            if gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
+                print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
+                return
+
+            # Check if gateway has changed
+            if gateway != config.gateway:
+                gateway_changed = True
+
+        # Handle model selection based on gateway changes
+        if gateway_changed:
+            # If gateway changed, force user to pick a new model
+            config.update_model(gateway=gateway)
+        elif args.model:
+            # If gateway didn't change but model is specified
             if args.model == "choose":
-                config.update_model()
+                config.update_model(gateway=gateway)
             else:
-                config.update_model(args.model)
+                config.update_model(args.model, gateway=gateway)
+        elif gateway:
+            # If gateway is specified but didn't change and no model is specified
+            config.update_model(gateway=gateway)
 
         if args.reset_memory:
             # Create database directory in vault
             db_dir = os.path.join(vault_path, ".zk_chat_db")
             chroma_gateway = ChromaGateway(db_dir=db_dir)
-            embeddings_gateway = EmbeddingsGateway()
-            memory = SmartMemory(chroma_gateway, embeddings_gateway)
+
+            # Create the appropriate gateway based on configuration
+            if config.gateway == ModelGateway.OLLAMA:
+                gateway = OllamaGateway()
+            elif config.gateway == ModelGateway.OPENAI:
+                gateway = OpenAIGateway(os.environ.get("OPENAI_API_KEY"))
+            else:
+                # Default to Ollama if not specified
+                gateway = OllamaGateway()
+
+            memory = SmartMemory(chroma_gateway, gateway)
             memory.reset()
             print("Smart memory has been reset.")
             return
@@ -120,7 +154,17 @@ def main():
         if args.reindex:
             reindex(config, force_full=args.full)
     else:
-        config = Config.load_or_initialize(vault_path)
+        # Handle gateway selection for new configuration
+        gateway = None
+        if args.gateway:
+            gateway = ModelGateway(args.gateway)
+            # Check if OpenAI gateway is selected and OPENAI_API_KEY is not set
+            if gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
+                print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
+                return
+
+        # For new configurations, we always initialize with the specified gateway or default to Ollama
+        config = Config.load_or_initialize(vault_path, gateway=gateway)
 
     # Setup git if requested
     if args.git:

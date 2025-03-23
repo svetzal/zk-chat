@@ -3,6 +3,8 @@ import os
 import argparse
 from importlib.metadata import entry_points
 
+from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
+
 from zk_chat.filesystem_gateway import FilesystemGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
@@ -26,10 +28,9 @@ from zk_chat.tools.create_or_overwrite_zk_document import CreateOrOverwriteZkDoc
 from zk_chat.vector_database import VectorDatabase
 
 from mojentic.llm import LLMBroker, ChatSession
-from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
-from zk_chat.config import Config
+from zk_chat.config import Config, ModelGateway
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.zettelkasten import Zettelkasten
 
@@ -39,28 +40,34 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False):
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     chroma_gateway = ChromaGateway(db_dir=db_dir)
 
+    # Create the appropriate gateway based on configuration
+    if config.gateway.value == ModelGateway.OLLAMA:
+        gateway = OllamaGateway()
+    elif config.gateway.value == ModelGateway.OPENAI:
+        gateway = OpenAIGateway(os.environ.get("OPENAI_API_KEY"))
+
     # Create Zettelkasten with the excerpts collection
     zk = Zettelkasten(
         tokenizer_gateway=TokenizerGateway(),
         excerpts_db=VectorDatabase(
             chroma_gateway=chroma_gateway, 
-            embeddings_gateway=EmbeddingsGateway(),
+            gateway=gateway,
             collection_name=ZkCollectionName.EXCERPTS
         ),
         documents_db=VectorDatabase(
             chroma_gateway=chroma_gateway,
-            embeddings_gateway=EmbeddingsGateway(),
+            gateway=gateway,
             collection_name=ZkCollectionName.DOCUMENTS
         ),
         filesystem_gateway=MarkdownFilesystemGateway(config.vault)
     )
 
-    llm = LLMBroker(config.model)
+    llm = LLMBroker(config.model, gateway=gateway)
 
     # Create SmartMemory with the smart_memory collection
     smart_memory = SmartMemory(
         chroma_gateway=chroma_gateway, 
-        embeddings_gateway=EmbeddingsGateway()
+        gateway=gateway
     )
 
     tools = [

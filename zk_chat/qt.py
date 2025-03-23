@@ -1,3 +1,4 @@
+import os
 import sys
 
 from PySide6.QtCore import Qt, Signal, Slot, QThread, QTimer
@@ -5,12 +6,12 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                                QTextEdit, QPushButton, QDialog, QFrame,
                                QLabel, QLineEdit, QComboBox, QFileDialog, QSplitter, QHBoxLayout, QSizePolicy,
                                QTextBrowser, QScrollArea, QProgressBar)
-from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
+from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 from mojentic.llm.tools.date_resolver import ResolveDateTool
 
 from zk_chat.chat import ChatSession, LLMBroker, ChromaGateway, Zettelkasten
-from zk_chat.config import Config, get_available_models
+from zk_chat.config import Config, get_available_models, ModelGateway
 from zk_chat.filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
@@ -152,12 +153,24 @@ class SettingsDialog(QDialog):
         folder_layout.addWidget(browse_button)
         layout.addLayout(folder_layout)
 
+        # Gateway selection
+        gateway_layout = QVBoxLayout()
+        gateway_label = QLabel("Model Gateway:")
+        self.gateway_combo = QComboBox()
+        self.gateway_combo.addItems([gateway.value for gateway in ModelGateway])
+        current_gateway_index = self.gateway_combo.findText(self.config.gateway.value)
+        if current_gateway_index >= 0:
+            self.gateway_combo.setCurrentIndex(current_gateway_index)
+        self.gateway_combo.currentIndexChanged.connect(self.update_model_list)
+        gateway_layout.addWidget(gateway_label)
+        gateway_layout.addWidget(self.gateway_combo)
+        layout.addLayout(gateway_layout)
+
         # Model selection
         model_layout = QVBoxLayout()
         model_label = QLabel("LLM Model:")
         self.model_combo = QComboBox()
-        available_models = get_available_models()
-        self.model_combo.addItems(available_models)
+        self.update_model_list()  # Populate model list based on selected gateway
         current_index = self.model_combo.findText(self.config.model)
         if current_index >= 0:
             self.model_combo.setCurrentIndex(current_index)
@@ -177,8 +190,36 @@ class SettingsDialog(QDialog):
         if folder:
             self.folder_edit.setText(folder)
 
+    def update_model_list(self):
+        # Get the selected gateway
+        gateway_text = self.gateway_combo.currentText()
+        gateway = ModelGateway(gateway_text)
+
+        # Check if OpenAI gateway is selected and OPENAI_API_KEY is not set
+        if gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
+            # Show a warning message
+            self.model_combo.clear()
+            self.model_combo.addItem("OPENAI_API_KEY environment variable is not set")
+            return
+
+        # Get available models for the selected gateway
+        available_models = get_available_models(gateway)
+
+        # Update the model combo box
+        self.model_combo.clear()
+        self.model_combo.addItems(available_models)
+
+        # Try to select the current model if it's available
+        current_index = self.model_combo.findText(self.config.model)
+        if current_index >= 0:
+            self.model_combo.setCurrentIndex(current_index)
+        elif self.model_combo.count() > 0:
+            # Otherwise select the first model
+            self.model_combo.setCurrentIndex(0)
+
     def save_settings(self):
         self.config.vault = self.folder_edit.text()
+        self.config.gateway = ModelGateway(self.gateway_combo.currentText())
         self.config.model = self.model_combo.currentText()
         self.config.save()
         self.accept()
@@ -187,7 +228,9 @@ class SettingsDialog(QDialog):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.config = Config.load_or_initialize()
+        # TODO: This is a placeholder. In a real application, we would need to get the vault path from somewhere.
+        vault_path = os.path.expanduser("~/Documents")
+        self.config = Config.load_or_initialize(vault_path)
         self.chat_session = None
         self.initialize_chat_session()
 
@@ -254,20 +297,30 @@ class MainWindow(QMainWindow):
 
     def initialize_chat_session(self):
         chroma = ChromaGateway()
+
+        # Create the appropriate gateway based on configuration
+        if self.config.gateway == ModelGateway.OLLAMA:
+            gateway = OllamaGateway()
+        elif self.config.gateway == ModelGateway.OPENAI:
+            gateway = OpenAIGateway(os.environ.get("OPENAI_API_KEY"))
+        else:
+            # Default to Ollama if not specified
+            gateway = OllamaGateway()
+
         zk = Zettelkasten(
             tokenizer_gateway=TokenizerGateway(),
             excerpts_db=VectorDatabase(
                 chroma_gateway=chroma, 
-                embeddings_gateway=EmbeddingsGateway(),
+                gateway=gateway,
                 collection_name=ZkCollectionName.EXCERPTS
             ),
             documents_db=VectorDatabase(
                 chroma_gateway=chroma,
-                embeddings_gateway=EmbeddingsGateway(),
+                gateway=gateway,
                 collection_name=ZkCollectionName.DOCUMENTS
             ),
             filesystem_gateway=MarkdownFilesystemGateway(self.config.vault))
-        llm = LLMBroker(self.config.model)
+        llm = LLMBroker(self.config.model, gateway=self.config.gateway.value)
 
         tools = [
             ResolveDateTool(),

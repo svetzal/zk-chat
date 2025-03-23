@@ -1,7 +1,8 @@
 import uuid
+from typing import Union
 
 import structlog
-from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
+from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.chroma_collections import ZkCollectionName
@@ -14,16 +15,16 @@ class SmartMemory:
     A memory system that stores and retrieves information using vector embeddings.
     """
 
-    def __init__(self, chroma_gateway: ChromaGateway, embeddings_gateway: EmbeddingsGateway):
+    def __init__(self, chroma_gateway: ChromaGateway, gateway: Union[OllamaGateway, OpenAIGateway]):
         """
-        Initialize SmartMemory with a ChromaGateway and EmbeddingsGateway.
+        Initialize SmartMemory with a ChromaGateway and a gateway for embeddings.
 
         Args:
             chroma_gateway: The gateway to the Chroma vector database
-            embeddings_gateway: The gateway for calculating embeddings
+            gateway: The gateway for calculating embeddings (OllamaGateway or OpenAIGateway)
         """
         self.chroma = chroma_gateway
-        self.embeddings = embeddings_gateway
+        self.gateway = gateway
         self.collection_name = ZkCollectionName.SMART_MEMORY
 
     def store(self, information: str):
@@ -33,7 +34,8 @@ class SmartMemory:
         Args:
             information: The information to store
         """
-        embeddings = self.embeddings.calculate(information)
+        embeddings = self.gateway.calculate_embeddings(information)
+
         id = str(uuid.uuid4())
         logger.info("Storing information in smart memory", id=id, information=information, embeddings=embeddings)
         self.chroma.add_items(
@@ -55,7 +57,7 @@ class SmartMemory:
         Returns:
             The query results
         """
-        query_embeddings = self.embeddings.calculate(query)
+        query_embeddings = self.gateway.calculate_embeddings(query)
         results = self.chroma.query(
             query_embeddings=query_embeddings, 
             n_results=n_results,
