@@ -55,8 +55,9 @@ We follow a Behavior-Driven Development (BDD) style using the "Describe/should" 
    - Start with "should_"
    - Describe the expected behavior in plain English
    - Follow the Arrange/Act/Assert pattern (separated by blank lines)
-3. No conditional statements in tests - each test should fail for only one clear reason
-4. Do not test private methods directly (those starting with '_') - test through the public API
+3. Do not use comments (eg Arrange, Act, Assert) to delineate test sections - just use a blank line
+4. No conditional statements in tests - each test should fail for only one clear reason
+5. Do not test private methods directly (those starting with '_') - test through the public API
 
 #### Fixtures and Mocking
 1. Use pytest @fixture for test prerequisites:

@@ -12,6 +12,7 @@ from zk_chat.reindex import reindex
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.chroma_gateway import ChromaGateway
 from mojentic.llm.gateways.embeddings_gateway import EmbeddingsGateway
+from zk_chat.tools.git_gateway import GitGateway
 
 
 def main():
@@ -27,6 +28,7 @@ def main():
     parser.add_argument('--model', nargs='?', const="choose",
                         help='Set the model to use for chat. Use without a value to select from available models')
     parser.add_argument('--reset-memory', action='store_true', help='Reset the smart memory')
+    parser.add_argument('--git', action='store_true', help='Enable git integration')
     args = parser.parse_args()
 
     # Load global config
@@ -120,7 +122,12 @@ def main():
     else:
         config = Config.load_or_initialize(vault_path)
 
-    chat(config, unsafe=args.unsafe)
+    # Setup git if requested
+    if args.git:
+        git_gateway = GitGateway(vault_path)
+        git_gateway.setup()
+
+    chat(config, unsafe=args.unsafe, use_git=args.git)
 
 
 if __name__ == '__main__':
