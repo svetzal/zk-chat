@@ -3,6 +3,7 @@ from typing import Dict, Optional
 
 import chromadb
 from chromadb import Settings
+from chromadb.api.configuration import HNSWConfiguration, CollectionConfiguration
 from chromadb.api.models.Collection import Collection
 
 from zk_chat.chroma_collections import ZkCollectionName
@@ -48,8 +49,13 @@ class ChromaGateway:
             The requested collection
         """
         if collection_name not in self._collections:
+            # Create HNSW configuration with cosine distance
+            # hnsw_config = HNSWConfiguration(space="cosine")
+            # collection_config = CollectionConfiguration(hnsw_configuration=hnsw_config)
+
             self._collections[collection_name] = self.chroma_client.get_or_create_collection(
-                name=collection_name.value
+                name=collection_name.value,
+                metadata={"hsnw:space": "cosine"},
             )
         return self._collections[collection_name]
 
@@ -82,8 +88,13 @@ class ChromaGateway:
         """
         if collection_name:
             # Reset a specific collection
-            self.chroma_client.delete_collection(collection_name.value)
+            try:
+                self.chroma_client.delete_collection(collection_name.value)
+            except ValueError:
+                pass
+                # Collection does not exist
             self._collections.pop(collection_name, None)
+            self.get_collection(collection_name)
         else:
             # Reset all collections
             self.chroma_client.reset()
