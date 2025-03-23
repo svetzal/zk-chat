@@ -30,6 +30,10 @@ The chat interface provides access to several tools that enhance its capabilitie
   - Store Information: Saves important facts and context from conversations for future reference
   - Retrieve Information: Recalls previously stored information to provide more personalized responses
 
+- **Git Integration Tools**
+  - View Uncommitted Changes: Shows pending changes in your Zettelkasten vault
+  - Commit Changes: Commits changes with AI-generated commit messages
+
 - **Available Tool Plugins**
   - [zk-rag-wikipedia](https://pypi.org/project/zk-rag-wikipedia/): A plugin for looking up information on Wikipedia and creating documents from the results
 
@@ -67,6 +71,37 @@ Optionally install tool plugins from PyPi:
 pip install zk-rag-wikipedia
 ```
 
+### Alternative: Using pipx (recommended for end-users)
+
+[pipx](https://pypa.github.io/pipx/) is a tool that allows you to install and run Python applications in isolated environments. It's ideal for end-user applications like zk-rag, as it keeps the application and its dependencies isolated from your system Python and other applications.
+
+Installing pipx:
+
+```bash
+# On macOS
+brew install pipx
+pipx ensurepath
+
+# On Linux
+python3 -m pip install --user pipx
+python3 -m pipx ensurepath
+```
+
+Installing zk-rag with pipx:
+
+```bash
+pipx install zk-rag
+```
+
+Installing plugins with pipx inject:
+
+```bash
+# Install the Wikipedia plugin
+pipx inject zk-rag zk-rag-wikipedia
+```
+
+The benefit of using pipx is that it creates isolated environments for each application, avoiding dependency conflicts while still making the commands globally available.
+
 Setting up Ollama and installing a local model:
 
 ```bash
@@ -93,6 +128,7 @@ Command-line options:
 - `--full`: Force full reindex (only used with --reindex)
 - `--unsafe`: Enable operations that can write to your Zettelkasten. This flag is required for using tools that modify your Zettelkasten content, such as the Write Document tool. Use with caution as it allows the AI to make changes to your files.
 - `--reset-memory`: Clear the smart memory storage
+- `--git`: Enable Git integration for version control of your Zettelkasten vault
 
 ### 🧠 Smart Memory
 

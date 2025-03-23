@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+## [2.2.0] - 2025-03-23
+
+### Added
+
+- Git integration for vault management
+  - Added GitGateway for Git operations
+  - Added UncommittedChanges tool to view pending changes
+  - Added CommitChanges tool with AI-generated commit messages
+  - Added --git command-line flag to enable Git integration
+
 ## [2.1.0] - 2025-03-22
 
 ### Added

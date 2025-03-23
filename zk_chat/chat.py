@@ -6,9 +6,12 @@ from importlib.metadata import entry_points
 from zk_chat.filesystem_gateway import FilesystemGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
+from zk_chat.tools.commit_changes import CommitChanges
 from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory
 from zk_chat.tools.store_in_smart_memory import StoreInSmartMemory
 from zk_chat.chroma_collections import ZkCollectionName
+from zk_chat.tools.git_gateway import GitGateway
+from zk_chat.tools.uncommitted_changes import UncommittedChanges
 
 logging.basicConfig(
     level=logging.WARN
@@ -31,7 +34,7 @@ from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.zettelkasten import Zettelkasten
 
 
-def chat(config: Config, unsafe: bool = False):
+def chat(config: Config, unsafe: bool = False, use_git: bool = False):
     # Create a single ChromaGateway instance to access multiple collections
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     chroma_gateway = ChromaGateway(db_dir=db_dir)
@@ -66,8 +69,13 @@ def chat(config: Config, unsafe: bool = False):
         FindExcerptsRelatedTo(zk),
         FindZkDocumentsRelatedTo(zk),
         StoreInSmartMemory(smart_memory),
-        RetrieveFromSmartMemory(smart_memory),
+        RetrieveFromSmartMemory(smart_memory)
     ]
+
+    if use_git:
+        git_gateway = GitGateway(config.vault)
+        tools.append(UncommittedChanges(config.vault, git_gateway))
+        tools.append(CommitChanges(config.vault, llm, git_gateway))
 
     if unsafe:
         tools.append(CreateOrOverwriteZkDocument(zk))
