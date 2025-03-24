@@ -107,7 +107,7 @@ class GitGateway:
         gitignore_path = os.path.join(self.base_path, ".gitignore")
         if not os.path.exists(gitignore_path):
             with open(gitignore_path, "w") as f:
-                f.write(".zk_chat*\n")
+                f.write(".zk_chat*\n.obsidian\n.vscode\n")
 
         # Initialize the git repository if it does not exist
         if not os.path.exists(os.path.join(self.base_path, ".git")):

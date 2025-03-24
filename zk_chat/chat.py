@@ -1,18 +1,18 @@
+import argparse
 import logging
 import os
-import argparse
 from importlib.metadata import entry_points
 
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 
-from zk_chat.filesystem_gateway import FilesystemGateway
+from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.tools.commit_changes import CommitChanges
+from zk_chat.tools.git_gateway import GitGateway
+from zk_chat.tools.list_zk_documents import ListZkDocuments
 from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory
 from zk_chat.tools.store_in_smart_memory import StoreInSmartMemory
-from zk_chat.chroma_collections import ZkCollectionName
-from zk_chat.tools.git_gateway import GitGateway
 from zk_chat.tools.uncommitted_changes import UncommittedChanges
 
 logging.basicConfig(
@@ -25,6 +25,7 @@ from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.read_zk_document import ReadZkDocument
 from zk_chat.tools.create_or_overwrite_zk_document import CreateOrOverwriteZkDocument
+from zk_chat.tools.rename_zk_document import RenameZkDocument
 from zk_chat.vector_database import VectorDatabase
 
 from mojentic.llm import LLMBroker, ChatSession
@@ -73,6 +74,7 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False):
     tools = [
         ResolveDateTool(),
         ReadZkDocument(zk),
+        ListZkDocuments(zk),
         FindExcerptsRelatedTo(zk),
         FindZkDocumentsRelatedTo(zk),
         StoreInSmartMemory(smart_memory),
@@ -86,13 +88,14 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False):
 
     if unsafe:
         tools.append(CreateOrOverwriteZkDocument(zk))
+        tools.append(RenameZkDocument(zk))
 
     _add_available_plugins(tools, config, llm)
 
     chat_session = ChatSession(
         llm,
         system_prompt="""
-You are a helpful research assistant, with access to one of the user's knowledge-bases (Zettelkasten).
+You are a helpful research assistant, with access to one of the user's knowledge-bases (Zettelkasten, or zk).
 If you're not sure what the user is talking about, use tools to query your smart memory about basic facts, or query documents or excerpts from the Zettelkasten.
 If you don't find information in one place, keep searching the rest of them.
 """,

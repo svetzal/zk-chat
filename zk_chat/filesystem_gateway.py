@@ -118,3 +118,23 @@ class FilesystemGateway:
         with open(full_path, "w") as f:
             f.write(content)
 
+    def rename_file(self, source_path: str, target_path: str) -> None:
+        """Rename a file from source path to target path.
+
+        Args:
+            source_path: Relative source path of the file to rename
+            target_path: Relative target path for the renamed file
+
+        Raises:
+            OSError: If there are filesystem-related errors (permissions, file not found, etc.)
+        """
+        import os
+        full_source_path = self.get_full_path(source_path)
+        full_target_path = self.get_full_path(target_path)
+
+        # Create target directory if it doesn't exist
+        target_dir = os.path.dirname(full_target_path)
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir)
+
+        os.rename(full_source_path, full_target_path)
