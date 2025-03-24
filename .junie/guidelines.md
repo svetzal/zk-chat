@@ -33,6 +33,10 @@
    - ERROR for critical issues
 5. Use print statements only for direct user feedback
 
+### Code Conventions
+1. Do not write comments that just restate what the code does
+2. Use pydantic BaseModel classes, do not use @dataclass
+
 ## Testing Guidelines
 
 ### General Rules
