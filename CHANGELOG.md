@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+## [2.5.0] - 2025-03-26
+
+### Added
+
+- Document deletion functionality for better document management
+  - Added DeleteZkDocument tool for safely removing documents from the Zettelkasten
+  - Implemented safeguards to prevent accidental deletion of non-existent documents
+
 ## [2.4.0] - 2025-03-25
 
 ### Added
