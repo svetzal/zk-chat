@@ -25,7 +25,9 @@ class CreateOrOverwriteZkDocument(LLMTool):
         return sanitized
 
     def run(self, title: str, content: str, metadata: Optional[dict[str, Any]] = None) -> str:
-        relative_path = f"{self._sanitize_filename(title)}.md"
+        relative_path = f"{self._sanitize_filename(title)}"
+        if not relative_path.endswith(".md"):
+            relative_path += ".md"
         print("Writing document at", relative_path)
         try:
             # Use metadata only if it's a dictionary, otherwise use empty dict

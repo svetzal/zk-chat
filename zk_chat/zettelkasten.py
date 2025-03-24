@@ -106,14 +106,14 @@ class Zettelkasten:
             self._split_document(document, excerpt_size, excerpt_overlap)
 
 
-    def query_excerpts(self, query: str, n_results: int = 5, max_distance: float = 1.0) -> List[ZkQueryExcerptResult]:
+    def query_excerpts(self, query: str, n_results: int = 8, max_distance: float = 1.0) -> List[ZkQueryExcerptResult]:
         return [
             self._create_excerpt_query_result(result)
             for result in (self.excerpts_db.query(query, n_results=n_results))
             if result.distance <= max_distance
         ]
 
-    def query_documents(self, query: str, n_results: int = 5, max_distance: float = 0.0) -> List[ZkQueryDocumentResult]:
+    def query_documents(self, query: str, n_results: int = 3, max_distance: float = 0.0) -> List[ZkQueryDocumentResult]:
         """Query the document index for whole documents.
 
         Args:
@@ -257,3 +257,20 @@ class Zettelkasten:
             content=merged_content
         )
         self.create_or_overwrite_document(merged_document)
+
+    def rename_document(self, source_path: str, target_path: str) -> None:
+        """Rename a document from source path to target path.
+
+        Args:
+            source_path: Relative source path of the document to rename
+            target_path: Relative target path for the renamed document
+
+        Raises:
+            FileNotFoundError: If the source document doesn't exist
+            OSError: If there are filesystem-related errors (permissions, etc.)
+        """
+        if not self.document_exists(source_path):
+            raise FileNotFoundError(f"Source document {source_path} does not exist")
+
+        self.filesystem_gateway.rename_file(source_path, target_path)
+
