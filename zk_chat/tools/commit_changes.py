@@ -69,9 +69,6 @@ class CommitChanges(LLMTool):
             A one-line commit message summarizing the changes
         """
 
-        # class GitCommitMessage(BaseModel):
-        #     message: str = Field(..., description="A brief one-line message summarizing the changes made in the commit.")
-
         message = self.llm.generate([
             LLMMessage(content=f"""
 The user is committing changes to a content repository managed by git. The following is the output from git diff. Summarize a suitable git commit message about the content changes.
@@ -82,7 +79,6 @@ Output only the commit message, no other text, do not put it in code fences.
 ```
 """.strip())
         ])
-        # object_model=GitCommitMessage).message
         if "</think>" in message:
             message = message.split("</think>")[-1]
         return message
