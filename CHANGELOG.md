@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+## [2.4.0] - 2025-03-25
+
+### Added
+
+- Document renaming functionality
+- List documents tool for better document management
+
+### Changed
+
+- Enhanced function descriptions for Zettelkasten tools to improve clarity and usability
+
 ## [2.3.0] - 2025-03-24
 
 ### Changed

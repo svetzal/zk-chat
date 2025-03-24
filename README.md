@@ -19,11 +19,13 @@ For "AI" it communicates with either a local running instance of Ollama or OpenA
 
 The chat interface provides access to several tools that enhance its capabilities:
 
-- **Document Search Tools**
+- **Document Management Tools**
   - Find Documents: Locates relevant documents in your Zettelkasten based on your query
   - Find Excerpts: Retrieves specific passages from your documents that match your search criteria
+  - List Documents: Displays all documents in your Zettelkasten for easier navigation
   - Read Document: Accesses the full content of a specific document in your Zettelkasten
   - Write Document: Creates or updates documents in your Zettelkasten (requires --unsafe flag)
+  - Rename Document: Changes the name of an existing document in your Zettelkasten (requires --unsafe flag)
 
 - **Smart Memory Tools**
   - Store Information: Saves important facts and context from conversations for future reference
