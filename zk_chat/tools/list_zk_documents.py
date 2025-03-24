@@ -15,7 +15,7 @@ class ListZkDocuments(LLMTool):
     def run(self) -> str:
         """
         List all document paths in the Zettelkasten.
-        
+
         Returns:
             A simple list of all document paths.
         """
@@ -30,7 +30,7 @@ class ListZkDocuments(LLMTool):
             "type": "function",
             "function": {
                 "name": "list_documents",
-                "description": "List all document titles in the Zettelkasten.",
+                "description": "List all document paths in the Zettelkasten knowledge base. Use this when you need to see what documents are available in the system before searching or reading specific documents. This provides an overview of the available knowledge without retrieving the actual content.",
                 "parameters": {
                     "type": "object",
                     "properties": {},

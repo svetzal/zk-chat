@@ -37,10 +37,10 @@ class RenameZkDocument(LLMTool):
 
         try:
             logger.info("renaming document", source_path=source_path, target_path=target_path)
-            
+
             # Rename the document
             renamed_document = self.zk.rename_document(source_path, target_path)
-            
+
             return f"Successfully renamed document from '{source_path}' to '{target_path}'"
         except FileNotFoundError as e:
             error_message = f"Failed to rename document: {str(e)}"
@@ -57,7 +57,7 @@ class RenameZkDocument(LLMTool):
             "type": "function",
             "function": {
                 "name": "rename_document",
-                "description": "Rename a document in the Zettelkasten. Returns a success message if the rename operation succeeds, or a detailed error message if it fails (e.g., due to source file not found, target file already existing, or filesystem permissions).",
+                "description": "Change the name or path of an existing document in the Zettelkasten knowledge base. Use this when you need to reorganize the knowledge base or provide a more appropriate name for a document. This preserves the document's content while changing its identifier. Returns a success message if the rename operation succeeds, or a detailed error message if it fails.",
                 "parameters": {
                     "type": "object",
                     "properties": {

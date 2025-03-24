@@ -28,7 +28,7 @@ class FindExcerptsRelatedTo(LLMTool):
             "type": "function",
             "function": {
                 "name": "find_excerpts",
-                "description": "Find relevant excerpts from the Zettelkasten related to a query.",
+                "description": "Search for specific passages or excerpts within documents in the Zettelkasten knowledge base that are relevant to a query. This returns smaller chunks of text (excerpts) rather than entire documents, which is useful when you need specific information rather than complete documents.",
                 "parameters": {
                     "type": "object",
                     "properties": {

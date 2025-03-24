@@ -53,7 +53,7 @@ class CreateOrOverwriteZkDocument(LLMTool):
             "type": "function",
             "function": {
                 "name": "create_or_overwrite_document",
-                "description": "Write document to a file in the Zettelkasten, overwriting the content if it already exists. Returns a success message if the write operation succeeds, or a detailed error message if it fails (e.g., due to filesystem permissions, disk space issues, or invalid metadata).",
+                "description": "Create a new document or update an existing document in the Zettelkasten knowledge base. Use this when you need to add new information to the knowledge base or update existing information. This tool will create a new document if the title doesn't exist, or completely replace the content of an existing document. Returns a success message with the document details if successful, or an error message if the operation fails.",
                 "parameters": {
                     "type": "object",
                     "properties": {
