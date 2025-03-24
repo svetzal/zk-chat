@@ -26,6 +26,7 @@ The chat interface provides access to several tools that enhance its capabilitie
   - Read Document: Accesses the full content of a specific document in your Zettelkasten
   - Write Document: Creates or updates documents in your Zettelkasten (requires --unsafe flag)
   - Rename Document: Changes the name of an existing document in your Zettelkasten (requires --unsafe flag)
+  - Delete Document: Permanently removes a document from your Zettelkasten (requires --unsafe flag)
 
 - **Smart Memory Tools**
   - Store Information: Saves important facts and context from conversations for future reference
