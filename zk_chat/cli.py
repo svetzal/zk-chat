@@ -17,7 +17,7 @@ from zk_chat.tools.git_gateway import GitGateway
 def main():
     parser = argparse.ArgumentParser(description='Zettelkasten Chat Tool')
     parser.add_argument('--vault', required=False, help='Path to your Zettelkasten vault (can be relative)')
-    parser.add_argument('--save', action='store_true', 
+    parser.add_argument('--save', action='store_true',
                         help='Save the provided vault path as a bookmark')
     parser.add_argument('--remove-bookmark', metavar='PATH', help='Remove a bookmark for PATH (can be relative)')
     parser.add_argument('--list-bookmarks', action='store_true', help='List all bookmarks')
