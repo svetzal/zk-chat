@@ -94,9 +94,7 @@ class DescribeCommitChanges:
         mock_git_gateway.get_status.return_value = (True, "M file.txt")
         mock_git_gateway.get_diff.return_value = (True, "diff --git a/file.txt b/file.txt")
 
-        mock_commit_message = mocker.Mock()
-        mock_commit_message.message = "Test commit message"
-        mock_llm_broker.generate_object.return_value = mock_commit_message
+        mock_llm_broker.generate.return_value = "Test commit message"
 
         mock_git_gateway.commit.return_value = (False, "Error committing")
 
@@ -105,7 +103,7 @@ class DescribeCommitChanges:
         mock_git_gateway.add_all_files.assert_called_once()
         mock_git_gateway.get_status.assert_called_once()
         mock_git_gateway.get_diff.assert_called_once()
-        mock_llm_broker.generate_object.assert_called_once()
+        mock_llm_broker.generate.assert_called_once()
         mock_git_gateway.commit.assert_called_once_with("Test commit message")
         assert result == "Error committing changes: Error committing"
 
@@ -115,9 +113,7 @@ class DescribeCommitChanges:
         mock_git_gateway.get_status.return_value = (True, "M file.txt")
         mock_git_gateway.get_diff.return_value = (True, "diff --git a/file.txt b/file.txt")
 
-        mock_commit_message = mocker.Mock()
-        mock_commit_message.message = "Test commit message"
-        mock_llm_broker.generate_object.return_value = mock_commit_message
+        mock_llm_broker.generate.return_value = "Test commit message"
 
         mock_git_gateway.commit.return_value = (True, "1 file changed")
 
@@ -126,7 +122,7 @@ class DescribeCommitChanges:
         mock_git_gateway.add_all_files.assert_called_once()
         mock_git_gateway.get_status.assert_called_once()
         mock_git_gateway.get_diff.assert_called_once()
-        mock_llm_broker.generate_object.assert_called_once()
+        mock_llm_broker.generate.assert_called_once()
         mock_git_gateway.commit.assert_called_once_with("Test commit message")
         assert result == "Successfully committed changes: 'Test commit message'"
 
@@ -134,14 +130,12 @@ class DescribeCommitChanges:
         """Test that _generate_commit_message uses the LLM to generate a commit message."""
         test_diff_summary = "diff --git a/file.txt b/file.txt"
 
-        mock_commit_message = mocker.Mock()
-        mock_commit_message.message = "Test commit message"
-        mock_llm_broker.generate_object.return_value = mock_commit_message
+        mock_llm_broker.generate.return_value = "Test commit message"
 
         result = commit_changes._generate_commit_message(test_diff_summary)
 
-        mock_llm_broker.generate_object.assert_called_once()
-        call_args = mock_llm_broker.generate_object.call_args[0][0]
+        mock_llm_broker.generate.assert_called_once()
+        call_args = mock_llm_broker.generate.call_args[0][0]
         assert len(call_args) == 1
         assert isinstance(call_args[0], LLMMessage)
         assert test_diff_summary in call_args[0].content
