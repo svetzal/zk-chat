@@ -274,3 +274,25 @@ class Zettelkasten:
 
         self.filesystem_gateway.rename_file(source_path, target_path)
 
+    def delete_document(self, relative_path: str) -> None:
+        """Delete a document at the specified path.
+
+        Args:
+            relative_path: Relative path of the document to delete
+
+        Raises:
+            FileNotFoundError: If the document doesn't exist
+            OSError: If there are filesystem-related errors (permissions, etc.)
+        """
+        logger.info("Deleting document", path=relative_path)
+
+        if not self.document_exists(relative_path):
+            logger.error("Document not found", path=relative_path)
+            raise FileNotFoundError(f"Document {relative_path} does not exist")
+
+        try:
+            self.filesystem_gateway.delete_file(relative_path)
+            logger.info("Document deleted successfully", path=relative_path)
+        except OSError as e:
+            logger.error("Failed to delete document", path=relative_path, error=str(e))
+            raise
