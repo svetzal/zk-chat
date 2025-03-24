@@ -89,7 +89,7 @@ Summarize the provided git diff output in a one-line commit message. Ignore any 
             "type": "function",
             "function": {
                 "name": "commit_changes",
-                "description": "Commit all changes in the vault folder so that they're safely saved.",
+                "description": "Save all changes made to the Zettelkasten knowledge base by creating a Git commit. Use this after making modifications to documents (creating, updating, or renaming) to permanently store those changes in the version control system. This ensures your changes are preserved and can be tracked over time.",
                 "parameters": {
                     "type": "object",
                     "properties": {},
