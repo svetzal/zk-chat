@@ -63,7 +63,7 @@ class CreateOrOverwriteZkDocument(LLMTool):
                         },
                         "content": {
                             "type": "string",
-                            "description": "The content to write to the file."
+                            "description": "The content to write to the file. It should be in markdown format, with proper unescaped newline characters."
                         },
                         "metadata": {
                             "type": "object",

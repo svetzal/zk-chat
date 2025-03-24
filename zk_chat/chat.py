@@ -26,6 +26,7 @@ from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.read_zk_document import ReadZkDocument
 from zk_chat.tools.create_or_overwrite_zk_document import CreateOrOverwriteZkDocument
 from zk_chat.tools.rename_zk_document import RenameZkDocument
+from zk_chat.tools.delete_zk_document import DeleteZkDocument
 from zk_chat.vector_database import VectorDatabase
 
 from mojentic.llm import LLMBroker, ChatSession
@@ -89,6 +90,7 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False):
     if unsafe:
         tools.append(CreateOrOverwriteZkDocument(zk))
         tools.append(RenameZkDocument(zk))
+        tools.append(DeleteZkDocument(zk))
 
     _add_available_plugins(tools, config, llm)
 
@@ -98,6 +100,16 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False):
 You are a helpful research assistant, with access to one of the user's knowledge-bases (Zettelkasten, or zk).
 If you're not sure what the user is talking about, use tools to query your smart memory about basic facts, or query documents or excerpts from the Zettelkasten.
 If you don't find information in one place, keep searching the rest of them.
+
+About the Zettelkasten:
+All files are in Markdown format, and links between them are in wikilink format (eg [[Title of Document]]).
+Within the markdown:
+- leave a blank line between headings, paragraphs, lists, code blocks, separators (---), and other block-level elements
+- use # for headings, ## for subheadings, and so on
+- don't repeat the document title as the first heading
+- when nesting headings, their level should increase by one each time (#, ##, ###, etc.)
+- only use - for unordered lists, and 1. for ordered lists, renumber ordered lists if you insert or remove items
+- use **bold** and *italic* for emphasis
 """,
         tools=tools
     )

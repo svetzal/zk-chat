@@ -138,3 +138,21 @@ class FilesystemGateway:
             os.makedirs(target_dir)
 
         os.rename(full_source_path, full_target_path)
+
+    def delete_file(self, relative_path: str) -> None:
+        """Delete a file at the specified path.
+
+        Args:
+            relative_path: Relative path to the file to delete
+
+        Raises:
+            FileNotFoundError: If the file doesn't exist
+            OSError: If there are filesystem-related errors (permissions, etc.)
+        """
+        import os
+        full_path = self.get_full_path(relative_path)
+
+        if not os.path.exists(full_path):
+            raise FileNotFoundError(f"File {relative_path} does not exist")
+
+        os.remove(full_path)
