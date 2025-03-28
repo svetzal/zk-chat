@@ -70,13 +70,15 @@ class Config(BaseModel):
             return None
 
     @classmethod
-    def load_or_initialize(cls, vault_path: str, gateway: ModelGateway = ModelGateway.OLLAMA) -> 'Config':
+    def load_or_initialize(cls, vault_path: str, gateway: ModelGateway = ModelGateway.OLLAMA, model: str = None) -> 'Config':
         config = cls.load(vault_path)
         if config:
             return config
 
-        model = select_model(gateway)
+        if model is None:
+            model = select_model(gateway)
         config = cls(vault=vault_path, model=model, gateway=gateway)
+
         config.save()
         return config
 
