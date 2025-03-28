@@ -30,6 +30,7 @@ def main():
                         help='Set the model to use for chat. Use without a value to select from available models')
     parser.add_argument('--reset-memory', action='store_true', help='Reset the smart memory')
     parser.add_argument('--git', action='store_true', help='Enable git integration')
+    parser.add_argument('--store-prompt', action='store_false', help='Store the system prompt to the vault', dest='store_prompt', default=True)
     args = parser.parse_args()
 
     global_config = GlobalConfig.load()
@@ -146,7 +147,7 @@ def main():
         git_gateway = GitGateway(vault_path)
         git_gateway.setup()
 
-    chat(config, unsafe=args.unsafe, use_git=args.git)
+    chat(config, unsafe=args.unsafe, use_git=args.git, store_prompt=args.store_prompt)
 
 
 if __name__ == '__main__':

@@ -156,6 +156,7 @@ Command-line options:
 - `--unsafe`: Enable operations that can write to your Zettelkasten. This flag is required for using tools that modify your Zettelkasten content, such as the Write Document tool. Use with caution as it allows the AI to make changes to your files.
 - `--reset-memory`: Clear the smart memory storage
 - `--git`: Enable Git integration for version control of your Zettelkasten vault
+- `--store-prompt`: Store the system prompt to the vault (default behavior) so that it can be customized
 
 #### Note on Models
 
@@ -210,3 +211,4 @@ After initial configuration, the tool will start a full index build of your Zett
 The tool stores its configuration and database in your Zettelkasten vault:
 - `.zk_chat` - Configuration file stored in the vault root
 - `.zk_chat_db/` - Chroma vector database folder stored in the vault root
+- `ZkSystemPrompt.md` - System prompt file created in the vault root if it doesn't exist. This file defines the behavior of the AI assistant and can be customized to change how the assistant interacts with your Zettelkasten. By default, this file is created and used. You can prevent the creation of this file by not using the `--store-prompt` parameter, in which case the default system prompt will be used.
