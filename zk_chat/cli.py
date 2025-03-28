@@ -125,6 +125,8 @@ def main():
             print("Smart memory has been reset.")
             return
 
+        if args.reindex:
+            reindex(config, force_full=args.full)
     else:
         gateway = ModelGateway.OLLAMA
         if args.gateway:
@@ -138,8 +140,7 @@ def main():
         else:
             config = Config.load_or_initialize(vault_path, gateway=gateway, model=args.model)
 
-    if args.reindex:
-        reindex(config, force_full=args.full)
+        reindex(config, force_full=True)
 
     if args.git:
         git_gateway = GitGateway(vault_path)
