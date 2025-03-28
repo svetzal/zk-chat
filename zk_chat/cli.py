@@ -103,9 +103,7 @@ def main():
 
             gateway = new_gateway
 
-        if gateway_changed:
-            config.update_model(gateway=gateway)
-        elif args.model:
+        if gateway_changed or args.model:
             if args.model == "choose":
                 config.update_model(gateway=gateway)
             else:
@@ -127,8 +125,6 @@ def main():
             print("Smart memory has been reset.")
             return
 
-        if args.reindex:
-            reindex(config, force_full=args.full)
     else:
         gateway = ModelGateway.OLLAMA
         if args.gateway:
@@ -137,7 +133,13 @@ def main():
                 print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
                 return
 
-        config = Config.load_or_initialize(vault_path, gateway=gateway)
+        if args.model == "choose":
+            config = Config.load_or_initialize(vault_path, gateway=gateway)
+        else:
+            config = Config.load_or_initialize(vault_path, gateway=gateway, model=args.model)
+
+    if args.reindex:
+        reindex(config, force_full=args.full)
 
     if args.git:
         git_gateway = GitGateway(vault_path)

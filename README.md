@@ -51,31 +51,9 @@ notes - because everything's local, and in plain text, I can simply point this t
 
 ## 💻 Workstation setup
 
-**_Right now, while this tool should run on Windows, we've only written instructions for Mac._**
+**_Right now, while this tool should run on Windows, but we've only written instructions for Mac._**
 
-I recommend you setting up a local virtual Python environment, to keep it clean, but you can install it globally.
-
-Setting up a local environment, and activating it (recommended):
-
-```bash
-cd $HOME
-python3 -mvenv .venv
-source .venv/bin/activate
-```
-
-Installing the zk-rag module from PyPi:
-
-```bash
-pip install zk-rag
-```
-
-Optionally install tool plugins from PyPi:
-
-```bash
-pip install zk-rag-wikipedia
-```
-
-### Alternative: Using pipx (recommended for end-users)
+### Using pipx (recommended)
 
 [pipx](https://pypa.github.io/pipx/) is a tool that allows you to install and run Python applications in isolated environments. It's ideal for end-user applications like zk-rag, as it keeps the application and its dependencies isolated from your system Python and other applications.
 
@@ -97,6 +75,12 @@ Installing zk-rag with pipx:
 pipx install zk-rag
 ```
 
+Upgrading zk-rag with pipx:
+
+```bash
+pipx upgrade zk-rag
+```
+
 Installing plugins with pipx inject:
 
 ```bash
@@ -105,6 +89,30 @@ pipx inject zk-rag zk-rag-wikipedia
 ```
 
 The benefit of using pipx is that it creates isolated environments for each application, avoiding dependency conflicts while still making the commands globally available.
+
+### Alternative: Using a virtual environment
+
+If you prefer more control over your Python environment, you can set up a local virtual environment:
+
+Setting up a local environment, and activating it:
+
+```bash
+cd $HOME
+python3 -mvenv .venv
+source .venv/bin/activate
+```
+
+Installing the zk-rag module from PyPi:
+
+```bash
+pip install zk-rag
+```
+
+Optionally install tool plugins from PyPi:
+
+```bash
+pip install zk-rag-wikipedia
+```
 
 Setting up Ollama and installing a local model (if using the Ollama gateway):
 
