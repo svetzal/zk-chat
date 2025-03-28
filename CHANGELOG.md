@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+## [2.5.1] - 2025-03-28
+
+### Fixed
+
+- Improved new (to zk-rag) vault and first-time installation experience
+
+### Changed
+
+- Updated README and refactored CLI and config for model handling and environment setup
+- Streamlined vault path handling and gateway selection in CLI
+- Refactored commit message generation to use updated LLM method
+
 ## [2.5.0] - 2025-03-26
 
 ### Added

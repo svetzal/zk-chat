@@ -131,7 +131,15 @@ export OPENAI_API_KEY=your_api_key_here
 
 ### 📟 Command-line Interface
 
-Run `zkchat --vault /path/to/vault` to start the command-line interface.
+Run `zkchat --vault /path/to/vault` to start the command-line interface for the first time on a new vault.
+
+If `zk-rag` hasn't been used with the vault before, it will prompt you for a model (using the default Ollama gateway) and perform a full index your vault before starting the chat.
+
+Subsequently running `zkchat` on its own will launch it on the last opened vault, with the last selected model.
+
+> If you want to allow the AI to make changes to your Zettelkasten, you must use the `--unsafe` flag. We highly recommend using `git` for version control if you enable this option.
+
+> Specifying `--git` will initialize a new git repository for your vault if one doesn't already exist.
 
 Command-line options:
 - `--vault PATH`: Specify the path to your Zettelkasten vault (required if no bookmarks are set)
@@ -148,6 +156,18 @@ Command-line options:
 - `--unsafe`: Enable operations that can write to your Zettelkasten. This flag is required for using tools that modify your Zettelkasten content, such as the Write Document tool. Use with caution as it allows the AI to make changes to your files.
 - `--reset-memory`: Clear the smart memory storage
 - `--git`: Enable Git integration for version control of your Zettelkasten vault
+
+#### Note on Models
+
+For **local models** on Ollama, you're going to need to choose a model that fits in your available RAM (on MacOS) or in the VRAM on your GPU. The actual RAM used will vary based on many factors.
+
+Our recommendation is a 14B to 28B parameter model like qwen2.5:14b or phi4:14b or even qwq:32b (if you don't run a lot of other programs at the same time) on a Macbook Pro M1 or later with 36GB of RAM or more.
+
+The lower the number of parameters, the faster the model will be, but the less capable it will be. The higher the number of parameters, the slower the model will be, but the more capable it will be.
+
+In general, newer models are more capable and more accurate. Certain models will be tuned for specific use cases. Read up on the models to understand what they're good at.
+
+You will need to experiment to find the right balance for your system and use cases.
 
 ### 🧠 Smart Memory
 
