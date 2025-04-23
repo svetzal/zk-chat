@@ -2,9 +2,10 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+import pytest
 from pytest import fixture
 
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway, WikiLink
 
 
 @fixture
@@ -51,3 +52,47 @@ class DescribeMarkdownFilesystemGateway:
             assert relative_path.endswith(".md")
 
         assert found_files == expected_files
+
+
+class DescribeWikiLink:
+    """Tests for the WikiLink class which handles wiki-style links."""
+
+    def should_parse_wikilink_with_title_only(self):
+        wikilink_str = "[[test-title]]"
+
+        result = WikiLink.parse(wikilink_str)
+
+        assert isinstance(result, WikiLink)
+        assert result.title == "test-title"
+        assert result.caption is None
+
+    def should_parse_wikilink_with_title_and_caption(self):
+        wikilink_str = "[[test-title|Test Caption]]"
+
+        result = WikiLink.parse(wikilink_str)
+
+        assert isinstance(result, WikiLink)
+        assert result.title == "test-title"
+        assert result.caption == "Test Caption"
+
+    def should_raise_error_for_invalid_wikilink_format(self):
+        invalid_wikilink = "test-title"
+
+        with pytest.raises(ValueError) as excinfo:
+            WikiLink.parse(invalid_wikilink)
+
+        assert "Invalid wikilink format" in str(excinfo.value)
+
+    def should_render_wikilink_with_title_only(self):
+        wikilink = WikiLink(title="test-title", caption=None)
+
+        result = str(wikilink)
+
+        assert result == "[[test-title]]"
+
+    def should_render_wikilink_with_title_and_caption(self):
+        wikilink = WikiLink(title="test-title", caption="Test Caption")
+
+        result = str(wikilink)
+
+        assert result == "[[test-title|Test Caption]]"

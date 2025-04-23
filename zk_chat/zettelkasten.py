@@ -33,8 +33,11 @@ class Zettelkasten:
         """Yields relative paths for all markdown files in the zk"""
         yield from self.filesystem_gateway.iterate_markdown_files()
 
-    def document_exists(self, relative_path: str) -> bool:
+    def file_exists(self, relative_path: str) -> bool:
         return self.filesystem_gateway.path_exists(relative_path)
+
+    def document_exists(self, relative_path: str) -> bool:
+        return self.file_exists(relative_path)
 
     def read_document(self, relative_path: str) -> ZkDocument:
         (metadata, content) = self.filesystem_gateway.read_markdown(relative_path)
@@ -99,12 +102,12 @@ class Zettelkasten:
             if self._needs_reindex(relative_path, since):
                 self._index_document(relative_path, excerpt_size, excerpt_overlap)
 
+
     def _index_document(self, relative_path: str, excerpt_size: int, excerpt_overlap: int) -> None:
         document = self.read_document(relative_path)
         if document.content:
             self._add_document_to_index(document)
             self._split_document(document, excerpt_size, excerpt_overlap)
-
 
     def query_excerpts(self, query: str, n_results: int = 8, max_distance: float = 1.0) -> List[ZkQueryExcerptResult]:
         return [
