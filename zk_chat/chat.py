@@ -2,16 +2,20 @@ import argparse
 import logging
 import os
 from importlib.metadata import entry_points
+from typing import Type, List
 
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
+from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.models import ZkDocument
+from zk_chat.tools.analyze_image import AnalyzeImage
 from zk_chat.tools.commit_changes import CommitChanges
 from zk_chat.tools.git_gateway import GitGateway
 from zk_chat.tools.list_zk_documents import ListZkDocuments
+from zk_chat.tools.resolve_wikilink import ResolveWikiLink
 from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory
 from zk_chat.tools.store_in_smart_memory import StoreInSmartMemory
 from zk_chat.tools.uncommitted_changes import UncommittedChanges
@@ -50,6 +54,7 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
         gateway = OpenAIGateway(os.environ.get("OPENAI_API_KEY"))
 
     # Create Zettelkasten with the excerpts collection
+    filesystem_gateway = MarkdownFilesystemGateway(config.vault)
     zk = Zettelkasten(
         tokenizer_gateway=TokenizerGateway(),
         excerpts_db=VectorDatabase(
@@ -62,7 +67,7 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
             gateway=gateway,
             collection_name=ZkCollectionName.DOCUMENTS
         ),
-        filesystem_gateway=MarkdownFilesystemGateway(config.vault)
+        filesystem_gateway=filesystem_gateway
     )
 
     llm = LLMBroker(config.model, gateway=gateway)
@@ -73,10 +78,12 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
         gateway=gateway
     )
 
-    tools = [
+    tools: List[LLMTool] = [
         ResolveDateTool(),
         ReadZkDocument(zk),
         ListZkDocuments(zk),
+        ResolveWikiLink(filesystem_gateway),
+        AnalyzeImage(zk, LLMBroker(model="gemma3:27b")), # TODO: Hack!
         FindExcerptsRelatedTo(zk),
         FindZkDocumentsRelatedTo(zk),
         StoreInSmartMemory(smart_memory),
@@ -101,19 +108,21 @@ You are a helpful research assistant, with access to one of the user's knowledge
 If you're not sure what the user is talking about, use your available tools try and find out.
 If you don't find the information you need from the first tool you try, try the next best tool until you find what you need or exhaust your options..
 
-About the Zettelkasten:
+About the Zettelkasten (zk):
 All documents are in Markdown format, and links between them are in wikilink format (eg [[Title of Document]]).
 Within the markdown:
-- leave a blank line between headings, paragraphs, lists, code blocks, separators (---), and other block-level elements
+- leave a blank line between headings, paragraphs, lists, code blocks, quotations, separators (---), and other block-level elements
 - use # for headings, ## for subheadings, and so on
 - don't repeat the document title as the first heading
 - when nesting headings, their level should increase by one each time (#, ##, ###, etc.)
-- only use - for unordered lists, and 1. for ordered lists, renumber ordered lists if you insert or remove items
+- only use `-` as the bullet marker for unordered lists, and 1. for ordered lists, renumber ordered lists if you insert or remove items
 - use **bold** and *italic* for emphasis
+- place blocks of code in code-fences, include a marker in the top fence for the type of code (language, json, xml, etc) eg "```python"
 About organizing the Zettelkasten:
-- If the user uses the phrase `MoC` that refers to a Map of Content, a document that links to other documents in order to assist a user in navigating the information in their vault
-- An Atomic Idea is a document that contains a single idea, concept, or piece of information. It should be concise and focused, and consist of a title (the name of the document), a concise description of the core idea, a more elaborate explanation of the idea, a list of sources from which the idea was pulled (may be an external link), and a list of related ideas that are connected to the core idea (may be external links, but are likely to be wikilinks
-- The user may ask you to extract atomic ideas from a larger document, create one Atomic Idea document for each idea you find in the source document. Make sure to either transcribe the cited sources in the original document, or the original document itself.
+- An Atomic Idea is a document that contains a single idea, concept, or piece of information. It should be concise and focused, and consist of a title (the name of the document), a concise description of the core idea, a more elaborate explanation of the idea, a list of sources from which the idea was pulled (may be an external link), and a list of related ideas that are connected to the core idea (may be external links, but are likely to be wikilinks)
+- There are several types of documents common in the zk - Atomic Ideas, editorial or blog content that expand on how Atomic Ideas relate, Maps of Content / index documents
+- If the user uses the phrase `MoC` that refers to a Map of Content, a document that indexes and links to other documents in order to assist a user in navigating the information in their vault
+- The user may ask you to extract atomic ideas from a larger document, create one Atomic Idea document for each idea you find in the source document. Make sure to either transcribe the cited sources in the original document, and the original document itself.
 - There must be only one reference to an Atomic Idea in the zk. If you find a duplicate, you should merge the two documents into one, and update the references to the merged document.
         """.strip()
 

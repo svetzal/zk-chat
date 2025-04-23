@@ -7,11 +7,14 @@ logger = structlog.get_logger()
 
 
 class ReadZkDocument(LLMTool):
+
+    zk: Zettelkasten
+
     def __init__(self, zk: Zettelkasten):
         self.zk = zk
 
     def run(self, relative_path: str) -> str:
-        print("Reading document at", relative_path)
+        logger.info("Reading document", relative_path=relative_path)
         if not self.zk.document_exists(relative_path):
             return f"Document not found at {relative_path}"
 
