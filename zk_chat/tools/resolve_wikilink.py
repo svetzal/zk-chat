@@ -18,7 +18,7 @@ class ResolveWikiLink(LLMTool):
             relative_path = self.fs.resolve_wikilink(wikilink)
             return "relative_path: " + relative_path
         except ValueError as e:
-            return str(e)
+            return "There is no document currently present matching the wikilink provided."
 
     @property
     def descriptor(self):
