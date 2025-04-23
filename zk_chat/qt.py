@@ -16,6 +16,7 @@ from zk_chat.filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.read_zk_document import ReadZkDocument
+from zk_chat.tools.analyze_image import AnalyzeImage
 from zk_chat.vector_database import VectorDatabase
 from zk_chat.chroma_collections import ZkCollectionName
 
@@ -166,17 +167,26 @@ class SettingsDialog(QDialog):
         gateway_layout.addWidget(self.gateway_combo)
         layout.addLayout(gateway_layout)
 
-        # Model selection
-        model_layout = QVBoxLayout()
-        model_label = QLabel("LLM Model:")
-        self.model_combo = QComboBox()
-        self.update_model_list()  # Populate model list based on selected gateway
-        current_index = self.model_combo.findText(self.config.model)
-        if current_index >= 0:
-            self.model_combo.setCurrentIndex(current_index)
-        model_layout.addWidget(model_label)
-        model_layout.addWidget(self.model_combo)
-        layout.addLayout(model_layout)
+        # Chat Model selection
+        chat_model_layout = QVBoxLayout()
+        chat_model_label = QLabel("Chat Model:")
+        self.chat_model_combo = QComboBox()
+        chat_model_layout.addWidget(chat_model_label)
+        chat_model_layout.addWidget(self.chat_model_combo)
+        layout.addLayout(chat_model_layout)
+
+        # Visual Model selection
+        visual_model_layout = QVBoxLayout()
+        visual_model_label = QLabel("Visual Analysis Model (optional):")
+        self.visual_model_combo = QComboBox()
+        # Add a "None" option to disable visual analysis
+        self.visual_model_combo.addItem("None - Disable Visual Analysis")
+        visual_model_layout.addWidget(visual_model_label)
+        visual_model_layout.addWidget(self.visual_model_combo)
+        layout.addLayout(visual_model_layout)
+
+        # Populate model lists based on selected gateway
+        self.update_model_list()
 
         # Save button
         save_button = QPushButton("Save")
@@ -198,29 +208,57 @@ class SettingsDialog(QDialog):
         # Check if OpenAI gateway is selected and OPENAI_API_KEY is not set
         if gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
             # Show a warning message
-            self.model_combo.clear()
-            self.model_combo.addItem("OPENAI_API_KEY environment variable is not set")
+            self.chat_model_combo.clear()
+            self.chat_model_combo.addItem("OPENAI_API_KEY environment variable is not set")
+            self.visual_model_combo.clear()
+            self.visual_model_combo.addItem("OPENAI_API_KEY environment variable is not set")
             return
 
         # Get available models for the selected gateway
         available_models = get_available_models(gateway)
 
-        # Update the model combo box
-        self.model_combo.clear()
-        self.model_combo.addItems(available_models)
+        # Update the chat model combo box
+        self.chat_model_combo.clear()
+        self.chat_model_combo.addItems(available_models)
 
-        # Try to select the current model if it's available
-        current_index = self.model_combo.findText(self.config.model)
-        if current_index >= 0:
-            self.model_combo.setCurrentIndex(current_index)
-        elif self.model_combo.count() > 0:
+        # Try to select the current chat model if it's available
+        current_chat_index = self.chat_model_combo.findText(self.config.model)
+        if current_chat_index >= 0:
+            self.chat_model_combo.setCurrentIndex(current_chat_index)
+        elif self.chat_model_combo.count() > 0:
             # Otherwise select the first model
-            self.model_combo.setCurrentIndex(0)
+            self.chat_model_combo.setCurrentIndex(0)
+
+        # Update the visual model combo box
+        self.visual_model_combo.clear()
+        # Add the "None" option first
+        self.visual_model_combo.addItem("None - Disable Visual Analysis")
+        self.visual_model_combo.addItems(available_models)
+
+        # Try to select the current visual model if it's available
+        if self.config.visual_model:
+            current_visual_index = self.visual_model_combo.findText(self.config.visual_model)
+            if current_visual_index >= 0:
+                self.visual_model_combo.setCurrentIndex(current_visual_index)
+            else:
+                # If the current model isn't available, select the first model (after "None")
+                self.visual_model_combo.setCurrentIndex(1)
+        else:
+            # If no visual model is set, select "None"
+            self.visual_model_combo.setCurrentIndex(0)
 
     def save_settings(self):
         self.config.vault = self.folder_edit.text()
         self.config.gateway = ModelGateway(self.gateway_combo.currentText())
-        self.config.model = self.model_combo.currentText()
+        self.config.model = self.chat_model_combo.currentText()
+
+        # Set visual_model to None if "None - Disable Visual Analysis" is selected
+        selected_visual_model = self.visual_model_combo.currentText()
+        if selected_visual_model == "None - Disable Visual Analysis":
+            self.config.visual_model = None
+        else:
+            self.config.visual_model = selected_visual_model
+
         self.config.save()
         self.accept()
 
@@ -320,8 +358,10 @@ class MainWindow(QMainWindow):
                 collection_name=ZkCollectionName.DOCUMENTS
             ),
             filesystem_gateway=MarkdownFilesystemGateway(self.config.vault))
-        llm = LLMBroker(self.config.model, gateway=self.config.gateway.value)
+        # Create LLM broker for chat
+        chat_llm = LLMBroker(self.config.model, gateway=self.config.gateway.value)
 
+        # Initialize tools list with basic tools
         tools = [
             ResolveDateTool(),
             ReadZkDocument(zk),
@@ -329,8 +369,13 @@ class MainWindow(QMainWindow):
             FindZkDocumentsRelatedTo(zk),
         ]
 
+        # Add AnalyzeImage tool only if a visual model is selected
+        if self.config.visual_model:
+            visual_llm = LLMBroker(self.config.visual_model, gateway=self.config.gateway.value)
+            tools.append(AnalyzeImage(zk, visual_llm))
+
         self.chat_session = ChatSession(
-            llm,
+            chat_llm,
             system_prompt="You are a helpful research assistant.",
             tools=tools
         )

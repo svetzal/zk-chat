@@ -83,12 +83,15 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
         ReadZkDocument(zk),
         ListZkDocuments(zk),
         ResolveWikiLink(filesystem_gateway),
-        AnalyzeImage(zk, LLMBroker(model="gemma3:27b")), # TODO: Hack!
         FindExcerptsRelatedTo(zk),
         FindZkDocumentsRelatedTo(zk),
         StoreInSmartMemory(smart_memory),
         RetrieveFromSmartMemory(smart_memory)
     ]
+
+    # Add AnalyzeImage tool only if a visual model is selected
+    if config.visual_model:
+        tools.append(AnalyzeImage(zk, LLMBroker(model=config.visual_model, gateway=gateway)))
 
     if use_git:
         git_gateway = GitGateway(config.vault)
