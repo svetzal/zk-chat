@@ -28,6 +28,8 @@ def main():
                         help='Set the model gateway to use (ollama or openai). OpenAI requires OPENAI_API_KEY environment variable')
     parser.add_argument('--model', nargs='?', const="choose",
                         help='Set the model to use for chat. Use without a value to select from available models')
+    parser.add_argument('--visual-model', nargs='?', const="choose",
+                        help='Set the model to use for visual analysis. Use without a value to select from available models')
     parser.add_argument('--reset-memory', action='store_true', help='Reset the smart memory')
     parser.add_argument('--git', action='store_true', help='Enable git integration')
     parser.add_argument('--store-prompt', action='store_false', help='Store the system prompt to the vault', dest='store_prompt', default=True)
@@ -107,8 +109,20 @@ def main():
         if gateway_changed or args.model:
             if args.model == "choose":
                 config.update_model(gateway=gateway)
+                # If user chose to select a model and no visual model is specified, also prompt for visual model
+                if not args.visual_model and not config.visual_model:
+                    print("Would you like to select a visual model? (y/n): ")
+                    choice = input().strip().lower()
+                    if choice == 'y':
+                        config.update_model(gateway=gateway, is_visual=True)
             else:
                 config.update_model(args.model, gateway=gateway)
+
+        if args.visual_model:
+            if args.visual_model == "choose":
+                config.update_model(gateway=gateway, is_visual=True)
+            else:
+                config.update_model(args.visual_model, gateway=gateway, is_visual=True)
 
         if args.reset_memory:
             db_dir = os.path.join(vault_path, ".zk_chat_db")
@@ -136,10 +150,15 @@ def main():
                 print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
                 return
 
+        visual_model = None
+        if args.visual_model:
+            if args.visual_model != "choose":
+                visual_model = args.visual_model
+
         if args.model == "choose":
-            config = Config.load_or_initialize(vault_path, gateway=gateway)
+            config = Config.load_or_initialize(vault_path, gateway=gateway, visual_model=visual_model)
         else:
-            config = Config.load_or_initialize(vault_path, gateway=gateway, model=args.model)
+            config = Config.load_or_initialize(vault_path, gateway=gateway, model=args.model, visual_model=visual_model)
 
         reindex(config, force_full=True)
 
