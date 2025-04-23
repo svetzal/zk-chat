@@ -13,6 +13,7 @@ For "AI" it communicates with either a local running instance of Ollama or OpenA
 - RAG queries across your document base
 - Interactive chat with context from your Zettelkasten
 - Configurable LLM model selection
+- Optional visual analysis capability for images in your Zettelkasten
 - Easy Zettelkasten folder configuration
 
 ### 🛠️ Tools
@@ -27,6 +28,12 @@ The chat interface provides access to several tools that enhance its capabilitie
   - Write Document: Creates or updates documents in your Zettelkasten (requires --unsafe flag)
   - Rename Document: Changes the name of an existing document in your Zettelkasten (requires --unsafe flag)
   - Delete Document: Permanently removes a document from your Zettelkasten (requires --unsafe flag)
+
+- **Visual Analysis Tools**
+  - Analyze Image: Examines and describes the content of images in your Zettelkasten (requires a visual model to be configured)
+
+- **Navigation Tools**
+  - Resolve WikiLink: Converts wikilinks (e.g., [[Document Title]]) to relative file paths for navigation between documents
 
 - **Smart Memory Tools**
   - Store Information: Saves important facts and context from conversations for future reference
@@ -44,6 +51,10 @@ The chat interface provides access to several tools that enhance its capabilitie
 If using the default Ollama gateway, you must have [ollama](https://ollama.com/) installed and running.
 
 If using the OpenAI gateway, you must have the OPENAI_API_KEY environment variable set with your OpenAI API key.
+
+For visual analysis capabilities, you need a model that supports image analysis:
+- For Ollama: models like llava, bakllava, or other multimodal models
+- For OpenAI: models like gpt-4-vision or other vision-capable models
 
 You must have a local knowledgebase / zettelkasten with content in markdown format. I
 use [Obsidian](https://obsidian.md/), because I favour working locally, and I favour using the markdown format for
@@ -133,9 +144,13 @@ export OPENAI_API_KEY=your_api_key_here
 
 Run `zkchat --vault /path/to/vault` to start the command-line interface for the first time on a new vault.
 
-If `zk-rag` hasn't been used with the vault before, it will prompt you for a model (using the default Ollama gateway) and perform a full index your vault before starting the chat.
+If `zk-rag` hasn't been used with the vault before, it will prompt you for:
+1. A chat model (using the default Ollama gateway)
+2. Whether you want to select a visual analysis model (optional)
 
-Subsequently running `zkchat` on its own will launch it on the last opened vault, with the last selected model.
+It will then perform a full index of your vault before starting the chat.
+
+Subsequently running `zkchat` on its own will launch it on the last opened vault, with the last selected models.
 
 > If you want to allow the AI to make changes to your Zettelkasten, you must use the `--unsafe` flag. We highly recommend using `git` for version control if you enable this option.
 
@@ -151,6 +166,10 @@ Command-line options:
 - `--model [model_name]`: Change the LLM model to use for chat
   - With model name: `zkchat --vault /path/to/vault --model llama2` - configure to use specified model
   - Without model name: `zkchat --vault /path/to/vault --model` - interactively select from available models
+- `--visual-model [model_name]`: Change the LLM model to use for visual analysis (optional)
+  - With model name: `zkchat --vault /path/to/vault --visual-model llava` - configure to use specified model for visual analysis
+  - Without model name: `zkchat --vault /path/to/vault --visual-model` - interactively select from available models
+  - To disable visual analysis: `zkchat --vault /path/to/vault --visual-model none`
 - `--reindex`: Reindex the Zettelkasten vault, will attempt to do so incrementally
 - `--full`: Force full reindex (only used with --reindex)
 - `--unsafe`: Enable operations that can write to your Zettelkasten. This flag is required for using tools that modify your Zettelkasten content, such as the Write Document tool. Use with caution as it allows the AI to make changes to your files.
@@ -169,6 +188,21 @@ The lower the number of parameters, the faster the model will be, but the less c
 In general, newer models are more capable and more accurate. Certain models will be tuned for specific use cases. Read up on the models to understand what they're good at.
 
 You will need to experiment to find the right balance for your system and use cases.
+
+### 🖼️ Visual Analysis
+
+If you've configured a visual analysis model, you can analyze images in your Zettelkasten by asking the AI about them. For example:
+- "What's in the image at images/diagram.png?"
+- "Can you describe the chart in assets/sales-data.jpg?"
+- "Analyze the photo in attachments/meeting-whiteboard.png"
+
+The AI will use the configured visual model to analyze the image and provide a description of its contents. This is particularly useful for:
+- Understanding diagrams and charts in your notes
+- Extracting text from images
+- Getting descriptions of visual content for reference
+- Analyzing screenshots or photos you've added to your knowledge base
+
+Note: Visual analysis is only available if you've configured a visual model during setup.
 
 ### 🧠 Smart Memory
 
@@ -190,7 +224,8 @@ Run `zkchat-gui` to start the graphical interface. The GUI provides:
 - A scrollable chat history showing the entire conversation
 - A resizable divider between chat history and input areas
 - Settings menu (accessible via Settings -> Configure...) for:
-  - Selecting the LLM model from available models (based on the configured gateway)
+  - Selecting the LLM model for chat from available models (based on the configured gateway)
+  - Selecting an optional visual analysis model or disabling visual analysis
   - Configuring the Zettelkasten folder location
 - Asynchronous chat responses that keep the interface responsive
 
@@ -199,10 +234,12 @@ When first run, both `zkchat` and `zkchat-gui` will need initial configuration:
 For the command-line interface:
 - You must provide the path to your Zettelkasten vault using the `--vault` argument
 - You can select which gateway to use (Ollama or OpenAI) with the `--gateway` argument
-- You'll be prompted to select an LLM model from the available models for your chosen gateway (or you can specify it with `--model`)
+- You'll be prompted to select an LLM model for chat from the available models for your chosen gateway (or you can specify it with `--model`)
+- You'll be asked if you want to select a visual analysis model (optional)
 
 For the GUI:
 - You can configure these settings through the Settings menu
+- You can enable or disable visual analysis by selecting a model or choosing "None - Disable Visual Analysis"
 
 After initial configuration, the tool will start a full index build of your Zettelkasten.
 
