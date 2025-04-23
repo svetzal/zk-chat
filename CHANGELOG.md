@@ -7,8 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
-### Added
-
 ## [2.6.0] - 2025-04-01
 
 ### Added
@@ -18,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added support for configuring a separate visual model
   - Updated CLI and GUI to support visual model selection
 - ResolveWikiLink tool for converting wikilinks to relative file paths for navigation between documents
+
+### Changed
+
+- Locked chromadb version to 0.6.3 and chroma-hnswlib to 0.7.6 for compatibility
 
 ## [2.5.1] - 2025-03-28
 
