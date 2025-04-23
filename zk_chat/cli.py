@@ -32,7 +32,7 @@ def display_banner(config, unsafe=False, use_git=False, store_prompt=True):
     console = Console(theme=custom_theme)
 
     # Display the banner
-    console.print("\n[banner.title]ZkChat v2.6.0[/]")
+    console.print("\n[banner.title]ZkChat v2.6.1[/]")
     console.print("[banner.copyright]Copyright (C) 2024-2025 Stacey Vetzal[/]\n")
 
     # Display configuration information
