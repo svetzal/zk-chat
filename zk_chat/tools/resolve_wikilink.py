@@ -32,7 +32,7 @@ class ResolveWikiLink(LLMTool):
                     "properties": {
                         "wikilink": {
                             "type": "string",
-                            "description": "The wikilink you need to resolve to a relative_path",
+                            "description": "The wikilink you need to resolve to a relative_path, in the form of [[Document Title]] or [[@Person Name]].",
                         }
                     },
                     "required": ["wikilink"]
