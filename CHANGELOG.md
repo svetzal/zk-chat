@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [2.6.0] - 2025-04-01
+
+### Added
+
 - Visual analysis capability for images in Zettelkasten
   - Added AnalyzeImage tool for examining and describing image content
   - Added support for configuring a separate visual model

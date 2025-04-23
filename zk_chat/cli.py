@@ -150,15 +150,10 @@ def main():
                 print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
                 return
 
-        visual_model = None
-        if args.visual_model:
-            if args.visual_model != "choose":
-                visual_model = args.visual_model
-
         if args.model == "choose":
-            config = Config.load_or_initialize(vault_path, gateway=gateway, visual_model=visual_model)
+            config = Config.load_or_initialize(vault_path, gateway=gateway)
         else:
-            config = Config.load_or_initialize(vault_path, gateway=gateway, model=args.model, visual_model=visual_model)
+            config = Config.load_or_initialize(vault_path, gateway=gateway, model=args.model)
 
         reindex(config, force_full=True)
 
