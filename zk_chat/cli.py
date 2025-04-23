@@ -4,6 +4,9 @@ import os
 
 logging.basicConfig(level=logging.WARN)
 
+from rich.console import Console
+from rich.theme import Theme
+
 from zk_chat.chat import chat
 from zk_chat.config import Config, ModelGateway
 from zk_chat.global_config import GlobalConfig
@@ -12,6 +15,45 @@ from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.chroma_gateway import ChromaGateway
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 from zk_chat.tools.git_gateway import GitGateway
+
+
+def display_banner(config, unsafe=False, use_git=False, store_prompt=True):
+    """Display a colorful banner with application information."""
+    # Create a custom theme for the banner
+    custom_theme = Theme({
+        "banner.title": "bold bright_cyan",
+        "banner.copyright": "bright_blue",
+        "banner.info.label": "white",
+        "banner.info.value": "green",
+        "banner.warning.unsafe": "bold bright_red",
+        "banner.warning.git": "yellow",
+    })
+
+    console = Console(theme=custom_theme)
+
+    # Display the banner
+    console.print("\n[banner.title]ZkChat v2.6.0[/]")
+    console.print("[banner.copyright]Copyright (C) 2024-2025 Stacey Vetzal[/]\n")
+
+    # Display configuration information
+    console.print(f"[banner.info.label]Using gateway:[/] [banner.info.value]{config.gateway.value}[/]")
+    console.print(f"[banner.info.label]Chat model:[/] [banner.info.value]{config.model}[/]")
+
+    if config.visual_model:
+        console.print(f"[banner.info.label]Visual Model:[/] [banner.info.value]{config.visual_model}[/]")
+
+    console.print(f"[banner.info.label]Using vault:[/] [banner.info.value]{config.vault}[/]\n")
+
+    # Display warnings based on unsafe and git parameters
+    if unsafe:
+        if not use_git:
+            console.print("[banner.warning.unsafe]ZkChat can write files to your vault, we strongly recommend using the --git option when using --unsafe.[/]\n")
+        else:
+            console.print("[banner.warning.git]ZkChat can write files to your vault, and will use git to provide a full change history and rollback functions.[/]\n")
+
+    # Display information about store_prompt
+    if store_prompt:
+        console.print(f"[banner.info.label]System prompt will be stored as 'ZkSystemPrompt.md' in the vault. Edit this document to help tune your ZkChat experience in this particular vault.[/]\n")
 
 
 def main():
@@ -83,7 +125,6 @@ def main():
         if not vault_path:
             print("Error: No vault specified. Use --vault or set a bookmark first.")
             return
-        print(f"Using last-used vault: {vault_path}")
 
     if not os.path.exists(vault_path):
         print(f"Error: Vault path '{vault_path}' does not exist.")
@@ -160,6 +201,9 @@ def main():
     if args.git:
         git_gateway = GitGateway(vault_path)
         git_gateway.setup()
+
+    # Display the banner with configuration information
+    display_banner(config, unsafe=args.unsafe, use_git=args.git, store_prompt=args.store_prompt)
 
     chat(config, unsafe=args.unsafe, use_git=args.git, store_prompt=args.store_prompt)
 
