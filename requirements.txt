@@ -1,6 +1,6 @@
 chromadb==0.6.3
 chroma-hnswlib==0.7.6
 pyyaml
-mojentic>=0.5.2
+mojentic>=0.5.4
 PySide6>=6.6.0
 rich
