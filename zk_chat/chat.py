@@ -1,13 +1,19 @@
-import argparse
 import logging
+
+logging.basicConfig(
+    level=logging.WARN
+)
+
+import argparse
 import os
 from importlib.metadata import entry_points
-from typing import Type, List
+from typing import List
 
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.chroma_collections import ZkCollectionName
+from zk_chat.cli import add_common_args, common_init, display_banner
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.models import ZkDocument
@@ -19,10 +25,6 @@ from zk_chat.tools.resolve_wikilink import ResolveWikiLink
 from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory
 from zk_chat.tools.store_in_smart_memory import StoreInSmartMemory
 from zk_chat.tools.uncommitted_changes import UncommittedChanges
-
-logging.basicConfig(
-    level=logging.WARN
-)
 
 from mojentic.llm.tools.date_resolver import ResolveDateTool
 
@@ -47,13 +49,13 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     chroma_gateway = ChromaGateway(db_dir=db_dir)
 
-    # Create the appropriate gateway based on configuration
     if config.gateway.value == ModelGateway.OLLAMA:
         gateway = OllamaGateway()
     elif config.gateway.value == ModelGateway.OPENAI:
         gateway = OpenAIGateway(os.environ.get("OPENAI_API_KEY"))
+    else:
+        raise ValueError(f"Invalid gateway: {config.gateway}")
 
-    # Create Zettelkasten with the excerpts collection
     filesystem_gateway = MarkdownFilesystemGateway(config.vault)
     zk = Zettelkasten(
         tokenizer_gateway=TokenizerGateway(),
@@ -137,7 +139,8 @@ About organizing the Zettelkasten:
     else:
         system_prompt = default_system_prompt
         if store_prompt:
-            zk.create_or_overwrite_document(ZkDocument(relative_path=system_prompt_filename, metadata={}, content=system_prompt))
+            zk.create_or_overwrite_document(
+                ZkDocument(relative_path=system_prompt_filename, metadata={}, content=system_prompt))
 
     chat_session = ChatSession(
         llm,
@@ -148,6 +151,7 @@ About organizing the Zettelkasten:
     while True:
         query = input("Query: ")
         if not query:
+            print("Exiting...")
             break
         else:
             # response = rag_query(chat_session, zk, query)
@@ -164,23 +168,22 @@ def _add_available_plugins(tools, config: Config, llm: LLMBroker):
         tools.append(plugin_class(vault=config.vault, llm=llm))
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Chat with your Zettelkasten vault')
-    parser.add_argument('--vault', required=True, help='Path to your Zettelkasten vault')
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Zettelkasten Chat')
+    add_common_args(parser)
     parser.add_argument('--unsafe', action='store_true', help='Allow write operations in chat mode')
+    parser.add_argument('--git', action='store_true', help='Enable git integration')
+    parser.add_argument('--store-prompt', action='store_false', help='Store the system prompt to the vault',
+                        dest='store_prompt', default=True)
+
     args = parser.parse_args()
 
-    # Ensure vault path exists
-    if not os.path.exists(args.vault):
-        print(f"Error: Vault path '{args.vault}' does not exist.")
-        return
+    config = common_init(args)
 
-    # Get absolute path to vault
-    vault_path = os.path.abspath(args.vault)
+    if args.git:
+        git_gateway = GitGateway(config.vault)
+        git_gateway.setup()
 
-    config = Config.load_or_initialize(vault_path)
-    chat(config, unsafe=args.unsafe)
+    display_banner(config, title="ZkChat", unsafe=args.unsafe, use_git=args.git, store_prompt=args.store_prompt)
 
-
-if __name__ == '__main__':
-    main()
+    chat(config, unsafe=args.unsafe, use_git=args.git, store_prompt=args.store_prompt)

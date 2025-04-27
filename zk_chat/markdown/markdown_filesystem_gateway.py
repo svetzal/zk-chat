@@ -85,5 +85,5 @@ class MarkdownFilesystemGateway(FilesystemGateway):
         """
         import yaml
         metadata_yaml = yaml.dump(metadata, Dumper=yaml.SafeDumper)
-        file_content = f"---\n{metadata_yaml}---\n\n{content}"
+        file_content = f"---\n{metadata_yaml}---\n{content}"
         self.write_file(relative_path, file_content)

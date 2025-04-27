@@ -16,7 +16,7 @@ dependencies = [
     "chromadb==0.6.3",
     "chroma-hnswlib==0.7.6",
     "pyyaml",
-    "mojentic>=0.5.2",
+    "mojentic>=0.5.4",
     "PySide6>=6.6.0",
     "rich",
 ]
@@ -34,5 +34,6 @@ Homepage = "https://github.com/svetzal/zk-rag"
 Issues = "https://github.com/svetzal/zk-rag/issues"
 
 [project.scripts]
-zkchat = "zk_chat.cli:main"
+zkchat = "zk_chat.chat:main"
+zkagent = "zk_chat.agent:main"
 zkchat-gui = "zk_chat.qt:main"

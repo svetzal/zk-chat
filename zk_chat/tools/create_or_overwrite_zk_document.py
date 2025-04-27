@@ -59,15 +59,15 @@ class CreateOrOverwriteZkDocument(LLMTool):
                     "properties": {
                         "title": {
                             "type": "string",
-                            "description": "The title of the document."
+                            "description": "The title of the document"
                         },
                         "content": {
                             "type": "string",
-                            "description": "The content to write to the file. It should be in markdown format, with proper unescaped newline characters."
+                            "description": "The body content for the document. DO NOT INCLUDE FRONT-MATTER OR TITLE. Content should be in markdown format, with proper unescaped newline characters"
                         },
                         "metadata": {
                             "type": "object",
-                            "description": "The metadata to write to the file in JSON format.",
+                            "description": "The metadata for the document in JSON format. If not provided, the metadata will be empty.",
                             "optional": True
                         }
                     },

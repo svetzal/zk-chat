@@ -4,20 +4,29 @@ import os
 
 logging.basicConfig(level=logging.WARN)
 
+from importlib.metadata import version
+
 from rich.console import Console
 from rich.theme import Theme
 
-from zk_chat.chat import chat
 from zk_chat.config import Config, ModelGateway
 from zk_chat.global_config import GlobalConfig
 from zk_chat.reindex import reindex
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.chroma_gateway import ChromaGateway
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
-from zk_chat.tools.git_gateway import GitGateway
 
 
-def display_banner(config, unsafe=False, use_git=False, store_prompt=True):
+def get_version():
+    """Get the package version from metadata."""
+    try:
+        return version("zk-rag")
+    except Exception:
+        # Fallback version if package metadata is not available
+        return "0.0.0"
+
+
+def display_banner(config, title: str, unsafe=False, use_git=False, store_prompt=True):
     """Display a colorful banner with application information."""
     # Create a custom theme for the banner
     custom_theme = Theme({
@@ -32,7 +41,7 @@ def display_banner(config, unsafe=False, use_git=False, store_prompt=True):
     console = Console(theme=custom_theme)
 
     # Display the banner
-    console.print("\n[banner.title]ZkChat v2.6.1[/]")
+    console.print(f"\n[banner.title]{title} v{get_version()}[/]")
     console.print("[banner.copyright]Copyright (C) 2024-2025 Stacey Vetzal[/]\n")
 
     # Display configuration information
@@ -47,25 +56,25 @@ def display_banner(config, unsafe=False, use_git=False, store_prompt=True):
     # Display warnings based on unsafe and git parameters
     if unsafe:
         if not use_git:
-            console.print("[banner.warning.unsafe]ZkChat can write files to your vault, we strongly recommend using the --git option when using --unsafe.[/]\n")
+            console.print(
+                "[banner.warning.unsafe]ZkChat can write files to your vault, we strongly recommend using the --git option when using --unsafe.[/]\n")
         else:
-            console.print("[banner.warning.git]ZkChat can write files to your vault, and will use git to provide a full change history and rollback functions.[/]\n")
+            console.print(
+                "[banner.warning.git]ZkChat can write files to your vault, and will use git to provide a full change history and rollback functions.[/]\n")
 
     # Display information about store_prompt
     if store_prompt:
-        console.print(f"[banner.info.label]System prompt will be stored as 'ZkSystemPrompt.md' in the vault. Edit this document to help tune your ZkChat experience in this particular vault.[/]\n")
+        console.print(
+            f"[banner.info.label]System prompt will be stored as 'ZkSystemPrompt.md' in the vault. Edit this document to help tune your ZkChat experience in this particular vault.[/]\n")
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Zettelkasten Chat Tool')
+def add_common_args(parser: argparse.ArgumentParser):
     parser.add_argument('--vault', required=False, help='Path to your Zettelkasten vault (can be relative)')
-    parser.add_argument('--save', action='store_true',
-                        help='Save the provided vault path as a bookmark')
+    parser.add_argument('--save', action='store_true', help='Save the provided vault path as a bookmark')
     parser.add_argument('--remove-bookmark', metavar='PATH', help='Remove a bookmark for PATH (can be relative)')
     parser.add_argument('--list-bookmarks', action='store_true', help='List all bookmarks')
     parser.add_argument('--reindex', action='store_true', help='Reindex the Zettelkasten vault')
     parser.add_argument('--full', action='store_true', help='Force full reindex (only with --reindex)')
-    parser.add_argument('--unsafe', action='store_true', help='Allow write operations in chat mode')
     parser.add_argument('--gateway', choices=['ollama', 'openai'], default=None,
                         help='Set the model gateway to use (ollama or openai). OpenAI requires OPENAI_API_KEY environment variable')
     parser.add_argument('--model', nargs='?', const="choose",
@@ -73,10 +82,9 @@ def main():
     parser.add_argument('--visual-model', nargs='?', const="choose",
                         help='Set the model to use for visual analysis. Use without a value to select from available models')
     parser.add_argument('--reset-memory', action='store_true', help='Reset the smart memory')
-    parser.add_argument('--git', action='store_true', help='Enable git integration')
-    parser.add_argument('--store-prompt', action='store_false', help='Store the system prompt to the vault', dest='store_prompt', default=True)
-    args = parser.parse_args()
 
+
+def common_init(args):
     global_config = GlobalConfig.load()
 
     if args.save:
@@ -198,15 +206,4 @@ def main():
 
         reindex(config, force_full=True)
 
-    if args.git:
-        git_gateway = GitGateway(vault_path)
-        git_gateway.setup()
-
-    # Display the banner with configuration information
-    display_banner(config, unsafe=args.unsafe, use_git=args.git, store_prompt=args.store_prompt)
-
-    chat(config, unsafe=args.unsafe, use_git=args.git, store_prompt=args.store_prompt)
-
-
-if __name__ == '__main__':
-    main()
+    return config
