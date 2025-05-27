@@ -26,7 +26,7 @@ class ResolveWikiLink(LLMTool):
             "type": "function",
             "function": {
                 "name": "resolve_wikilink",
-                "description": "Determine if a wikilink is valid, and if so return the relative_path of the target document or file. Returns an error if there is no document present matching the wikilink.",
+                "description": "Determine if a wikilink is valid (eg [[link title]]), and if so return the relative_path of the target document or file. Returns an error if there is no document present matching the wikilink.",
                 "parameters": {
                     "type": "object",
                     "properties": {

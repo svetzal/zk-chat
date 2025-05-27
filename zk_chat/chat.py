@@ -47,7 +47,7 @@ from zk_chat.zettelkasten import Zettelkasten
 def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prompt: bool = False):
     # Create a single ChromaGateway instance to access multiple collections
     db_dir = os.path.join(config.vault, ".zk_chat_db")
-    chroma_gateway = ChromaGateway(db_dir=db_dir)
+    chroma_gateway = ChromaGateway(config.gateway, db_dir=db_dir)
 
     if config.gateway.value == ModelGateway.OLLAMA:
         gateway = OllamaGateway()

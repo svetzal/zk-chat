@@ -1,11 +1,11 @@
 import os
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import requests
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ModelGateway(str, Enum):
@@ -60,7 +60,25 @@ class Config(BaseModel):
     gateway: ModelGateway = ModelGateway.OLLAMA
     chunk_size: int = 500
     chunk_overlap: int = 100
-    last_indexed: Optional[datetime] = None
+    last_indexed: Optional[datetime] = None  # Deprecated, kept for backward compatibility
+    gateway_last_indexed: Dict[str, datetime] = Field(default_factory=dict)
+
+    def get_last_indexed(self, gateway: Optional[ModelGateway] = None) -> Optional[datetime]:
+        """
+        Get the last indexed time for the specified gateway or the current gateway if not specified.
+        Falls back to the deprecated last_indexed field if the gateway-specific value is not found.
+        """
+        gateway_value = gateway.value if gateway else self.gateway.value
+        if gateway_value in self.gateway_last_indexed:
+            return self.gateway_last_indexed[gateway_value]
+        return self.last_indexed
+
+    def set_last_indexed(self, timestamp: datetime, gateway: Optional[ModelGateway] = None):
+        """
+        Set the last indexed time for the specified gateway or the current gateway if not specified.
+        """
+        gateway_value = gateway.value if gateway else self.gateway.value
+        self.gateway_last_indexed[gateway_value] = timestamp
 
     @classmethod
     def load(cls, vault_path: str) -> Optional['Config']:

@@ -11,15 +11,15 @@ from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 from mojentic.llm.tools.date_resolver import ResolveDateTool
 
 from zk_chat.chat import ChatSession, LLMBroker, ChromaGateway, Zettelkasten
+from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.config import Config, get_available_models, ModelGateway
 from zk_chat.filesystem_gateway import MarkdownFilesystemGateway
+from zk_chat.tools.analyze_image import AnalyzeImage
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.read_zk_document import ReadZkDocument
-from zk_chat.tools.analyze_image import AnalyzeImage
 from zk_chat.tools.resolve_wikilink import ResolveWikiLink
 from zk_chat.vector_database import VectorDatabase
-from zk_chat.chroma_collections import ZkCollectionName
 
 
 class LoadingSpinnerWidget(QWidget):
@@ -335,7 +335,8 @@ class MainWindow(QMainWindow):
         splitter.setSizes([400, 200])
 
     def initialize_chat_session(self):
-        chroma = ChromaGateway()
+        db_dir = os.path.join(self.config.vault, ".zk_chat_db")
+        chroma = ChromaGateway(self.config.gateway, db_dir=db_dir)
 
         # Create the appropriate gateway based on configuration
         if self.config.gateway == ModelGateway.OLLAMA:
@@ -349,7 +350,7 @@ class MainWindow(QMainWindow):
         zk = Zettelkasten(
             tokenizer_gateway=TokenizerGateway(),
             excerpts_db=VectorDatabase(
-                chroma_gateway=chroma, 
+                chroma_gateway=chroma,
                 gateway=gateway,
                 collection_name=ZkCollectionName.EXCERPTS
             ),

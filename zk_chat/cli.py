@@ -2,6 +2,9 @@ import argparse
 import logging
 import os
 
+from zk_chat.upgraders.gateway_specific_index_folder import GatewaySpecificIndexFolder
+from zk_chat.upgraders.gateway_specific_last_indexed import GatewaySpecificLastIndexed
+
 logging.basicConfig(level=logging.WARN)
 
 from importlib.metadata import version
@@ -11,7 +14,7 @@ from rich.theme import Theme
 
 from zk_chat.config import Config, ModelGateway
 from zk_chat.global_config import GlobalConfig
-from zk_chat.reindex import reindex
+from zk_chat.index import reindex
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.chroma_gateway import ChromaGateway
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
@@ -143,6 +146,15 @@ def common_init(args):
         gateway = config.gateway
         gateway_changed = False
 
+        # Run upgraders
+        upgraders = [
+            GatewaySpecificIndexFolder(config),
+            GatewaySpecificLastIndexed(config),
+        ]
+        for upgrader in upgraders:
+            if upgrader.should_run():
+                upgrader.run()
+
         if args.gateway:
             new_gateway = ModelGateway(args.gateway)
 
@@ -175,7 +187,7 @@ def common_init(args):
 
         if args.reset_memory:
             db_dir = os.path.join(vault_path, ".zk_chat_db")
-            chroma_gateway = ChromaGateway(db_dir=db_dir)
+            chroma_gateway = ChromaGateway(config.gateway, db_dir=db_dir)
 
             if config.gateway == ModelGateway.OLLAMA:
                 gateway = OllamaGateway()
