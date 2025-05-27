@@ -13,10 +13,7 @@ from typing import List
 from rich.console import Console
 from rich.layout import Layout
 from rich.live import Live
-from rich.markdown import Markdown
 from rich.panel import Panel
-from rich.prompt import Prompt
-from rich.text import Text
 
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 from mojentic.llm.tools.llm_tool import LLMTool
