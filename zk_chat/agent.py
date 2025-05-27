@@ -12,6 +12,7 @@ from typing import List
 from mojentic.llm import LLMBroker
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 from mojentic.llm.tools.date_resolver import ResolveDateTool
+from mojentic.llm.tools.current_datetime import CurrentDateTimeTool
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.chroma_collections import ZkCollectionName
@@ -44,7 +45,7 @@ from zk_chat.chroma_gateway import ChromaGateway
 
 def agent(config: Config):
     db_dir = os.path.join(config.vault, ".zk_chat_db")
-    chroma_gateway = ChromaGateway(db_dir=db_dir)
+    chroma_gateway = ChromaGateway(config.gateway, db_dir=db_dir)
 
     if config.gateway.value == ModelGateway.OLLAMA:
         gateway = OllamaGateway()
@@ -80,6 +81,7 @@ def agent(config: Config):
 
     tools: List[LLMTool] = [
         # Real world context
+        CurrentDateTimeTool(),
         ResolveDateTool(),
 
         # Document tools
@@ -104,7 +106,7 @@ def agent(config: Config):
         CommitChanges(config.vault, llm, git_gateway)
     ]
 
-    agent_prompt_path = Path(__file__).parent / "agent_prompt.md"
+    agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
     with open(agent_prompt_path, "r") as f:
         agent_prompt = f.read()
 

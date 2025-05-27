@@ -3,10 +3,10 @@ from typing import Dict, Optional
 
 import chromadb
 from chromadb import Settings
-from chromadb.api.configuration import HNSWConfiguration, CollectionConfiguration
 from chromadb.api.models.Collection import Collection
 
 from zk_chat.chroma_collections import ZkCollectionName
+from zk_chat.config import ModelGateway
 
 
 class ChromaGateway:
@@ -18,20 +18,15 @@ class ChromaGateway:
     backward compatibility with the deprecated 'zettelkasten' collection.
     """
 
-    def __init__(self, db_dir: str = None):
+    def __init__(self, gateway: ModelGateway, db_dir: str):
         """
         Initialize the ChromaGateway.
 
         Args:
             db_dir: The directory where the Chroma database is stored
         """
-        # Set default db directory if not provided
-        if db_dir is None:
-            db_dir = os.path.expanduser("~/.zk_chat_db/")
-
-        # Update Settings with persist_directory
         self.chroma_client = chromadb.PersistentClient(
-            path=db_dir,
+            path=os.path.join(db_dir, gateway.value),
             settings=Settings(allow_reset=True),
         )
 
