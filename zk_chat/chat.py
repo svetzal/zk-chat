@@ -8,12 +8,13 @@ import argparse
 import os
 import sys
 from importlib.metadata import entry_points
-from typing import List
+from typing import List, Optional, Tuple
 
-from rich.console import Console
+from rich.console import Console, RenderableType
 from rich.layout import Layout
 from rich.live import Live
 from rich.panel import Panel
+from rich.text import Text
 
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 from mojentic.llm.tools.llm_tool import LLMTool
@@ -194,6 +195,10 @@ def rich_chat(config: Config, unsafe: bool = False, use_git: bool = False, store
         Layout(name="input", size=5)  # Fixed at 5 lines as per requirements
     )
 
+    # Keep track of current input text and cursor position
+    current_input = []
+    cursor_line = 0
+    
     def render_conversation():
         """Render the conversation history with scrolling support."""
         if not conversation:
@@ -241,12 +246,32 @@ def rich_chat(config: Config, unsafe: bool = False, use_git: bool = False, store
         )
 
     def render_input_area():
-        """Render the input area."""
+        """Render the input area with current input text."""
+        if not current_input:
+            help_text = "[bold]Enter your query below[/] [dim](Submit: Empty line, Exit: Ctrl+D or Ctrl+C)[/dim]"
+            return Panel(
+                help_text,
+                title="Input",
+                border_style="green",
+                height=None
+            )
+        
+        # Show the current input text with a cursor indicator
+        input_lines = current_input.copy()
+        
+        # Format the text with appropriate styling
+        text = Text()
+        for i, line in enumerate(input_lines):
+            if i > 0:
+                text.append("\n")
+            text.append(line)
+            
         return Panel(
-            "[bold]Enter your query below[/] [dim](Submit: Empty line, Exit: Ctrl+D or empty query)[/dim]",
+            text,
             title="Input",
-            border_style="green",
-            height=None
+            border_style="green", 
+            height=None,
+            padding=(0, 1)
         )
 
     def update_layout():
@@ -254,48 +279,93 @@ def rich_chat(config: Config, unsafe: bool = False, use_git: bool = False, store
         layout["chat"].update(render_conversation())
         layout["input"].update(render_input_area())
 
-    def get_multiline_input():
-        """Get multiline input from user."""
-        console.print("\n")  # Ensure cursor is positioned after panels
-        console.print("[bold cyan]> [/]", end="")
-        lines = []
+    def process_keystroke(key: str) -> Tuple[bool, Optional[str]]:
+        """Process a keystroke and update the current input.
         
-        while True:
-            try:
-                line = input()
-                if not line and not lines:  # Empty first line means exit
-                    return None
-                if not line and lines:  # Empty line after content means submit
-                    break
-                lines.append(line)
-            except (EOFError, KeyboardInterrupt):
-                return None
-                
-        return "\n".join(lines)
+        Returns:
+            Tuple[bool, Optional[str]]: 
+            - First value: True if input is complete, False otherwise
+            - Second value: The final input text if complete, None otherwise
+        """
+        nonlocal current_input
+        
+        # Handle special keys
+        if key == 'ctrl+c' or key == 'ctrl+d':
+            return True, None
+        
+        if key == 'enter':
+            # If enter is pressed on an empty input or after an empty line
+            # following content, consider input complete
+            if not current_input or (current_input and current_input[-1] == ''):
+                result = '\n'.join(current_input).rstrip()
+                if not result:
+                    return True, None
+                return True, result
+            current_input.append('')
+        elif key == 'backspace':
+            if current_input and current_input[-1]:
+                current_input[-1] = current_input[-1][:-1]
+            elif len(current_input) > 1:  # Can remove empty line
+                current_input.pop()
+        else:
+            # Regular character input
+            if not current_input:
+                current_input = ['']
+            current_input[-1] += key
+            
+        return False, None
 
-    # Display initial instructions
-    console.clear()
-    console.print("[bold cyan]ZkChat Rich Interface[/]")
-    console.print("- Type multiple lines in the input area")
-    console.print("- Submit your message with an empty line")
-    console.print("- Exit with Ctrl+D or by submitting an empty message")
-    console.print("\nPress Enter to start...")
-    input()
-    console.clear()
-
-    with Live(layout, console=console, screen=True, refresh_per_second=4, auto_refresh=False) as live:
+    def get_input_with_live_display(live: Live) -> Optional[str]:
+        """Get multiline input while keeping the Live display active."""
+        nonlocal current_input
+        
+        # Clear any previous input
+        current_input = ['']
         update_layout()
         live.refresh()
         
         while True:
-            # Get multiline input from user
-            live.stop()
-            query = get_multiline_input()
-            live.start()
+            try:
+                # Use Rich's console input to capture a single keystroke
+                key = console.input(password=True)
+                
+                # Process the keystroke
+                is_complete, final_text = process_keystroke(key)
+                
+                # Update the display
+                update_layout()
+                live.refresh()
+                
+                if is_complete:
+                    return final_text
+                    
+            except (EOFError, KeyboardInterrupt):
+                return None
+
+    # Display initial instructions
+    console.clear()
+    console.print("[bold cyan]ZkChat Rich Interface[/]")
+    console.print("- Type your message in the input panel")
+    console.print("- Submit with an empty line")
+    console.print("- Exit with Ctrl+C or Ctrl+D")
+    console.print("\nPress Enter to start...")
+    input()
+    console.clear()
+
+    with Live(layout, console=console, screen=True, refresh_per_second=4) as live:
+        update_layout()
+        live.refresh()
+        
+        while True:
+            # Get multiline input from user while keeping panels visible
+            query = get_input_with_live_display(live)
             
             # Check for exit condition
             if query is None:
                 break
+                
+            # Reset current_input for next query
+            current_input = []
                 
             # Add user query to conversation
             conversation.append(("user", query))
