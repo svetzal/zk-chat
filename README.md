@@ -45,6 +45,11 @@ The chat interface provides access to several tools that enhance its capabilitie
 
 - **Available Tool Plugins**
   - [zk-rag-wikipedia](https://pypi.org/project/zk-rag-wikipedia/): A plugin for looking up information on Wikipedia and creating documents from the results
+  - [zk-rag-image-generator](https://pypi.org/project/zk-rag-image-generator/): A plugin for generating images using Stable Diffusion 3.5 Medium
+
+### 🔌 Plugin Development
+
+ZK-RAG supports a rich plugin architecture that allows developers to extend the chat agent with custom tools. See [PLUGINS.md](PLUGINS.md) for a comprehensive guide on developing plugins that integrate with the zk-rag runtime environment.
 
 ## 🔧 Requirements
 
