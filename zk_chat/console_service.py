@@ -18,6 +18,7 @@ class RichConsoleService:
             "chat.user": "bold blue",
             "chat.assistant": "green",
             "chat.system": "dim yellow",
+            "tool.info": "dim cyan",
         })
         
         self.console = Console(theme=self.theme)

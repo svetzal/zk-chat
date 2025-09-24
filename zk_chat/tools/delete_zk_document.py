@@ -1,17 +1,19 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.zettelkasten import Zettelkasten
 
 logger = structlog.get_logger()
 
 
 class DeleteZkDocument(LLMTool):
-    def __init__(self, zk: Zettelkasten):
+    def __init__(self, zk: Zettelkasten, console_service: RichConsoleService = None):
         self.zk = zk
+        self.console_service = console_service or RichConsoleService()
 
     def run(self, relative_path: str) -> str:
-        print("Deleting document at", relative_path)
+        self.console_service.print(f"[tool.info]Deleting document at {relative_path}[/]")
         if not self.zk.document_exists(relative_path):
             return f"Document not found at {relative_path}"
 

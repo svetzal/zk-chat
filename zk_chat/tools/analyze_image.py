@@ -2,6 +2,7 @@ import structlog
 from mojentic.llm import LLMBroker, MessageBuilder
 from mojentic.llm.tools.llm_tool import LLMTool
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.zettelkasten import Zettelkasten
 
 logger = structlog.get_logger()
@@ -11,9 +12,10 @@ class AnalyzeImage(LLMTool):
     zk: Zettelkasten
     llm: LLMBroker
 
-    def __init__(self, zk: Zettelkasten, llm: LLMBroker):
+    def __init__(self, zk: Zettelkasten, llm: LLMBroker, console_service: RichConsoleService = None):
         self.zk = zk
         self.llm = llm
+        self.console_service = console_service or RichConsoleService()
 
     def run(self, relative_path: str) -> str:
         logger.info("Analyzing image", relative_path=relative_path)

@@ -23,6 +23,7 @@ class DescribeRichConsoleService:
         assert "chat.user" in theme_styles
         assert "chat.assistant" in theme_styles
         assert "chat.system" in theme_styles
+        assert "tool.info" in theme_styles
     
     def should_include_banner_theme_colors(self):
         service = RichConsoleService()

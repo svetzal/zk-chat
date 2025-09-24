@@ -85,28 +85,28 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
 
     tools: List[LLMTool] = [
         ResolveDateTool(),
-        ReadZkDocument(zk),
-        ListZkDocuments(zk),
-        ResolveWikiLink(filesystem_gateway),
-        FindExcerptsRelatedTo(zk),
-        FindZkDocumentsRelatedTo(zk),
-        StoreInSmartMemory(smart_memory),
-        RetrieveFromSmartMemory(smart_memory)
+        ReadZkDocument(zk, console_service),
+        ListZkDocuments(zk, console_service),
+        ResolveWikiLink(filesystem_gateway, console_service),
+        FindExcerptsRelatedTo(zk, console_service),
+        FindZkDocumentsRelatedTo(zk, console_service),
+        StoreInSmartMemory(smart_memory, console_service),
+        RetrieveFromSmartMemory(smart_memory, console_service)
     ]
 
     # Add AnalyzeImage tool only if a visual model is selected
     if config.visual_model:
-        tools.append(AnalyzeImage(zk, LLMBroker(model=config.visual_model, gateway=gateway)))
+        tools.append(AnalyzeImage(zk, LLMBroker(model=config.visual_model, gateway=gateway), console_service))
 
     if use_git:
         git_gateway = GitGateway(config.vault)
-        tools.append(UncommittedChanges(config.vault, git_gateway))
-        tools.append(CommitChanges(config.vault, llm, git_gateway))
+        tools.append(UncommittedChanges(config.vault, git_gateway, console_service))
+        tools.append(CommitChanges(config.vault, llm, git_gateway, console_service))
 
     if unsafe:
-        tools.append(CreateOrOverwriteZkDocument(zk))
-        tools.append(RenameZkDocument(zk))
-        tools.append(DeleteZkDocument(zk))
+        tools.append(CreateOrOverwriteZkDocument(zk, console_service))
+        tools.append(RenameZkDocument(zk, console_service))
+        tools.append(DeleteZkDocument(zk, console_service))
 
     _add_available_plugins(tools, config, llm)
 

@@ -4,6 +4,7 @@ import structlog
 import yaml
 from mojentic.llm.tools.llm_tool import LLMTool
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.models import ZkDocument
 from zk_chat.zettelkasten import Zettelkasten
 
@@ -11,8 +12,9 @@ logger = structlog.get_logger()
 
 
 class CreateOrOverwriteZkDocument(LLMTool):
-    def __init__(self, zk: Zettelkasten):
+    def __init__(self, zk: Zettelkasten, console_service: RichConsoleService = None):
         self.zk = zk
+        self.console_service = console_service or RichConsoleService()
 
     def _sanitize_filename(self, filename: str) -> str:
         """
@@ -28,7 +30,7 @@ class CreateOrOverwriteZkDocument(LLMTool):
         relative_path = f"{self._sanitize_filename(title)}"
         if not relative_path.endswith(".md"):
             relative_path += ".md"
-        print("Writing document at", relative_path)
+        self.console_service.print(f"[tool.info]Writing document at {relative_path}[/]")
         try:
             # Use metadata only if it's a dictionary, otherwise use empty dict
             base_metadata = {} if metadata is None or not isinstance(metadata, dict) else metadata
