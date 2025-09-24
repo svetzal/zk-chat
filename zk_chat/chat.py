@@ -42,6 +42,7 @@ from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 from zk_chat.config import Config, ModelGateway
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.zettelkasten import Zettelkasten
+from zk_chat.services import ServiceRegistry, ServiceType, ServiceProvider
 
 
 def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prompt: bool = False):
@@ -57,8 +58,10 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
         raise ValueError(f"Invalid gateway: {config.gateway}")
 
     filesystem_gateway = MarkdownFilesystemGateway(config.vault)
+    tokenizer_gateway = TokenizerGateway()
+    
     zk = Zettelkasten(
-        tokenizer_gateway=TokenizerGateway(),
+        tokenizer_gateway=tokenizer_gateway,
         excerpts_db=VectorDatabase(
             chroma_gateway=chroma_gateway,
             gateway=gateway,
@@ -80,6 +83,17 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
         gateway=gateway
     )
 
+    # Create and populate the service registry
+    service_registry = ServiceRegistry()
+    service_registry.register_service(ServiceType.CONFIG, config)
+    service_registry.register_service(ServiceType.FILESYSTEM_GATEWAY, filesystem_gateway)
+    service_registry.register_service(ServiceType.LLM_BROKER, llm)
+    service_registry.register_service(ServiceType.ZETTELKASTEN, zk)
+    service_registry.register_service(ServiceType.SMART_MEMORY, smart_memory)
+    service_registry.register_service(ServiceType.CHROMA_GATEWAY, chroma_gateway)
+    service_registry.register_service(ServiceType.MODEL_GATEWAY, gateway)
+    service_registry.register_service(ServiceType.TOKENIZER_GATEWAY, tokenizer_gateway)
+
     tools: List[LLMTool] = [
         ResolveDateTool(),
         ReadZkDocument(zk),
@@ -97,6 +111,7 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
 
     if use_git:
         git_gateway = GitGateway(config.vault)
+        service_registry.register_service(ServiceType.GIT_GATEWAY, git_gateway)
         tools.append(UncommittedChanges(config.vault, git_gateway))
         tools.append(CommitChanges(config.vault, llm, git_gateway))
 
@@ -105,7 +120,7 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
         tools.append(RenameZkDocument(zk))
         tools.append(DeleteZkDocument(zk))
 
-    _add_available_plugins(tools, config, llm)
+    _add_available_plugins(tools, service_registry)
 
     system_prompt_filename = "ZkSystemPrompt.md"
     default_system_prompt = """
@@ -159,13 +174,22 @@ About organizing the Zettelkasten:
             print(response)
 
 
-def _add_available_plugins(tools, config: Config, llm: LLMBroker):
+def _add_available_plugins(tools, service_registry: ServiceRegistry):
+    """
+    Load and add available plugins to the tools list.
+    
+    Plugins are discovered via entry points and initialized with a service provider
+    that gives them access to all available services in the zk-rag runtime.
+    """
     eps = entry_points()
     plugin_entr_points = eps.select(group="zk_rag_plugins")
+    service_provider = ServiceProvider(service_registry)
+    
     for ep in plugin_entr_points:
         logging.info(f"Adding Plugin {ep.name}")
         plugin_class = ep.load()
-        tools.append(plugin_class(vault=config.vault, llm=llm))
+        # Plugins now receive a service provider instead of individual parameters
+        tools.append(plugin_class(service_provider))
 
 
 if __name__ == '__main__':

@@ -28,25 +28,44 @@ ZK-RAG plugins are tools that extend the functionality of the chat agent. They i
 ### Core Components
 
 1. **Plugin Discovery**: Plugins are discovered via Python entry points in the `zk_rag_plugins` group
-2. **Tool Interface**: All plugins must inherit from `mojentic.llm.tools.llm_tool.LLMTool`
-3. **Runtime Integration**: Plugins receive access to the vault path and LLM broker during initialization
+2. **Service Provider Pattern**: Plugins receive a `ServiceProvider` that gives access to all zk-rag services
+3. **Tool Interface**: All plugins must inherit from `mojentic.llm.tools.llm_tool.LLMTool` or the convenient `ZkRagPlugin` base class
 4. **Automatic Loading**: The `_add_available_plugins()` function automatically loads and instantiates all discovered plugins
 
 ### Plugin Loading Mechanism
 
 ```python
-def _add_available_plugins(tools, config: Config, llm: LLMBroker):
+def _add_available_plugins(tools, service_registry: ServiceRegistry):
+    """
+    Load and add available plugins to the tools list.
+    
+    Plugins are discovered via entry points and initialized with a service provider
+    that gives them access to all available services in the zk-rag runtime.
+    """
     eps = entry_points()
     plugin_entr_points = eps.select(group="zk_rag_plugins")
+    service_provider = ServiceProvider(service_registry)
+    
     for ep in plugin_entr_points:
         logging.info(f"Adding Plugin {ep.name}")
         plugin_class = ep.load()
-        tools.append(plugin_class(vault=config.vault, llm=llm))
+        # Plugins now receive a service provider instead of individual parameters
+        tools.append(plugin_class(service_provider))
 ```
 
 All plugins are instantiated with:
-- `vault`: The absolute path to the user's Zettelkasten vault
-- `llm`: An `LLMBroker` instance for making LLM requests
+- `service_provider`: A `ServiceProvider` instance that provides access to all available zk-rag services
+
+### Service Registry Architecture
+
+The new service registry architecture provides a scalable way for plugins to access services without requiring changes to plugin constructors as new services are added. Services are registered by type and can be requested by plugins as needed.
+
+Available service types include:
+- **Core Services**: Filesystem gateway, LLM broker, Zettelkasten, Smart Memory
+- **Database Services**: ChromaDB gateway, Vector database
+- **Gateway Services**: Model gateway (Ollama/OpenAI), Tokenizer gateway
+- **Optional Services**: Git gateway (when enabled)
+- **Configuration**: Application config
 
 ## Creating Your First Plugin
 
@@ -65,30 +84,33 @@ Create your main plugin file (e.g., `my_plugin.py`):
 
 ```python
 """
-Simple example plugin for zk-rag demonstrating the basic plugin interface.
+Simple example plugin for zk-rag demonstrating the new service provider interface.
 This can be used as a template for creating your own plugins.
 """
 import structlog
-from mojentic.llm import LLMBroker
-from mojentic.llm.tools.llm_tool import LLMTool
+from zk_chat.services import ZkRagPlugin, ServiceProvider
 
 logger = structlog.get_logger()
 
 
-class MyCustomTool(LLMTool):
+class MyCustomTool(ZkRagPlugin):
     """A custom tool for zk-rag that demonstrates the plugin interface."""
     
-    def __init__(self, vault: str, llm: LLMBroker):
-        """Initialize the plugin with vault path and LLM broker.
+    def __init__(self, service_provider: ServiceProvider):
+        """Initialize the plugin with a service provider.
+        
+        The service provider gives access to all zk-rag services:
+        - Filesystem gateway for file operations
+        - LLM broker for AI requests
+        - Zettelkasten for document operations
+        - Smart Memory for long-term context
+        - Configuration and other services
         
         Args:
-            vault: Absolute path to the user's Zettelkasten vault
-            llm: LLMBroker instance for making LLM requests
+            service_provider: Service provider for accessing zk-rag services
         """
-        super().__init__()
-        self.vault = vault
-        self.llm = llm
-        logger.info("Initialized MyCustomTool plugin", vault=vault)
+        super().__init__(service_provider)
+        logger.info("Initialized MyCustomTool plugin")
     
     def run(self, user_input: str) -> str:
         """Execute the plugin's main functionality.
@@ -101,8 +123,19 @@ class MyCustomTool(LLMTool):
         """
         logger.info("Running MyCustomTool", user_input=user_input)
         
+        # Access services through convenient properties
+        vault_path = self.vault_path
+        filesystem = self.filesystem_gateway
+        llm = self.llm_broker
+        zk = self.zettelkasten
+        
+        # Example: Read a document from the vault
+        if filesystem and filesystem.path_exists("README.md"):
+            content = filesystem.read_file("README.md")
+            logger.info("Read README.md", content_length=len(content))
+        
         # Your plugin logic here
-        result = f"Processed: {user_input} in vault: {self.vault}"
+        result = f"Processed: {user_input} in vault: {vault_path}"
         
         return result
     
@@ -119,7 +152,7 @@ class MyCustomTool(LLMTool):
             "type": "function",
             "function": {
                 "name": "my_custom_tool",
-                "description": "A demonstration tool that processes user input with access to the vault",
+                "description": "A demonstration tool that processes user input with access to the vault and services",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -132,6 +165,29 @@ class MyCustomTool(LLMTool):
                 }
             }
         }
+```
+
+#### Alternative: Direct LLMTool Inheritance
+
+If you prefer more control or don't want to use the convenience base class, you can inherit directly from `LLMTool`:
+
+```python
+from mojentic.llm.tools.llm_tool import LLMTool
+from zk_chat.services import ServiceProvider
+
+class MyCustomTool(LLMTool):
+    def __init__(self, service_provider: ServiceProvider):
+        super().__init__()
+        self.service_provider = service_provider
+    
+    def run(self, user_input: str) -> str:
+        # Access services manually
+        filesystem = self.service_provider.get_filesystem_gateway()
+        llm = self.service_provider.get_llm_broker()
+        config = self.service_provider.get_config()
+        
+        # Your plugin logic here
+        return f"Processed: {user_input}"
 ```
 
 ### Step 3: Configure Entry Points
@@ -169,66 +225,198 @@ pip install -e .
 
 Now your plugin will be automatically loaded when you run zk-rag!
 
-## Available Runtime Resources
+## Migration from Legacy Plugin Interface
 
-Plugins have access to the full zk-rag runtime environment. Here are the key resources you can leverage:
+If you have existing plugins that use the old interface (`vault: str, llm: LLMBroker`), you need to update them to use the new service provider pattern:
 
-### 1. Vault Access
-- **Purpose**: Direct filesystem access to the user's Zettelkasten
-- **Usage**: Read, create, and modify documents in the vault
-- **Access**: Via the `vault` parameter (absolute path)
-
+### Before (Legacy)
 ```python
-from pathlib import Path
-
-def read_vault_file(self, relative_path: str) -> str:
-    """Read a file from the vault."""
-    file_path = Path(self.vault) / relative_path
-    return file_path.read_text()
+class MyPlugin(LLMTool):
+    def __init__(self, vault: str, llm: LLMBroker):
+        super().__init__()
+        self.vault = vault
+        self.llm = llm
 ```
 
-### 2. LLM Broker
+### After (New Service Provider)
+```python
+from zk_chat.services import ZkRagPlugin, ServiceProvider
+
+class MyPlugin(ZkRagPlugin):
+    def __init__(self, service_provider: ServiceProvider):
+        super().__init__(service_provider)
+        
+        # Access services through properties
+        # self.vault_path replaces self.vault
+        # self.llm_broker replaces self.llm
+```
+
+### Migration Benefits
+
+The new architecture provides several advantages:
+- **Extensible**: New services can be added without changing plugin constructors
+- **Type-safe**: Better IDE support and error detection
+- **Consistent**: All plugins use the same service access pattern
+- **Feature-rich**: Access to all zk-rag services, not just vault and LLM
+
+## Available Runtime Resources
+
+Plugins have access to the full zk-rag runtime environment through the service provider pattern. The new architecture provides a clean, extensible way to access services without requiring changes to plugin constructors as new services are added.
+
+### Service Provider Pattern
+
+The `ServiceProvider` gives plugins access to all available services:
+
+```python
+from zk_chat.services import ServiceProvider, ServiceType
+
+def __init__(self, service_provider: ServiceProvider):
+    super().__init__(service_provider)
+    
+    # Access services through convenient methods
+    filesystem = service_provider.get_filesystem_gateway()
+    llm = service_provider.get_llm_broker()
+    zk = service_provider.get_zettelkasten()
+    smart_memory = service_provider.get_smart_memory()
+    
+    # Or use the base class properties
+    self.filesystem_gateway  # Convenient property access
+    self.llm_broker
+    self.zettelkasten
+    self.smart_memory
+```
+
+### Available Services
+
+#### 1. Filesystem Gateway
+- **Purpose**: Consistent filesystem operations integrated with zk-rag's document handling
+- **Usage**: Read, create, and modify documents with proper abstractions
+- **Access**: `service_provider.get_filesystem_gateway()` or `self.filesystem_gateway`
+
+```python
+def process_document(self, relative_path: str) -> str:
+    """Process a document using the filesystem gateway."""
+    fs = self.filesystem_gateway
+    
+    if fs.path_exists(relative_path):
+        content = fs.read_file(relative_path)
+        # Process content...
+        fs.write_file(relative_path, processed_content)
+        return "Document processed"
+    return "Document not found"
+```
+
+#### 2. LLM Broker
 - **Purpose**: Make requests to the configured LLM
 - **Usage**: Generate text, analyze content, create summaries
-- **Access**: Via the `llm` parameter
+- **Access**: `service_provider.get_llm_broker()` or `self.llm_broker`
 
 ```python
 def analyze_text(self, text: str) -> str:
     """Use the LLM to analyze text."""
+    llm = self.llm_broker
     prompt = f"Analyze this text and provide insights: {text}"
-    return self.llm.send(prompt)
+    return llm.send(prompt)
 ```
 
-### 3. Filesystem Gateway (Advanced)
-- **Purpose**: Consistent filesystem operations with the zk-rag system
-- **Usage**: For advanced file operations that need to integrate with zk-rag's filesystem abstraction
-- **Access**: You can instantiate `MarkdownFilesystemGateway` if needed
+#### 3. Zettelkasten Service
+- **Purpose**: High-level document operations with indexing and search
+- **Usage**: Document CRUD operations, semantic search, wikilink resolution
+- **Access**: `service_provider.get_zettelkasten()` or `self.zettelkasten`
 
 ```python
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
-
-def __init__(self, vault: str, llm: LLMBroker):
-    super().__init__()
-    self.vault = vault
-    self.llm = llm
-    self.filesystem_gateway = MarkdownFilesystemGateway(vault)
+def find_related_documents(self, query: str) -> str:
+    """Find documents related to a query."""
+    zk = self.zettelkasten
+    results = zk.find_documents_related_to(query)
+    return f"Found {len(results)} related documents"
 ```
 
-### 4. Logging
-- **Purpose**: Consistent logging with the zk-rag system
-- **Usage**: Use `structlog` for all logging operations
-- **Access**: Import and use `structlog.get_logger()`
+#### 4. Smart Memory
+- **Purpose**: Long-term context retention across chat sessions
+- **Usage**: Store and retrieve important information for personalized responses
+- **Access**: `service_provider.get_smart_memory()` or `self.smart_memory`
 
 ```python
-import structlog
+def remember_user_preference(self, preference: str) -> str:
+    """Store a user preference in smart memory."""
+    memory = self.smart_memory
+    memory.store(f"User preference: {preference}")
+    return "Preference stored in memory"
+```
 
-logger = structlog.get_logger()
+#### 5. ChromaDB Gateway
+- **Purpose**: Direct access to vector database operations
+- **Usage**: Custom vector operations, collection management
+- **Access**: `service_provider.get_chroma_gateway()` or `self.chroma_gateway`
 
-def run(self, input_data: str) -> str:
-    logger.info("Processing input", input_length=len(input_data))
-    # ... plugin logic ...
-    logger.info("Processing complete", result_length=len(result))
-    return result
+```python
+def custom_vector_search(self, query: str) -> str:
+    """Perform custom vector search."""
+    chroma = self.chroma_gateway
+    # Perform custom vector operations...
+    return "Search completed"
+```
+
+#### 6. Model Gateway
+- **Purpose**: Direct access to the underlying LLM gateway (Ollama/OpenAI)
+- **Usage**: Low-level LLM operations, embeddings, custom model calls
+- **Access**: `service_provider.get_model_gateway()` or `self.model_gateway`
+
+```python
+def get_embeddings(self, text: str) -> list:
+    """Get embeddings for text."""
+    gateway = self.model_gateway
+    return gateway.calculate_embeddings(text)
+```
+
+#### 7. Configuration Access
+- **Purpose**: Access to application configuration
+- **Usage**: Get vault path, model settings, and other configuration values
+- **Access**: `service_provider.get_config()` or `self.config`
+
+```python
+def get_vault_info(self) -> str:
+    """Get information about the current vault."""
+    config = self.config
+    return f"Vault path: {config.vault}, Model: {config.model}"
+```
+
+#### 8. Git Gateway (Optional)
+- **Purpose**: Git operations when git integration is enabled
+- **Usage**: Commit changes, view git status
+- **Access**: `service_provider.get_git_gateway()` or `self.git_gateway`
+
+```python
+def commit_changes(self, message: str) -> str:
+    """Commit changes if git is available."""
+    git = self.git_gateway
+    if git:
+        git.commit(message)
+        return "Changes committed"
+    return "Git not available"
+```
+
+### Service Availability
+
+Not all services may be available in every context. Use the service provider to check availability:
+
+```python
+from zk_chat.services import ServiceType
+
+def check_services(self):
+    """Check what services are available."""
+    provider = self.service_provider
+    
+    if provider.has_service(ServiceType.GIT_GATEWAY):
+        # Git operations are available
+        git = provider.get_git_gateway()
+    
+    # Or require a service (raises exception if not available)
+    try:
+        required_service = provider.require_service(ServiceType.SMART_MEMORY)
+    except RuntimeError as e:
+        return f"Required service not available: {e}"
 ```
 
 ## Plugin Development Best Practices
@@ -401,21 +589,39 @@ Note that zk-rag also includes built-in MCP server functionality (`zk_chat/mcp.p
 
 ## Example Plugins
 
-### 1. Wikipedia Lookup Plugin
+### 1. Updated Wikipedia Lookup Plugin
 
-The [zk-rag-wikipedia](https://github.com/svetzal/zk-rag-wikipedia) plugin demonstrates:
-- External API integration
-- Structured data return (Pydantic models)
-- Error handling for disambiguation and API failures
+Here's how the Wikipedia plugin would look with the new service provider architecture:
 
 ```python
+from pathlib import Path
+from typing import Optional
+
+import wikipedia
+from mojentic.llm.tools.llm_tool import LLMTool
+from pydantic import BaseModel
+from wikipedia import DisambiguationError
+
+from zk_chat.services import ServiceProvider
+
+
+class WikipediaContentResult(BaseModel):
+    title: str
+    content: str
+    url: Optional[str]
+
+
 class LookUpTopicOnWikipedia(LLMTool):
-    def __init__(self, vault: str, llm: LLMBroker):
+    """Tool for retrieving content from Wikipedia for a given entity."""
+
+    def __init__(self, service_provider: ServiceProvider):
+        """Initialize the tool with service provider."""
         super().__init__()
-        self.vault = vault
+        self.service_provider = service_provider
 
     def run(self, topic: str) -> str:
         try:
+            # Search for the page
             search_results = wikipedia.search(topic)
             if not search_results:
                 return WikipediaContentResult(
@@ -424,6 +630,7 @@ class LookUpTopicOnWikipedia(LLMTool):
                     url=None
                 ).model_dump()
 
+            # Get the top result
             page_title = search_results[0]
             page = wikipedia.page(page_title, auto_suggest=False)
 
@@ -432,33 +639,211 @@ class LookUpTopicOnWikipedia(LLMTool):
                 content=page.summary,
                 url=page.url
             ).model_dump()
+
+        except wikipedia.DisambiguationError as e:
+            # Handle disambiguation pages by taking the first option
+            try:
+                page = wikipedia.page(e.options[0], auto_suggest=False)
+                return WikipediaContentResult(
+                    title=page.title,
+                    content=page.summary,
+                    url=page.url
+                ).model_dump()
+            except DisambiguationError:
+                return WikipediaContentResult(
+                    title="Disambiguation Error",
+                    content=f"Multiple matches found for '{topic}'. Please be more specific.",
+                    url=None
+                ).model_dump()
         except Exception as e:
             return WikipediaContentResult(
                 title="Error",
-                content=f"An error occurred: {str(e)}",
+                content=f"An error occurred while retrieving Wikipedia content: {str(e)}",
                 url=None
             ).model_dump()
+
+    @property
+    def descriptor(self) -> dict:
+        return {
+            "type": "function",
+            "function": {
+                "name": "lookup_topic_on_wikipedia",
+                "description": "Retrieves information about a given topic from Wikipedia.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "topic": {
+                            "type": "string",
+                            "description": "The topic I'd like to learn about."
+                        }
+                    },
+                    "required": ["topic"]
+                }
+            }
+        }
 ```
 
-### 2. Image Generator Plugin
+### 2. Updated Image Generator Plugin
 
-The [zk-rag-image-generator](https://github.com/svetzal/zk-rag-image-generator) plugin demonstrates:
-- File creation in the vault
-- Integration with external ML models
-- Returning markdown-compatible references
+Here's how the image generator plugin would look with service provider access:
 
 ```python
-class GenerateImage(LLMTool):
-    def __init__(self, vault: str, llm: LLMBroker, gateway: Optional[StableDiffusionGateway] = None):
-        super().__init__()
-        self.vault = vault
+from pathlib import Path
+from typing import Optional
+
+from zk_chat.services import ZkRagPlugin, ServiceProvider
+from stable_diffusion_gateway import StableDiffusionGateway
+
+
+class GenerateImage(ZkRagPlugin):
+    """Tool to generate images from a description using the StableDiffusion 3.5 Medium model."""
+
+    def __init__(self, service_provider: ServiceProvider, gateway: Optional[StableDiffusionGateway] = None):
+        """Initialize the tool with service provider."""
+        super().__init__(service_provider)
         self.gateway = gateway or StableDiffusionGateway()
 
     def run(self, image_description: str, base_filename: str) -> str:
-        filename = Path(self.vault) / f"{base_filename}.png"
+        """Generate an image based on the description and save it to a file.
+
+        Parameters
+        ----------
+        image_description : str
+            The text description of the image to generate
+        base_filename : str
+            The base name for the output file (without extension)
+
+        Returns
+        -------
+        str
+            The filename relative to the vault path
+        """
+        # Use the service provider to get the vault path
+        vault_path = self.vault_path
+        if not vault_path:
+            return "Error: Vault path not available"
+            
+        filename = Path(vault_path) / f"{base_filename}.png"
         image = self.gateway.generate_image(image_description)
         image.save(filename)
-        return f"Image saved at `{base_filename}.png`. Embed with: `![image]({base_filename}.png)`"
+        
+        return f"""
+The image has been generated and saved at `{base_filename}.png`.
+You can embed it in your markdown file using the following syntax: `![image]({base_filename}.png)`
+""".strip()
+
+    @property
+    def descriptor(self) -> dict:
+        return {
+            "type": "function",
+            "function": {
+                "name": "generate_image",
+                "description": "Generates a PNG image from a description using the StableDiffusion 3.5 Medium model.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "image_description": {
+                            "type": "string",
+                            "description": "A detailed description of the image you wish to generate."
+                        },
+                        "base_filename": {
+                            "type": "string",
+                            "description": "The filename to save the generated image as, without the PNG extension."
+                        }
+                    },
+                    "required": ["image_description"]
+                }
+            }
+        }
+```
+
+### 3. Advanced Plugin Using Multiple Services
+
+Here's an example of a plugin that leverages multiple services:
+
+```python
+from zk_chat.services import ZkRagPlugin, ServiceProvider, ServiceType
+
+
+class AdvancedAnalysisPlugin(ZkRagPlugin):
+    """Plugin that demonstrates using multiple services together."""
+
+    def __init__(self, service_provider: ServiceProvider):
+        super().__init__(service_provider)
+
+    def run(self, document_path: str, analysis_type: str) -> str:
+        """Analyze a document using multiple zk-rag services."""
+        
+        # Check if required services are available
+        if not self.has_service(ServiceType.ZETTELKASTEN):
+            return "Error: Zettelkasten service not available"
+        
+        # Read the document
+        zk = self.zettelkasten
+        if not zk.document_exists(document_path):
+            return f"Document not found: {document_path}"
+        
+        document = zk.read_document(document_path)
+        
+        # Use LLM for analysis
+        llm = self.llm_broker
+        analysis_prompt = f"""
+        Analyze this document for: {analysis_type}
+        
+        Document content:
+        {document.content}
+        
+        Provide a detailed analysis focusing on the requested aspect.
+        """
+        
+        analysis_result = llm.send(analysis_prompt)
+        
+        # Store the analysis in smart memory for future reference
+        if self.smart_memory:
+            memory_entry = f"Analysis of {document_path} for {analysis_type}: {analysis_result}"
+            self.smart_memory.store(memory_entry)
+        
+        # Find related documents
+        related_docs = zk.find_documents_related_to(analysis_result)
+        
+        result = f"""
+## Analysis Result
+
+{analysis_result}
+
+## Related Documents
+
+Found {len(related_docs)} related documents:
+{', '.join([doc.relative_path for doc in related_docs[:5]])}
+
+Analysis has been stored in smart memory for future reference.
+"""
+        
+        return result
+
+    @property
+    def descriptor(self) -> dict:
+        return {
+            "type": "function",
+            "function": {
+                "name": "advanced_document_analysis",
+                "description": "Perform advanced analysis of a document using multiple zk-rag services.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "document_path": {
+                            "type": "string",
+                            "description": "Path to the document to analyze"
+                        },
+                        "analysis_type": {
+                            "type": "string",
+                            "description": "Type of analysis to perform (e.g., 'themes', 'arguments', 'key_concepts')"
+                        }
+                    },
+                    "required": ["document_path", "analysis_type"]
+                }
+            }
+        }
 ```
 
 ## Getting Help
