@@ -28,10 +28,7 @@ class RichConsoleService:
     
     def input(self, prompt: str = "") -> str:
         """Get user input using Rich Prompt."""
-        if prompt:
-            return Prompt.ask(prompt, console=self.console)
-        else:
-            return Prompt.ask("", console=self.console)
+        return Prompt.ask(prompt, console=self.console)
     
     def get_console(self) -> Console:
         """Get the underlying Console instance for advanced usage."""
