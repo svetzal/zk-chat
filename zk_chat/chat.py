@@ -14,6 +14,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.cli import add_common_args, common_init, display_banner
+from zk_chat.console_service import RichConsoleService
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.models import ZkDocument
@@ -45,6 +46,8 @@ from zk_chat.zettelkasten import Zettelkasten
 
 
 def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prompt: bool = False):
+    console_service = RichConsoleService()
+    
     # Create a single ChromaGateway instance to access multiple collections
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     chroma_gateway = ChromaGateway(config.gateway, db_dir=db_dir)
@@ -149,14 +152,14 @@ About organizing the Zettelkasten:
     )
 
     while True:
-        query = input("Query: ")
+        query = console_service.input("[chat.user]Query:[/] ")
         if not query:
-            print("Exiting...")
+            console_service.print("[chat.system]Exiting...[/]")
             break
         else:
             # response = rag_query(chat_session, zk, query)
             response = chat_session.send(query)
-            print(response)
+            console_service.print(f"[chat.assistant]{response}[/]")
 
 
 def _add_available_plugins(tools, config: Config, llm: LLMBroker):
