@@ -1,18 +1,20 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.tools.git_gateway import GitGateway
 
 logger = structlog.get_logger()
 
 
 class UncommittedChanges(LLMTool):
-    def __init__(self, base_path: str, git: GitGateway):
+    def __init__(self, base_path: str, git: GitGateway, console_service: RichConsoleService = None):
         self.base_path = base_path
         self.git = git
+        self.console_service = console_service or RichConsoleService()
 
     def run(self) -> str:
-        print("Getting uncommitted changes in vault folder")
+        self.console_service.print("[tool.info]Getting uncommitted changes in vault folder[/]")
 
         try:
             # Add all files to git staging to include new files in the diff
