@@ -1,17 +1,19 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.memory.smart_memory import SmartMemory
 
 logger = structlog.get_logger()
 
 
 class StoreInSmartMemory(LLMTool):
-    def __init__(self, smart_memory: SmartMemory):
+    def __init__(self, smart_memory: SmartMemory, console_service: RichConsoleService = None):
         self.memory = smart_memory
+        self.console_service = console_service or RichConsoleService()
 
     def run(self, information: str) -> str:
-        print("Storing information to memory", information)
+        self.console_service.print(f"[tool.info]Storing information to memory: {information}[/]")
         self.memory.store(information)
         return "Information stored in long term memory."
 

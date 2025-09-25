@@ -1,17 +1,19 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.memory.smart_memory import SmartMemory
 
 logger = structlog.get_logger()
 
 
 class RetrieveFromSmartMemory(LLMTool):
-    def __init__(self, smart_memory: SmartMemory):
+    def __init__(self, smart_memory: SmartMemory, console_service: RichConsoleService = None):
         self.memory = smart_memory
+        self.console_service = console_service or RichConsoleService()
 
     def run(self, query: str) -> str:
-        print("Checking memory for anything about", query)
+        self.console_service.print(f"[tool.info]Checking memory for anything about {query}[/]")
         results = self.memory.retrieve(query, 10)
 
         formatted_results = []
@@ -22,11 +24,11 @@ class RetrieveFromSmartMemory(LLMTool):
 
         if len(formatted_results) == 0:
             message = "No relevant information found in memory."
-            print(message)
+            self.console_service.print(f"[tool.info]{message}[/]")
             return message
 
         information = "Found relevant information:\n" + "\n\n".join(formatted_results)
-        print(information)
+        self.console_service.print(f"[tool.info]{information}[/]")
         return information
 
     @property

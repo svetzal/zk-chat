@@ -4,6 +4,7 @@ from mojentic.llm.gateways.models import LLMMessage
 from mojentic.llm.tools.llm_tool import LLMTool
 from pydantic import BaseModel, Field
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.tools.git_gateway import GitGateway
 
 logger = structlog.get_logger()
@@ -15,13 +16,14 @@ class CommitChanges(LLMTool):
     llm: LLMBroker
     git: GitGateway
 
-    def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway):
+    def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway, console_service: RichConsoleService = None):
         self.base_path = base_path
         self.llm = llm
         self.git = git
+        self.console_service = console_service or RichConsoleService()
 
     def run(self) -> str:
-        print("Committing changes in vault folder")
+        self.console_service.print("[tool.info]Committing changes in vault folder[/]")
 
         try:
             # Add all files to git staging
