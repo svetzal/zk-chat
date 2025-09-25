@@ -179,7 +179,7 @@ def _add_available_plugins(tools, service_registry: ServiceRegistry):
     Load and add available plugins to the tools list.
     
     Plugins are discovered via entry points and initialized with a service provider
-    that gives them access to all available services in the zk-rag runtime.
+    that gives them access to all available services in the zk-chat runtime.
     """
     eps = entry_points()
     plugin_entr_points = eps.select(group="zk_rag_plugins")
