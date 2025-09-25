@@ -1,10 +1,10 @@
 [project]
-name = "zk-rag"
+name = "zk-chat"
 version = "2.6.1"
 authors = [
     { name = "Stacey Vetzal", email = "stacey@vetzal.com" },
 ]
-description = "zk-rag is a command-line chat tool for your zettelkasten"
+description = "zk-chat is a command-line chat tool for your zettelkasten"
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
@@ -30,8 +30,8 @@ where = ["."]
 include = ["zk_chat", "zk_chat.*"]
 
 [project.urls]
-Homepage = "https://github.com/svetzal/zk-rag"
-Issues = "https://github.com/svetzal/zk-rag/issues"
+Homepage = "https://github.com/svetzal/zk-chat"
+Issues = "https://github.com/svetzal/zk-chat/issues"
 
 [project.scripts]
 zkindex = "zk_chat.index:main"
