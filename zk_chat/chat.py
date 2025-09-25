@@ -14,6 +14,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.cli import add_common_args, common_init, display_banner
+from zk_chat.console_service import RichConsoleService
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.models import ZkDocument
@@ -46,6 +47,8 @@ from zk_chat.services import ServiceRegistry, ServiceType, ServiceProvider
 
 
 def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prompt: bool = False):
+    console_service = RichConsoleService()
+    
     # Create a single ChromaGateway instance to access multiple collections
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     chroma_gateway = ChromaGateway(config.gateway, db_dir=db_dir)
@@ -96,18 +99,18 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
 
     tools: List[LLMTool] = [
         ResolveDateTool(),
-        ReadZkDocument(zk),
-        ListZkDocuments(zk),
-        ResolveWikiLink(filesystem_gateway),
-        FindExcerptsRelatedTo(zk),
-        FindZkDocumentsRelatedTo(zk),
-        StoreInSmartMemory(smart_memory),
-        RetrieveFromSmartMemory(smart_memory)
+        ReadZkDocument(zk, console_service),
+        ListZkDocuments(zk, console_service),
+        ResolveWikiLink(filesystem_gateway, console_service),
+        FindExcerptsRelatedTo(zk, console_service),
+        FindZkDocumentsRelatedTo(zk, console_service),
+        StoreInSmartMemory(smart_memory, console_service),
+        RetrieveFromSmartMemory(smart_memory, console_service)
     ]
 
     # Add AnalyzeImage tool only if a visual model is selected
     if config.visual_model:
-        tools.append(AnalyzeImage(zk, LLMBroker(model=config.visual_model, gateway=gateway)))
+        tools.append(AnalyzeImage(zk, LLMBroker(model=config.visual_model, gateway=gateway), console_service))
 
     if use_git:
         git_gateway = GitGateway(config.vault)
@@ -116,9 +119,9 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
         tools.append(CommitChanges(config.vault, llm, git_gateway))
 
     if unsafe:
-        tools.append(CreateOrOverwriteZkDocument(zk))
-        tools.append(RenameZkDocument(zk))
-        tools.append(DeleteZkDocument(zk))
+        tools.append(CreateOrOverwriteZkDocument(zk, console_service))
+        tools.append(RenameZkDocument(zk, console_service))
+        tools.append(DeleteZkDocument(zk, console_service))
 
     _add_available_plugins(tools, service_registry)
 
@@ -164,14 +167,14 @@ About organizing the Zettelkasten:
     )
 
     while True:
-        query = input("Query: ")
+        query = console_service.input("[chat.user]Query:[/] ")
         if not query:
-            print("Exiting...")
+            console_service.print("[chat.system]Exiting...[/]")
             break
         else:
             # response = rag_query(chat_session, zk, query)
             response = chat_session.send(query)
-            print(response)
+            console_service.print(f"[chat.assistant]{response}[/]")
 
 
 def _add_available_plugins(tools, service_registry: ServiceRegistry):

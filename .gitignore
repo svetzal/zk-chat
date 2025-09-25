@@ -7,3 +7,6 @@ dist
 zk_rag.egg-info
 .coverage
 .DS_Store
+demo_console.py
+RICH_INTEGRATION.md
+demo_tools_update.py

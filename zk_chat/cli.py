@@ -9,10 +9,8 @@ logging.basicConfig(level=logging.WARN)
 
 from importlib.metadata import version
 
-from rich.console import Console
-from rich.theme import Theme
-
 from zk_chat.config import Config, ModelGateway
+from zk_chat.console_service import RichConsoleService
 from zk_chat.global_config import GlobalConfig
 from zk_chat.index import reindex
 from zk_chat.memory.smart_memory import SmartMemory
@@ -31,17 +29,8 @@ def get_version():
 
 def display_banner(config, title: str, unsafe=False, use_git=False, store_prompt=True):
     """Display a colorful banner with application information."""
-    # Create a custom theme for the banner
-    custom_theme = Theme({
-        "banner.title": "bold bright_cyan",
-        "banner.copyright": "bright_blue",
-        "banner.info.label": "white",
-        "banner.info.value": "green",
-        "banner.warning.unsafe": "bold bright_red",
-        "banner.warning.git": "yellow",
-    })
-
-    console = Console(theme=custom_theme)
+    console_service = RichConsoleService()
+    console = console_service.get_console()
 
     # Display the banner
     console.print(f"\n[banner.title]{title} v{get_version()}[/]")
