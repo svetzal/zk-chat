@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Improved new (to zk-rag) vault and first-time installation experience
+- Improved new (to zk-chat) vault and first-time installation experience
 
 ### Changed
 
