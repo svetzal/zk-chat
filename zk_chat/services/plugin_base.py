@@ -1,5 +1,5 @@
 """
-Base class for zk-rag plugins that provides convenient access to services.
+Base class for zk-chat plugins that provides convenient access to services.
 
 This provides a clean interface for plugin developers while maintaining
 backward compatibility and allowing for future extensibility.
@@ -14,15 +14,15 @@ from .service_registry import ServiceType
 logger = structlog.get_logger()
 
 
-class ZkRagPlugin(LLMTool):
+class ZkChatPlugin(LLMTool):
     """
-    Base class for zk-rag plugins that provides convenient service access.
+    Base class for zk-chat plugins that provides convenient service access.
     
     Plugin developers can inherit from this class to get easy access to
     all available services without needing to manage service discovery.
     
     Example:
-        class MyPlugin(ZkRagPlugin):
+        class MyPlugin(ZkChatPlugin):
             def __init__(self, service_provider: ServiceProvider):
                 super().__init__(service_provider)
             
@@ -41,7 +41,7 @@ class ZkRagPlugin(LLMTool):
         Initialize the plugin with a service provider.
         
         Args:
-            service_provider: Service provider for accessing zk-rag services
+            service_provider: Service provider for accessing zk-chat services
         """
         super().__init__()
         self._service_provider = service_provider

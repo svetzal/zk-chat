@@ -273,7 +273,7 @@ class MainWindow(QMainWindow):
         self.chat_session = None
         self.initialize_chat_session()
 
-        self.setWindowTitle("ZK-RAG Chat")
+        self.setWindowTitle("Zk-Chat")
         self.setMinimumSize(800, 600)
 
         # Create menu bar

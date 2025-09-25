@@ -1,6 +1,6 @@
-# ZK-RAG Plugin Developer Guide
+# Zk-Chat Plugin Developer Guide
 
-This guide walks you through developing plugins for zk-rag, the command-line chat tool for your Zettelkasten. Plugins allow you to extend the chat agent with custom tools that integrate seamlessly with your knowledge base and the zk-rag runtime environment.
+This guide walks you through developing plugins for zk-chat, the command-line chat tool for your Zettelkasten. Plugins allow you to extend the chat agent with custom tools that integrate seamlessly with your knowledge base and the zk-chat runtime environment.
 
 ## Table of Contents
 
@@ -10,12 +10,12 @@ This guide walks you through developing plugins for zk-rag, the command-line cha
 - [Available Runtime Resources](#available-runtime-resources)
 - [Plugin Development Best Practices](#plugin-development-best-practices)
 - [Packaging and Distribution](#packaging-and-distribution)
-- [ZK-RAG Plugins vs Model Context Protocol (MCP)](#zk-rag-plugins-vs-model-context-protocol-mcp)
+- [Zk-Chat Plugins vs Model Context Protocol (MCP)](#zk-chat-plugins-vs-model-context-protocol-mcp)
 - [Example Plugins](#example-plugins)
 
 ## Overview
 
-ZK-RAG plugins are tools that extend the functionality of the chat agent. They inherit from the `LLMTool` base class and are automatically discovered and loaded when zk-rag starts. Plugins have access to the same runtime environment as built-in tools, including:
+Zk-Chat plugins are tools that extend the functionality of the chat agent. They inherit from the `LLMTool` base class and are automatically discovered and loaded when zk-chat starts. Plugins have access to the same runtime environment as built-in tools, including:
 
 - Access to the user's Zettelkasten vault
 - Integration with the vector database (ChromaDB)
@@ -28,8 +28,8 @@ ZK-RAG plugins are tools that extend the functionality of the chat agent. They i
 ### Core Components
 
 1. **Plugin Discovery**: Plugins are discovered via Python entry points in the `zk_rag_plugins` group
-2. **Service Provider Pattern**: Plugins receive a `ServiceProvider` that gives access to all zk-rag services
-3. **Tool Interface**: All plugins must inherit from `mojentic.llm.tools.llm_tool.LLMTool` or the convenient `ZkRagPlugin` base class
+2. **Service Provider Pattern**: Plugins receive a `ServiceProvider` that gives access to all zk-chat services
+3. **Tool Interface**: All plugins must inherit from `mojentic.llm.tools.llm_tool.LLMTool` or the convenient `ZkChatPlugin` base class
 4. **Automatic Loading**: The `_add_available_plugins()` function automatically loads and instantiates all discovered plugins
 
 ### Plugin Loading Mechanism
@@ -40,7 +40,7 @@ def _add_available_plugins(tools, service_registry: ServiceRegistry):
     Load and add available plugins to the tools list.
     
     Plugins are discovered via entry points and initialized with a service provider
-    that gives them access to all available services in the zk-rag runtime.
+    that gives them access to all available services in the zk-chat runtime.
     """
     eps = entry_points()
     plugin_entr_points = eps.select(group="zk_rag_plugins")
@@ -54,7 +54,7 @@ def _add_available_plugins(tools, service_registry: ServiceRegistry):
 ```
 
 All plugins are instantiated with:
-- `service_provider`: A `ServiceProvider` instance that provides access to all available zk-rag services
+- `service_provider`: A `ServiceProvider` instance that provides access to all available zk-chat services
 
 ### Service Registry Architecture
 
@@ -84,22 +84,22 @@ Create your main plugin file (e.g., `my_plugin.py`):
 
 ```python
 """
-Simple example plugin for zk-rag demonstrating the new service provider interface.
+Simple example plugin for zk-chat demonstrating the new service provider interface.
 This can be used as a template for creating your own plugins.
 """
 import structlog
-from zk_chat.services import ZkRagPlugin, ServiceProvider
+from zk_chat.services import ZkChatPlugin, ServiceProvider
 
 logger = structlog.get_logger()
 
 
-class MyCustomTool(ZkRagPlugin):
-    """A custom tool for zk-rag that demonstrates the plugin interface."""
+class MyCustomTool(ZkChatPlugin):
+    """A custom tool for zk-chat that demonstrates the plugin interface."""
     
     def __init__(self, service_provider: ServiceProvider):
         """Initialize the plugin with a service provider.
         
-        The service provider gives access to all zk-rag services:
+        The service provider gives access to all zk-chat services:
         - Filesystem gateway for file operations
         - LLM broker for AI requests
         - Zettelkasten for document operations
@@ -107,7 +107,7 @@ class MyCustomTool(ZkRagPlugin):
         - Configuration and other services
         
         Args:
-            service_provider: Service provider for accessing zk-rag services
+            service_provider: Service provider for accessing zk-chat services
         """
         super().__init__(service_provider)
         logger.info("Initialized MyCustomTool plugin")
@@ -198,7 +198,7 @@ Create a `pyproject.toml` file to register your plugin:
 [project]
 name = "my-zk-plugin"
 version = "1.0.0"
-description = "My custom ZK-RAG plugin"
+description = "My custom Zk-Chat plugin"
 requires-python = ">=3.11"
 dependencies = [
     "mojentic>=0.6.1",
@@ -223,7 +223,7 @@ Install your plugin in development mode:
 pip install -e .
 ```
 
-Now your plugin will be automatically loaded when you run zk-rag!
+Now your plugin will be automatically loaded when you run zk-chat!
 
 ## Migration from Legacy Plugin Interface
 
@@ -240,9 +240,9 @@ class MyPlugin(LLMTool):
 
 ### After (New Service Provider)
 ```python
-from zk_chat.services import ZkRagPlugin, ServiceProvider
+from zk_chat.services import ZkChatPlugin, ServiceProvider
 
-class MyPlugin(ZkRagPlugin):
+class MyPlugin(ZkChatPlugin):
     def __init__(self, service_provider: ServiceProvider):
         super().__init__(service_provider)
         
@@ -257,11 +257,11 @@ The new architecture provides several advantages:
 - **Extensible**: New services can be added without changing plugin constructors
 - **Type-safe**: Better IDE support and error detection
 - **Consistent**: All plugins use the same service access pattern
-- **Feature-rich**: Access to all zk-rag services, not just vault and LLM
+- **Feature-rich**: Access to all zk-chat services, not just vault and LLM
 
 ## Available Runtime Resources
 
-Plugins have access to the full zk-rag runtime environment through the service provider pattern. The new architecture provides a clean, extensible way to access services without requiring changes to plugin constructors as new services are added.
+Plugins have access to the full zk-chat runtime environment through the service provider pattern. The new architecture provides a clean, extensible way to access services without requiring changes to plugin constructors as new services are added.
 
 ### Service Provider Pattern
 
@@ -289,7 +289,7 @@ def __init__(self, service_provider: ServiceProvider):
 ### Available Services
 
 #### 1. Filesystem Gateway
-- **Purpose**: Consistent filesystem operations integrated with zk-rag's document handling
+- **Purpose**: Consistent filesystem operations integrated with zk-chat's document handling
 - **Usage**: Read, create, and modify documents with proper abstractions
 - **Access**: `service_provider.get_filesystem_gateway()` or `self.filesystem_gateway`
 
@@ -513,19 +513,19 @@ Users can install your plugin with:
 
 ```bash
 # Using pipx (recommended)
-pipx inject zk-rag my-zk-plugin
+pipx inject zk-chat my-zk-plugin
 
 # Using pip in a virtual environment
 pip install my-zk-plugin
 ```
 
-## ZK-RAG Plugins vs Model Context Protocol (MCP)
+## Zk-Chat Plugins vs Model Context Protocol (MCP)
 
-### ZK-RAG Plugins Advantages
+### Zk-Chat Plugins Advantages
 
 **🔧 Deep Runtime Integration**
 - Direct access to the user's Zettelkasten vault
-- Integration with zk-rag's vector database and Smart Memory
+- Integration with zk-chat's vector database and Smart Memory
 - Access to the same LLM broker used by the system
 - Consistent filesystem operations via the filesystem gateway
 
@@ -561,13 +561,13 @@ pip install my-zk-plugin
 - Scalable architecture for resource-intensive operations
 - Independent failure domains
 
-### When to Choose ZK-RAG Plugins
+### When to Choose Zk-Chat Plugins
 
-Choose zk-rag plugins when you need:
+Choose zk-chat plugins when you need:
 
 - **Deep integration** with the Zettelkasten and its metadata
 - **Access to the vector database** for semantic search capabilities
-- **Consistent file operations** that align with zk-rag's document handling
+- **Consistent file operations** that align with zk-chat's document handling
 - **Shared context** with other tools in the chat session
 - **Simple development** with Python and familiar object-oriented patterns
 - **Performance-critical operations** that benefit from direct memory access
@@ -583,9 +583,9 @@ Choose MCP when you need:
 - **Cross-platform compatibility** with multiple AI systems
 - **Resource-intensive operations** that benefit from separate processes
 
-### MCP Integration in ZK-RAG
+### MCP Integration in Zk-Chat
 
-Note that zk-rag also includes built-in MCP server functionality (`zk_chat/mcp.py`) that exposes specific zk-rag tools via the Model Context Protocol. This allows external MCP clients to access zk-rag's document and memory capabilities independently. However, this is primarily intended for integration with other AI systems rather than extending zk-rag's own functionality.
+Note that zk-chat also includes built-in MCP server functionality (`zk_chat/mcp.py`) that exposes specific zk-chat tools via the Model Context Protocol. This allows external MCP clients to access zk-chat's document and memory capabilities independently. However, this is primarily intended for integration with other AI systems rather than extending zk-chat's own functionality.
 
 ## Example Plugins
 
@@ -691,11 +691,11 @@ Here's how the image generator plugin would look with service provider access:
 from pathlib import Path
 from typing import Optional
 
-from zk_chat.services import ZkRagPlugin, ServiceProvider
+from zk_chat.services import ZkChatPlugin, ServiceProvider
 from stable_diffusion_gateway import StableDiffusionGateway
 
 
-class GenerateImage(ZkRagPlugin):
+class GenerateImage(ZkChatPlugin):
     """Tool to generate images from a description using the StableDiffusion 3.5 Medium model."""
 
     def __init__(self, service_provider: ServiceProvider, gateway: Optional[StableDiffusionGateway] = None):
@@ -762,17 +762,17 @@ You can embed it in your markdown file using the following syntax: `![image]({ba
 Here's an example of a plugin that leverages multiple services:
 
 ```python
-from zk_chat.services import ZkRagPlugin, ServiceProvider, ServiceType
+from zk_chat.services import ZkChatPlugin, ServiceProvider, ServiceType
 
 
-class AdvancedAnalysisPlugin(ZkRagPlugin):
+class AdvancedAnalysisPlugin(ZkChatPlugin):
     """Plugin that demonstrates using multiple services together."""
 
     def __init__(self, service_provider: ServiceProvider):
         super().__init__(service_provider)
 
     def run(self, document_path: str, analysis_type: str) -> str:
-        """Analyze a document using multiple zk-rag services."""
+        """Analyze a document using multiple zk-chat services."""
         
         # Check if required services are available
         if not self.has_service(ServiceType.ZETTELKASTEN):
@@ -827,7 +827,7 @@ Analysis has been stored in smart memory for future reference.
             "type": "function",
             "function": {
                 "name": "advanced_document_analysis",
-                "description": "Perform advanced analysis of a document using multiple zk-rag services.",
+                "description": "Perform advanced analysis of a document using multiple zk-chat services.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -848,8 +848,8 @@ Analysis has been stored in smart memory for future reference.
 
 ## Getting Help
 
-- **Issues**: Report bugs or feature requests on the [zk-rag GitHub repository](https://github.com/svetzal/zk-rag/issues)
-- **Discussions**: Ask questions in the [GitHub Discussions](https://github.com/svetzal/zk-rag/discussions)
+- **Issues**: Report bugs or feature requests on the [zk-chat GitHub repository](https://github.com/svetzal/zk-chat/issues)
+- **Discussions**: Ask questions in the [GitHub Discussions](https://github.com/svetzal/zk-chat/discussions)
 - **Example Code**: Check out the existing plugin repositories for inspiration
 
 Happy plugin development! 🚀

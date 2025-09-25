@@ -23,7 +23,7 @@ from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 def get_version():
     """Get the package version from metadata."""
     try:
-        return version("zk-rag")
+        return version("zk-chat")
     except Exception:
         # Fallback version if package metadata is not available
         return "0.0.0"
