@@ -1,6 +1,9 @@
 from datetime import datetime
 import argparse
 import os
+
+# Disable ChromaDB telemetry to avoid PostHog compatibility issues
+os.environ['CHROMA_TELEMETRY'] = 'false'
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 

@@ -2,6 +2,9 @@ import argparse
 import logging
 import os
 
+# Disable ChromaDB telemetry to avoid PostHog compatibility issues
+os.environ['CHROMA_TELEMETRY'] = 'false'
+
 from zk_chat.upgraders.gateway_specific_index_folder import GatewaySpecificIndexFolder
 from zk_chat.upgraders.gateway_specific_last_indexed import GatewaySpecificLastIndexed
 
