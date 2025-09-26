@@ -191,11 +191,28 @@ def _add_available_plugins(tools, service_registry: ServiceRegistry):
     for ep in plugin_entr_points:
         logging.info(f"Adding Plugin {ep.name}")
         plugin_class = ep.load()
-        # Plugins now receive a service provider instead of individual parameters
-        tools.append(plugin_class(service_provider))
+        # Prefer new-style constructor that accepts a ServiceProvider
+        try:
+            tools.append(plugin_class(service_provider))
+            continue
+        except TypeError as e:
+            logging.warning(f"Plugin {ep.name} did not accept ServiceProvider (TypeError: {e}). Trying legacy constructors...")
+            # Legacy fallback 1: constructor expects an LLM broker instance
+            try:
+                llm_broker = service_provider.get_llm_broker()
+                tools.append(plugin_class(llm_broker))
+                continue
+            except Exception as e2:
+                logging.warning(f"Plugin {ep.name} did not accept LLM broker (Exception: {e2}). Trying no-arg constructor...")
+                # Legacy fallback 2: parameterless constructor
+                try:
+                    tools.append(plugin_class())
+                    continue
+                except Exception as e3:
+                    logging.error(f"Failed to load plugin {ep.name}: {e3}")
 
 
-if __name__ == '__main__':
+def main() -> None:
     parser = argparse.ArgumentParser(description='Zettelkasten Chat')
     add_common_args(parser)
     parser.add_argument('--unsafe', action='store_true', help='Allow write operations in chat mode')
@@ -214,3 +231,7 @@ if __name__ == '__main__':
     display_banner(config, title="ZkChat", unsafe=args.unsafe, use_git=args.git, store_prompt=args.store_prompt)
 
     chat(config, unsafe=args.unsafe, use_git=args.git, store_prompt=args.store_prompt)
+
+
+if __name__ == '__main__':
+    main()
