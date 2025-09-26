@@ -4,7 +4,7 @@
 __pycache__
 chroma
 dist
-zk_rag.egg-info
+zk_chat.egg-info
 .coverage
 .DS_Store
 demo_console.py
