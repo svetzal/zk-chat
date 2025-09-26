@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+## [3.0.0] - 2025-09-26
+
+### Changed
+
+- Overhauled plugin approach, plugins have easier access to core zk-chat services like llm, filesystem, memory
+- Integrated rich throughout for nicer and more consistent command-line appearance
+
 ## [2.6.1] - 2025-04-05
 
 ### Added
