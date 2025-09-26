@@ -21,6 +21,15 @@ dependencies = [
     "rich",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "flake8",
+    "pytest",
+    "pytest-spec",
+    "pytest-cov",
+    "pytest-mock",
+]
+
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
