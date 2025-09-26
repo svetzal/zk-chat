@@ -51,7 +51,7 @@ from zk_chat.services import ServiceRegistry, ServiceType, ServiceProvider
 
 def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prompt: bool = False):
     console_service = RichConsoleService()
-    
+
     # Create a single ChromaGateway instance to access multiple collections
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     chroma_gateway = ChromaGateway(config.gateway, db_dir=db_dir)
@@ -65,7 +65,7 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
 
     filesystem_gateway = MarkdownFilesystemGateway(config.vault)
     tokenizer_gateway = TokenizerGateway()
-    
+
     zk = Zettelkasten(
         tokenizer_gateway=tokenizer_gateway,
         excerpts_db=VectorDatabase(
@@ -183,14 +183,14 @@ About organizing the Zettelkasten:
 def _add_available_plugins(tools, service_registry: ServiceRegistry):
     """
     Load and add available plugins to the tools list.
-    
+
     Plugins are discovered via entry points and initialized with a service provider
     that gives them access to all available services in the zk-chat runtime.
     """
     eps = entry_points()
     plugin_entr_points = eps.select(group="zk_rag_plugins")
     service_provider = ServiceProvider(service_registry)
-    
+
     for ep in plugin_entr_points:
         logging.info(f"Adding Plugin {ep.name}")
         plugin_class = ep.load()

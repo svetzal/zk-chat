@@ -34,7 +34,7 @@ def reindex(config: Config, force_full: bool = False):
     zk = Zettelkasten(
         tokenizer_gateway=TokenizerGateway(),
         excerpts_db=VectorDatabase(
-            chroma_gateway=chroma, 
+            chroma_gateway=chroma,
             gateway=gateway,
             collection_name=ZkCollectionName.EXCERPTS
         ),
