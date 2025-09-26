@@ -6,6 +6,9 @@ logging.basicConfig(
 
 import argparse
 import os
+
+# Disable ChromaDB telemetry to avoid PostHog compatibility issues
+os.environ['CHROMA_TELEMETRY'] = 'false'
 from importlib.metadata import entry_points
 from typing import List
 

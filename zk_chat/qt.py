@@ -1,6 +1,9 @@
 import os
 import sys
 
+# Disable ChromaDB telemetry to avoid PostHog compatibility issues
+os.environ['CHROMA_TELEMETRY'] = 'false'
+
 from PySide6.QtCore import Qt, Signal, Slot, QThread, QTimer
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                                QTextEdit, QPushButton, QDialog, QFrame,
