@@ -85,9 +85,9 @@ class ChromaGateway:
             # Reset a specific collection
             try:
                 self.chroma_client.delete_collection(collection_name.value)
-            except ValueError:
+            except (ValueError, Exception):
+                # Collection does not exist - this is fine
                 pass
-                # Collection does not exist
             self._collections.pop(collection_name, None)
             self.get_collection(collection_name)
         else:
