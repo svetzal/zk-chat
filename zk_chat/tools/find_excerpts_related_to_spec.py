@@ -41,5 +41,5 @@ def test_find_excerpts_related_to(find_excerpts_tool, mock_zk):
 
     result = find_excerpts_tool.run(query)
 
-    mock_zk.query_excerpts.assert_called_once_with(query)
+    mock_zk.query_excerpts.assert_called_once_with(query, max_distance=200.0)
     assert result == json.dumps([result.model_dump() for result in mock_results])

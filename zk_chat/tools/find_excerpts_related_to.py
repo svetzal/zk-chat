@@ -18,7 +18,7 @@ class FindExcerptsRelatedTo(LLMTool):
 
     def run(self, query: str) -> str:
         self.console_service.print(f"[tool.info]Querying excerpts related to {query}[/]")
-        results: List[ZkQueryExcerptResult] = self.zk.query_excerpts(query)
+        results: List[ZkQueryExcerptResult] = self.zk.query_excerpts(query, max_distance=200.0)
         return json.dumps([
             result.model_dump()
             for result in results

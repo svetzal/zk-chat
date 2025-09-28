@@ -1,6 +1,6 @@
 import hashlib
 from datetime import datetime
-from typing import List, Iterator, Any
+from typing import List, Iterator, Any, Optional, Callable
 
 import structlog
 import yaml
@@ -13,6 +13,9 @@ from zk_chat.rag.splitter import split_tokens
 from zk_chat.vector_database import VectorDatabase
 
 logger = structlog.get_logger()
+
+# Type alias for progress callback functions
+ProgressCallback = Callable[[str, int, int], None]
 
 
 class Zettelkasten:
@@ -91,16 +94,58 @@ class Zettelkasten:
         for relative_path in self._iterate_markdown_files():
             yield self.read_document(relative_path)
 
-    def reindex(self, excerpt_size: int = 500, excerpt_overlap: int = 100) -> None:
+    def reindex(self, excerpt_size: int = 500, excerpt_overlap: int = 100,
+                progress_callback: Optional[ProgressCallback] = None) -> None:
+        """Reindex all documents in the Zettelkasten.
+
+        Args:
+            excerpt_size: Size of text excerpts for indexing
+            excerpt_overlap: Overlap between excerpts
+            progress_callback: Optional callback for progress updates (filename, processed_count, total_count)
+        """
         self.excerpts_db.reset()
         self.documents_db.reset()
-        for relative_path in self._iterate_markdown_files():
+
+        # Collect all files first to get accurate count for progress
+        all_files = list(self._iterate_markdown_files())
+        total_files = len(all_files)
+
+        logger.info("Starting reindex", total_files=total_files)
+
+        for i, relative_path in enumerate(all_files):
+            if progress_callback:
+                progress_callback(relative_path, i + 1, total_files)
+
             self._index_document(relative_path, excerpt_size, excerpt_overlap)
 
-    def update_index(self, since: datetime, excerpt_size: int = 500, excerpt_overlap: int = 100) -> None:
+        logger.info("Reindex completed", processed_files=total_files)
+
+    def update_index(self, since: datetime, excerpt_size: int = 500, excerpt_overlap: int = 100,
+                     progress_callback: Optional[ProgressCallback] = None) -> None:
+        """Update the index for documents modified since a given date.
+
+        Args:
+            since: Only reindex documents modified after this date
+            excerpt_size: Size of text excerpts for indexing
+            excerpt_overlap: Overlap between excerpts
+            progress_callback: Optional callback for progress updates (filename, processed_count, total_count)
+        """
+        # Pre-scan to find files that need reindexing
+        files_to_process = []
         for relative_path in self._iterate_markdown_files():
             if self._needs_reindex(relative_path, since):
-                self._index_document(relative_path, excerpt_size, excerpt_overlap)
+                files_to_process.append(relative_path)
+
+        total_files = len(files_to_process)
+        logger.info("Starting incremental update", total_files=total_files, since=since)
+
+        for i, relative_path in enumerate(files_to_process):
+            if progress_callback:
+                progress_callback(relative_path, i + 1, total_files)
+
+            self._index_document(relative_path, excerpt_size, excerpt_overlap)
+
+        logger.info("Incremental update completed", processed_files=total_files)
 
 
     def _index_document(self, relative_path: str, excerpt_size: int, excerpt_overlap: int) -> None:
@@ -122,7 +167,7 @@ class Zettelkasten:
         Args:
             query: The query text
             n_results: The number of results to return
-            max_distance: The maximum distance to consider
+            max_distance: The maximum distance to consider (0.0 means no distance filtering)
 
         Returns:
             A list of query results
@@ -130,7 +175,7 @@ class Zettelkasten:
         return [
             self._create_document_query_result(result)
             for result in (self.documents_db.query(query, n_results=n_results))
-            if max_distance > 0.0 and result.distance <= max_distance
+            if max_distance == 0.0 or result.distance <= max_distance
         ]
 
     def _create_document_query_result(self, result: QueryResult) -> ZkQueryDocumentResult:

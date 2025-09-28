@@ -19,6 +19,7 @@ from zk_chat.index import reindex
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.chroma_gateway import ChromaGateway
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
+from rich.console import Console
 
 
 def get_version():
@@ -211,3 +212,15 @@ def common_init(args):
         reindex(config, force_full=True)
 
     return config
+
+
+def common_init_typer(args):
+    """
+    Typer-compatible version of common_init.
+
+    This function provides the same initialization logic but works with
+    the new Typer CLI structure instead of argparse.
+    """
+    # For now, delegate to the existing common_init function
+    # In the future, this could be refactored to be more Typer-native
+    return common_init(args)

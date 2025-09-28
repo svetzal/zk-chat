@@ -125,7 +125,7 @@ def agent(config: Config):
             print(response)
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='Zettelkasten Agent')
     add_common_args(parser)
 
@@ -133,9 +133,93 @@ if __name__ == '__main__':
 
     config = common_init(args)
 
+    if not config:  # common_init returns None for certain operations like --list-bookmarks
+        return
+
     git_gateway = GitGateway(config.vault)
     git_gateway.setup()
 
     display_banner(config, title="ZkAgent", unsafe=True, use_git=True, store_prompt=False)
 
     agent(config)
+
+
+def agent_single_query(config: Config, query: str) -> str:
+    """
+    Execute a single query using the agent and return the response.
+
+    Args:
+        config: Configuration object
+        query: The query string to process
+
+    Returns:
+        The agent's response as a string
+    """
+    db_dir = os.path.join(config.vault, ".zk_chat_db")
+    chroma_gateway = ChromaGateway(config.gateway, db_dir=db_dir)
+
+    if config.gateway.value == ModelGateway.OLLAMA:
+        gateway = OllamaGateway()
+    elif config.gateway.value == ModelGateway.OPENAI:
+        gateway = OpenAIGateway(os.environ.get("OPENAI_API_KEY"))
+    else:
+        raise ValueError(f"Invalid gateway: {config.gateway}")
+
+    filesystem_gateway = MarkdownFilesystemGateway(config.vault)
+    zk = Zettelkasten(
+        tokenizer_gateway=TokenizerGateway(),
+        excerpts_db=VectorDatabase(
+            chroma_gateway=chroma_gateway,
+            gateway=gateway,
+            collection_name=ZkCollectionName.EXCERPTS
+        ),
+        documents_db=VectorDatabase(
+            chroma_gateway=chroma_gateway,
+            gateway=gateway,
+            collection_name=ZkCollectionName.DOCUMENTS
+        ),
+        filesystem_gateway=filesystem_gateway
+    )
+
+    llm = LLMBroker(config.model, gateway=gateway)
+    smart_memory = SmartMemory(chroma_gateway=chroma_gateway, gateway=gateway)
+    git_gateway = GitGateway(config.vault)
+
+    tools: List[LLMTool] = [
+        # Real world context
+        CurrentDateTimeTool(),
+        ResolveDateTool(),
+
+        # Document tools
+        ReadZkDocument(zk),
+        ListZkDocuments(zk),
+        ResolveWikiLink(filesystem_gateway),
+        FindExcerptsRelatedTo(zk),
+        FindZkDocumentsRelatedTo(zk),
+        CreateOrOverwriteZkDocument(zk),
+        RenameZkDocument(zk),
+        DeleteZkDocument(zk),
+
+        # Memory tools
+        StoreInSmartMemory(smart_memory),
+        RetrieveFromSmartMemory(smart_memory),
+
+        # Visual tools
+        AnalyzeImage(zk, LLMBroker(model=config.visual_model, gateway=gateway)),
+
+        # Git tools
+        UncommittedChanges(config.vault, git_gateway),
+        CommitChanges(config.vault, llm, git_gateway)
+    ]
+
+    agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
+    with open(agent_prompt_path, "r") as f:
+        agent_prompt = f.read()
+
+    solver = IterativeProblemSolvingAgent(llm=llm, available_tools=tools, system_prompt=agent_prompt)
+
+    return solver.solve(query)
+
+
+if __name__ == '__main__':
+    main()
