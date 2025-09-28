@@ -167,7 +167,7 @@ class Zettelkasten:
         Args:
             query: The query text
             n_results: The number of results to return
-            max_distance: The maximum distance to consider
+            max_distance: The maximum distance to consider (0.0 means no distance filtering)
 
         Returns:
             A list of query results
@@ -175,7 +175,7 @@ class Zettelkasten:
         return [
             self._create_document_query_result(result)
             for result in (self.documents_db.query(query, n_results=n_results))
-            if max_distance > 0.0 and result.distance <= max_distance
+            if max_distance == 0.0 or result.distance <= max_distance
         ]
 
     def _create_document_query_result(self, result: QueryResult) -> ZkQueryDocumentResult:
