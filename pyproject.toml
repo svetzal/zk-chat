@@ -13,12 +13,12 @@ classifiers = [
     'Operating System :: OS Independent',
 ]
 dependencies = [
-    "chromadb==0.6.3",
-    "chroma-hnswlib==0.7.6",
+    "chromadb>=1.1.0",
     "pyyaml",
     "mojentic>=0.6.1",
     "PySide6>=6.6.0",
     "rich",
+    "typer[all]>=0.9.0",
 ]
 
 [project.optional-dependencies]
@@ -43,7 +43,4 @@ Homepage = "https://github.com/svetzal/zk-chat"
 Issues = "https://github.com/svetzal/zk-chat/issues"
 
 [project.scripts]
-zkindex = "zk_chat.index:main"
-zkchat = "zk_chat.chat:main"
-zkagent = "zk_chat.agent:main"
-zkchat-gui = "zk_chat.qt:main"
+zk-chat = "zk_chat.main:app"

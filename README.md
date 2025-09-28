@@ -4,7 +4,7 @@ This is a simple tool that lets you chat with an "AI" that has access to the doc
 index your markdown documents, and in your chat session it may choose to query your content, retrieve excerpts, read
 entire documents, and generate responses based on the content in your Zettelkasten.
 
-For "AI" it communicates with either a local running instance of Ollama or OpenAI's API. By default, Ollama is used and must be installed and running for zkchat to function, but you can also configure it to use OpenAI with the `--gateway openai` option.
+For "AI" it communicates with either a local running instance of Ollama or OpenAI's API. By default, Ollama is used and must be installed and running for zk-chat to function, but you can also configure it to use OpenAI with the `--gateway openai` option.
 
 ## ✨ Features
 
@@ -147,7 +147,25 @@ export OPENAI_API_KEY=your_api_key_here
 
 ### 📟 Command-line Interface
 
-Run `zkchat --vault /path/to/vault` to start the command-line interface for the first time on a new vault.
+The CLI uses a modern command-based interface. Use `zk-chat --help` to see all available commands.
+
+#### 💬 Interactive Chat
+
+Start an interactive chat session with your Zettelkasten:
+
+```bash
+# First time with a new vault
+zk-chat interactive --vault /path/to/vault
+
+# Subsequent uses (remembers last vault)
+zk-chat interactive
+
+# Use autonomous agent mode for complex tasks
+zk-chat interactive --agent
+
+# Allow AI to modify files (use with caution!)
+zk-chat interactive --unsafe --git
+```
 
 If `zk-chat` hasn't been used with the vault before, it will prompt you for:
 1. A chat model (using the default Ollama gateway)
@@ -155,32 +173,86 @@ If `zk-chat` hasn't been used with the vault before, it will prompt you for:
 
 It will then perform a full index of your vault before starting the chat.
 
-Subsequently running `zkchat` on its own will launch it on the last opened vault, with the last selected models.
+#### ❓ Single Query
 
-> If you want to allow the AI to make changes to your Zettelkasten, you must use the `--unsafe` flag. We highly recommend using `git` for version control if you enable this option.
+Ask a single question without starting an interactive session:
 
-> Specifying `--git` will initialize a new git repository for your vault if one doesn't already exist.
+```bash
+# Ask a question directly
+zk-chat query "What are my thoughts on productivity?"
 
-Command-line options:
-- `--vault PATH`: Specify the path to your Zettelkasten vault (required if no bookmarks are set)
-- `--bookmark NAME`: Use a bookmarked vault path instead of specifying the path directly
-- `--add-bookmark NAME PATH`: Add a new bookmark for a vault path
-- `--remove-bookmark NAME`: Remove a bookmarked vault path
-- `--list-bookmarks`: List all bookmarked vault paths
-- `--gateway {ollama,openai}`: Set the model gateway to use (ollama or openai). OpenAI requires OPENAI_API_KEY environment variable
-- `--model [model_name]`: Change the LLM model to use for chat
-  - With model name: `zkchat --vault /path/to/vault --model llama2` - configure to use specified model
-  - Without model name: `zkchat --vault /path/to/vault --model` - interactively select from available models
-- `--visual-model [model_name]`: Change the LLM model to use for visual analysis (optional)
-  - With model name: `zkchat --vault /path/to/vault --visual-model llava` - configure to use specified model for visual analysis
-  - Without model name: `zkchat --vault /path/to/vault --visual-model` - interactively select from available models
-  - To disable visual analysis: `zkchat --vault /path/to/vault --visual-model none`
-- `--reindex`: Reindex the Zettelkasten vault, will attempt to do so incrementally
-- `--full`: Force full reindex (only used with --reindex)
-- `--unsafe`: Enable operations that can write to your Zettelkasten. This flag is required for using tools that modify your Zettelkasten content, such as the Write Document tool. Use with caution as it allows the AI to make changes to your files.
+# Read question from a file
+cat prompt.txt | zk-chat query
+
+# Use agent mode for complex queries
+zk-chat query "Find all related concepts" --agent
+```
+
+#### 🖥️ Graphical Interface
+
+Launch the experimental GUI:
+
+```bash
+zk-chat gui launch
+```
+
+**Note:** The GUI is experimental and uses an older configuration system.
+
+#### 🔍 Index Management
+
+Manage your Zettelkasten search index:
+
+```bash
+# Rebuild index (incremental - fast)
+zk-chat index rebuild
+
+# Full rebuild (comprehensive - slower)
+zk-chat index rebuild --full
+
+# Check index status
+zk-chat index status
+```
+
+#### 📚 Vault and Bookmark Management
+
+The CLI supports bookmarking vault paths for easy access:
+
+```bash
+# Save current vault as bookmark
+zk-chat interactive --vault /path/to/vault --save
+
+# List all bookmarks
+zk-chat interactive --list-bookmarks
+
+# Remove a bookmark
+zk-chat interactive --remove-bookmark /path/to/vault
+```
+
+#### ⚙️ Command Options
+
+**Common options available across commands:**
+
+- `--vault PATH` / `-v PATH`: Specify the path to your Zettelkasten vault
+- `--gateway {ollama,openai}` / `-g`: Set the model gateway (requires OPENAI_API_KEY for OpenAI)
+- `--model MODEL` / `-m`: Set the chat model to use
+- `--visual-model MODEL`: Set the visual analysis model (optional)
+
+**Interactive chat specific options:**
+
+- `--agent`: Use autonomous agent mode for complex problem-solving
+- `--unsafe`: Allow AI to modify your Zettelkasten files (use with caution!)
+- `--git`: Enable Git integration for version control
+- `--store-prompt` / `--no-store-prompt`: Control whether system prompt is stored in vault
+- `--reindex`: Rebuild index before starting chat
+- `--full`: Force full reindex (use with --reindex)
 - `--reset-memory`: Clear the smart memory storage
-- `--git`: Enable Git integration for version control of your Zettelkasten vault
-- `--store-prompt`: Store the system prompt to the vault (default behavior) so that it can be customized
+- `--save`: Save the vault path as a bookmark
+- `--remove-bookmark PATH`: Remove a bookmarked vault path
+- `--list-bookmarks`: List all bookmarked vault paths
+
+> **⚠️ Safety Note:** If you want to allow the AI to make changes to your Zettelkasten, you must use the `--unsafe` flag. We highly recommend using `--git` for version control if you enable this option.
+
+> **📁 Git Integration:** Specifying `--git` will initialize a new git repository for your vault if one doesn't already exist.
 
 #### Note on Models
 
@@ -223,7 +295,7 @@ The tool includes a Smart Memory mechanism that allows the AI to store and retri
 
 **Note:** The GUI has not yet been updated to use the new command-line vault path configuration. It still uses the old method of storing the configuration file in the user's home directory.
 
-Run `zkchat-gui` to start the graphical interface. The GUI provides:
+Run `zk-chat gui launch` to start the graphical interface. The GUI provides:
 
 - A multi-line chat input for composing messages
 - A scrollable chat history showing the entire conversation
@@ -234,7 +306,7 @@ Run `zkchat-gui` to start the graphical interface. The GUI provides:
   - Configuring the Zettelkasten folder location
 - Asynchronous chat responses that keep the interface responsive
 
-When first run, both `zkchat` and `zkchat-gui` will need initial configuration:
+When first run, both `zk-chat interactive` and `zk-chat gui launch` will need initial configuration:
 
 For the command-line interface:
 - You must provide the path to your Zettelkasten vault using the `--vault` argument

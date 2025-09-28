@@ -236,5 +236,23 @@ def main() -> None:
     chat(config, unsafe=args.unsafe, use_git=args.git, store_prompt=args.store_prompt)
 
 
+def chat_single_query(config: Config, query: str) -> str:
+    """
+    Execute a single query using the chat system and return the response.
+
+    Args:
+        config: Configuration object
+        query: The query string to process
+
+    Returns:
+        The chat response as a string
+    """
+    # This is a simplified version for single queries
+    # In a full implementation, you'd want to set up the full chat system
+    # For now, we'll use the agent system as it's more capable
+    from zk_chat.agent import agent_single_query
+    return agent_single_query(config, query)
+
+
 if __name__ == '__main__':
     main()
