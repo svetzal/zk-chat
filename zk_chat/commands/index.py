@@ -6,7 +6,7 @@ Manages the search index for your Zettelkasten.
 import logging
 import os
 
-# Set logging levels early to prevent chatty output
+# Set log levels early to prevent chatty output
 logging.basicConfig(level=logging.WARN)
 
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
@@ -123,7 +123,7 @@ def status(
     config = Config.load(vault_path)
     if not config:
         console.print("[yellow]⚠️  Warning:[/] No zk-chat configuration found in vault.")
-        console.print("[dim]Run [cyan]zk-chat chat --vault {vault_path}[/dim] to initialize.")
+        console.print("[dim]Run [cyan]zk-chat interactive --vault {vault_path}[/dim] to initialize.")
         raise typer.Exit(1)
 
     # Display status information
