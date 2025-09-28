@@ -156,7 +156,7 @@ def status(
             console.print("[green]✅ Recently updated[/]")
     else:
         console.print("\n[red]❌ Never indexed[/]")
-        console.print("[yellow]Run:[/] [cyan]zk-chat index rebuild --vault {vault_path}[/]")
+        console.print(f"[yellow]Run:[/] [cyan]zk-chat index rebuild --vault {vault_path}[/]")
 
     # Database directory info
     db_dir = os.path.join(vault_path, ".zk_chat_db")
