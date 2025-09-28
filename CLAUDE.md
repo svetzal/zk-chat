@@ -9,12 +9,15 @@ zk-chat is a Python-based command-line and GUI tool for chatting with an AI that
 ## Core Architecture
 
 ### Entry Points
-The project provides four main command-line entry points (defined in `pyproject.toml`):
-- `zkindex` - Document indexing (`zk_chat.index:main`)
-- `zkchat` - Command-line chat interface (`zk_chat.chat:main`)
-- `zkagent` - Agent-based interface (`zk_chat.agent:main`)
-- `zkchat-gui` - Qt-based graphical interface (`zk_chat.qt:main`)
+The project now provides a single unified command-line entry point (`zk-chat`), defined in `pyproject.toml`.
 
+The `zk-chat` CLI supports multiple modes and subcommands, including:
+- Document indexing
+- Command-line chat interface
+- Agent-based operations
+- Qt-based graphical interface
+
+All functionality previously available via separate entry points is now accessible through the `zk-chat` command.
 ### Key Components
 
 **Service Architecture**: The project uses a service registry pattern (`zk_chat/services/`) where plugins and tools access services through a `ServiceProvider`. This allows for extensible dependency injection without changing plugin constructors as new services are added.
