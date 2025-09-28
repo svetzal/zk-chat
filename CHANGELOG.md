@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+## [3.1.0] - 2025-09-28
+
+### Added
+
+- Enhanced CLI structure with refactored command organization
+
+### Fixed
+
+- Updated max_distance handling in query_excerpts method for improved query accuracy
+- Resolved ChromaDB telemetry compatibility issues with PostHog
+- Updated test assertions to properly include max_distance parameter
+
+### Changed
+
+- Refactored argument namespace creation into a shared function for better code organization
+- Improved dependency management by consolidating dev dependencies into pyproject.toml
+- Enhanced code documentation and logging clarity
+
 ## [3.0.0] - 2025-09-26
 
 ### Changed

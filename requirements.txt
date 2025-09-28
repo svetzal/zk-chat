@@ -1,5 +1,6 @@
-chromadb==1.1.0
+chromadb>=1.1.0
 pyyaml
 mojentic>=0.6.1
 PySide6>=6.6.0
 rich
+typer[all]>=0.9.0
