@@ -50,6 +50,41 @@ app.add_typer(index_app, name="index")
 console = Console()
 
 
+def create_args_namespace(
+    vault: Optional[Path] = None,
+    save: bool = False,
+    gateway: Optional[str] = None,
+    model: Optional[str] = None,
+    visual_model: Optional[str] = None,
+    reindex: bool = False,
+    full: bool = False,
+    unsafe: bool = False,
+    git: bool = False,
+    store_prompt: bool = True,
+    reset_memory: bool = False,
+    remove_bookmark: Optional[str] = None,
+    list_bookmarks: bool = False,
+):
+    """Create a namespace object similar to argparse for common_init_typer."""
+    class Args:
+        def __init__(self):
+            self.vault = str(vault) if vault else None
+            self.save = save
+            self.gateway = gateway
+            self.model = model
+            self.visual_model = visual_model
+            self.reindex = reindex
+            self.full = full
+            self.unsafe = unsafe
+            self.git = git
+            self.store_prompt = store_prompt
+            self.reset_memory = reset_memory
+            self.remove_bookmark = remove_bookmark
+            self.list_bookmarks = list_bookmarks
+
+    return Args()
+
+
 @app.command()
 def interactive(
     # Vault options
@@ -95,24 +130,22 @@ def interactive(
     • [green]Chat mode[/]: Simple Q&A with your notes
     • [green]Agent mode[/]: Autonomous problem-solving with full tool access
     """
-    # Create a namespace object similar to argparse
-    class Args:
-        def __init__(self):
-            self.vault = str(vault) if vault else None
-            self.save = save
-            self.gateway = gateway
-            self.model = model
-            self.visual_model = visual_model
-            self.reindex = reindex
-            self.full = full
-            self.unsafe = unsafe
-            self.git = git
-            self.store_prompt = store_prompt
-            self.reset_memory = reset_memory
-            self.remove_bookmark = remove_bookmark
-            self.list_bookmarks = list_bookmarks
-
-    args = Args()
+    # Create args namespace using shared function
+    args = create_args_namespace(
+        vault=vault,
+        save=save,
+        gateway=gateway,
+        model=model,
+        visual_model=visual_model,
+        reindex=reindex,
+        full=full,
+        unsafe=unsafe,
+        git=git,
+        store_prompt=store_prompt,
+        reset_memory=reset_memory,
+        remove_bookmark=remove_bookmark,
+        list_bookmarks=list_bookmarks,
+    )
 
     # Use common initialization logic
     config = common_init_typer(args)
@@ -165,24 +198,23 @@ def query(
             if not prompt:
                 console.print("[red]Error:[/] No input received from STDIN.")
                 raise typer.Exit(1)
-    # Create args namespace
-    class Args:
-        def __init__(self):
-            self.vault = str(vault) if vault else None
-            self.save = False
-            self.gateway = gateway
-            self.model = model
-            self.visual_model = None
-            self.reindex = False
-            self.full = False
-            self.unsafe = False
-            self.git = False
-            self.store_prompt = True
-            self.reset_memory = False
-            self.remove_bookmark = None
-            self.list_bookmarks = False
 
-    args = Args()
+    # Create args namespace using shared function with query-specific defaults
+    args = create_args_namespace(
+        vault=vault,
+        save=False,
+        gateway=gateway,
+        model=model,
+        visual_model=None,
+        reindex=False,
+        full=False,
+        unsafe=False,
+        git=False,
+        store_prompt=True,
+        reset_memory=False,
+        remove_bookmark=None,
+        list_bookmarks=False,
+    )
     config = common_init_typer(args)
     if not config:
         return
