@@ -38,14 +38,14 @@ Zk-Chat plugins are tools that extend the functionality of the chat agent. They 
 def _add_available_plugins(tools, service_registry: ServiceRegistry):
     """
     Load and add available plugins to the tools list.
-    
+
     Plugins are discovered via entry points and initialized with a service provider
     that gives them access to all available services in the zk-chat runtime.
     """
     eps = entry_points()
     plugin_entr_points = eps.select(group="zk_rag_plugins")
     service_provider = ServiceProvider(service_registry)
-    
+
     for ep in plugin_entr_points:
         logging.info(f"Adding Plugin {ep.name}")
         plugin_class = ep.load()
@@ -95,54 +95,54 @@ logger = structlog.get_logger()
 
 class MyCustomTool(ZkChatPlugin):
     """A custom tool for zk-chat that demonstrates the plugin interface."""
-    
+
     def __init__(self, service_provider: ServiceProvider):
         """Initialize the plugin with a service provider.
-        
+
         The service provider gives access to all zk-chat services:
         - Filesystem gateway for file operations
         - LLM broker for AI requests
         - Zettelkasten for document operations
         - Smart Memory for long-term context
         - Configuration and other services
-        
+
         Args:
             service_provider: Service provider for accessing zk-chat services
         """
         super().__init__(service_provider)
         logger.info("Initialized MyCustomTool plugin")
-    
+
     def run(self, user_input: str) -> str:
         """Execute the plugin's main functionality.
-        
+
         Args:
             user_input: Input from the user
-            
+
         Returns:
             str: Result to be returned to the chat
         """
         logger.info("Running MyCustomTool", user_input=user_input)
-        
+
         # Access services through convenient properties
         vault_path = self.vault_path
         filesystem = self.filesystem_gateway
         llm = self.llm_broker
         zk = self.zettelkasten
-        
+
         # Example: Read a document from the vault
         if filesystem and filesystem.path_exists("README.md"):
             content = filesystem.read_file("README.md")
             logger.info("Read README.md", content_length=len(content))
-        
+
         # Your plugin logic here
         result = f"Processed: {user_input} in vault: {vault_path}"
-        
+
         return result
-    
+
     @property
     def descriptor(self) -> dict:
         """Return the OpenAI function descriptor for this tool.
-        
+
         This descriptor tells the LLM how to use your tool, including:
         - Function name and description
         - Parameters and their types
@@ -179,13 +179,13 @@ class MyCustomTool(LLMTool):
     def __init__(self, service_provider: ServiceProvider):
         super().__init__()
         self.service_provider = service_provider
-    
+
     def run(self, user_input: str) -> str:
         # Access services manually
         filesystem = self.service_provider.get_filesystem_gateway()
         llm = self.service_provider.get_llm_broker()
         config = self.service_provider.get_config()
-        
+
         # Your plugin logic here
         return f"Processed: {user_input}"
 ```
@@ -245,7 +245,7 @@ from zk_chat.services import ZkChatPlugin, ServiceProvider
 class MyPlugin(ZkChatPlugin):
     def __init__(self, service_provider: ServiceProvider):
         super().__init__(service_provider)
-        
+
         # Access services through properties
         # self.vault_path replaces self.vault
         # self.llm_broker replaces self.llm
@@ -272,13 +272,13 @@ from zk_chat.services import ServiceProvider, ServiceType
 
 def __init__(self, service_provider: ServiceProvider):
     super().__init__(service_provider)
-    
+
     # Access services through convenient methods
     filesystem = service_provider.get_filesystem_gateway()
     llm = service_provider.get_llm_broker()
     zk = service_provider.get_zettelkasten()
     smart_memory = service_provider.get_smart_memory()
-    
+
     # Or use the base class properties
     self.filesystem_gateway  # Convenient property access
     self.llm_broker
@@ -297,7 +297,7 @@ def __init__(self, service_provider: ServiceProvider):
 def process_document(self, relative_path: str) -> str:
     """Process a document using the filesystem gateway."""
     fs = self.filesystem_gateway
-    
+
     if fs.path_exists(relative_path):
         content = fs.read_file(relative_path)
         # Process content...
@@ -407,11 +407,11 @@ from zk_chat.services import ServiceType
 def check_services(self):
     """Check what services are available."""
     provider = self.service_provider
-    
+
     if provider.has_service(ServiceType.GIT_GATEWAY):
         # Git operations are available
         git = provider.get_git_gateway()
-    
+
     # Or require a service (raises exception if not available)
     try:
         required_service = provider.require_service(ServiceType.SMART_MEMORY)
@@ -441,10 +441,10 @@ Validate inputs and provide clear feedback:
 def run(self, file_path: str) -> str:
     if not file_path:
         return "Error: file_path parameter is required"
-    
+
     if not file_path.endswith('.md'):
         return "Error: Only markdown files are supported"
-    
+
     # Continue with plugin logic...
 ```
 
@@ -493,12 +493,21 @@ logger.info(
 ## Packaging and Distribution
 
 ### 1. Package Structure
-```
-my-zk-plugin/
-├── my_plugin.py
-├── pyproject.toml
-├── README.md
-└── requirements.txt (optional)
+```mermaid
+graph TD
+    root[my-zk-plugin/]
+    root --> plugin[my_plugin.py]
+    root --> pyproject[pyproject.toml]
+    root --> readme[README.md]
+    root --> requirements[requirements.txt<br/><em>optional</em>]
+
+    classDef folder fill:#e1f5fe
+    classDef file fill:#f3e5f5
+    classDef optional fill:#fff3e0
+
+    class root folder
+    class plugin,pyproject,readme file
+    class requirements optional
 ```
 
 ### 2. Publishing to PyPI
@@ -722,11 +731,11 @@ class GenerateImage(ZkChatPlugin):
         vault_path = self.vault_path
         if not vault_path:
             return "Error: Vault path not available"
-            
+
         filename = Path(vault_path) / f"{base_filename}.png"
         image = self.gateway.generate_image(image_description)
         image.save(filename)
-        
+
         return f"""
 The image has been generated and saved at `{base_filename}.png`.
 You can embed it in your markdown file using the following syntax: `![image]({base_filename}.png)`
@@ -773,39 +782,39 @@ class AdvancedAnalysisPlugin(ZkChatPlugin):
 
     def run(self, document_path: str, analysis_type: str) -> str:
         """Analyze a document using multiple zk-chat services."""
-        
+
         # Check if required services are available
         if not self.has_service(ServiceType.ZETTELKASTEN):
             return "Error: Zettelkasten service not available"
-        
+
         # Read the document
         zk = self.zettelkasten
         if not zk.document_exists(document_path):
             return f"Document not found: {document_path}"
-        
+
         document = zk.read_document(document_path)
-        
+
         # Use LLM for analysis
         llm = self.llm_broker
         analysis_prompt = f"""
         Analyze this document for: {analysis_type}
-        
+
         Document content:
         {document.content}
-        
+
         Provide a detailed analysis focusing on the requested aspect.
         """
-        
+
         analysis_result = llm.send(analysis_prompt)
-        
+
         # Store the analysis in smart memory for future reference
         if self.smart_memory:
             memory_entry = f"Analysis of {document_path} for {analysis_type}: {analysis_result}"
             self.smart_memory.store(memory_entry)
-        
+
         # Find related documents
         related_docs = zk.find_documents_related_to(analysis_result)
-        
+
         result = f"""
 ## Analysis Result
 
@@ -818,7 +827,7 @@ Found {len(related_docs)} related documents:
 
 Analysis has been stored in smart memory for future reference.
 """
-        
+
         return result
 
     @property
