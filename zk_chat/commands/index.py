@@ -204,7 +204,7 @@ def status(
         console.print(f"\n[yellow]⚠️  No markdown files found in vault[/]")
     else:
         console.print(f"\n[red]❌ Index needs rebuilding[/]")
-        console.print(f"[dim]Run: [cyan]zk-chat index rebuild[/dim]")
+        console.print("[dim]Run: [cyan]zk-chat index rebuild[/dim]")
 
 
 # Default command
