@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+## [3.2.1] - 2025-09-28
+
+### Changed
+
+- **Updated mojentic dependency**: Ensured compatibility with version 0.8.0 for reasoning model support
+  - Supports o1-preview, o1-mini, and other reasoning-focused LLM models
+  - Better handling of reasoning model response patterns and token usage
+
 ### Removed
 
 - **Removed requirements.txt**: Fully modernized to use only `pyproject.toml` for dependency management
