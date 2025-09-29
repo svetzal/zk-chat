@@ -17,8 +17,9 @@ class FindZkDocumentsRelatedTo(LLMTool):
     def run(self, query: str) -> str:
         self.console_service.print(f"[tool.info]Querying documents related to {query}[/]")
         documents = self.zk.query_documents(query)
+        # Use model_dump with mode='json' to handle datetime serialization
         return json.dumps([
-            document.model_dump()
+            document.model_dump(mode='json')
             for document in documents
         ])
 
