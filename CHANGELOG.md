@@ -15,14 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Supports o1-preview, o1-mini, and other reasoning-focused LLM models
   - Better handling of reasoning model response patterns and token usage
 
-### Removed
-
-- **Removed requirements.txt**: Fully modernized to use only `pyproject.toml` for dependency management
-  - Updated project guidelines to reflect modern Python packaging standards
-  - CI/CD workflows already used `pyproject.toml` and are unaffected
-- **Removed MANIFEST.in**: Empty file was not needed for modern Python packaging
-  - Build system automatically includes necessary files based on `pyproject.toml` configuration
-
 ## [3.2.0] - 2025-09-28
 
 ### Added

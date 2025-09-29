@@ -47,7 +47,6 @@ class IterativeProblemSolvingAgent:
                                            "You analyze problems, break them down into smaller parts, and solve them systematically. "
                                            "If you cannot solve a problem completely in one step, you make progress and identify what to do next.",
             tools=self.available_tools,
-            temperature=0.0,
         )
 
     def solve(self, problem: str):
