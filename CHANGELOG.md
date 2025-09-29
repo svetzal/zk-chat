@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+## [3.2.2] - 2025-09-29
+
+### Changed
+
+- **Updated mojentic dependency**: Bumped to version 0.8.2 for enhanced reasoning model support
+  - Improved compatibility with advanced reasoning models like o1-preview and o1-mini
+  - Better temperature handling and response parsing for reasoning-focused workflows
+- **Improved model compatibility**: Changed default temperature settings for chat sessions to accommodate different model types, especially reasoning models
+
 ## [3.2.1] - 2025-09-28
 
 ### Changed
