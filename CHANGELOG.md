@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+### Removed
+
+- **Removed requirements.txt**: Fully modernized to use only `pyproject.toml` for dependency management
+  - Updated project guidelines to reflect modern Python packaging standards
+  - CI/CD workflows already used `pyproject.toml` and are unaffected
+- **Removed MANIFEST.in**: Empty file was not needed for modern Python packaging
+  - Build system automatically includes necessary files based on `pyproject.toml` configuration
+
+## [3.2.0] - 2025-09-28
+
+### Added
+
+- **Graph Traversal Tools**: New suite of fast, local wikilink analysis tools
+  - `ExtractWikilinksFromDocument`: Extract all wikilinks from documents with line numbers and context
+  - `FindBacklinks`: Discover what documents link TO a target document
+  - `FindForwardLinks`: Discover what documents a source document links TO
+- **LinkTraversalService**: New compositional service architecture for wikilink operations
+  - In-memory graph indexing with LinkGraphIndex for fast path finding
+  - Support for backlink/forward link discovery with caching
+  - Link path finding between documents with configurable hop limits
+  - Link metrics calculation for connectivity analysis
+- **Comprehensive Test Coverage**: 25+ BDD-style tests covering all graph traversal functionality
+- **Performance Optimizations**: Zero-token graph operations using pure text parsing
+
+### Changed
+
+- **Compositional Architecture**: Moved from monolithic design toward specialized services
+- **Tool Integration**: All graph traversal tools integrated into agent with proper LLM descriptors
+
+### Fixed
+
+- **JSON Serialization**: Fixed datetime serialization errors in `find_zk_documents_related_to` and `find_excerpts_related_to` tools
+- **Test Suite**: Updated ExtractWikilinksFromDocument tests to work with new LinkTraversalService architecture
+- **Mock Configuration**: Corrected test mocks to properly simulate filesystem gateway interactions
+
 ## [3.1.0] - 2025-09-28
 
 ### Added

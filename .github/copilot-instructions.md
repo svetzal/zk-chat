@@ -140,9 +140,8 @@ When preparing a release, follow these steps:
    - Ensure installation instructions and examples are up to date
 
 4. **Synchronize Dependencies**:
-   - Ensure that dependencies in `requirements.txt` match those in `pyproject.toml`
+   - Ensure all dependencies are properly declared in `pyproject.toml`
    - Update version constraints if necessary
-   - If new dependencies were added to one file, make sure they're added to the other
 
 5. **Final Verification**:
    - Run all tests to ensure they pass
