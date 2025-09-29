@@ -35,6 +35,13 @@ The chat interface provides access to several tools that enhance its capabilitie
 - **Navigation Tools**
   - Resolve WikiLink: Converts wikilinks (e.g., [[Document Title]]) to relative file paths for navigation between documents
 
+- **Graph Traversal Tools** 🆕
+  - Extract Wikilinks: Fast extraction of all wikilinks from documents with line numbers and context
+  - Find Backlinks: Discover what documents link TO a target document (reverse navigation)
+  - Find Forward Links: Discover what documents a source document links TO (forward navigation)
+  - Link Path Finding: Find connection paths between documents through wikilinks
+  - Link Metrics: Analyze connectivity patterns and identify hub documents
+
 - **Smart Memory Tools**
   - Store Information: Saves important facts and context from conversations for future reference
   - Retrieve Information: Recalls previously stored information to provide more personalized responses
