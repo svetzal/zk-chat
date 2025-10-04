@@ -51,17 +51,7 @@ class MarkdownFilesystemGateway(FilesystemGateway):
         Yields:
             str: Relative path for each markdown file
         """
-        for root, _, files in self._walk_filesystem():
-            for file in files:
-                if file.endswith('.md'):
-                    full_path = self.join_paths(root, file)
-                    relative_path = self.get_relative_path(full_path, self.root_path)
-                    yield relative_path
-
-    def _walk_filesystem(self):
-        """Wrapper for os.walk to make it easier to mock in tests."""
-        import os
-        return os.walk(self.root_path)
+        yield from self.iterate_files_by_extensions(['.md'])
 
     def read_markdown(self, relative_path: str) -> Tuple[Dict, str]:
         """Read a markdown file and split it into metadata and content.

@@ -25,6 +25,7 @@ from zk_chat.tools.analyze_image import AnalyzeImage
 from zk_chat.tools.commit_changes import CommitChanges
 from zk_chat.tools.git_gateway import GitGateway
 from zk_chat.tools.list_zk_documents import ListZkDocuments
+from zk_chat.tools.list_zk_images import ListZkImages
 from zk_chat.tools.resolve_wikilink import ResolveWikiLink
 from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory
 from zk_chat.tools.store_in_smart_memory import StoreInSmartMemory
@@ -104,6 +105,7 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
         ResolveDateTool(),
         ReadZkDocument(zk, console_service),
         ListZkDocuments(zk, console_service),
+        ListZkImages(zk, console_service),
         ResolveWikiLink(filesystem_gateway, console_service),
         FindExcerptsRelatedTo(zk, console_service),
         FindZkDocumentsRelatedTo(zk, console_service),
