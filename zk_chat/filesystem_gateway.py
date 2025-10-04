@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from typing import Iterator
+from typing import Iterator, List
 
 
 class FilesystemGateway:
@@ -156,3 +156,24 @@ class FilesystemGateway:
             raise FileNotFoundError(f"File {relative_path} does not exist")
 
         os.remove(full_path)
+
+    def iterate_files_by_extensions(self, extensions: List[str]) -> Iterator[str]:
+        """Iterate through all files matching the given extensions.
+
+        Args:
+            extensions: List of file extensions to match (e.g., ['.md', '.txt'])
+
+        Yields:
+            str: Relative path for each matching file
+        """
+        for root, _, files in self._walk_filesystem():
+            for file in files:
+                if any(file.endswith(ext) for ext in extensions):
+                    full_path = self.join_paths(root, file)
+                    relative_path = self.get_relative_path(full_path, self.root_path)
+                    yield relative_path
+
+    def _walk_filesystem(self):
+        """Wrapper for os.walk to make it easier to mock in tests."""
+        import os
+        return os.walk(self.root_path)

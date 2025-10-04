@@ -20,6 +20,7 @@ from zk_chat.filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.analyze_image import AnalyzeImage
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
+from zk_chat.tools.list_zk_images import ListZkImages
 from zk_chat.tools.read_zk_document import ReadZkDocument
 from zk_chat.tools.resolve_wikilink import ResolveWikiLink
 from zk_chat.vector_database import VectorDatabase
@@ -370,6 +371,7 @@ class MainWindow(QMainWindow):
         tools = [
             ResolveDateTool(),
             ReadZkDocument(zk),
+            ListZkImages(zk),
             FindExcerptsRelatedTo(zk),
             FindZkDocumentsRelatedTo(zk),
             ResolveWikiLink(zk.filesystem_gateway),

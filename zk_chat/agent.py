@@ -35,6 +35,7 @@ from zk_chat.tools.find_forward_links import FindForwardLinks
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.git_gateway import GitGateway
 from zk_chat.tools.list_zk_documents import ListZkDocuments
+from zk_chat.tools.list_zk_images import ListZkImages
 from zk_chat.tools.read_zk_document import ReadZkDocument
 from zk_chat.tools.rename_zk_document import RenameZkDocument
 from zk_chat.tools.resolve_wikilink import ResolveWikiLink
@@ -93,6 +94,7 @@ def agent(config: Config):
         # Document tools
         ReadZkDocument(zk),
         ListZkDocuments(zk),
+        ListZkImages(zk),
         ResolveWikiLink(filesystem_gateway),
         FindExcerptsRelatedTo(zk),
         FindZkDocumentsRelatedTo(zk),
@@ -201,6 +203,7 @@ def agent_single_query(config: Config, query: str) -> str:
         # Document tools
         ReadZkDocument(zk),
         ListZkDocuments(zk),
+        ListZkImages(zk),
         ResolveWikiLink(filesystem_gateway),
         FindExcerptsRelatedTo(zk),
         FindZkDocumentsRelatedTo(zk),
