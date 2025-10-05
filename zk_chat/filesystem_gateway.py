@@ -158,23 +158,23 @@ class FilesystemGateway:
 
     def get_absolute_path_for_tool_access(self, relative_path: str) -> str:
         """Get absolute path for tool access (e.g., for image analysis).
-        
+
         This method provides controlled access to absolute paths for tools that need
         to pass file paths to external libraries (like LLM image analysis).
-        
+
         Args:
             relative_path: Path relative to the root path
-            
+
         Returns:
             str: Absolute path for the file
-            
+
         Raises:
             ValueError: If the relative_path attempts directory traversal
         """
         # Ensure the path doesn't escape the sandbox
         if ".." in relative_path or relative_path.startswith("/"):
             raise ValueError(f"Invalid path: {relative_path}")
-        
+
         return self._get_full_path(relative_path)
 
     def iterate_files_by_extensions(self, extensions: List[str]) -> Iterator[str]:
