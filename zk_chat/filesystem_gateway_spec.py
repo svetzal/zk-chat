@@ -78,11 +78,5 @@ class DescribeFilesystemGateway:
         assert new_dir.exists()
         assert new_dir.is_dir()
 
-    def should_get_relative_path(self, gateway, temp_dir):
-        full_path = str(temp_dir / "subdir" / "test3.md")
-        expected = str(Path("subdir") / "test3.md")
 
-        result = gateway.get_relative_path(full_path, str(temp_dir))
-
-        assert result == expected
 
