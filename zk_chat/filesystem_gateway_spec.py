@@ -77,6 +77,3 @@ class DescribeFilesystemGateway:
 
         assert new_dir.exists()
         assert new_dir.is_dir()
-
-
-
