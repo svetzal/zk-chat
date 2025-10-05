@@ -145,6 +145,7 @@ When preparing a release, follow these steps:
 
 5. **Final Verification**:
    - Run all tests to ensure they pass
+   - Run all linters and formatters to ensure code consistency
    - Verify that the application works as expected with the updated version
    - Check that all documentation accurately reflects the current state of the project
 

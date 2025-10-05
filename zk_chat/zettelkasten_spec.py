@@ -21,7 +21,7 @@ class DescribeZettelkasten:
         mock = Mock(spec=MarkdownFilesystemGateway)
         mock.path_exists.return_value = True
         mock.join_paths.side_effect = lambda *args: "/".join(args)
-        mock.get_full_path.side_effect = lambda path: f"test_root/{path}"
+        mock.get_absolute_path_for_tool_access.side_effect = lambda path: f"test_root/{path}"
         mock.root_path = "test_root"
         # Add mock methods for the new MarkdownFilesystemGateway methods
         mock.read_markdown.side_effect = lambda path: ({}, "Test content")

@@ -42,7 +42,7 @@ class MarkdownFilesystemGateway(FilesystemGateway):
             for file in files:
                 if file == link.title or file == link.title + ".md":
                     full_path = self.join_paths(root, file)
-                    return self.get_relative_path(full_path, self.root_path)
+                    return self._get_relative_path(full_path)
         raise ValueError(f"Could not resolve wikilink: {wikilink}")
 
     def iterate_markdown_files(self) -> Iterator[str]:
@@ -62,7 +62,7 @@ class MarkdownFilesystemGateway(FilesystemGateway):
         Returns:
             Tuple[Dict, str]: A tuple containing the metadata dictionary and the content string
         """
-        full_path = self.get_full_path(relative_path)
+        full_path = self._get_full_path(relative_path)
         return MarkdownUtilities.load_markdown(full_path)
 
     def write_markdown(self, relative_path: str, metadata: Dict, content: str) -> None:

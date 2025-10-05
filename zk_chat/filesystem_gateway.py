@@ -34,7 +34,7 @@ class FilesystemGateway:
         Returns:
             bool: True if path exists, False otherwise
         """
-        full_path = self.get_full_path(relative_path)
+        full_path = self._get_full_path(relative_path)
         return os.path.exists(full_path)
 
     def get_modified_time(self, relative_path: str) -> datetime:
@@ -46,7 +46,7 @@ class FilesystemGateway:
         Returns:
             datetime: Last modified time
         """
-        full_path = self.get_full_path(relative_path)
+        full_path = self._get_full_path(relative_path)
         return datetime.fromtimestamp(os.path.getmtime(full_path))
 
     def get_directory_path(self, relative_path: str) -> str:
@@ -58,9 +58,9 @@ class FilesystemGateway:
         Returns:
             str: Relative path to the directory
         """
-        full_path = self.get_full_path(relative_path)
+        full_path = self._get_full_path(relative_path)
         full_dir_path = os.path.dirname(full_path)
-        return self.get_relative_path(full_dir_path, self.root_path)
+        return self._get_relative_path(full_dir_path)
 
     def create_directory(self, relative_path: str) -> None:
         """Create a directory and all necessary parent directories.
@@ -68,22 +68,21 @@ class FilesystemGateway:
         Args:
             relative_path: Relative path to create
         """
-        full_path = self.get_full_path(relative_path)
+        full_path = self._get_full_path(relative_path)
         os.makedirs(full_path)
 
-    def get_relative_path(self, path: str, start: str) -> str:
-        """Get a relative path from a full path.
+    def _get_relative_path(self, absolute_path: str) -> str:
+        """Convert an absolute path to a relative path using the root path.
 
         Args:
-            path: Path to convert to relative
-            start: Start path to make relative to
+            absolute_path: Absolute path to convert to relative
 
         Returns:
-            str: Relative path
+            str: Relative path from root_path
         """
-        return os.path.relpath(path, start)
+        return os.path.relpath(absolute_path, self.root_path)
 
-    def get_full_path(self, relative_path: str) -> str:
+    def _get_full_path(self, relative_path: str) -> str:
         """Convert a relative path to a full path using the root path.
 
         Args:
@@ -95,15 +94,15 @@ class FilesystemGateway:
         return self.join_paths(self.root_path, relative_path)
 
     def read_file(self, relative_path: str) -> str:
-        """Read content from a file.
+        """Read a file from the filesystem.
 
         Args:
-            relative_path: Relative path to the file
+            relative_path: Path relative to root path
 
         Returns:
-            str: Content of the file
+            str: Contents of the file
         """
-        full_path = self.get_full_path(relative_path)
+        full_path = self._get_full_path(relative_path)
         with open(full_path, "r") as f:
             return f.read()
 
@@ -114,7 +113,7 @@ class FilesystemGateway:
             relative_path: Relative path to the file
             content: Content to write
         """
-        full_path = self.get_full_path(relative_path)
+        full_path = self._get_full_path(relative_path)
         with open(full_path, "w") as f:
             f.write(content)
 
@@ -129,8 +128,8 @@ class FilesystemGateway:
             OSError: If there are filesystem-related errors (permissions, file not found, etc.)
         """
         import os
-        full_source_path = self.get_full_path(source_path)
-        full_target_path = self.get_full_path(target_path)
+        full_source_path = self._get_full_path(source_path)
+        full_target_path = self._get_full_path(target_path)
 
         # Create target directory if it doesn't exist
         target_dir = os.path.dirname(full_target_path)
@@ -150,28 +149,50 @@ class FilesystemGateway:
             OSError: If there are filesystem-related errors (permissions, etc.)
         """
         import os
-        full_path = self.get_full_path(relative_path)
+        full_path = self._get_full_path(relative_path)
 
         if not os.path.exists(full_path):
             raise FileNotFoundError(f"File {relative_path} does not exist")
 
         os.remove(full_path)
 
+    def get_absolute_path_for_tool_access(self, relative_path: str) -> str:
+        """Get absolute path for tool access (e.g., for image analysis).
+        
+        This method provides controlled access to absolute paths for tools that need
+        to pass file paths to external libraries (like LLM image analysis).
+        
+        Args:
+            relative_path: Path relative to the root path
+            
+        Returns:
+            str: Absolute path for the file
+            
+        Raises:
+            ValueError: If the relative_path attempts directory traversal
+        """
+        # Ensure the path doesn't escape the sandbox
+        if ".." in relative_path or relative_path.startswith("/"):
+            raise ValueError(f"Invalid path: {relative_path}")
+        
+        return self._get_full_path(relative_path)
+
     def iterate_files_by_extensions(self, extensions: List[str]) -> Iterator[str]:
         """Iterate through all files matching the given extensions.
 
         Args:
-            extensions: List of file extensions to match (e.g., ['.md', '.txt'])
+            extensions: List of file extensions to match (without dots)
 
         Yields:
-            str: Relative path for each matching file
+            str: Relative paths of matching files
         """
-        for root, _, files in self._walk_filesystem():
+        import os
+        for root, dirs, files in os.walk(self.root_path):
             for file in files:
-                if any(file.endswith(ext) for ext in extensions):
-                    full_path = self.join_paths(root, file)
-                    relative_path = self.get_relative_path(full_path, self.root_path)
-                    yield relative_path
+                _, ext = os.path.splitext(file)
+                if ext.lower().lstrip('.') in [e.lower().lstrip('.') for e in extensions]:
+                    full_path = os.path.join(root, file)
+                    yield self._get_relative_path(full_path)
 
     def _walk_filesystem(self):
         """Wrapper for os.walk to make it easier to mock in tests."""
