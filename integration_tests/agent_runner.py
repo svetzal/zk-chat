@@ -5,13 +5,13 @@ Invokes the zk-chat CLI via subprocess and captures results.
 """
 import subprocess
 import time
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from pydantic import BaseModel
 
-@dataclass
-class ExecutionResult:
+
+class ExecutionResult(BaseModel):
     """Result of agent execution"""
     success: bool
     output: str
