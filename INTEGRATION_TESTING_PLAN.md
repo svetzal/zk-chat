@@ -40,6 +40,17 @@ Rather than asserting exact outputs, we use a two-phase approach:
 
 This approach allows for subjective quality validation while remaining maintainable.
 
+### Coding Conventions
+
+Integration test infrastructure follows the project's standard coding guidelines:
+
+- **Models**: Use Pydantic `BaseModel` classes instead of `@dataclass` for all data models
+- **Type Hints**: Include proper type annotations for all fields and parameters
+- **Import Order**: Standard library, third-party libraries, then local imports
+- **Testing**: Use pytest with BDD-style "should_" naming for test methods
+
+All models in the integration test harness (`Document`, `ImageFile`, `ValidationCriterion`, etc.) use Pydantic for consistency with the production codebase, which uses `ZkDocument` and other Pydantic models in `zk_chat/models.py`.
+
 ## Test Architecture
 
 ### Directory Structure
