@@ -4,6 +4,7 @@
 __pycache__
 chroma
 dist
+build
 zk_chat.egg-info
 .coverage
 .DS_Store
