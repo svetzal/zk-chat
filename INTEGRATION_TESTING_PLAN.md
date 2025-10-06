@@ -1,5 +1,7 @@
 # Integration Testing Plan
 
+> **Note**: This branch has been rebased on the latest main branch to include the `copilot-setup-steps.yml` workflow, which enables running pytest and flake8 during development.
+
 ## Overview
 
 This document outlines the plan for implementing comprehensive integration tests for the zk-chat project. These tests will be executed prior to each public release to ensure the system works correctly end-to-end across increasingly sophisticated use cases.
