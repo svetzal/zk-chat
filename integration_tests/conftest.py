@@ -11,12 +11,12 @@ from integration_tests.scenario_harness import ScenarioRunner
 
 DEFAULT_MODELS = {
     "openai": {
-        "text": "gpt-4o",
-        "visual": "gpt-4o"
+        "text": "gpt-5",
+        "visual": "gpt-5"
     },
     "ollama": {
-        "text": "qwen2.5:32b",
-        "visual": "llama3.2-vision:11b"
+        "text": "qwen3:32b",
+        "visual": "gemma3:27b"
     }
 }
 
