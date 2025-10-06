@@ -107,41 +107,37 @@ integration_tests/                          # Separate from unit tests
 
 #### 1. Scenario Harness (`scenario_harness.py`)
 
-The harness provides a declarative way to define test scenarios:
+The harness provides a declarative way to define test scenarios using Pydantic models for strong typing:
 
 ```python
-from dataclasses import dataclass
-from typing import List, Dict, Optional, Callable
+from pydantic import BaseModel, Field
+from typing import List, Dict, Optional, Callable, Any
 
-@dataclass
-class Document:
+class Document(BaseModel):
     """Represents a document to be created in test vault"""
     path: str
     content: str
-    metadata: Optional[Dict] = None
+    metadata: Optional[Dict[str, Any]] = None
 
-@dataclass
-class ImageFile:
+class ImageFile(BaseModel):
     """Represents an image file to be placed in test vault"""
     path: str
     source_path: str  # Path to actual test image file
 
-@dataclass
-class ValidationCriterion:
+class ValidationCriterion(BaseModel):
     """A single validation criterion"""
     description: str
     prompt: str
-    success_keywords: List[str] = None  # Optional: keywords indicating success
+    success_keywords: Optional[List[str]] = None
 
-@dataclass
-class IntegrationScenario:
+class IntegrationScenario(BaseModel):
     """Complete specification of an integration test scenario"""
     name: str
     description: str
 
     # Setup
     initial_documents: List[Document]
-    initial_images: List[ImageFile] = None
+    initial_images: Optional[List[ImageFile]] = None
 
     # Execution
     execution_prompt: str
@@ -150,10 +146,10 @@ class IntegrationScenario:
     use_git: bool = False
 
     # Validation
-    validation_criteria: List[ValidationCriterion]
+    validation_criteria: Optional[List[ValidationCriterion]] = None
 
-    # Optional custom validation
-    custom_validation: Optional[Callable] = None
+    # Optional custom validation (excluded from serialization)
+    custom_validation: Optional[Callable] = Field(default=None, exclude=True)
 
 class ScenarioRunner:
     """Executes integration scenarios"""
@@ -216,19 +212,17 @@ class ScenarioRunner:
         )
         return validator.validate(scenario.validation_criteria)
 
-@dataclass
-class ExecutionResult:
+class ExecutionResult(BaseModel):
     """Result of agent execution"""
     success: bool
     output: str
     error: Optional[str] = None
     duration: float = 0.0
 
-@dataclass
-class ValidationResult:
+class ValidationResult(BaseModel):
     """Result of validation"""
     passed: bool
-    criteria_results: List[Dict]  # One dict per criterion
+    criteria_results: List[Dict[str, Any]]
     overall_reasoning: str
 
     def merge(self, other: 'ValidationResult') -> 'ValidationResult':
@@ -239,8 +233,7 @@ class ValidationResult:
             overall_reasoning=f"{self.overall_reasoning}\n\n{other.overall_reasoning}"
         )
 
-@dataclass
-class ScenarioResult:
+class ScenarioResult(BaseModel):
     """Complete result of scenario execution and validation"""
     scenario_name: str
     execution_result: ExecutionResult
@@ -250,6 +243,14 @@ class ScenarioResult:
     def passed(self) -> bool:
         return self.execution_result.success and self.validation_result.passed
 ```
+
+**Note on Model Usage:** The integration test `Document` class is distinct from `ZkDocument` in `zk_chat/models.py`:
+
+- **`Document` (integration tests)**: A simple test fixture model for declaratively defining test scenario setup. Uses `path` (the file path where the document will be created), `content`, and `metadata`.
+  
+- **`ZkDocument` (zk_chat/models.py)**: The production model representing actual Zettelkasten documents. Uses `relative_path` (within the vault), `metadata`, and `content`, with additional methods for computing `title` and `id`.
+
+Both use Pydantic `BaseModel` following the project's coding guidelines. The integration test `Document` is intentionally simpler as it only needs to specify test data, while `ZkDocument` includes business logic for document handling.
 
 #### 2. Agent Runner (`agent_runner.py`)
 
