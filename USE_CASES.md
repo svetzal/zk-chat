@@ -1,6 +1,6 @@
 # Use cases I check
 
-I generally use these statements to validate that the zkchat calls tools appropriately.
+I generally use these statements to validate that the zk-chat calls tools appropriately.
 
 ## Wikipedia Lookup to Document Creation
 
@@ -10,3 +10,6 @@ I generally use these statements to validate that the zkchat calls tools appropr
 ## Document Search
 
 - Show me documents related to Allen Holub
+
+## Image Analysis
+
