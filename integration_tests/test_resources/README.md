@@ -48,7 +48,7 @@ This directory contains test images and other resources used by integration test
    ```bash
    # With auto-detected gateway
    pytest integration_tests/image_operations_integration.py -v
-   
+
    # With explicit gateway
    export ZK_TEST_GATEWAY=ollama
    pytest integration_tests/image_operations_integration.py -v

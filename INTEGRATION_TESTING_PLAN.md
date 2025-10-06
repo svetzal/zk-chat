@@ -50,13 +50,13 @@ This approach allows for subjective quality validation while remaining maintaina
 integration_tests/                          # Separate from unit tests
   __init__.py
   conftest.py                               # Pytest configuration
-  
+
   # Core infrastructure
   scenario_harness.py                       # Scenario execution framework
   agent_runner.py                           # Programmatic agent invocation
   vault_builder.py                          # Declarative vault construction
   llm_validator.py                          # LLM as judge validation
-  
+
   # Test resources
   test_resources/
     test_architecture_diagram.png
@@ -64,7 +64,7 @@ integration_tests/                          # Separate from unit tests
     test_whiteboard_priorities.jpg
     test_code_screenshot.png
     test_presentation_slide.png
-  
+
   # Scenario definitions
   scenarios/
     __init__.py
@@ -87,7 +87,7 @@ integration_tests/                          # Separate from unit tests
       generate_caption_scenario.py
       analyze_screenshot_scenario.py
       analyze_whiteboard_scenario.py
-  
+
   # Test files that run scenarios (use _integration.py suffix)
   basic_operations_integration.py
   rag_operations_integration.py
@@ -138,58 +138,58 @@ class IntegrationScenario:
     """Complete specification of an integration test scenario"""
     name: str
     description: str
-    
+
     # Setup
     initial_documents: List[Document]
     initial_images: List[ImageFile] = None
-    
+
     # Execution
     execution_prompt: str
     agent_mode: str = "interactive"  # or "autonomous"
     unsafe: bool = False
     use_git: bool = False
-    
+
     # Validation
     validation_criteria: List[ValidationCriterion]
-    
+
     # Optional custom validation
     custom_validation: Optional[Callable] = None
 
 class ScenarioRunner:
     """Executes integration scenarios"""
-    
+
     def __init__(self, gateway: str, model: str, visual_model: str = None):
         self.gateway = gateway
         self.model = model
         self.visual_model = visual_model
-    
+
     def run_scenario(self, scenario: IntegrationScenario, tmp_path: Path) -> ScenarioResult:
         """
         Execute a complete integration scenario.
-        
+
         Returns ScenarioResult with pass/fail and details.
         """
         # 1. Build vault
         vault_path = self._build_vault(scenario, tmp_path)
-        
+
         # 2. Execute agent with prompt
         execution_result = self._execute_agent(scenario, vault_path)
-        
+
         # 3. Validate using LLM as judge
         validation_result = self._validate_scenario(scenario, vault_path, execution_result)
-        
+
         # 4. Run custom validation if provided
         if scenario.custom_validation:
             custom_result = scenario.custom_validation(vault_path, execution_result)
             validation_result = validation_result.merge(custom_result)
-        
+
         return validation_result
-    
+
     def _build_vault(self, scenario: IntegrationScenario, tmp_path: Path) -> Path:
         """Build isolated test vault for scenario"""
         vault_builder = VaultBuilder(tmp_path)
         return vault_builder.build(scenario.initial_documents, scenario.initial_images)
-    
+
     def _execute_agent(self, scenario: IntegrationScenario, vault_path: Path) -> ExecutionResult:
         """Execute agent with scenario prompt"""
         runner = AgentRunner(
@@ -201,10 +201,10 @@ class ScenarioRunner:
             use_git=scenario.use_git
         )
         return runner.run(scenario.execution_prompt)
-    
+
     def _validate_scenario(
-        self, 
-        scenario: IntegrationScenario, 
+        self,
+        scenario: IntegrationScenario,
         vault_path: Path,
         execution_result: ExecutionResult
     ) -> ValidationResult:
@@ -230,7 +230,7 @@ class ValidationResult:
     passed: bool
     criteria_results: List[Dict]  # One dict per criterion
     overall_reasoning: str
-    
+
     def merge(self, other: 'ValidationResult') -> 'ValidationResult':
         """Merge with another validation result"""
         return ValidationResult(
@@ -239,13 +239,13 @@ class ValidationResult:
             overall_reasoning=f"{self.overall_reasoning}\n\n{other.overall_reasoning}"
         )
 
-@dataclass  
+@dataclass
 class ScenarioResult:
     """Complete result of scenario execution and validation"""
     scenario_name: str
     execution_result: ExecutionResult
     validation_result: ValidationResult
-    
+
     @property
     def passed(self) -> bool:
         return self.execution_result.success and self.validation_result.passed
@@ -262,7 +262,7 @@ from typing import Optional
 
 class AgentRunner:
     """Runs the zk-chat agent programmatically"""
-    
+
     def __init__(
         self,
         vault_path: Path,
@@ -280,39 +280,39 @@ class AgentRunner:
         self.agent_mode = agent_mode
         self.unsafe = unsafe
         self.use_git = use_git
-    
+
     def run(self, prompt: str, timeout: int = 300) -> ExecutionResult:
         """
         Execute agent with given prompt.
-        
+
         Uses subprocess to invoke zk-chat CLI with the prompt.
         Returns ExecutionResult with output and timing.
         """
         import time
-        
+
         start_time = time.time()
-        
+
         # Build command
         cmd = [
             "zk-chat", "query",
             "--vault", str(self.vault_path),
             "--gateway", self.gateway
         ]
-        
+
         if self.model:
             cmd.extend(["--model", self.model])
-        
+
         if self.agent_mode == "autonomous":
             cmd.append("--agent")
-        
+
         if self.unsafe:
             cmd.append("--unsafe")
-        
+
         if self.use_git:
             cmd.append("--git")
-        
+
         cmd.append(prompt)
-        
+
         try:
             result = subprocess.run(
                 cmd,
@@ -320,16 +320,16 @@ class AgentRunner:
                 text=True,
                 timeout=timeout
             )
-            
+
             duration = time.time() - start_time
-            
+
             return ExecutionResult(
                 success=(result.returncode == 0),
                 output=result.stdout,
                 error=result.stderr if result.returncode != 0 else None,
                 duration=duration
             )
-        
+
         except subprocess.TimeoutExpired:
             duration = time.time() - start_time
             return ExecutionResult(
@@ -338,7 +338,7 @@ class AgentRunner:
                 error=f"Agent execution timed out after {timeout} seconds",
                 duration=duration
             )
-        
+
         except Exception as e:
             duration = time.time() - start_time
             return ExecutionResult(
@@ -360,45 +360,45 @@ import shutil
 
 class VaultBuilder:
     """Builds test vaults from scenario specifications"""
-    
+
     def __init__(self, base_path: Path):
         self.base_path = base_path
         self.vault_path = base_path / "test_vault"
-    
+
     def build(
-        self, 
+        self,
         documents: List[Document],
         images: Optional[List[ImageFile]] = None
     ) -> Path:
         """
         Build a test vault with specified documents and images.
-        
+
         Returns path to created vault.
         """
         # Create vault directory
         self.vault_path.mkdir(parents=True, exist_ok=True)
-        
+
         # Create documents
         for doc in documents:
             self._create_document(doc)
-        
+
         # Copy images if provided
         if images:
             for img in images:
                 self._copy_image(img)
-        
+
         # Initialize vault (this will create .zk_chat config)
         self._initialize_vault()
-        
+
         return self.vault_path
-    
+
     def _create_document(self, doc: Document):
         """Create a document with optional frontmatter"""
         doc_path = self.vault_path / doc.path
         doc_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         content = ""
-        
+
         # Add frontmatter if metadata provided
         if doc.metadata:
             content += "---\n"
@@ -410,20 +410,20 @@ class VaultBuilder:
                 else:
                     content += f"{key}: {value}\n"
             content += "---\n\n"
-        
+
         content += doc.content
-        
+
         doc_path.write_text(content)
-    
+
     def _copy_image(self, img: ImageFile):
         """Copy image file to vault"""
         dest_path = self.vault_path / img.path
         dest_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Copy from test resources
         source_path = Path(__file__).parent / "test_resources" / img.source_path
         shutil.copy(source_path, dest_path)
-    
+
     def _initialize_vault(self):
         """Initialize vault with zk-chat (creates config, runs initial index)"""
         # This could invoke zk-chat index rebuild
@@ -441,7 +441,7 @@ from typing import List
 
 class LLMValidator:
     """Uses LLM as judge to validate scenario outcomes"""
-    
+
     def __init__(
         self,
         vault_path: Path,
@@ -451,32 +451,32 @@ class LLMValidator:
         self.vault_path = vault_path
         self.gateway = gateway
         self.model = model
-    
+
     def validate(self, criteria: List[ValidationCriterion]) -> ValidationResult:
         """
         Validate using LLM as judge.
-        
+
         For each criterion, prompts the agent to check if it's satisfied.
         Parses response to determine pass/fail.
         """
         criteria_results = []
-        
+
         for criterion in criteria:
             result = self._validate_criterion(criterion)
             criteria_results.append(result)
-        
+
         # Determine overall pass/fail
         all_passed = all(r["passed"] for r in criteria_results)
-        
+
         # Generate overall reasoning
         reasoning = self._generate_overall_reasoning(criteria_results)
-        
+
         return ValidationResult(
             passed=all_passed,
             criteria_results=criteria_results,
             overall_reasoning=reasoning
         )
-    
+
     def _validate_criterion(self, criterion: ValidationCriterion) -> Dict:
         """Validate a single criterion"""
         # Build validation prompt
@@ -496,7 +496,7 @@ Format your response as:
 Result: [PASS/FAIL]
 Reasoning: [Your detailed reasoning]
 """
-        
+
         # Run agent with validation prompt
         runner = AgentRunner(
             vault_path=self.vault_path,
@@ -506,62 +506,62 @@ Reasoning: [Your detailed reasoning]
             unsafe=False,
             use_git=False
         )
-        
+
         result = runner.run(validation_prompt, timeout=120)
-        
+
         # Parse result
         passed = self._parse_validation_response(result.output, criterion)
-        
+
         return {
             "criterion": criterion.description,
             "passed": passed,
             "reasoning": result.output,
             "raw_output": result.output
         }
-    
+
     def _parse_validation_response(
-        self, 
-        output: str, 
+        self,
+        output: str,
         criterion: ValidationCriterion
     ) -> bool:
         """Parse validation response to determine pass/fail"""
         output_lower = output.lower()
-        
+
         # Look for explicit PASS/FAIL
         if "result: pass" in output_lower or "result:pass" in output_lower:
             return True
         if "result: fail" in output_lower or "result:fail" in output_lower:
             return False
-        
+
         # If success keywords provided, check for them
         if criterion.success_keywords:
             keyword_matches = sum(
-                1 for keyword in criterion.success_keywords 
+                1 for keyword in criterion.success_keywords
                 if keyword.lower() in output_lower
             )
             # Require majority of keywords present
             return keyword_matches >= len(criterion.success_keywords) / 2
-        
+
         # Default: look for positive indicators
         positive_indicators = ["success", "correct", "satisfied", "yes", "confirmed"]
         negative_indicators = ["fail", "incorrect", "not satisfied", "no", "missing"]
-        
+
         positive_count = sum(1 for ind in positive_indicators if ind in output_lower)
         negative_count = sum(1 for ind in negative_indicators if ind in output_lower)
-        
+
         return positive_count > negative_count
-    
+
     def _generate_overall_reasoning(self, criteria_results: List[Dict]) -> str:
         """Generate overall reasoning from individual results"""
         passed_count = sum(1 for r in criteria_results if r["passed"])
         total_count = len(criteria_results)
-        
+
         reasoning = f"Validation Results: {passed_count}/{total_count} criteria passed\n\n"
-        
+
         for i, result in enumerate(criteria_results, 1):
             status = "✓ PASS" if result["passed"] else "✗ FAIL"
             reasoning += f"{i}. {status}: {result['criterion']}\n"
-        
+
         return reasoning
 ```
 
@@ -583,7 +583,7 @@ def create_document_scenario() -> IntegrationScenario:
     return IntegrationScenario(
         name="create_document_with_metadata",
         description="Agent should create a new document with proper metadata",
-        
+
         initial_documents=[
             Document(
                 path="Programming Languages.md",
@@ -591,7 +591,7 @@ def create_document_scenario() -> IntegrationScenario:
                 metadata={"type": "index"}
             )
         ],
-        
+
         execution_prompt="""
 Create a new document called "Python Basics.md" about Python programming.
 Include the following content:
@@ -601,11 +601,11 @@ Include the following content:
 
 Add metadata tags: ["programming", "python", "tutorial"]
 """,
-        
+
         agent_mode="autonomous",
         unsafe=True,
         use_git=True,
-        
+
         validation_criteria=[
             ValidationCriterion(
                 description="Document 'Python Basics.md' exists",
@@ -654,38 +654,38 @@ from zk_chat.integration.scenarios.basic_operations import (
 
 class DescribeBasicDocumentOperations:
     """Integration tests for basic document read/write operations"""
-    
+
     @pytest.fixture
     def scenario_runner(self):
         return ScenarioRunner(gateway="ollama")
-    
+
     def should_create_new_document_with_metadata(self, scenario_runner, tmp_path):
         scenario = create_document_scenario()
-        
+
         result = scenario_runner.run_scenario(scenario, tmp_path)
-        
+
         assert result.passed, f"Scenario failed:\n{result.validation_result.overall_reasoning}"
         assert result.execution_result.success, f"Execution failed: {result.execution_result.error}"
-    
+
     def should_read_existing_document(self, scenario_runner, tmp_path):
         scenario = read_document_scenario()
-        
+
         result = scenario_runner.run_scenario(scenario, tmp_path)
-        
+
         assert result.passed, f"Scenario failed:\n{result.validation_result.overall_reasoning}"
-    
+
     def should_update_existing_document(self, scenario_runner, tmp_path):
         scenario = update_document_scenario()
-        
+
         result = scenario_runner.run_scenario(scenario, tmp_path)
-        
+
         assert result.passed, f"Scenario failed:\n{result.validation_result.overall_reasoning}"
-    
+
     def should_rename_document_and_update_wikilinks(self, scenario_runner, tmp_path):
         scenario = rename_document_scenario()
-        
+
         result = scenario_runner.run_scenario(scenario, tmp_path)
-        
+
         assert result.passed, f"Scenario failed:\n{result.validation_result.overall_reasoning}"
 ```
 
@@ -701,12 +701,12 @@ def summarize_topic_scenario() -> IntegrationScenario:
     return IntegrationScenario(
         name="summarize_testing_practices",
         description="Agent should gather and summarize information about testing from multiple sources",
-        
+
         initial_documents=[
             Document(
                 path="Unit Testing.md",
                 content="""# Unit Testing
-                
+
 Unit testing involves testing individual components in isolation. Benefits include:
 - Fast feedback
 - Easy debugging
@@ -719,7 +719,7 @@ Use mocks to isolate dependencies.""",
             Document(
                 path="Integration Testing.md",
                 content="""# Integration Testing
-                
+
 Integration testing validates that components work together correctly. Key aspects:
 - Tests real interactions
 - Catches integration bugs
@@ -732,7 +732,7 @@ Use real dependencies when possible.""",
             Document(
                 path="Test-Driven Development.md",
                 content="""# Test-Driven Development
-                
+
 TDD is a development approach where tests are written before code:
 1. Write a failing test
 2. Write minimal code to pass
@@ -742,7 +742,7 @@ Benefits: Better design, comprehensive coverage, living documentation.""",
                 metadata={"tags": ["testing", "tdd", "methodology"]}
             )
         ],
-        
+
         execution_prompt="""
 Please provide a comprehensive summary of testing practices based on the documents in this vault.
 Include information about:
@@ -752,11 +752,11 @@ Include information about:
 
 Create a new document called "Testing Summary.md" with your findings.
 """,
-        
+
         agent_mode="autonomous",
         unsafe=True,
         use_git=True,
-        
+
         validation_criteria=[
             ValidationCriterion(
                 description="Summary document was created",
@@ -810,7 +810,7 @@ def generate_python_moc_scenario() -> IntegrationScenario:
     return IntegrationScenario(
         name="generate_python_moc",
         description="Agent should create a structured MoC linking Python-related documents",
-        
+
         initial_documents=[
             Document(
                 path="Python Basics.md",
@@ -843,7 +843,7 @@ def generate_python_moc_scenario() -> IntegrationScenario:
                 metadata={"tags": ["javascript", "basics"]}
             )
         ],
-        
+
         execution_prompt="""
 Create a Map of Content (MoC) for Python programming.
 
@@ -857,11 +857,11 @@ The MoC should:
 
 Please create this MoC now.
 """,
-        
+
         agent_mode="autonomous",
         unsafe=True,
         use_git=True,
-        
+
         validation_criteria=[
             ValidationCriterion(
                 description="MoC document was created with correct name",
@@ -929,7 +929,7 @@ def generate_caption_scenario() -> IntegrationScenario:
     return IntegrationScenario(
         name="generate_image_captions",
         description="Agent should analyze images and add descriptive captions to documents",
-        
+
         initial_documents=[
             Document(
                 path="Architecture Design.md",
@@ -944,14 +944,14 @@ The diagram shows the main components of our system.
                 metadata={"tags": ["architecture", "design"]}
             )
         ],
-        
+
         initial_images=[
             ImageFile(
                 path="images/architecture.png",
                 source_path="test_architecture_diagram.png"
             )
         ],
-        
+
         execution_prompt="""
 Please analyze the image referenced in 'Architecture Design.md' and add a detailed caption
 below the image describing what it shows. The caption should:
@@ -961,11 +961,11 @@ below the image describing what it shows. The caption should:
 
 Update the document with the caption.
 """,
-        
+
         agent_mode="autonomous",
         unsafe=True,
         use_git=True,
-        
+
         validation_criteria=[
             ValidationCriterion(
                 description="Document was updated",
@@ -1006,7 +1006,7 @@ def analyze_whiteboard_scenario() -> IntegrationScenario:
     return IntegrationScenario(
         name="analyze_whiteboard_brainstorm",
         description="Agent should extract and organize information from whiteboard photos",
-        
+
         initial_documents=[
             Document(
                 path="Brainstorming Session.md",
@@ -1029,7 +1029,7 @@ TBD
                 metadata={"tags": ["meeting", "brainstorming"]}
             )
         ],
-        
+
         initial_images=[
             ImageFile(
                 path="images/whiteboard_1.jpg",
@@ -1040,7 +1040,7 @@ TBD
                 source_path="test_whiteboard_priorities.jpg"
             )
         ],
-        
+
         execution_prompt="""
 Please analyze the whiteboard photos in 'Brainstorming Session.md' and extract
 all the information you can see. Then:
@@ -1052,11 +1052,11 @@ all the information you can see. Then:
 
 The analysis should be comprehensive and capture all visible information.
 """,
-        
+
         agent_mode="autonomous",
         unsafe=True,
         use_git=True,
-        
+
         validation_criteria=[
             ValidationCriterion(
                 description="Document was updated with analysis",
@@ -1108,7 +1108,7 @@ Create a dedicated script for running integration tests:
 # scripts/run_integration_tests.sh
 
 # Integration Test Runner for zk-chat
-# 
+#
 # Usage:
 #   ./scripts/run_integration_tests.sh [ollama|openai|auto]
 #
@@ -1167,16 +1167,16 @@ if [ "$GATEWAY" = "ollama" ]; then
         echo "Visit: https://ollama.com/"
         exit 1
     fi
-    
+
     # Check if Ollama is running
     if ! curl -s http://localhost:11434/api/tags &> /dev/null; then
         echo "Error: Ollama is not running. Please start Ollama."
         echo "Run: ollama serve"
         exit 1
     fi
-    
+
     echo "✓ Ollama is running"
-    
+
     # Set default models if not already set
     if [ -z "${ZK_TEST_MODEL}" ]; then
         export ZK_TEST_MODEL="qwen2.5:32b"
@@ -1184,14 +1184,14 @@ if [ "$GATEWAY" = "ollama" ]; then
     else
         echo "Using custom text model: $ZK_TEST_MODEL"
     fi
-    
+
     if [ -z "${ZK_TEST_VISUAL_MODEL}" ]; then
         export ZK_TEST_VISUAL_MODEL="llama3.2-vision:11b"
         echo "Using default visual model: $ZK_TEST_VISUAL_MODEL"
     else
         echo "Using custom visual model: $ZK_TEST_VISUAL_MODEL"
     fi
-    
+
     echo ""
     echo "Testing with local Ollama models:"
     echo "  - No API costs"
@@ -1200,16 +1200,16 @@ if [ "$GATEWAY" = "ollama" ]; then
 
 elif [ "$GATEWAY" = "openai" ]; then
     echo "Checking OpenAI configuration..."
-    
+
     if [ -z "${OPENAI_API_KEY}" ]; then
         echo "Error: OPENAI_API_KEY environment variable is not set."
         echo "Please set your OpenAI API key:"
         echo "  export OPENAI_API_KEY=your_key_here"
         exit 1
     fi
-    
+
     echo "✓ OpenAI API key is configured"
-    
+
     # Set default models if not already set
     if [ -z "${ZK_TEST_MODEL}" ]; then
         export ZK_TEST_MODEL="gpt-4o"
@@ -1217,14 +1217,14 @@ elif [ "$GATEWAY" = "openai" ]; then
     else
         echo "Using custom text model: $ZK_TEST_MODEL"
     fi
-    
+
     if [ -z "${ZK_TEST_VISUAL_MODEL}" ]; then
         export ZK_TEST_VISUAL_MODEL="gpt-4o"
         echo "Using default visual model: $ZK_TEST_VISUAL_MODEL"
     else
         echo "Using custom visual model: $ZK_TEST_VISUAL_MODEL"
     fi
-    
+
     echo ""
     echo "⚠️  WARNING: Testing with OpenAI API"
     echo "  - This will incur API costs"
@@ -1232,7 +1232,7 @@ elif [ "$GATEWAY" = "openai" ]; then
     echo "  - Cost varies by model and test coverage"
     echo ""
     read -p "Continue with OpenAI? [y/N]: " confirm
-    
+
     if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
         echo "Cancelled."
         exit 0
@@ -1308,25 +1308,25 @@ def scenario_runner():
     """Create a scenario runner for tests"""
     # Gateway must be explicitly set via environment variable
     gateway = os.environ.get("ZK_TEST_GATEWAY")
-    
+
     if not gateway:
         pytest.skip(
             "ZK_TEST_GATEWAY environment variable not set. "
             "Set to 'ollama' or 'openai' before running integration tests."
         )
-    
+
     if gateway not in ["ollama", "openai"]:
         pytest.fail(f"Invalid ZK_TEST_GATEWAY: {gateway}. Must be 'ollama' or 'openai'.")
-    
+
     # For OpenAI, verify API key is set
     if gateway == "openai" and not os.environ.get("OPENAI_API_KEY"):
         pytest.skip(
             "OPENAI_API_KEY environment variable not set. "
             "Required when using openai gateway."
         )
-    
+
     model = os.environ.get("ZK_TEST_MODEL", None)
-    
+
     return ScenarioRunner(gateway=gateway, model=model)# Pytest configuration for better output
 def pytest_configure(config):
     """Configure pytest for integration tests"""
@@ -1343,7 +1343,7 @@ def pytest_collection_modifyitems(config, items):
         # Mark all integration tests as slow
         if "integration" in str(item.fspath):
             item.add_marker(pytest.mark.slow)
-        
+
         # Mark tests requiring visual models
         if "image" in item.name.lower() or "visual" in item.name.lower():
             item.add_marker(pytest.mark.requires_visual)
@@ -1464,20 +1464,20 @@ on:
 jobs:
   integration-test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
-    
+
     # For Ollama gateway (if selected)
     - name: Install Ollama
       if: ${{ github.event.inputs.gateway == 'ollama' || github.event_name == 'schedule' }}
@@ -1486,7 +1486,7 @@ jobs:
         ollama serve &
         sleep 5
         ollama pull qwen2.5:14b
-    
+
     - name: Run integration tests with Ollama
       if: ${{ github.event.inputs.gateway == 'ollama' }}
       env:
@@ -1495,7 +1495,7 @@ jobs:
         ZK_TEST_VISUAL_MODEL: llama3.2-vision:11b
       run: |
         pytest integration_tests/ --spec -v --tb=short
-    
+
     # For OpenAI gateway (if selected or default)
     - name: Run integration tests with OpenAI
       if: ${{ github.event.inputs.gateway == 'openai' || github.event_name == 'schedule' }}
@@ -1529,11 +1529,11 @@ Before preparing any release:
    ```bash
    # Auto-detect (recommended): Uses OpenAI if OPENAI_API_KEY set, else Ollama
    # No explicit configuration needed
-   
+
    # OR explicitly choose:
    export ZK_TEST_GATEWAY=openai  # Recommended for pre-release
    export OPENAI_API_KEY=your_key_here
-   
+
    # OR force Ollama:
    export ZK_TEST_GATEWAY=ollama
    ```
@@ -1725,6 +1725,6 @@ export ZK_TEST_TIMEOUT=600  # seconds, default is 300
 | **Internet** | Not required | Required |
 | **Best For** | Development, local testing | Pre-release validation, CI/CD |
 
-**Recommendation**: 
+**Recommendation**:
 - Use **Ollama** during development and frequent testing
 - Use **OpenAI** for final pre-release validation and CI/CD
