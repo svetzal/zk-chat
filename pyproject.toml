@@ -19,6 +19,7 @@ dependencies = [
     "PySide6>=6.6.0",
     "rich",
     "typer[all]>=0.9.0",
+    "fastmcp>=2.0.0",
 ]
 
 [project.optional-dependencies]
