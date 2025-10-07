@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+### Added
+
+- **MCP Server Management**: Added comprehensive support for managing Model Context Protocol (MCP) server connections
+  - New `zk-chat mcp` commands to register, list, remove, and verify MCP servers
+  - Support for both STDIO and HTTP MCP server types
+  - Automatic server availability verification before entering chat/agent sessions
+  - Persistent storage of MCP server configurations in global config
+  - Rich CLI output with table formatting for server listings
+  - Validation of server configurations with helpful error messages
+
 ## [3.2.2] - 2025-09-29
 
 ### Changed
