@@ -1,6 +1,7 @@
 import os
-from typing import Dict, Optional, Set
-from pydantic import BaseModel
+from enum import Enum
+from typing import Dict, List, Optional, Set
+from pydantic import BaseModel, Field
 
 
 def get_global_config_path() -> str:
@@ -8,13 +9,35 @@ def get_global_config_path() -> str:
     return os.path.expanduser("~/.zk_chat")
 
 
+class MCPServerType(str, Enum):
+    """Type of MCP server connection."""
+    STDIO = "stdio"
+    HTTP = "http"
+
+
+class MCPServerConfig(BaseModel):
+    """Configuration for an MCP server."""
+    name: str
+    server_type: MCPServerType
+    command: Optional[str] = None
+    url: Optional[str] = None
+    args: Optional[List[str]] = Field(default_factory=list)
+
+    def model_post_init(self, __context):
+        if self.server_type == MCPServerType.STDIO and not self.command:
+            raise ValueError("STDIO server requires a command")
+        if self.server_type == MCPServerType.HTTP and not self.url:
+            raise ValueError("HTTP server requires a URL")
+
+
 class GlobalConfig(BaseModel):
     """
     Global configuration for zk_chat that persists across sessions.
-    Stores bookmarks and the last opened bookmark.
+    Stores bookmarks, the last opened bookmark, and registered MCP servers.
     """
     bookmarks: Set[str] = set()  # set of absolute vault paths
     last_opened_bookmark: Optional[str] = None  # absolute path of the last opened bookmark
+    mcp_servers: Dict[str, MCPServerConfig] = Field(default_factory=dict)  # registered MCP servers by name
 
     @classmethod
     def load(cls) -> 'GlobalConfig':
@@ -74,3 +97,23 @@ class GlobalConfig(BaseModel):
             return self.last_opened_bookmark
         return None
 
+    def add_mcp_server(self, server_config: MCPServerConfig) -> None:
+        """Add or update an MCP server configuration."""
+        self.mcp_servers[server_config.name] = server_config
+        self.save()
+
+    def remove_mcp_server(self, server_name: str) -> bool:
+        """Remove an MCP server configuration. Returns True if successful."""
+        if server_name in self.mcp_servers:
+            del self.mcp_servers[server_name]
+            self.save()
+            return True
+        return False
+
+    def get_mcp_server(self, server_name: str) -> Optional[MCPServerConfig]:
+        """Get an MCP server configuration by name."""
+        return self.mcp_servers.get(server_name)
+
+    def list_mcp_servers(self) -> List[MCPServerConfig]:
+        """List all registered MCP servers."""
+        return list(self.mcp_servers.values())

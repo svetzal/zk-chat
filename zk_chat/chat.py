@@ -48,9 +48,23 @@ from zk_chat.config import Config, ModelGateway
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.zettelkasten import Zettelkasten
 from zk_chat.services import ServiceRegistry, ServiceType, ServiceProvider
+from zk_chat.mcp_client import verify_all_mcp_servers
 
 
 def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prompt: bool = False):
+    from zk_chat.global_config import GlobalConfig
+    
+    global_config = GlobalConfig.load()
+    if global_config.list_mcp_servers():
+        print("Verifying MCP server availability...")
+        unavailable = verify_all_mcp_servers()
+        if unavailable:
+            print(f"\nWarning: The following MCP servers are unavailable:")
+            for name in unavailable:
+                print(f"  - {name}")
+            print("\nYou can continue, but these servers will not be accessible during the session.")
+            print("Use 'zk-chat mcp verify' to check server status or 'zk-chat mcp list' to see all servers.\n")
+    
     console_service = RichConsoleService()
 
     # Create a single ChromaGateway instance to access multiple collections
