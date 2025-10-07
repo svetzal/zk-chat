@@ -5,9 +5,10 @@ Creates isolated test vaults with documents and images for testing.
 """
 import shutil
 from pathlib import Path
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
-from integration_tests.scenario_harness import Document, ImageFile
+if TYPE_CHECKING:
+    from integration_tests.scenario_harness import Document, ImageFile
 
 
 class VaultBuilder:
@@ -19,8 +20,8 @@ class VaultBuilder:
 
     def build(
         self,
-        documents: List[Document],
-        images: Optional[List[ImageFile]] = None
+        documents: List["Document"],
+        images: Optional[List["ImageFile"]] = None
     ) -> Path:
         """
         Build a test vault with specified documents and images.
@@ -38,7 +39,7 @@ class VaultBuilder:
 
         return self.vault_path
 
-    def _create_document(self, doc: Document):
+    def _create_document(self, doc: "Document"):
         """Create a document with optional frontmatter"""
         doc_path = self.vault_path / doc.path
         doc_path.parent.mkdir(parents=True, exist_ok=True)
@@ -60,7 +61,7 @@ class VaultBuilder:
 
         doc_path.write_text(content)
 
-    def _copy_image(self, img: ImageFile):
+    def _copy_image(self, img: "ImageFile"):
         """Copy image file to vault"""
         dest_path = self.vault_path / img.path
         dest_path.parent.mkdir(parents=True, exist_ok=True)
