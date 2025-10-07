@@ -53,18 +53,18 @@ from zk_chat.mcp_client import verify_all_mcp_servers
 
 def agent(config: Config):
     from zk_chat.global_config import GlobalConfig
-    
+
     global_config = GlobalConfig.load()
     if global_config.list_mcp_servers():
         print("Verifying MCP server availability...")
         unavailable = verify_all_mcp_servers()
         if unavailable:
-            print(f"\nWarning: The following MCP servers are unavailable:")
+            print("\nWarning: The following MCP servers are unavailable:")
             for name in unavailable:
                 print(f"  - {name}")
             print("\nYou can continue, but these servers will not be accessible during the session.")
             print("Use 'zk-chat mcp verify' to check server status or 'zk-chat mcp list' to see all servers.\n")
-    
+
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     chroma_gateway = ChromaGateway(config.gateway, db_dir=db_dir)
 

@@ -220,6 +220,30 @@ zk-chat index rebuild --full
 zk-chat index status
 ```
 
+#### 🔌 MCP Server Management
+
+Register and manage Model Context Protocol (MCP) servers to extend zk-chat with external tools:
+
+```bash
+# Add a new MCP server (STDIO)
+zk-chat mcp add figma --type stdio --command figma-mcp
+
+# Add a new MCP server (HTTP)
+zk-chat mcp add chrome --type http --url http://localhost:8080
+
+# List all registered MCP servers with status
+zk-chat mcp list
+
+# Verify server availability
+zk-chat mcp verify           # Verify all servers
+zk-chat mcp verify figma     # Verify specific server
+
+# Remove a registered server
+zk-chat mcp remove figma
+```
+
+MCP servers are automatically verified before starting chat or agent sessions. Unavailable servers will trigger a warning, but you can continue with the session.
+
 #### 📚 Vault and Bookmark Management
 
 The CLI supports bookmarking vault paths for easy access:
