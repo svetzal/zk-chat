@@ -91,7 +91,12 @@ class MCPToolWrapper(LLMTool):
 
         try:
             result = asyncio.run(self._async_run(kwargs))
-            return str(result)
+            result_str = str(result)
+            logger.info("MCP tool execution completed",
+                        server_name=self.server_config.name,
+                        tool_name=self.tool_name,
+                        result=result_str)
+            return result_str
         except Exception as e:
             error_msg = f"Error executing MCP tool {self.tool_name}: {str(e)}"
             logger.error("MCP tool execution failed",
