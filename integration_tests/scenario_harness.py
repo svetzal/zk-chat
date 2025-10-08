@@ -3,40 +3,37 @@ Scenario harness for integration tests.
 
 Provides declarative way to define and execute integration test scenarios.
 """
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 from integration_tests.agent_runner import AgentRunner, ExecutionResult
 from integration_tests.llm_validator import LLMValidator, ValidationResult
 from integration_tests.vault_builder import VaultBuilder
 
 
-@dataclass
-class Document:
+class Document(BaseModel):
     """Represents a document to be created in test vault"""
     path: str
     content: str
-    metadata: Optional[Dict] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 
-@dataclass
-class ImageFile:
+class ImageFile(BaseModel):
     """Represents an image file to be placed in test vault"""
     path: str
     source_path: str
 
 
-@dataclass
-class ValidationCriterion:
+class ValidationCriterion(BaseModel):
     """A single validation criterion"""
     description: str
     prompt: str
     success_keywords: Optional[List[str]] = None
 
 
-@dataclass
-class IntegrationScenario:
+class IntegrationScenario(BaseModel):
     """Complete specification of an integration test scenario"""
     name: str
     description: str
@@ -47,11 +44,10 @@ class IntegrationScenario:
     unsafe: bool = False
     use_git: bool = False
     validation_criteria: Optional[List[ValidationCriterion]] = None
-    custom_validation: Optional[Callable] = None
+    custom_validation: Optional[Callable] = Field(default=None, exclude=True)
 
 
-@dataclass
-class ScenarioResult:
+class ScenarioResult(BaseModel):
     """Complete result of scenario execution and validation"""
     scenario_name: str
     execution_result: ExecutionResult

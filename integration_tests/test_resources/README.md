@@ -4,7 +4,7 @@ This directory contains test images and other resources used by integration test
 
 ## Required Test Images
 
-### Architecture Diagram (`test_architecture_diagram.png`)
+### Architecture Diagram (`zk-chat-architecture.png`)
 
 **Purpose**: Tests the agent's ability to analyze architecture diagrams.
 
@@ -41,7 +41,7 @@ This directory contains test images and other resources used by integration test
 
 2. **Place in this directory:**
    ```
-   integration_tests/test_resources/test_architecture_diagram.png
+   integration_tests/test_resources/zk-chat-architecture.png
    ```
 
 3. **Run the test:**

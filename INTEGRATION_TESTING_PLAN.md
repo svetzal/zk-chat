@@ -1,5 +1,7 @@
 # Integration Testing Plan
 
+> **Note**: This branch has been rebased on the latest main branch to include the `copilot-setup-steps.yml` workflow, which enables running pytest and flake8 during development.
+
 ## Overview
 
 This document outlines the plan for implementing comprehensive integration tests for the zk-chat project. These tests will be executed prior to each public release to ensure the system works correctly end-to-end across increasingly sophisticated use cases.
@@ -40,6 +42,17 @@ Rather than asserting exact outputs, we use a two-phase approach:
 
 This approach allows for subjective quality validation while remaining maintainable.
 
+### Coding Conventions
+
+Integration test infrastructure follows the project's standard coding guidelines:
+
+- **Models**: Use Pydantic `BaseModel` classes instead of `@dataclass` for all data models
+- **Type Hints**: Include proper type annotations for all fields and parameters
+- **Import Order**: Standard library, third-party libraries, then local imports
+- **Testing**: Use pytest with BDD-style "should_" naming for test methods
+
+All models in the integration test harness (`Document`, `ImageFile`, `ValidationCriterion`, etc.) use Pydantic for consistency with the production codebase, which uses `ZkDocument` and other Pydantic models in `zk_chat/models.py`.
+
 ## Test Architecture
 
 ### Directory Structure
@@ -59,7 +72,7 @@ integration_tests/                          # Separate from unit tests
 
   # Test resources
   test_resources/
-    test_architecture_diagram.png
+    zk-chat-architecture.png
     test_whiteboard_features.jpg
     test_whiteboard_priorities.jpg
     test_code_screenshot.png
@@ -107,41 +120,37 @@ integration_tests/                          # Separate from unit tests
 
 #### 1. Scenario Harness (`scenario_harness.py`)
 
-The harness provides a declarative way to define test scenarios:
+The harness provides a declarative way to define test scenarios using Pydantic models for strong typing:
 
 ```python
-from dataclasses import dataclass
-from typing import List, Dict, Optional, Callable
+from pydantic import BaseModel, Field
+from typing import List, Dict, Optional, Callable, Any
 
-@dataclass
-class Document:
+class Document(BaseModel):
     """Represents a document to be created in test vault"""
     path: str
     content: str
-    metadata: Optional[Dict] = None
+    metadata: Optional[Dict[str, Any]] = None
 
-@dataclass
-class ImageFile:
+class ImageFile(BaseModel):
     """Represents an image file to be placed in test vault"""
     path: str
     source_path: str  # Path to actual test image file
 
-@dataclass
-class ValidationCriterion:
+class ValidationCriterion(BaseModel):
     """A single validation criterion"""
     description: str
     prompt: str
-    success_keywords: List[str] = None  # Optional: keywords indicating success
+    success_keywords: Optional[List[str]] = None
 
-@dataclass
-class IntegrationScenario:
+class IntegrationScenario(BaseModel):
     """Complete specification of an integration test scenario"""
     name: str
     description: str
 
     # Setup
     initial_documents: List[Document]
-    initial_images: List[ImageFile] = None
+    initial_images: Optional[List[ImageFile]] = None
 
     # Execution
     execution_prompt: str
@@ -150,10 +159,10 @@ class IntegrationScenario:
     use_git: bool = False
 
     # Validation
-    validation_criteria: List[ValidationCriterion]
+    validation_criteria: Optional[List[ValidationCriterion]] = None
 
-    # Optional custom validation
-    custom_validation: Optional[Callable] = None
+    # Optional custom validation (excluded from serialization)
+    custom_validation: Optional[Callable] = Field(default=None, exclude=True)
 
 class ScenarioRunner:
     """Executes integration scenarios"""
@@ -216,19 +225,17 @@ class ScenarioRunner:
         )
         return validator.validate(scenario.validation_criteria)
 
-@dataclass
-class ExecutionResult:
+class ExecutionResult(BaseModel):
     """Result of agent execution"""
     success: bool
     output: str
     error: Optional[str] = None
     duration: float = 0.0
 
-@dataclass
-class ValidationResult:
+class ValidationResult(BaseModel):
     """Result of validation"""
     passed: bool
-    criteria_results: List[Dict]  # One dict per criterion
+    criteria_results: List[Dict[str, Any]]
     overall_reasoning: str
 
     def merge(self, other: 'ValidationResult') -> 'ValidationResult':
@@ -239,8 +246,7 @@ class ValidationResult:
             overall_reasoning=f"{self.overall_reasoning}\n\n{other.overall_reasoning}"
         )
 
-@dataclass
-class ScenarioResult:
+class ScenarioResult(BaseModel):
     """Complete result of scenario execution and validation"""
     scenario_name: str
     execution_result: ExecutionResult
@@ -250,6 +256,14 @@ class ScenarioResult:
     def passed(self) -> bool:
         return self.execution_result.success and self.validation_result.passed
 ```
+
+**Note on Model Usage:** The integration test `Document` class is distinct from `ZkDocument` in `zk_chat/models.py`:
+
+- **`Document` (integration tests)**: A simple test fixture model for declaratively defining test scenario setup. Uses `path` (the file path where the document will be created), `content`, and `metadata`.
+  
+- **`ZkDocument` (zk_chat/models.py)**: The production model representing actual Zettelkasten documents. Uses `relative_path` (within the vault), `metadata`, and `content`, with additional methods for computing `title` and `id`.
+
+Both use Pydantic `BaseModel` following the project's coding guidelines. The integration test `Document` is intentionally simpler as it only needs to specify test data, while `ZkDocument` includes business logic for document handling.
 
 #### 2. Agent Runner (`agent_runner.py`)
 
@@ -948,7 +962,7 @@ The diagram shows the main components of our system.
         initial_images=[
             ImageFile(
                 path="images/architecture.png",
-                source_path="test_architecture_diagram.png"
+                source_path="zk-chat-architecture.png"
             )
         ],
 
@@ -1282,7 +1296,7 @@ fi
 
 Create a library of test images in `zk_chat/integration/test_resources/`:
 
-1. **test_architecture_diagram.png** - Simple architecture diagram (boxes and arrows)
+1. **zk-chat-architecture.png** - Simple architecture diagram (boxes and arrows)
 2. **test_whiteboard_features.jpg** - Whiteboard with feature list
 3. **test_whiteboard_priorities.jpg** - Whiteboard with priorities/rankings
 4. **test_code_screenshot.png** - Screenshot of code

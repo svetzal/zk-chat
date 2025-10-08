@@ -15,11 +15,11 @@ def analyze_architecture_diagram_scenario() -> IntegrationScenario:
     """
     Scenario: Agent analyzes an architecture diagram image and describes it.
 
-    Image: test_architecture_diagram.png
+    Image: zk-chat-architecture.png
     Expected: A diagram showing system components and their relationships
 
     You should place an architecture diagram image in:
-    integration_tests/test_resources/test_architecture_diagram.png
+    integration_tests/test_resources/zk-chat-architecture.png
 
     The image should show:
     - Multiple components/boxes
@@ -51,7 +51,7 @@ TBD - Please analyze the diagram above and provide a detailed description of wha
         initial_images=[
             ImageFile(
                 path="images/architecture_diagram.png",
-                source_path="test_architecture_diagram.png"
+                source_path="zk-chat-architecture.png"
             )
         ],
 
