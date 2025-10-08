@@ -27,6 +27,7 @@ import sys
 # Import subcommands
 from zk_chat.commands.gui import gui_app
 from zk_chat.commands.index import index_app
+from zk_chat.commands.mcp import mcp_app
 
 # Import functions for interactive and query commands
 from zk_chat.cli import common_init_typer, display_banner
@@ -45,6 +46,7 @@ app = typer.Typer(
 # Add subcommands
 app.add_typer(gui_app, name="gui")
 app.add_typer(index_app, name="index")
+app.add_typer(mcp_app, name="mcp")
 
 # Global options that apply to all commands
 console = Console()
@@ -254,6 +256,7 @@ def main(
     • [cyan]zk-chat query "your question"[/] - Ask a single question
     • [cyan]zk-chat gui[/] - Launch graphical interface
     • [cyan]zk-chat index --reindex[/] - Rebuild search index
+    • [cyan]zk-chat mcp list[/] - Manage MCP server connections
 
     [bold]Getting started:[/]
 
