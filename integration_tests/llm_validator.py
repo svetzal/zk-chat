@@ -3,18 +3,18 @@ LLM validator for "LLM as judge" validation.
 
 Uses the agent to validate that scenario outcomes meet criteria.
 """
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel
 
 from integration_tests.agent_runner import AgentRunner
 
 
-@dataclass
-class ValidationResult:
+class ValidationResult(BaseModel):
     """Result of validation"""
     passed: bool
-    criteria_results: List[Dict]
+    criteria_results: List[Dict[str, Any]]
     overall_reasoning: str
 
     def merge(self, other: 'ValidationResult') -> 'ValidationResult':
