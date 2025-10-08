@@ -72,7 +72,7 @@ integration_tests/                          # Separate from unit tests
 
   # Test resources
   test_resources/
-    test_architecture_diagram.png
+    zk-chat-architecture.png
     test_whiteboard_features.jpg
     test_whiteboard_priorities.jpg
     test_code_screenshot.png
@@ -962,7 +962,7 @@ The diagram shows the main components of our system.
         initial_images=[
             ImageFile(
                 path="images/architecture.png",
-                source_path="test_architecture_diagram.png"
+                source_path="zk-chat-architecture.png"
             )
         ],
 
@@ -1296,7 +1296,7 @@ fi
 
 Create a library of test images in `zk_chat/integration/test_resources/`:
 
-1. **test_architecture_diagram.png** - Simple architecture diagram (boxes and arrows)
+1. **zk-chat-architecture.png** - Simple architecture diagram (boxes and arrows)
 2. **test_whiteboard_features.jpg** - Whiteboard with feature list
 3. **test_whiteboard_priorities.jpg** - Whiteboard with priorities/rankings
 4. **test_code_screenshot.png** - Screenshot of code

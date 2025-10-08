@@ -24,7 +24,7 @@ integration_tests/
 ## Prerequisites
 
 1. **zk-chat installed**: Integration tests run the actual `zk-chat` CLI
-2. **Test image**: Place `test_architecture_diagram.png` in `test_resources/`
+2. **Test image**: Place `zk-chat-architecture.png` in `test_resources/`
 3. **Gateway configured**: Tests auto-detect gateway based on environment
 
 ## Running Tests
