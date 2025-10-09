@@ -4,6 +4,8 @@ logging.basicConfig(
     level=logging.WARN
 )
 
+from zk_chat.mcp_tool_wrapper import MCPClientManager
+
 import argparse
 import os
 
@@ -133,20 +135,23 @@ def agent(config: Config):
         CommitChanges(config.vault, llm, git_gateway)
     ]
 
-    agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
-    with open(agent_prompt_path, "r") as f:
-        agent_prompt = f.read()
+    # Initialize MCP client manager and load tools
+    with MCPClientManager() as mcp_manager:
+        tools.extend(mcp_manager.get_tools())
 
-    solver = IterativeProblemSolvingAgent(llm=llm, available_tools=tools, system_prompt=agent_prompt)
+        agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
+        with open(agent_prompt_path, "r") as f:
+            agent_prompt = f.read()
 
-    while True:
+        solver = IterativeProblemSolvingAgent(llm=llm, available_tools=tools, system_prompt=agent_prompt)
 
-        query = input("Agent request: ")
-        if not query:
-            break
-        else:
-            response = solver.solve(query)
-            print(response)
+        while True:
+            query = input("Agent request: ")
+            if not query:
+                break
+            else:
+                response = solver.solve(query)
+                print(response)
 
 
 def main():
@@ -242,13 +247,17 @@ def agent_single_query(config: Config, query: str) -> str:
         CommitChanges(config.vault, llm, git_gateway)
     ]
 
-    agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
-    with open(agent_prompt_path, "r") as f:
-        agent_prompt = f.read()
+    # Initialize MCP client manager and load tools
+    with MCPClientManager() as mcp_manager:
+        tools.extend(mcp_manager.get_tools())
 
-    solver = IterativeProblemSolvingAgent(llm=llm, available_tools=tools, system_prompt=agent_prompt)
+        agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
+        with open(agent_prompt_path, "r") as f:
+            agent_prompt = f.read()
 
-    return solver.solve(query)
+        solver = IterativeProblemSolvingAgent(llm=llm, available_tools=tools, system_prompt=agent_prompt)
+
+        return solver.solve(query)
 
 
 if __name__ == '__main__':

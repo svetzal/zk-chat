@@ -1,19 +1,16 @@
 """
 Tests for MCP tool wrapper functionality.
 """
-from zk_chat.global_config import MCPServerConfig, MCPServerType
+from unittest.mock import Mock
 from zk_chat.mcp_tool_wrapper import MCPToolWrapper
 
 
 class DescribeMCPToolWrapper:
     """Tests for MCPToolWrapper class."""
 
-    def should_create_wrapper_for_stdio_server(self):
-        server_config = MCPServerConfig(
-            name="test-server",
-            server_type=MCPServerType.STDIO,
-            command="test-command"
-        )
+    def should_create_wrapper_with_client(self):
+        mock_client = Mock()
+        mock_loop = Mock()
         tool_descriptor = {
             "name": "test_tool",
             "description": "A test tool",
@@ -25,34 +22,16 @@ class DescribeMCPToolWrapper:
             }
         }
 
-        wrapper = MCPToolWrapper(server_config, "test_tool", tool_descriptor)
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
 
         assert wrapper.tool_name == "test_tool"
-        assert wrapper.server_config.name == "test-server"
-
-    def should_create_wrapper_for_http_server(self):
-        server_config = MCPServerConfig(
-            name="test-server",
-            server_type=MCPServerType.HTTP,
-            url="http://localhost:8080"
-        )
-        tool_descriptor = {
-            "name": "test_tool",
-            "description": "A test tool",
-            "inputSchema": {}
-        }
-
-        wrapper = MCPToolWrapper(server_config, "test_tool", tool_descriptor)
-
-        assert wrapper.tool_name == "test_tool"
-        assert wrapper.server_config.url == "http://localhost:8080"
+        assert wrapper.server_name == "test-server"
+        assert wrapper._client == mock_client
+        assert wrapper._loop == mock_loop
 
     def should_generate_mojentic_compatible_descriptor(self):
-        server_config = MCPServerConfig(
-            name="test-server",
-            server_type=MCPServerType.STDIO,
-            command="test-command"
-        )
+        mock_client = Mock()
+        mock_loop = Mock()
         tool_descriptor = {
             "name": "test_tool",
             "description": "A test tool that does something",
@@ -68,7 +47,7 @@ class DescribeMCPToolWrapper:
             }
         }
 
-        wrapper = MCPToolWrapper(server_config, "test_tool", tool_descriptor)
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
         descriptor = wrapper.descriptor
 
         assert descriptor["type"] == "function"
@@ -77,17 +56,61 @@ class DescribeMCPToolWrapper:
         assert "param1" in descriptor["function"]["parameters"]["properties"]
 
     def should_handle_missing_description(self):
-        server_config = MCPServerConfig(
-            name="test-server",
-            server_type=MCPServerType.STDIO,
-            command="test-command"
-        )
+        mock_client = Mock()
+        mock_loop = Mock()
         tool_descriptor = {
             "name": "test_tool",
             "inputSchema": {}
         }
 
-        wrapper = MCPToolWrapper(server_config, "test_tool", tool_descriptor)
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
         descriptor = wrapper.descriptor
 
         assert "Tool from test-server" in descriptor["function"]["description"]
+
+    def should_coerce_string_to_number(self):
+        mock_client = Mock()
+        mock_loop = Mock()
+        tool_descriptor = {
+            "name": "test_tool",
+            "description": "A test tool",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "timeout": {"type": "number"},
+                    "count": {"type": "integer"}
+                }
+            }
+        }
+
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
+
+        # Test coercion
+        coerced = wrapper._coerce_types({"timeout": "30.5", "count": "42"})
+
+        assert coerced["timeout"] == 30.5
+        assert coerced["count"] == 42
+        assert isinstance(coerced["timeout"], float)
+        assert isinstance(coerced["count"], int)
+
+    def should_coerce_string_to_boolean(self):
+        mock_client = Mock()
+        mock_loop = Mock()
+        tool_descriptor = {
+            "name": "test_tool",
+            "description": "A test tool",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "enabled": {"type": "boolean"}
+                }
+            }
+        }
+
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
+
+        # Test coercion
+        assert wrapper._coerce_types({"enabled": "true"})["enabled"] is True
+        assert wrapper._coerce_types({"enabled": "false"})["enabled"] is False
+        assert wrapper._coerce_types({"enabled": "1"})["enabled"] is True
+        assert wrapper._coerce_types({"enabled": "0"})["enabled"] is False
