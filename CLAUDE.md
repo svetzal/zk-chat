@@ -35,12 +35,22 @@ All functionality previously available via separate entry points is now accessib
 ### Tool Architecture
 
 Built-in tools are located in `zk_chat/tools/` and include:
-- Document operations (read, write, rename, delete, list)
-- Search tools (find documents, find excerpts)
-- Memory tools (store/retrieve from smart memory)
-- Git integration (view changes, commit)
-- Visual analysis (analyze images)
-- Wikilink resolution
+- **Document operations**: read, write, rename, delete, list
+- **Search tools**: find documents, find excerpts
+- **Graph traversal**: extract wikilinks, find backlinks/forward links, link path finding
+- **Memory tools**: store/retrieve from smart memory
+- **Git integration**: view changes, commit (requires `--git` flag)
+- **Visual analysis**: analyze images (requires visual model)
+- **Wikilink resolution**: convert wikilinks to file paths
+
+### MCP Integration
+
+The project supports Model Context Protocol (MCP) for external tool integration:
+- **MCP Client**: `zk_chat/mcp_client.py` handles communication with MCP servers
+- **MCP Tool Wrapper**: `zk_chat/mcp_tool_wrapper.py` wraps MCP tools as LLM tools
+- **MCP Commands**: `zk-chat mcp` CLI commands for server registration and management
+- **Server Types**: Supports both STDIO and HTTP MCP servers
+- MCP tools are automatically loaded and verified before chat/agent sessions
 
 ## Development Commands
 
@@ -50,11 +60,19 @@ pytest                    # Run all tests (uses pytest-spec for readable output)
 pytest zk_chat/          # Run tests from specific directory
 ```
 
-The project uses pytest with specification-style output configuration. Test files follow the pattern `*_spec.py` and are located alongside the source files.
+The project uses pytest with specification-style output configuration. Test files follow the pattern `*_spec.py` and are co-located alongside the source files they test.
+
+**Test Style**: BDD-style tests using the "Describe/should" pattern:
+- Test classes start with `Describe` followed by component name
+- Test methods start with `should_` and describe expected behavior
+- Follow Arrange/Act/Assert pattern separated by blank lines (no comments)
+- Use pytest fixtures for test prerequisites; prefix mocks with `mock_`
+- Only mock gateway classes; don't mock library internals
+- Use Mock with spec parameter for type safety (e.g., `Mock(spec=SmartMemory)`)
 
 ### Linting
 ```bash
-flake8                    # Run linting (dev dependency)
+flake8                    # Run linting (max line length: 127, max complexity: 10)
 ```
 
 ### Dependencies
@@ -68,12 +86,31 @@ pip install -e .[dev]     # Install with development dependencies
 python -m build          # Build package for distribution
 ```
 
+### Diagnostics
+```bash
+zk-chat diagnose index              # Check index health and collection status
+zk-chat diagnose index --query "test"  # Run test query to verify search is working
+```
+
+The diagnostic command helps troubleshoot indexing and search issues by:
+- Checking ChromaDB collection existence and document counts
+- Showing sample documents from each collection
+- Testing embedding generation
+- Running test queries to verify search functionality
+
 ## Configuration
 
 - **Vault Configuration**: Stored in `.zk_chat` file within each vault
-- **Global Bookmarks**: Managed through command-line `--add-bookmark`/`--remove-bookmark` options
+- **Global Bookmarks**: Managed through `GlobalConfig` stored in `~/.zk_chat`. Both CLI and GUI share this bookmark system
 - **Database**: ChromaDB vector database stored in `.zk_chat_db/` within vault
 - **System Prompt**: Customizable `ZkSystemPrompt.md` file in vault root
+
+### GUI Configuration
+The Qt GUI uses the same configuration system as the CLI:
+- On first launch, it loads the last opened bookmark from `GlobalConfig`
+- If no bookmark exists, prompts the user to select a vault directory
+- Vault changes through the GUI settings dialog automatically update global bookmarks
+- Model and gateway settings are shared with the CLI for the same vault
 
 ## Plugin Development
 
@@ -101,11 +138,23 @@ Register plugins via entry points in `pyproject.toml`:
 zk_rag_plugins = { my_plugin = "my_plugin:MyPlugin" }
 ```
 
+## Code Conventions
+
+### General Guidelines
+- **Imports**: Group in order (standard library, third-party, local) with blank line between groups, sorted alphabetically within groups
+- **Type Hints**: Use type hints for method parameters and class dependencies; include return types when not obvious
+- **Documentation**: Use numpy docstring style; document non-obvious methods and all classes
+- **Logging**: Use structlog for all logging; initialize with `logger = structlog.get_logger()` at module level
+- **Data Classes**: Use pydantic BaseModel classes, not @dataclass
+- **Naming**: Use descriptive names; prefix test mocks with `mock_`, test data with `test_`
+
 ## Key Dependencies
 
-- **mojentic**: LLM broker and gateway abstraction (>=0.6.1)
-- **chromadb**: Vector database for semantic search (==0.6.3)
+- **mojentic**: LLM broker and gateway abstraction (>=0.8.2)
+- **chromadb**: Vector database for semantic search (>=1.1.0)
 - **PySide6**: Qt-based GUI framework (>=6.6.0)
+- **typer**: CLI framework with rich output support (>=0.9.0)
+- **fastmcp**: Model Context Protocol support (>=2.0.0)
 - **rich**: Terminal formatting and UI
 - **pyyaml**: Configuration file parsing
 

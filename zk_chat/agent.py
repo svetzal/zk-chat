@@ -6,7 +6,6 @@ logging.basicConfig(
 
 from zk_chat.mcp_tool_wrapper import MCPClientManager
 
-import argparse
 import os
 
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
@@ -21,7 +20,6 @@ from mojentic.llm.tools.current_datetime import CurrentDateTimeTool
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.chroma_collections import ZkCollectionName
-from zk_chat.cli import add_common_args, common_init, display_banner
 from zk_chat.config import Config, ModelGateway
 from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
@@ -154,25 +152,6 @@ def agent(config: Config):
                 print(response)
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Zettelkasten Agent')
-    add_common_args(parser)
-
-    args = parser.parse_args()
-
-    config = common_init(args)
-
-    if not config:  # common_init returns None for certain operations like --list-bookmarks
-        return
-
-    git_gateway = GitGateway(config.vault)
-    git_gateway.setup()
-
-    display_banner(config, title="ZkAgent", unsafe=True, use_git=True, store_prompt=False)
-
-    agent(config)
-
-
 def agent_single_query(config: Config, query: str) -> str:
     """
     Execute a single query using the agent and return the response.
@@ -258,7 +237,3 @@ def agent_single_query(config: Config, query: str) -> str:
         solver = IterativeProblemSolvingAgent(llm=llm, available_tools=tools, system_prompt=agent_prompt)
 
         return solver.solve(query)
-
-
-if __name__ == '__main__':
-    main()

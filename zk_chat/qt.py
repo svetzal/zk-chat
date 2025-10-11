@@ -9,14 +9,17 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                                QTextEdit, QPushButton, QDialog, QFrame,
                                QLabel, QLineEdit, QComboBox, QFileDialog, QSplitter, QHBoxLayout, QSizePolicy,
                                QTextBrowser, QScrollArea, QProgressBar)
+from mojentic.llm import ChatSession, LLMBroker
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 from mojentic.llm.tools.date_resolver import ResolveDateTool
 
-from zk_chat.chat import ChatSession, LLMBroker, ChromaGateway, Zettelkasten
+from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.chroma_collections import ZkCollectionName
+from zk_chat.zettelkasten import Zettelkasten
 from zk_chat.config import Config, get_available_models, ModelGateway
-from zk_chat.filesystem_gateway import MarkdownFilesystemGateway
+from zk_chat.global_config import GlobalConfig
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.analyze_image import AnalyzeImage
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
@@ -253,7 +256,21 @@ class SettingsDialog(QDialog):
             self.visual_model_combo.setCurrentIndex(0)
 
     def save_settings(self):
-        self.config.vault = self.folder_edit.text()
+        new_vault_path = self.folder_edit.text()
+
+        # If vault path changed, update global config bookmarks
+        if new_vault_path != self.config.vault:
+            global_config = GlobalConfig.load()
+            global_config.add_bookmark(new_vault_path)
+            global_config.set_last_opened_bookmark(new_vault_path)
+
+            # Load or create config for the new vault
+            self.config = Config.load(new_vault_path)
+            if not self.config:
+                self.config = Config.load_or_initialize(new_vault_path)
+        else:
+            self.config.vault = new_vault_path
+
         self.config.gateway = ModelGateway(self.gateway_combo.currentText())
         self.config.model = self.chat_model_combo.currentText()
 
@@ -271,9 +288,30 @@ class SettingsDialog(QDialog):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        # TODO: This is a placeholder. In a real application, we would need to get the vault path from somewhere.
-        vault_path = os.path.expanduser("~/Documents")
-        self.config = Config.load_or_initialize(vault_path)
+        # Load global config to get the last opened bookmark
+        global_config = GlobalConfig.load()
+        vault_path = global_config.get_last_opened_bookmark_path()
+
+        if not vault_path:
+            # No bookmark found, ask user to select a vault
+            vault_path = QFileDialog.getExistingDirectory(
+                self,
+                "Select Your Zettelkasten Vault Directory",
+                os.path.expanduser("~")
+            )
+            if not vault_path:
+                # User cancelled, exit
+                sys.exit(0)
+
+            # Add as bookmark and save
+            global_config.add_bookmark(vault_path)
+            global_config.set_last_opened_bookmark(vault_path)
+
+        self.config = Config.load(vault_path)
+        if not self.config:
+            # Config doesn't exist, initialize it
+            self.config = Config.load_or_initialize(vault_path)
+
         self.chat_session = None
         self.initialize_chat_session()
 
@@ -365,7 +403,7 @@ class MainWindow(QMainWindow):
             ),
             filesystem_gateway=MarkdownFilesystemGateway(self.config.vault))
         # Create LLM broker for chat
-        chat_llm = LLMBroker(self.config.model, gateway=self.config.gateway.value)
+        chat_llm = LLMBroker(self.config.model, gateway=gateway)
 
         # Initialize tools list with basic tools
         tools = [
@@ -379,7 +417,7 @@ class MainWindow(QMainWindow):
 
         # Add AnalyzeImage tool only if a visual model is selected
         if self.config.visual_model:
-            visual_llm = LLMBroker(self.config.visual_model, gateway=self.config.gateway.value)
+            visual_llm = LLMBroker(self.config.visual_model, gateway=gateway)
             tools.append(AnalyzeImage(zk, visual_llm))
 
         self.chat_session = ChatSession(
