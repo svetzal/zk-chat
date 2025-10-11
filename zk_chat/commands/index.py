@@ -30,14 +30,14 @@ console = Console()
 
 
 @index_app.command()
-def rebuild(
+def update(
     vault: Annotated[Optional[Path], typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
     full: Annotated[bool, typer.Option("--full", help="Force full rebuild (slower but comprehensive)")] = False,
     gateway: Annotated[Optional[str], typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
     model: Annotated[Optional[str], typer.Option("--model", "-m", help="Model for generating embeddings")] = None,
 ):
     """
-    Rebuild the search index for your Zettelkasten.
+    Update the search index for your Zettelkasten.
 
     [bold]Index Types:[/]
 
@@ -46,12 +46,12 @@ def rebuild(
 
     [bold]Examples:[/]
 
-    • [cyan]zk-chat index rebuild[/] - Quick incremental update
-    • [cyan]zk-chat index rebuild --full[/] - Complete rebuild
-    • [cyan]zk-chat index rebuild --vault ~/notes[/] - Rebuild specific vault
+    • [cyan]zk-chat index update[/] - Quick incremental update
+    • [cyan]zk-chat index update --full[/] - Complete rebuild
+    • [cyan]zk-chat index update --vault ~/notes[/] - Update specific vault
 
-    [bold yellow]💡 Tip:[/] Use incremental rebuild for regular maintenance,
-    full rebuild after major changes or troubleshooting.
+    [bold yellow]💡 Tip:[/] Incremental update is fast and happens automatically on startup.
+    Use --full after major changes or for troubleshooting.
     """
     class Args:
         def __init__(self):
@@ -76,7 +76,7 @@ def rebuild(
         return
 
     # The reindexing will happen in common_init_typer since args.reindex = True
-    console.print("\n[green]✅ Index rebuild completed![/]")
+    console.print("\n[green]✅ Index update completed![/]")
     console.print("[dim]Your Zettelkasten is ready for fast searching.[/]")
 
 
@@ -148,7 +148,7 @@ def status(
         # Calculate time since last index
         time_diff = datetime.now() - last_indexed
         if time_diff.days > 0:
-            console.print(f"[yellow]⚠️  {time_diff.days} day(s) ago - consider rebuilding[/]")
+            console.print(f"[yellow]⚠️  {time_diff.days} day(s) ago - consider updating[/]")
         elif time_diff.seconds > 3600:
             hours = time_diff.seconds // 3600
             console.print(f"[green]✅ {hours} hour(s) ago - up to date[/]")
@@ -156,7 +156,7 @@ def status(
             console.print("[green]✅ Recently updated[/]")
     else:
         console.print("\n[red]❌ Never indexed[/]")
-        console.print(f"[yellow]Run:[/] [cyan]zk-chat index rebuild --vault {vault_path}[/]")
+        console.print(f"[yellow]Run:[/] [cyan]zk-chat index update --vault {vault_path}[/]")
 
     # Database directory info
     db_dir = os.path.join(vault_path, ".zk_chat_db")
@@ -203,8 +203,8 @@ def status(
     elif markdown_count == 0:
         console.print(f"\n[yellow]⚠️  No markdown files found in vault[/]")
     else:
-        console.print(f"\n[red]❌ Index needs rebuilding[/]")
-        console.print("[dim]Run: [cyan]zk-chat index rebuild[/dim]")
+        console.print(f"\n[red]❌ Index needs updating[/]")
+        console.print("[dim]Run: [cyan]zk-chat index update[/dim]")
 
 
 # Default command
@@ -214,10 +214,10 @@ def index_default(ctx: typer.Context):
     Manage your Zettelkasten search index.
 
     The index enables fast semantic search across your notes.
-    Use [cyan]rebuild[/] to update it and [cyan]status[/] to check its health.
+    Use [cyan]update[/] to refresh it and [cyan]status[/] to check its health.
     """
     if ctx.invoked_subcommand is None:
         # Show help by default
         console.print(ctx.get_help())
         console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat index --help[/] to see available commands.")
-        console.print("Most common: [cyan]zk-chat index rebuild[/] or [cyan]zk-chat index status[/]")
+        console.print("Most common: [cyan]zk-chat index update[/] or [cyan]zk-chat index status[/]")

@@ -28,10 +28,10 @@ import sys
 from zk_chat.commands.gui import gui_app
 from zk_chat.commands.index import index_app
 from zk_chat.commands.mcp import mcp_app
+from zk_chat.commands.diagnose import diagnose_app
 
 # Import functions for interactive and query commands
 from zk_chat.cli import common_init_typer, display_banner
-from zk_chat.chat import chat as run_chat
 from zk_chat.agent import agent as run_agent
 
 # Create the main app
@@ -47,6 +47,7 @@ app = typer.Typer(
 app.add_typer(gui_app, name="gui")
 app.add_typer(index_app, name="index")
 app.add_typer(mcp_app, name="mcp")
+app.add_typer(diagnose_app, name="diagnose")
 
 # Global options that apply to all commands
 console = Console()
@@ -58,8 +59,7 @@ def create_args_namespace(
     gateway: Optional[str] = None,
     model: Optional[str] = None,
     visual_model: Optional[str] = None,
-    reindex: bool = False,
-    full: bool = False,
+    no_index: bool = False,
     unsafe: bool = False,
     git: bool = False,
     store_prompt: bool = True,
@@ -75,8 +75,8 @@ def create_args_namespace(
             self.gateway = gateway
             self.model = model
             self.visual_model = visual_model
-            self.reindex = reindex
-            self.full = full
+            self.reindex = not no_index  # Index by default unless --no-index is set
+            self.full = False  # Never do full reindex on startup
             self.unsafe = unsafe
             self.git = git
             self.store_prompt = store_prompt
@@ -99,16 +99,12 @@ def interactive(
     visual_model: Annotated[Optional[str], typer.Option("--visual-model", help="Visual analysis model")] = None,
 
     # Index options
-    reindex: Annotated[bool, typer.Option("--reindex", help="Reindex before starting chat")] = False,
-    full: Annotated[bool, typer.Option("--full", help="Force full reindex (with --reindex)")] = False,
+    no_index: Annotated[bool, typer.Option("--no-index", help="Skip indexing new documents on startup")] = False,
 
-    # Chat options
+    # Agent options
     unsafe: Annotated[bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")] = False,
     git: Annotated[bool, typer.Option("--git", help="Enable git integration")] = False,
     store_prompt: Annotated[bool, typer.Option("--store-prompt/--no-store-prompt", help="Store system prompt in vault")] = True,
-
-    # Agent mode
-    agent_mode: Annotated[bool, typer.Option("--agent", help="Use agent mode (autonomous problem solving)")] = False,
 
     # Memory options
     reset_memory: Annotated[bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
@@ -118,19 +114,16 @@ def interactive(
     list_bookmarks: Annotated[bool, typer.Option("--list-bookmarks", help="List all bookmarks")] = False,
 ):
     """
-    Start an interactive chat session with your Zettelkasten.
+    Start an interactive agent session with your Zettelkasten.
+
+    The agent uses autonomous problem-solving with full tool access to help you
+    work with your knowledge base.
 
     [bold]Examples:[/]
 
-    • [cyan]zk-chat interactive --vault ~/notes[/] - Start chat with specific vault
-    • [cyan]zk-chat interactive --agent[/] - Use autonomous agent mode
+    • [cyan]zk-chat interactive --vault ~/notes[/] - Start agent with specific vault
     • [cyan]zk-chat interactive --unsafe --git[/] - Allow AI to edit files with git tracking
-    • [cyan]zk-chat interactive --reindex[/] - Rebuild index before starting
-
-    [bold]Agent mode vs Chat mode:[/]
-
-    • [green]Chat mode[/]: Simple Q&A with your notes
-    • [green]Agent mode[/]: Autonomous problem-solving with full tool access
+    • [cyan]zk-chat interactive --no-index[/] - Skip indexing new documents on startup
     """
     # Create args namespace using shared function
     args = create_args_namespace(
@@ -139,8 +132,7 @@ def interactive(
         gateway=gateway,
         model=model,
         visual_model=visual_model,
-        reindex=reindex,
-        full=full,
+        no_index=no_index,
         unsafe=unsafe,
         git=git,
         store_prompt=store_prompt,
@@ -154,13 +146,9 @@ def interactive(
     if not config:
         return
 
-    # Display appropriate banner
-    if agent_mode:
-        display_banner(config, title="ZkChat Agent", unsafe=unsafe, use_git=git, store_prompt=store_prompt)
-        run_agent(config)
-    else:
-        display_banner(config, title="ZkChat", unsafe=unsafe, use_git=git, store_prompt=store_prompt)
-        run_chat(config, unsafe=unsafe, use_git=git, store_prompt=store_prompt)
+    # Display banner and run agent
+    display_banner(config, title="ZkChat Agent", unsafe=unsafe, use_git=git, store_prompt=store_prompt)
+    run_agent(config)
 
 
 @app.command()
@@ -169,10 +157,10 @@ def query(
     vault: Annotated[Optional[Path], typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
     gateway: Annotated[Optional[str], typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
     model: Annotated[Optional[str], typer.Option("--model", "-m", help="Chat model to use")] = None,
-    agent_mode: Annotated[bool, typer.Option("--agent/--no-agent", help="Use agent mode for complex queries")] = True,
+    no_index: Annotated[bool, typer.Option("--no-index", help="Skip indexing new documents")] = False,
 ):
     """
-    Ask a single question to your Zettelkasten and get an answer.
+    Ask a single question to your Zettelkasten using the agent.
 
     Can read input from command line argument or STDIN.
 
@@ -180,10 +168,8 @@ def query(
 
     • [cyan]zk-chat query "What are my thoughts on productivity?"[/]
     • [cyan]cat prompt.txt | zk-chat query[/]
-    • [cyan]echo "My question" | zk-chat query --agent[/]
+    • [cyan]echo "My question" | zk-chat query[/]
     • [cyan]zk-chat query "Find connections" --vault ~/notes[/]
-
-    Agent mode is recommended for complex queries that might require multiple steps.
     """
 
     # Get prompt from argument or STDIN
@@ -208,8 +194,7 @@ def query(
         gateway=gateway,
         model=model,
         visual_model=None,
-        reindex=False,
-        full=False,
+        no_index=no_index,
         unsafe=False,
         git=False,
         store_prompt=True,
@@ -221,23 +206,14 @@ def query(
     if not config:
         return
 
-    # Execute single query
-    if agent_mode:
-        console.print(f"[bold cyan]Query:[/] {prompt}")
-        console.print("[dim]Using agent mode for autonomous problem solving...[/]\n")
+    # Execute single query using agent
+    console.print(f"[bold cyan]Query:[/] {prompt}")
+    console.print("[dim]Using agent for autonomous problem solving...[/]\n")
 
-        # Import and run agent with single query
-        from zk_chat.agent import agent_single_query
-        result = agent_single_query(config, prompt)
-        console.print(f"\n[bold green]Response:[/]\n{result}")
-    else:
-        # Simple chat query
-        console.print(f"[bold cyan]Query:[/] {prompt}")
-        console.print("[dim]Using simple chat mode...[/]\n")
-
-        from zk_chat.chat import chat_single_query
-        result = chat_single_query(config, prompt)
-        console.print(f"\n[bold green]Response:[/]\n{result}")
+    # Import and run agent with single query
+    from zk_chat.agent import agent_single_query
+    result = agent_single_query(config, prompt)
+    console.print(f"\n[bold green]Response:[/]\n{result}")
 
 
 @app.callback()
@@ -246,22 +222,23 @@ def main(
     version: Annotated[bool, typer.Option("--version", help="Show version information")] = False,
 ):
     """
-    💬 Chat with your Zettelkasten - AI-powered knowledge management
+    💬 ZkChat - AI Agent for your Zettelkasten
 
     Use [bold cyan]zk-chat COMMAND --help[/] to see options for specific commands.
 
     [bold]Common workflows:[/]
 
-    • [cyan]zk-chat interactive[/] - Start interactive chat session
+    • [cyan]zk-chat interactive[/] - Start interactive agent session
     • [cyan]zk-chat query "your question"[/] - Ask a single question
     • [cyan]zk-chat gui[/] - Launch graphical interface
-    • [cyan]zk-chat index --reindex[/] - Rebuild search index
+    • [cyan]zk-chat index update[/] - Update search index
+    • [cyan]zk-chat diagnose index[/] - Troubleshoot index issues
     • [cyan]zk-chat mcp list[/] - Manage MCP server connections
 
     [bold]Getting started:[/]
 
     1. Set up your vault: [cyan]zk-chat interactive --vault /path/to/notes[/]
-    2. Chat with your notes: [cyan]zk-chat interactive[/]
+    2. Work with your agent: [cyan]zk-chat interactive[/]
     3. For visual interface: [cyan]zk-chat gui[/]
     """
     if version:
