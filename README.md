@@ -6,6 +6,16 @@ entire documents, and generate responses based on the content in your Zettelkast
 
 For "AI" it communicates with either a local running instance of Ollama or OpenAI's API. By default, Ollama is used and must be installed and running for zk-chat to function, but you can also configure it to use OpenAI with the `--gateway openai` option.
 
+## 📚 Documentation
+
+For comprehensive documentation, please visit our [documentation site](https://vetzal.com/zk-chat/) which includes:
+
+- **Getting Started**: Installation, quick start, and configuration guides
+- **User Guide**: Detailed guides for interactive chat, queries, index management, and more
+- **Tools**: Documentation for all available tools (document management, graph traversal, git integration)
+- **Plugin Development**: Complete guide for creating custom plugins
+- **Reference**: CLI commands, configuration options, and troubleshooting
+
 ## ✨ Features
 
 - Command-line interface for quick access
@@ -357,3 +367,35 @@ The tool stores its configuration and database in your Zettelkasten vault:
 - `.zk_chat` - Configuration file stored in the vault root
 - `.zk_chat_db/` - Chroma vector database folder stored in the vault root
 - `ZkSystemPrompt.md` - System prompt file created in the vault root if it doesn't exist. This file defines the behavior of the AI assistant and can be customized to change how the assistant interacts with your Zettelkasten. By default, this file is created and used. You can prevent the creation of this file by not using the `--store-prompt` parameter, in which case the default system prompt will be used.
+
+## 📖 Building Documentation
+
+The documentation is built using [MkDocs](https://www.mkdocs.org/) with the Material theme.
+
+### Prerequisites
+
+Install development dependencies:
+
+```bash
+pip install -e ".[dev]"
+```
+
+### Build and Serve
+
+```bash
+# Build the documentation
+mkdocs build
+
+# Serve locally for development (with live reload)
+mkdocs serve
+```
+
+The documentation will be available at `http://127.0.0.1:8000/`.
+
+### Deploy
+
+The documentation can be deployed to GitHub Pages:
+
+```bash
+mkdocs gh-deploy
+```
