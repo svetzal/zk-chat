@@ -1,0 +1,67 @@
+site_name: Zk-Chat
+site_url: https://vetzal.com/zk-chat/
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - content.code.select
+  palette:
+    primary: custom
+    accent: custom
+  favicon: docs/assets/favicon.png
+  logo: docs/assets/favicon.png
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [ "zk_chat" ]
+          options:
+            docstring_style: "numpy"
+            heading_level: 1
+            annotations_path: brief
+      enable_inventory: true
+  - autorefs
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quick-start.md
+    - Configuration: getting-started/configuration.md
+  - User Guide:
+    - Interactive Chat: user-guide/interactive-chat.md
+    - Single Queries: user-guide/single-queries.md
+    - Index Management: user-guide/index-management.md
+    - MCP Servers: user-guide/mcp-servers.md
+    - Visual Analysis: user-guide/visual-analysis.md
+    - Smart Memory: user-guide/smart-memory.md
+  - Tools:
+    - Document Management: tools/document-management.md
+    - Graph Traversal: tools/graph-traversal.md
+    - Git Integration: tools/git-integration.md
+  - Plugin Development:
+    - Overview: plugins/overview.md
+    - Creating Plugins: plugins/creating-plugins.md
+    - Service Provider: plugins/service-provider.md
+    - Examples: plugins/examples.md
+  - Reference:
+    - CLI Commands: reference/cli-commands.md
+    - Configuration Options: reference/configuration.md
+    - Troubleshooting: reference/troubleshooting.md
+
+repo_name: svetzal/zk-chat
+repo_url: https://github.com/svetzal/zk-chat

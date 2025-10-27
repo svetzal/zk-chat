@@ -29,6 +29,10 @@ dev = [
     "pytest-spec",
     "pytest-cov",
     "pytest-mock",
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocstrings[python]",
+    "pymdown-extensions",
 ]
 
 [build-system]
