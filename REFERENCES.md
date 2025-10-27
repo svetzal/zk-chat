@@ -29,11 +29,12 @@ Currently, the chat system doesn't explicitly track or display which documents a
 
 #### 1.1 Message Reference Structure
 
-We need to extend the message data model to include document references. Since we're using the `mojentic` library's `LLMMessage` class, we'll track references separately but associate them with messages.
+Instead of wrapping the `mojentic` library's ChatSession, we'll manage our own rich message structure within zk-chat. This gives us full control over the chat session data and allows us to maintain document references directly on messages for local UI purposes, while still converting to the simpler `LLMMessage` format when communicating with the LLM.
 
 ```python
 from typing import List, Optional
 from pydantic import BaseModel
+from mojentic.llm.gateways.models import LLMMessage
 
 class DocumentReference(BaseModel):
     """
@@ -48,77 +49,159 @@ class DocumentReference(BaseModel):
     summary: Optional[str] = None  # Optional AI-generated summary
     context_snippet: Optional[str] = None  # Optional context from the source
 
-class MessageReferences(BaseModel):
+class ZkChatMessage(BaseModel):
     """
-    Contains all document references associated with a message.
-    """
-    message_index: int  # Index in the chat session's messages list
-    references: List[DocumentReference]
+    Rich message structure for zk-chat that includes document references.
     
-class ChatSessionMetadata(BaseModel):
+    This is our internal representation that maintains all the context we need
+    for UI display and reference tracking. We convert this to LLMMessage when
+    sending to the LLM.
     """
-    Metadata tracked alongside a ChatSession to support enhanced features.
-    """
-    message_references: List[MessageReferences] = []
+    role: str  # "user", "assistant", or "system"
+    content: str  # The message content
+    references: List[DocumentReference] = []  # Documents referenced in this message
+    timestamp: Optional[str] = None  # When the message was created
+    tool_calls: Optional[List] = None  # Tool calls made (for assistant messages)
+    
+    def to_llm_message(self) -> LLMMessage:
+        """
+        Convert our rich message to mojentic's simpler LLMMessage format.
+        
+        When converting, we may augment the content with reference information
+        to provide context to the LLM.
+        """
+        from mojentic.llm.gateways.models import MessageRole
+        
+        content = self.content
+        
+        # For user messages with references, augment with reference list
+        if self.role == "user" and self.references:
+            ref_lines = ["\n\nReferenced Documents:"]
+            for ref in self.references:
+                if ref.relative_path:
+                    summary = ref.summary or ""
+                    ref_lines.append(f"- {ref.wikilink} ({ref.relative_path}): {summary}")
+                else:
+                    ref_lines.append(f"- {ref.wikilink}: Warning - Document not found")
+            ref_lines.append("\nPlease read these documents using the read_zk_document tool if you need more information.")
+            content = content + "\n".join(ref_lines)
+        
+        return LLMMessage(
+            role=MessageRole[self.role.capitalize()],
+            content=content,
+            tool_calls=self.tool_calls
+        )
 ```
 
-#### 1.2 Integration with ChatSession
+#### 1.2 ZkChatSession - Our Own Chat Session Manager
 
-Since `ChatSession` is from the `mojentic` library, we'll create a wrapper or companion class:
+Rather than wrapping `mojentic.llm.ChatSession`, we'll create our own chat session manager that maintains the rich message structure and handles conversion to/from the LLM:
 
 ```python
-class EnhancedChatSession:
+class ZkChatSession:
     """
-    Wraps mojentic.llm.ChatSession with additional reference tracking.
+    Manages a chat session with rich message structures and document reference tracking.
+    
+    This class maintains parallel arrays:
+    - messages: List[ZkChatMessage] - Our rich internal messages with references
+    - llm_session: ChatSession - The underlying mojentic chat session for LLM communication
+    
+    The rich messages are used for local UI display and reference tracking,
+    while the LLM session manages the actual conversation with the model.
     """
-    def __init__(self, chat_session: ChatSession):
-        self.chat_session = chat_session
-        self.metadata = ChatSessionMetadata()
+    def __init__(
+        self,
+        llm: LLMBroker,
+        system_prompt: str,
+        tools: List[LLMTool],
+        filesystem_gateway: MarkdownFilesystemGateway,
+        zettelkasten: Zettelkasten,
+        max_context: int = 32768,
+        temperature: float = 1.0
+    ):
+        # Our rich message history
+        self.messages: List[ZkChatMessage] = []
+        
+        # Underlying LLM session (from mojentic)
+        self.llm_session = ChatSession(
+            llm=llm,
+            system_prompt=system_prompt,
+            tools=tools,
+            max_context=max_context,
+            temperature=temperature
+        )
+        
+        # Dependencies for reference tracking
+        self.filesystem_gateway = filesystem_gateway
+        self.zettelkasten = zettelkasten
         self.wikilink_pattern = re.compile(r'\[\[([^\]]+)\]\]')
         
-    def send_with_references(self, query: str) -> tuple[str, List[DocumentReference]]:
+    def send(self, user_message: str) -> tuple[str, ZkChatMessage, ZkChatMessage]:
         """
-        Send a query, extract references, and return both response and references.
+        Send a user message and return the assistant's response.
+        
+        Returns:
+            tuple[str, ZkChatMessage, ZkChatMessage]: 
+                - The response text (for backward compatibility)
+                - The user message (with references)
+                - The assistant message (with references)
         """
-        # Extract wikilinks from user query
-        user_refs = self._extract_wikilinks_from_query(query)
+        # Extract references from user message
+        user_refs = self._extract_wikilinks_from_message(user_message)
         
-        # Augment query with reference prompts if needed
-        augmented_query = self._augment_query_with_references(query, user_refs)
+        # Create rich user message
+        user_msg = ZkChatMessage(
+            role="user",
+            content=user_message,
+            references=user_refs,
+            timestamp=datetime.now().isoformat()
+        )
         
-        # Send to LLM
-        response = self.chat_session.send(augmented_query)
+        # Add to our message history
+        self.messages.append(user_msg)
         
-        # Track user message references
-        user_msg_idx = len(self.chat_session.messages) - 2  # -1 is assistant, -2 is user
-        if user_refs:
-            self.metadata.message_references.append(
-                MessageReferences(message_index=user_msg_idx, references=user_refs)
-            )
+        # Convert to LLM message and send
+        llm_message = user_msg.to_llm_message()
+        response_text = self.llm_session.send(llm_message.content)
         
-        # Extract assistant references (from tool calls)
+        # Extract references from assistant's tool usage
         assistant_refs = self._extract_assistant_references()
-        assistant_msg_idx = len(self.chat_session.messages) - 1
-        if assistant_refs:
-            self.metadata.message_references.append(
-                MessageReferences(message_index=assistant_msg_idx, references=assistant_refs)
-            )
         
-        return response, assistant_refs
+        # Create rich assistant message
+        assistant_msg = ZkChatMessage(
+            role="assistant",
+            content=response_text,
+            references=assistant_refs,
+            timestamp=datetime.now().isoformat(),
+            tool_calls=self._get_recent_tool_calls()
+        )
+        
+        # Add to our message history
+        self.messages.append(assistant_msg)
+        
+        return response_text, user_msg, assistant_msg
+    
+    def get_messages(self) -> List[ZkChatMessage]:
+        """Get all messages with their references for UI display."""
+        return self.messages
+    
+    def get_llm_messages(self) -> List[LLMMessage]:
+        """Get simplified messages for LLM context (if needed for debugging)."""
+        return [msg.to_llm_message() for msg in self.messages]
 ```
 
 ### 2. Wikilink Extraction and Processing
 
 #### 2.1 User Message Processing
 
-When a user sends a message with wikilinks:
+When a user sends a message with wikilinks, the `ZkChatSession` extracts and resolves them:
 
 ```python
-def _extract_wikilinks_from_query(self, query: str) -> List[DocumentReference]:
+def _extract_wikilinks_from_message(self, message: str) -> List[DocumentReference]:
     """
-    Extract wikilinks from user query and resolve them.
+    Extract wikilinks from user message and resolve them.
     
-    Example query: "Can you explain [[parameters reference]] and [[tool usage]]?"
+    Example message: "Can you explain [[parameters reference]] and [[tool usage]]?"
     Returns: [
         DocumentReference(wikilink="[[parameters reference]]", relative_path="docs/params.md", ...),
         DocumentReference(wikilink="[[tool usage]]", relative_path="docs/tools.md", ...)
@@ -127,7 +210,7 @@ def _extract_wikilinks_from_query(self, query: str) -> List[DocumentReference]:
     references = []
     
     # Find all wikilinks
-    matches = self.wikilink_pattern.finditer(query)
+    matches = self.wikilink_pattern.finditer(message)
     
     for match in matches:
         wikilink_text = match.group(0)  # Full [[...]]
@@ -159,55 +242,20 @@ def _extract_wikilinks_from_query(self, query: str) -> List[DocumentReference]:
     return references
 ```
 
-#### 2.2 Query Augmentation
-
-Augment the user's query with reference information:
-
-```python
-def _augment_query_with_references(self, query: str, references: List[DocumentReference]) -> str:
-    """
-    Augment user query with structured reference information.
-    
-    Before: "Can you explain [[parameters reference]]?"
-    
-    After: "Can you explain [[parameters reference]]?
-    
-    Referenced Documents:
-    - [[parameters reference]] (docs/params.md): A detailed reference for all parameters...
-    
-    Please read these documents using the read_zk_document tool if you need more information."
-    """
-    if not references:
-        return query
-    
-    # Build reference list
-    ref_lines = ["\n\nReferenced Documents:"]
-    
-    for ref in references:
-        if ref.relative_path:
-            # Optionally get summary
-            summary = ref.summary or self._generate_summary(ref.relative_path)
-            ref_lines.append(f"- {ref.wikilink} ({ref.relative_path}): {summary}")
-        else:
-            ref_lines.append(f"- {ref.wikilink}: Warning - Document not found")
-    
-    ref_lines.append("\nPlease read these documents using the read_zk_document tool if you need more information.")
-    
-    return query + "\n".join(ref_lines)
-```
+The references are stored directly on the `ZkChatMessage` object and are automatically formatted when converting to an LLM message via the `to_llm_message()` method shown in section 1.1.
 
 ### 3. Assistant Reference Tracking
 
 #### 3.1 Detecting Tool Usage
 
-Track when the assistant uses document-retrieval tools:
+Track when the assistant uses document-retrieval tools. This method is part of `ZkChatSession`:
 
 ```python
 def _extract_assistant_references(self) -> List[DocumentReference]:
     """
     Extract document references from the assistant's recent tool calls.
     
-    This monitors tool calls like:
+    This monitors tool calls from the underlying LLM session like:
     - read_zk_document
     - find_excerpts
     - find_zk_documents
@@ -216,11 +264,11 @@ def _extract_assistant_references(self) -> List[DocumentReference]:
     """
     references = []
     
-    # Get the most recent assistant message
-    if not self.chat_session.messages:
+    # Get the most recent messages from the LLM session
+    if not self.llm_session.messages:
         return references
     
-    last_message = self.chat_session.messages[-1]
+    last_message = self.llm_session.messages[-1]
     
     # Check if message has tool calls
     if not last_message.tool_calls:
@@ -428,28 +476,24 @@ class QtReferenceWidget(QWidget):
 
 #### 6.1 Chat Module Integration
 
-Modify `zk_chat/chat.py`:
+Modify `zk_chat/chat.py` to use our new `ZkChatSession`:
 
 ```python
 def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prompt: bool = False):
-    # ... existing setup code ...
+    # ... existing setup code for llm, zk, filesystem_gateway, tools ...
     
-    # Create base chat session
-    chat_session = ChatSession(
-        llm,
+    # Create our rich chat session instead of mojentic's ChatSession directly
+    chat_session = ZkChatSession(
+        llm=llm,
         system_prompt=system_prompt,
-        tools=tools
-    )
-    
-    # Wrap with enhanced session
-    enhanced_session = EnhancedChatSession(
-        chat_session=chat_session,
+        tools=tools,
         filesystem_gateway=filesystem_gateway,
         zettelkasten=zk,
-        llm=llm
+        max_context=32768,
+        temperature=1.0
     )
     
-    # Reference renderer
+    # Reference renderer for displaying references
     ref_renderer = ConsoleReferenceRenderer(console_service)
     
     while True:
@@ -458,15 +502,18 @@ def chat(config: Config, unsafe: bool = False, use_git: bool = False, store_prom
             console_service.print("[chat.system]Exiting...[/]")
             break
         else:
-            # Send with reference tracking
-            response, assistant_refs = enhanced_session.send_with_references(query)
+            # Send message - returns response text and both messages with references
+            response, user_msg, assistant_msg = chat_session.send(query)
             
             # Display response
             console_service.print(f"[chat.assistant]{response}[/]")
             
-            # Display references if any
-            if assistant_refs:
-                ref_renderer.render_references(assistant_refs)
+            # Display references if any were used by the assistant
+            if assistant_msg.references:
+                ref_renderer.render_references(assistant_msg.references)
+            
+            # Optionally, also show user references if they were resolved
+            # (could be shown inline or as a separate section)
 ```
 
 #### 6.2 Agent Module Integration
@@ -477,58 +524,122 @@ Similar integration for `zk_chat/agent.py`:
 def agent(config: Config):
     # ... existing setup code ...
     
-    # Wrap the problem-solving agent with reference tracking
-    enhanced_agent = EnhancedIterativeProblemSolvingAgent(
-        base_agent=problem_solver,
+    # Create ZkChatSession for the agent instead of basic ChatSession
+    chat_session = ZkChatSession(
+        llm=llm,
+        system_prompt=system_prompt,
+        tools=tools,
         filesystem_gateway=filesystem_gateway,
-        zettelkasten=zk,
-        llm=llm
+        zettelkasten=zk
+    )
+    
+    # The agent can now access rich message history with references
+    problem_solver = IterativeProblemSolvingAgent(
+        chat_session=chat_session,  # Pass our rich session
+        # ... other parameters ...
     )
     
     # ... rest of agent code ...
 ```
 
-### 7. Storage and Persistence
+#### 6.3 GUI Integration
 
-#### 7.1 Optional: Persist References
-
-For advanced use cases, we might want to persist reference metadata:
+For the Qt GUI, we can access the full message history with references:
 
 ```python
-class ReferenceStore:
+class ChatWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.chat_session = None  # Will be ZkChatSession
+        self.ref_widget = QtReferenceWidget()
+        
+    def send_message(self, user_text: str):
+        """Send a message and update the UI."""
+        # Send and get rich messages back
+        response, user_msg, assistant_msg = self.chat_session.send(user_text)
+        
+        # Display messages in chat history
+        self.add_message_to_ui(user_msg)
+        self.add_message_to_ui(assistant_msg)
+        
+        # Update reference widget with assistant references
+        if assistant_msg.references:
+            self.ref_widget.update_references(assistant_msg.references)
+    
+    def add_message_to_ui(self, message: ZkChatMessage):
+        """Add a message with its references to the UI."""
+        # Display message content
+        self.chat_display.append_message(message.role, message.content)
+        
+        # Optionally display inline references
+        if message.references:
+            ref_summary = ", ".join([ref.wikilink for ref in message.references])
+            self.chat_display.append_metadata(f"📚 References: {ref_summary}")
+```
+
+### 7. Storage and Persistence
+
+#### 7.1 Optional: Persist Chat Sessions
+
+For advanced use cases, we can persist entire chat sessions with references:
+
+```python
+class ChatSessionStore:
     """
-    Optional: Store reference metadata persistently.
+    Optional: Store chat sessions with their rich message history.
     """
     def __init__(self, vault_path: str):
-        self.db_path = os.path.join(vault_path, ".zk_chat_db", "references.json")
+        self.db_path = os.path.join(vault_path, ".zk_chat_db", "chat_sessions.json")
     
-    def save_session_references(self, session_id: str, metadata: ChatSessionMetadata):
-        """Save references for a chat session."""
+    def save_session(self, session_id: str, chat_session: ZkChatSession):
+        """Save a chat session with all its messages and references."""
         # Load existing data
         data = self._load_data()
         
+        # Convert messages to serializable format
+        messages_data = [msg.model_dump() for msg in chat_session.messages]
+        
         # Update with new session
-        data[session_id] = metadata.model_dump()
+        data[session_id] = {
+            "messages": messages_data,
+            "created_at": datetime.now().isoformat(),
+            "last_updated": datetime.now().isoformat()
+        }
         
         # Save
         self._save_data(data)
     
-    def get_session_references(self, session_id: str) -> Optional[ChatSessionMetadata]:
-        """Retrieve references for a chat session."""
+    def load_session(self, session_id: str) -> Optional[List[ZkChatMessage]]:
+        """Retrieve a chat session's message history."""
         data = self._load_data()
         session_data = data.get(session_id)
         
         if session_data:
-            return ChatSessionMetadata.model_validate(session_data)
+            messages = [ZkChatMessage.model_validate(msg) for msg in session_data["messages"]]
+            return messages
         return None
+    
+    def _load_data(self) -> dict:
+        """Load session data from disk."""
+        if os.path.exists(self.db_path):
+            with open(self.db_path, 'r') as f:
+                return json.load(f)
+        return {}
+    
+    def _save_data(self, data: dict):
+        """Save session data to disk."""
+        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        with open(self.db_path, 'w') as f:
+            json.dump(data, f, indent=2)
 ```
 
 ### 8. Implementation Phases
 
 #### Phase 1: Core Infrastructure (Foundation)
-- [ ] Create `DocumentReference` and `MessageReferences` models
-- [ ] Create `EnhancedChatSession` wrapper class
-- [ ] Implement wikilink extraction from user queries
+- [ ] Create `DocumentReference` model in `zk_chat/models.py`
+- [ ] Create `ZkChatMessage` model with references array
+- [ ] Create `ZkChatSession` class to manage rich message history
+- [ ] Implement wikilink extraction from user messages
 - [ ] Add basic tests for reference extraction
 
 #### Phase 2: Assistant Reference Tracking
@@ -544,10 +655,10 @@ class ReferenceStore:
 - [ ] Add caching for summaries
 - [ ] Add tests for summary service
 
-#### Phase 4: Query Augmentation
-- [ ] Implement query augmentation with reference prompts
-- [ ] Add formatting for reference lists in prompts
-- [ ] Test that LLM responds to reference prompts appropriately
+#### Phase 4: Message Augmentation
+- [ ] Implement `ZkChatMessage.to_llm_message()` conversion with reference formatting
+- [ ] Test that reference lists are properly appended to LLM messages
+- [ ] Test that LLM responds appropriately to reference prompts
 
 #### Phase 5: Display Integration
 - [ ] Create `ConsoleReferenceRenderer`
@@ -562,8 +673,8 @@ class ReferenceStore:
 - [ ] Add tests for GUI components
 
 #### Phase 7: Persistence (Optional)
-- [ ] Create `ReferenceStore` for persistent storage
-- [ ] Integrate with session management
+- [ ] Create `ChatSessionStore` for persistent storage of sessions
+- [ ] Implement save/load for `ZkChatSession`
 - [ ] Add tests for persistence
 
 #### Phase 8: Polish and Documentation
@@ -640,29 +751,32 @@ class ReferenceStore:
 ## Dependencies
 
 ### Existing Components
-- `mojentic.llm.ChatSession` - Base chat session
+- `mojentic.llm.ChatSession` - Underlying LLM communication (we'll use internally)
+- `mojentic.llm.gateways.models.LLMMessage` - Simple message format for LLM
 - `MarkdownFilesystemGateway` - Wikilink resolution
 - `Zettelkasten` - Document access
 - `RichConsoleService` - Console output
 - `LLMBroker` - Summary generation
 
 ### New Components
-- `DocumentReference` model
-- `MessageReferences` model
-- `EnhancedChatSession` wrapper
-- `DocumentSummaryService`
-- `ConsoleReferenceRenderer`
-- `QtReferenceWidget` (optional)
-- `ReferenceStore` (optional)
+- `DocumentReference` model - Represents a document reference with metadata
+- `ZkChatMessage` model - Rich message with references array
+- `ZkChatSession` class - Manages chat with rich message history (replaces direct ChatSession usage)
+- `DocumentSummaryService` - Generates document summaries
+- `ConsoleReferenceRenderer` - Displays references in console
+- `QtReferenceWidget` (optional) - GUI reference display
+- `ChatSessionStore` (optional) - Persistent storage for chat sessions
 
 ## Migration Path
 
 Since this is a new feature with no existing data to migrate:
 
-1. **Phase 1**: Implement as optional feature flag
-2. **Phase 2**: Enable by default for new sessions
-3. **Phase 3**: Remove feature flag once stable
-4. **Phase 4**: Consider persistence for advanced users
+1. **Phase 1**: Implement core `ZkChatSession` alongside existing `ChatSession` usage
+2. **Phase 2**: Migrate `chat.py` to use `ZkChatSession`
+3. **Phase 3**: Migrate `agent.py` to use `ZkChatSession`
+4. **Phase 4**: Migrate GUI to use `ZkChatSession`
+5. **Phase 5**: Remove old `ChatSession` direct usage once all modules migrated
+6. **Phase 6**: Consider persistence for advanced users
 
 ## Success Criteria
 
