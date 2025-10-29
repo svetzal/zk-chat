@@ -63,6 +63,11 @@ class ZkChatMessage(BaseModel):
     timestamp: Optional[str] = None  # When the message was created
     tool_calls: Optional[List] = None  # Tool calls made (for assistant messages)
     
+    # Token accounting for context management
+    token_count: Optional[int] = None  # Tokens in the original message content
+    augmented_token_count: Optional[int] = None  # Tokens after adding references/formatting
+    tool_tokens: Optional[int] = None  # Tokens used by tool calls (for assistant messages)
+    
     def to_llm_message(self) -> LLMMessage:
         """
         Convert our rich message to mojentic's simpler LLMMessage format.
@@ -108,6 +113,13 @@ class ZkChatSession:
     
     The rich messages are used for local UI display and reference tracking,
     while the LLM session manages the actual conversation with the model.
+    
+    Token Accounting:
+    The session tracks token usage for all components to enable context optimization:
+    - Individual message token counts
+    - Tool description token overhead
+    - Tool request/response token usage
+    - Total context budget management
     """
     def __init__(
         self,
@@ -116,8 +128,13 @@ class ZkChatSession:
         tools: List[LLMTool],
         filesystem_gateway: MarkdownFilesystemGateway,
         zettelkasten: Zettelkasten,
+        tokenizer_gateway: TokenizerGateway,
         max_context: int = 32768,
-        temperature: float = 1.0
+        temperature: float = 1.0,
+        # Context budget allocation (as percentages of max_context)
+        message_budget_ratio: float = 0.6,  # 60% for conversation messages
+        tool_budget_ratio: float = 0.3,     # 30% for tool descriptions/calls
+        system_budget_ratio: float = 0.1    # 10% for system prompt
     ):
         # Our rich message history
         self.messages: List[ZkChatMessage] = []
@@ -134,7 +151,19 @@ class ZkChatSession:
         # Dependencies for reference tracking
         self.filesystem_gateway = filesystem_gateway
         self.zettelkasten = zettelkasten
+        self.tokenizer_gateway = tokenizer_gateway
         self.wikilink_pattern = re.compile(r'\[\[([^\]]+)\]\]')
+        
+        # Context management
+        self.max_context = max_context
+        self.message_budget = int(max_context * message_budget_ratio)
+        self.tool_budget = int(max_context * tool_budget_ratio)
+        self.system_budget = int(max_context * system_budget_ratio)
+        
+        # Token tracking
+        self.system_prompt_tokens = self._count_tokens(system_prompt)
+        self.tool_description_tokens = self._calculate_tool_tokens(tools)
+        self.current_message_tokens = 0
         
     def send(self, user_message: str) -> tuple[str, ZkChatMessage, ZkChatMessage]:
         """
@@ -149,23 +178,35 @@ class ZkChatSession:
         # Extract references from user message
         user_refs = self._extract_wikilinks_from_message(user_message)
         
+        # Calculate token counts for user message
+        user_token_count = self._count_tokens(user_message)
+        
         # Create rich user message
         user_msg = ZkChatMessage(
             role="user",
             content=user_message,
             references=user_refs,
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
+            token_count=user_token_count
         )
+        
+        # Convert to LLM message and calculate augmented token count
+        llm_message = user_msg.to_llm_message()
+        user_msg.augmented_token_count = self._count_tokens(llm_message.content)
         
         # Add to our message history
         self.messages.append(user_msg)
         
-        # Convert to LLM message and send
-        llm_message = user_msg.to_llm_message()
+        # Send to LLM
         response_text = self.llm_session.send(llm_message.content)
         
         # Extract references from assistant's tool usage
         assistant_refs = self._extract_assistant_references()
+        
+        # Calculate token counts for assistant message
+        assistant_token_count = self._count_tokens(response_text)
+        tool_calls = self._get_recent_tool_calls()
+        tool_token_count = self._calculate_tool_call_tokens(tool_calls) if tool_calls else 0
         
         # Create rich assistant message
         assistant_msg = ZkChatMessage(
@@ -173,7 +214,9 @@ class ZkChatSession:
             content=response_text,
             references=assistant_refs,
             timestamp=datetime.now().isoformat(),
-            tool_calls=self._get_recent_tool_calls()
+            tool_calls=tool_calls,
+            token_count=assistant_token_count,
+            tool_tokens=tool_token_count
         )
         
         # Add to our message history
@@ -188,6 +231,102 @@ class ZkChatSession:
     def get_llm_messages(self) -> List[LLMMessage]:
         """Get simplified messages for LLM context (if needed for debugging)."""
         return [msg.to_llm_message() for msg in self.messages]
+    
+    def _count_tokens(self, text: str) -> int:
+        """Count tokens in a text string using the tokenizer gateway."""
+        return self.tokenizer_gateway.count_tokens(text)
+    
+    def _calculate_tool_tokens(self, tools: List[LLMTool]) -> int:
+        """Calculate total tokens used by tool descriptions."""
+        total = 0
+        for tool in tools:
+            descriptor_text = json.dumps(tool.descriptor)
+            total += self._count_tokens(descriptor_text)
+        return total
+    
+    def get_context_usage(self) -> dict:
+        """
+        Get detailed breakdown of context token usage.
+        
+        Returns:
+            dict with keys:
+                - system_tokens: Tokens used by system prompt
+                - tool_tokens: Tokens used by tool descriptions
+                - message_tokens: Tokens used by conversation messages
+                - total_tokens: Total tokens in context
+                - available_tokens: Remaining tokens before max_context
+                - budget_status: Usage vs allocated budgets
+        """
+        message_tokens = sum(
+            (msg.augmented_token_count or msg.token_count or 0) 
+            for msg in self.messages
+        )
+        
+        total_tokens = (
+            self.system_prompt_tokens + 
+            self.tool_description_tokens + 
+            message_tokens
+        )
+        
+        return {
+            "system_tokens": self.system_prompt_tokens,
+            "tool_tokens": self.tool_description_tokens,
+            "message_tokens": message_tokens,
+            "total_tokens": total_tokens,
+            "available_tokens": self.max_context - total_tokens,
+            "budget_status": {
+                "system": {
+                    "used": self.system_prompt_tokens,
+                    "budget": self.system_budget,
+                    "percentage": (self.system_prompt_tokens / self.system_budget * 100) if self.system_budget > 0 else 0
+                },
+                "tools": {
+                    "used": self.tool_description_tokens,
+                    "budget": self.tool_budget,
+                    "percentage": (self.tool_description_tokens / self.tool_budget * 100) if self.tool_budget > 0 else 0
+                },
+                "messages": {
+                    "used": message_tokens,
+                    "budget": self.message_budget,
+                    "percentage": (message_tokens / self.message_budget * 100) if self.message_budget > 0 else 0
+                }
+            }
+        }
+    
+    def _calculate_tool_call_tokens(self, tool_calls: List) -> int:
+        """Calculate tokens used by tool calls (requests and responses)."""
+        if not tool_calls:
+            return 0
+        
+        total = 0
+        for call in tool_calls:
+            # Tool call request
+            if hasattr(call, 'function'):
+                total += self._count_tokens(call.function.name)
+                total += self._count_tokens(call.function.arguments)
+            
+            # Tool call response (if available)
+            # This would need to be tracked from the actual tool execution
+        
+        return total
+    
+    def should_compact_context(self) -> bool:
+        """
+        Determine if context should be compacted based on budget usage.
+        
+        Returns True if message budget is exceeded or total usage is near max_context.
+        """
+        usage = self.get_context_usage()
+        
+        # Compact if message budget exceeded
+        if usage["message_tokens"] > self.message_budget:
+            return True
+        
+        # Compact if total usage is above 90% of max_context
+        if usage["total_tokens"] > (self.max_context * 0.9):
+            return True
+        
+        return False
 ```
 
 ### 2. Wikilink Extraction and Processing
@@ -378,6 +517,172 @@ class DocumentSummaryService:
         
         self.cache[relative_path] = summary
         return summary
+```
+
+### 4.2 Context Management and Adaptive Strategies
+
+Managing context token budgets is critical for optimal LLM performance. The `ZkChatSession` provides mechanisms for tracking and adapting to context constraints.
+
+#### 4.2.1 Token Budget Allocation
+
+The session divides the total context window into budgets for different components:
+
+```python
+# Example budget allocation for 32K context window:
+# - System prompt: 10% (~3.2K tokens) - Instructions for the LLM
+# - Tool descriptions: 30% (~9.6K tokens) - Available tools and their schemas
+# - Messages: 60% (~19.2K tokens) - Conversation history
+
+# These ratios are configurable per session
+chat_session = ZkChatSession(
+    # ... other params ...
+    max_context=32768,
+    message_budget_ratio=0.6,
+    tool_budget_ratio=0.3,
+    system_budget_ratio=0.1
+)
+```
+
+#### 4.2.2 Context Usage Monitoring
+
+Track real-time context usage:
+
+```python
+# Get detailed context breakdown
+usage = chat_session.get_context_usage()
+
+print(f"System prompt: {usage['system_tokens']} tokens")
+print(f"Tool descriptions: {usage['tool_tokens']} tokens")
+print(f"Messages: {usage['message_tokens']} tokens")
+print(f"Total: {usage['total_tokens']} / {chat_session.max_context}")
+print(f"Available: {usage['available_tokens']} tokens")
+
+# Check budget status for each component
+for component, status in usage['budget_status'].items():
+    print(f"{component}: {status['used']}/{status['budget']} ({status['percentage']:.1f}%)")
+```
+
+#### 4.2.3 Adaptive Context Management Strategies
+
+When context budgets are exceeded, several strategies can be employed:
+
+**Strategy 1: Message Compaction via Summarization**
+```python
+def compact_message_history(self, target_token_count: int) -> None:
+    """
+    Compact older messages by summarizing them to fit within target token count.
+    
+    Keeps recent messages intact for context continuity while summarizing
+    older exchanges to reduce token usage.
+    """
+    if not self.should_compact_context():
+        return
+    
+    # Keep the most recent N messages intact
+    recent_message_count = 3  # Configurable
+    messages_to_compact = self.messages[:-recent_message_count]
+    recent_messages = self.messages[-recent_message_count:]
+    
+    # Summarize older messages
+    summary_prompt = "Summarize the following conversation, preserving key information:\n\n"
+    for msg in messages_to_compact:
+        summary_prompt += f"{msg.role}: {msg.content}\n"
+    
+    summary = self.llm_session.llm.complete(summary_prompt, max_tokens=500)
+    
+    # Replace old messages with summary
+    summary_msg = ZkChatMessage(
+        role="system",
+        content=f"[Previous conversation summary]: {summary}",
+        timestamp=datetime.now().isoformat(),
+        token_count=self._count_tokens(summary)
+    )
+    
+    self.messages = [summary_msg] + recent_messages
+```
+
+**Strategy 2: Tool-Use vs Context Injection**
+
+Adapt between including document content in context vs prompting tool usage:
+
+```python
+def should_inject_document_content(self, doc_size_tokens: int) -> bool:
+    """
+    Decide whether to inject document content into context or prompt tool usage.
+    
+    If message budget has room, inject content directly for faster access.
+    If budget is tight, prompt LLM to use read_zk_document tool instead.
+    """
+    usage = self.get_context_usage()
+    available_budget = self.message_budget - usage['message_tokens']
+    
+    # Use 20% of available budget as threshold
+    threshold = available_budget * 0.2
+    
+    if doc_size_tokens < threshold:
+        return True  # Inject content directly
+    else:
+        return False  # Prompt tool usage
+```
+
+**Strategy 3: Dynamic Tool Filtering**
+
+Reduce tool description overhead by filtering to relevant tools:
+
+```python
+def filter_tools_by_relevance(self, user_message: str, tools: List[LLMTool]) -> List[LLMTool]:
+    """
+    Filter tools to only include those relevant to the current query.
+    
+    Reduces tool_tokens overhead by excluding tools unlikely to be used.
+    """
+    # Use simple keyword matching or embeddings for tool relevance
+    relevant_tools = []
+    
+    # Always include core navigation tools
+    core_tool_names = {"read_zk_document", "find_excerpts", "resolve_wikilink"}
+    
+    for tool in tools:
+        tool_name = tool.descriptor["function"]["name"]
+        
+        # Include core tools
+        if tool_name in core_tool_names:
+            relevant_tools.append(tool)
+            continue
+        
+        # Include if keywords match
+        tool_desc = tool.descriptor["function"]["description"].lower()
+        if any(keyword in user_message.lower() for keyword in tool_desc.split()[:5]):
+            relevant_tools.append(tool)
+    
+    return relevant_tools if relevant_tools else tools  # Fallback to all tools
+```
+
+**Strategy 4: Reference Storage in Smart Memory**
+
+For frequently referenced documents, store references in smart memory:
+
+```python
+def store_document_reference_in_memory(self, doc_ref: DocumentReference) -> None:
+    """
+    Store document reference in smart memory for future retrieval.
+    
+    Instead of re-injecting full document content, LLM can retrieve
+    the reference from memory on demand.
+    """
+    memory_entry = {
+        "type": "document_reference",
+        "wikilink": doc_ref.wikilink,
+        "path": doc_ref.relative_path,
+        "summary": doc_ref.summary,
+        "last_accessed": datetime.now().isoformat()
+    }
+    
+    # Store in smart memory with appropriate metadata
+    self.smart_memory.store(
+        content=json.dumps(memory_entry),
+        metadata={"type": "reference", "path": doc_ref.relative_path}
+    )
 ```
 
 ### 5. Reference Display
@@ -637,15 +942,19 @@ class ChatSessionStore:
 
 #### Phase 1: Core Infrastructure (Foundation)
 - [ ] Create `DocumentReference` model in `zk_chat/models.py`
-- [ ] Create `ZkChatMessage` model with references array
+- [ ] Create `ZkChatMessage` model with references array and token accounting fields
 - [ ] Create `ZkChatSession` class to manage rich message history
+- [ ] Add `TokenizerGateway` integration for token counting
+- [ ] Implement budget allocation system (message/tool/system ratios)
 - [ ] Implement wikilink extraction from user messages
 - [ ] Add basic tests for reference extraction
+- [ ] Add tests for token counting and budget tracking
 
 #### Phase 2: Assistant Reference Tracking
 - [ ] Implement tool call monitoring for `read_zk_document`
 - [ ] Implement tool call monitoring for `find_excerpts`
 - [ ] Implement tool call monitoring for `find_zk_documents_related_to`
+- [ ] Add tool call token counting
 - [ ] Add tests for reference detection from tool calls
 
 #### Phase 3: Summary Generation
@@ -655,33 +964,45 @@ class ChatSessionStore:
 - [ ] Add caching for summaries
 - [ ] Add tests for summary service
 
-#### Phase 4: Message Augmentation
+#### Phase 4: Message Augmentation and Token Tracking
 - [ ] Implement `ZkChatMessage.to_llm_message()` conversion with reference formatting
+- [ ] Calculate and store token counts for original and augmented messages
 - [ ] Test that reference lists are properly appended to LLM messages
 - [ ] Test that LLM responds appropriately to reference prompts
+- [ ] Validate token count accuracy
 
-#### Phase 5: Display Integration
+#### Phase 5: Context Management
+- [ ] Implement `get_context_usage()` for real-time monitoring
+- [ ] Implement `should_compact_context()` decision logic
+- [ ] Add context compaction via message summarization
+- [ ] Implement adaptive tool filtering
+- [ ] Implement content injection vs tool-use decision making
+- [ ] Add tests for all context management strategies
+
+#### Phase 6: Display Integration
 - [ ] Create `ConsoleReferenceRenderer`
 - [ ] Integrate with `chat.py` main loop
 - [ ] Integrate with `agent.py` main loop
+- [ ] Add optional context usage display in UI
 - [ ] Add tests for rendering
 
-#### Phase 6: GUI Integration (Optional)
+#### Phase 7: GUI Integration (Optional)
 - [ ] Create `QtReferenceWidget`
 - [ ] Integrate with Qt GUI
 - [ ] Add reference click handling
+- [ ] Add context usage visualization
 - [ ] Add tests for GUI components
 
-#### Phase 7: Persistence (Optional)
+#### Phase 8: Persistence (Optional)
 - [ ] Create `ChatSessionStore` for persistent storage of sessions
-- [ ] Implement save/load for `ZkChatSession`
+- [ ] Implement save/load for `ZkChatSession` with token data
 - [ ] Add tests for persistence
 
-#### Phase 8: Polish and Documentation
+#### Phase 9: Polish and Documentation
 - [ ] Add comprehensive documentation
-- [ ] Create usage examples
-- [ ] Update README with reference tracking features
-- [ ] Add troubleshooting guide
+- [ ] Create usage examples for token management
+- [ ] Update README with reference tracking and context management features
+- [ ] Add troubleshooting guide for context issues
 
 ## Technical Considerations
 
@@ -690,24 +1011,40 @@ class ChatSessionStore:
 - **Summary Caching**: Cache document summaries to avoid repeated LLM calls
 - **Lazy Loading**: Only generate summaries when needed for display
 - **Reference Deduplication**: Avoid tracking the same document multiple times in one message
+- **Token Counting**: Use efficient tokenizer for accurate token accounting without performance penalties
 
-### 2. Error Handling
+### 2. Token Accounting and Context Management
+
+- **Real-time Tracking**: Track token usage for every message and tool call
+- **Budget Allocation**: Configurable budgets for system prompt, tools, and messages
+- **Context Monitoring**: Real-time visibility into context usage and budget status
+- **Automatic Compaction**: Trigger context compaction when budgets are exceeded
+- **Adaptive Strategies**: 
+  - Message summarization for older conversations
+  - Tool filtering based on relevance
+  - Dynamic choice between content injection vs tool usage
+  - Smart memory integration for frequently referenced documents
+
+### 3. Error Handling
 
 - **Broken Links**: Handle wikilinks that don't resolve gracefully
 - **Tool Call Parsing**: Robust parsing of tool results to extract document references
 - **Missing Documents**: Handle cases where referenced documents are deleted
+- **Token Calculation Failures**: Fallback to character-based estimation if tokenizer fails
 
-### 3. Backward Compatibility
+### 4. Backward Compatibility
 
 - **Optional Feature**: Reference tracking should be optional and not break existing code
 - **Graceful Degradation**: If reference tracking fails, chat should continue normally
 - **Existing Sessions**: Support for sessions without reference metadata
+- **Token Fields Optional**: Token accounting fields are optional to support legacy messages
 
-### 4. User Experience
+### 5. User Experience
 
 - **Unobtrusive Display**: References should enhance, not clutter the interface
 - **Actionable References**: Users should be able to click/navigate to referenced documents
 - **Clear Feedback**: Make it clear when a wikilink is broken or a reference is unavailable
+- **Context Visibility**: Optionally display context usage to help users understand token limits
 
 ## Testing Strategy
 
@@ -716,12 +1053,20 @@ class ChatSessionStore:
 - Test reference deduplication logic
 - Test summary generation and caching
 - Test tool call parsing for different tool types
+- Test token counting for messages, tools, and references
+- Test budget allocation and tracking
+- Test context usage calculation
+- Test should_compact_context() decision logic
 
 ### Integration Tests
 - Test full flow: user query with wikilinks → augmented prompt → LLM response
 - Test assistant reference detection from tool usage
 - Test reference display in console
 - Test reference display in GUI
+- Test token accounting across multi-turn conversations
+- Test context compaction when budgets are exceeded
+- Test adaptive tool filtering based on relevance
+- Test content injection vs tool-use decision making
 
 ### Edge Cases
 - Empty messages
@@ -730,6 +1075,9 @@ class ChatSessionStore:
 - Multiple references to same document
 - Tool calls that return no results
 - Large numbers of references (>10)
+- Messages that exceed token budgets
+- Sessions approaching max_context limit
+- Tool descriptions that change dynamically
 
 ## Future Enhancements
 
@@ -739,6 +1087,19 @@ class ChatSessionStore:
 4. **Export with References**: Export conversations with embedded reference metadata
 5. **Cross-Session References**: Track document usage across multiple chat sessions
 6. **Reference Highlighting**: Highlight referenced text in source documents
+7. **Advanced Context Management**:
+   - Machine learning-based context prioritization
+   - Automatic identification of key messages for preservation
+   - Dynamic budget reallocation based on conversation patterns
+   - Predictive tool loading based on conversation context
+8. **Performance Optimization**:
+   - Incremental token counting (cache and update deltas)
+   - Parallel tokenization for large messages
+   - Token estimation fallbacks for speed-critical paths
+9. **Multi-Model Support**:
+   - Per-model token counting strategies
+   - Model-specific context window optimization
+   - Adaptive strategies based on model capabilities
 
 ## Open Questions
 
@@ -747,25 +1108,38 @@ class ChatSessionStore:
 3. Should document summaries be stored permanently or regenerated each time?
 4. How should we handle references in multi-turn conversations?
 5. Should we track negative references (documents that were searched but not used)?
+6. **Token Budget Allocation**: What are the optimal default ratios for system/tool/message budgets across different use cases?
+7. **Compaction Triggers**: At what budget usage percentage should we trigger automatic compaction?
+8. **Compaction Strategy**: Should we use summarization, pruning, or a hybrid approach for context compaction?
+9. **Tool Filtering**: How aggressive should tool filtering be? Should it be user-configurable?
+10. **Token Estimation**: For models without native tokenizers, what estimation heuristics work best?
 
 ## Dependencies
 
 ### Existing Components
 - `mojentic.llm.ChatSession` - Underlying LLM communication (we'll use internally)
 - `mojentic.llm.gateways.models.LLMMessage` - Simple message format for LLM
+- `mojentic.llm.gateways.tokenizer_gateway.TokenizerGateway` - Token counting for context management
 - `MarkdownFilesystemGateway` - Wikilink resolution
 - `Zettelkasten` - Document access
 - `RichConsoleService` - Console output
-- `LLMBroker` - Summary generation
+- `LLMBroker` - Summary generation and LLM interaction
+- `SmartMemory` - Reference storage and retrieval
 
 ### New Components
 - `DocumentReference` model - Represents a document reference with metadata
-- `ZkChatMessage` model - Rich message with references array
-- `ZkChatSession` class - Manages chat with rich message history (replaces direct ChatSession usage)
+- `ZkChatMessage` model - Rich message with references array and token accounting
+- `ZkChatSession` class - Manages chat with rich message history and context budgets
 - `DocumentSummaryService` - Generates document summaries
 - `ConsoleReferenceRenderer` - Displays references in console
 - `QtReferenceWidget` (optional) - GUI reference display
 - `ChatSessionStore` (optional) - Persistent storage for chat sessions
+
+### Token Accounting Dependencies
+- Token counting integrated into every message
+- Budget allocation system for context components
+- Context usage monitoring and reporting
+- Adaptive strategies for context management
 
 ## Migration Path
 
@@ -788,3 +1162,9 @@ Since this is a new feature with no existing data to migrate:
 6. All tests pass with >90% code coverage
 7. Documentation is clear and includes examples
 8. Performance impact is minimal (<100ms overhead per message)
+9. **Token accounting accurately tracks context usage** across all components
+10. **Budget allocation prevents context overflow** and maintains optimal LLM performance
+11. **Context compaction strategies effectively manage long conversations** without losing critical information
+12. **Adaptive strategies (tool filtering, content injection decisions)** improve context efficiency
+13. **Users can monitor context usage** and understand when compaction occurs
+14. **Token counting overhead is negligible** (<10ms per message)
