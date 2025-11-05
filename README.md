@@ -6,6 +6,15 @@ entire documents, and generate responses based on the content in your Zettelkast
 
 For "AI" it communicates with either a local running instance of Ollama or OpenAI's API. By default, Ollama is used and must be installed and running for zk-chat to function, but you can also configure it to use OpenAI with the `--gateway openai` option.
 
+## 📚 Documentation
+
+**Full documentation is available at [https://vetzal.com/zk-chat/](https://vetzal.com/zk-chat/)**
+
+- [Installation Guide](https://vetzal.com/zk-chat/installation/)
+- [Quick Start Tutorial](https://vetzal.com/zk-chat/quick-start/)
+- [Command Line Reference](https://vetzal.com/zk-chat/usage/cli/)
+- [Plugin Development Guide](https://vetzal.com/zk-chat/plugins/guide/)
+
 ## ✨ Features
 
 - Command-line interface for quick access
