@@ -203,7 +203,6 @@ class DescribeZettelkasten:
 
     class DescribeQueryDocuments:
         def should_filter_out_missing_documents_from_query_results(self, zk, mock_filesystem_gateway):
-            # Simulate vector database returning documents, one of which no longer exists
             mock_results = [
                 QueryResult(
                     document=VectorDocumentForStorage(
@@ -225,7 +224,6 @@ class DescribeZettelkasten:
 
             zk.documents_db.query.return_value = mock_results
 
-            # Simulate filesystem: existing.md exists, missing.md doesn't
             def mock_read_markdown(path):
                 if path == "existing.md":
                     return ({"title": "Existing"}, "existing content")
