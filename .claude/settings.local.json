@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(pip show:*)",
+      "WebFetch(domain:pypi.org)",
+      "Bash(pip index versions:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "Bash(pytest:*)",
+      "Bash(git checkout:*)",
+      "Read(//private/tmp/test_vault/**)",
+      "Bash(zkchat:*)",
+      "Read(//private/tmp/fresh_vault/**)",
+      "Bash(timeout:*)",
+      "Bash(zk-chat:*)",
+      "Read(//private/tmp/typer_test/**)",
+      "Bash(printf \"What are my test thoughts?\")",
+      "Read(//Users/svetzal/**)",
+      "WebFetch(domain:gofastmcp.com)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
