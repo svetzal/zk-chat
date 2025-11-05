@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
-from zk_chat.models import ZkDocument
+from zk_chat.models import QueryResult, VectorDocumentForStorage, ZkDocument
 from zk_chat.zettelkasten import Zettelkasten
 
 
@@ -203,8 +203,6 @@ class DescribeZettelkasten:
 
     class DescribeQueryDocuments:
         def should_filter_out_missing_documents_from_query_results(self, zk, mock_filesystem_gateway):
-            from zk_chat.models import QueryResult, VectorDocumentForStorage
-
             # Simulate vector database returning documents, one of which no longer exists
             mock_results = [
                 QueryResult(
@@ -243,8 +241,6 @@ class DescribeZettelkasten:
             assert results[0].distance == 0.5
 
         def should_return_empty_list_when_all_documents_missing(self, zk, mock_filesystem_gateway):
-            from zk_chat.models import QueryResult, VectorDocumentForStorage
-
             mock_results = [
                 QueryResult(
                     document=VectorDocumentForStorage(
