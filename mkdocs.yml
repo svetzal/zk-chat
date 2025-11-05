@@ -1,0 +1,67 @@
+site_name: zk-chat
+site_url: https://vetzal.com/zk-chat/
+site_description: A command-line chat tool for your Zettelkasten with AI-powered document search and analysis
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - content.code.select
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - toc.integrate
+  palette:
+    primary: indigo
+    accent: indigo
+
+plugins:
+  - search
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - admonition
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: installation.md
+    - Quick Start: quick-start.md
+  - Usage:
+    - Command Line Interface: usage/cli.md
+    - Interactive Chat: usage/interactive-chat.md
+    - Single Queries: usage/single-query.md
+    - Index Management: usage/index-management.md
+    - Graphical Interface: usage/gui.md
+  - Features:
+    - Available Tools: features/tools.md
+    - Smart Memory: features/smart-memory.md
+    - Visual Analysis: features/visual-analysis.md
+    - Graph Traversal: features/graph-traversal.md
+    - Git Integration: features/git-integration.md
+    - MCP Servers: features/mcp-servers.md
+  - Plugin Development:
+    - Plugin Guide: plugins/guide.md
+    - Example Plugins: plugins/examples.md
+  - Configuration:
+    - Model Selection: configuration/models.md
+    - Vault Setup: configuration/vault.md
+    - Advanced Settings: configuration/advanced.md
+
+repo_name: svetzal/zk-chat
+repo_url: https://github.com/svetzal/zk-chat
