@@ -147,7 +147,6 @@ class Zettelkasten:
 
         logger.info("Incremental update completed", processed_files=total_files)
 
-
     def _index_document(self, relative_path: str, excerpt_size: int, excerpt_overlap: int) -> None:
         document = self.read_document(relative_path)
         if document.content:
@@ -172,17 +171,25 @@ class Zettelkasten:
         Returns:
             A list of query results
         """
-        return [
-            self._create_document_query_result(result)
-            for result in (self.documents_db.query(query, n_results=n_results))
-            if max_distance == 0.0 or result.distance <= max_distance
-        ]
+        results = []
+        for result in self.documents_db.query(query, n_results=n_results):
+            if max_distance != 0.0 and result.distance > max_distance:
+                continue
+            query_result = self._create_document_query_result(result)
+            if query_result is not None:
+                results.append(query_result)
+        return results
 
-    def _create_document_query_result(self, result: QueryResult) -> ZkQueryDocumentResult:
-        return ZkQueryDocumentResult(
-            document=self.read_document(result.document.id),
-            distance=result.distance
-        )
+    def _create_document_query_result(self, result: QueryResult) -> Optional[ZkQueryDocumentResult]:
+        """Create a document query result, returning None if the document no longer exists."""
+        try:
+            return ZkQueryDocumentResult(
+                document=self.read_document(result.document.id),
+                distance=result.distance
+            )
+        except FileNotFoundError:
+            logger.warning("Document in index not found on filesystem", document_id=result.document.id)
+            return None
 
     def _create_excerpt_query_result(self, result: QueryResult) -> ZkQueryExcerptResult:
         return ZkQueryExcerptResult(
