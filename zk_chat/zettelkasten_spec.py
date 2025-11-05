@@ -229,7 +229,7 @@ class DescribeZettelkasten:
             def mock_read_markdown(path):
                 if path == "existing.md":
                     return ({"title": "Existing"}, "existing content")
-                elif path == "missing.md":
+                if path == "missing.md":
                     raise FileNotFoundError(f"File not found: {path}")
 
             mock_filesystem_gateway.read_markdown.side_effect = mock_read_markdown
