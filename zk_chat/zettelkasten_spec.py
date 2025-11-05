@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
-from zk_chat.models import ZkDocument
+from zk_chat.models import QueryResult, VectorDocumentForStorage, ZkDocument
 from zk_chat.zettelkasten import Zettelkasten
 
 
@@ -200,3 +200,59 @@ class DescribeZettelkasten:
 
                 # Verify path preservation
                 assert written_doc.relative_path == "Document.md"
+
+    class DescribeQueryDocuments:
+        def should_filter_out_missing_documents_from_query_results(self, zk, mock_filesystem_gateway):
+            mock_results = [
+                QueryResult(
+                    document=VectorDocumentForStorage(
+                        id="existing.md",
+                        content="existing content",
+                        metadata={"id": "existing.md", "title": "Existing"}
+                    ),
+                    distance=0.5
+                ),
+                QueryResult(
+                    document=VectorDocumentForStorage(
+                        id="missing.md",
+                        content="missing content",
+                        metadata={"id": "missing.md", "title": "Missing"}
+                    ),
+                    distance=0.7
+                )
+            ]
+
+            zk.documents_db.query.return_value = mock_results
+
+            def mock_read_markdown(path):
+                if path == "existing.md":
+                    return ({"title": "Existing"}, "existing content")
+                if path == "missing.md":
+                    raise FileNotFoundError(f"File not found: {path}")
+
+            mock_filesystem_gateway.read_markdown.side_effect = mock_read_markdown
+
+            results = zk.query_documents("test query", n_results=2)
+
+            assert len(results) == 1
+            assert results[0].document.id == "existing.md"
+            assert results[0].distance == 0.5
+
+        def should_return_empty_list_when_all_documents_missing(self, zk, mock_filesystem_gateway):
+            mock_results = [
+                QueryResult(
+                    document=VectorDocumentForStorage(
+                        id="missing1.md",
+                        content="content",
+                        metadata={"id": "missing1.md", "title": "Missing1"}
+                    ),
+                    distance=0.5
+                )
+            ]
+
+            zk.documents_db.query.return_value = mock_results
+            mock_filesystem_gateway.read_markdown.side_effect = FileNotFoundError("File not found")
+
+            results = zk.query_documents("test query", n_results=1)
+
+            assert len(results) == 0
