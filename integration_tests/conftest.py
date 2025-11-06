@@ -15,7 +15,7 @@ DEFAULT_MODELS = {
         "visual": "gpt-4o"
     },
     "ollama": {
-        "text": "gpt-oss:120b",
+        "text": "qwen3:8b",
         "visual": "gemma3:27b"
     }
 }

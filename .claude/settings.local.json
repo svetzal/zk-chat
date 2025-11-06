@@ -24,7 +24,8 @@
       "Bash(source .venv/bin/activate)",
       "Bash(ZK_TEST_GATEWAY=ollama python:*)",
       "Bash(. .venv/bin/activate)",
-      "Bash(.venv/bin/python:*)"
+      "Bash(.venv/bin/python:*)",
+      "WebFetch(domain:ollama.com)"
     ],
     "deny": [],
     "ask": []

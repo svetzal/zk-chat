@@ -29,15 +29,29 @@ If you want to use local AI models, you'll need to install Ollama:
 After installing Ollama, pull a model:
 
 ```bash
-ollama pull qwen2.5:14b
+ollama pull qwen3:8b
 ```
 
-!!! tip "Model Recommendations"
-    For best results with 36GB+ RAM, we recommend:
-    
-    - `qwen2.5:14b` - Good balance of speed and capability
-    - `phi4:14b` - Fast and efficient
-    - `qwq:32b` - More capable, requires more RAM
+!!! tip "Model Recommendations (2025)"
+    Choose based on your available RAM:
+
+    **64GB+ RAM (High-End):**
+    - `gpt-oss:120b` - Most capable for RAG and reasoning
+    - `qwen3:32b` - Latest generation, very versatile
+
+    **36-48GB RAM (Mid-Range):**
+    - `gpt-oss:20b` - Excellent balance, best for RAG tasks
+    - `gemma3:27b` - Most capable single-GPU model with vision
+    - `qwen3:14b` - Fast and capable
+
+    **16-32GB RAM (Standard):**
+    - `qwen3:8b` - **Recommended** - Fast, versatile, excellent for RAG
+    - `qwen2.5:7b` - Proven alternative, very reliable
+    - `mistral:7b` - Proven reliable performer
+
+    **For visual analysis:**
+    - `gemma3:27b` - **Recommended** - Best vision capabilities
+    - `qwen3-vl:8b` - Fast and capable for images
 
 ### For OpenAI API
 
