@@ -1,3 +1,4 @@
+# ruff: noqa: E402  # Configure logging/env before imports to reduce noisy logs and disable telemetry
 import logging
 
 logging.basicConfig(

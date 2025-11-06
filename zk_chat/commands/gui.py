@@ -1,3 +1,4 @@
+# ruff: noqa: E402  # Configure logging/env before imports to reduce noisy logs and disable telemetry
 """
 GUI subcommand for zk-chat.
 
@@ -71,11 +72,11 @@ def launch(
         console.print(f"[dim]Details: {e}[/]")
         console.print("\n[yellow]Try installing GUI dependencies:[/]")
         console.print("[cyan]pip install 'zk-chat[gui]'[/]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
     except Exception as e:
         console.print(f"[red]❌ Error launching GUI:[/] {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 # Default command (launch)

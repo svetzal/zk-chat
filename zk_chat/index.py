@@ -1,3 +1,4 @@
+# ruff: noqa: E402  # Set telemetry env var before imports to avoid side effects
 import argparse
 import os
 from datetime import datetime
@@ -16,94 +17,95 @@ from zk_chat.vector_database import VectorDatabase
 from zk_chat.zettelkasten import Zettelkasten
 
 
-def reindex(config: Config, force_full: bool = False):
-    """Reindex the Zettelkasten vault with progress tracking."""
-    db_dir = os.path.join(config.vault, ".zk_chat_db")
-
-    chroma = ChromaGateway(config.gateway, db_dir=db_dir)
-
-    # Create the appropriate gateway based on configuration
+def _make_gateway(config: Config):
     if config.gateway == ModelGateway.OLLAMA:
-        gateway = OllamaGateway()
-    elif config.gateway == ModelGateway.OPENAI:
-        gateway = OpenAIGateway(os.environ.get("OPENAI_API_KEY"))
-    else:
-        # Default to Ollama if not specified
-        gateway = OllamaGateway()
+        return OllamaGateway()
+    if config.gateway == ModelGateway.OPENAI:
+        return OpenAIGateway(os.environ.get("OPENAI_API_KEY"))
+    return OllamaGateway()
 
-    zk = Zettelkasten(
+
+def _build_zk(config: Config, chroma: ChromaGateway, gateway) -> Zettelkasten:
+    return Zettelkasten(
         tokenizer_gateway=TokenizerGateway(),
         excerpts_db=VectorDatabase(
             chroma_gateway=chroma,
             gateway=gateway,
-            collection_name=ZkCollectionName.EXCERPTS
+            collection_name=ZkCollectionName.EXCERPTS,
         ),
         documents_db=VectorDatabase(
             chroma_gateway=chroma,
             gateway=gateway,
-            collection_name=ZkCollectionName.DOCUMENTS
+            collection_name=ZkCollectionName.DOCUMENTS,
         ),
-        filesystem_gateway=MarkdownFilesystemGateway(config.vault))
+        filesystem_gateway=MarkdownFilesystemGateway(config.vault),
+    )
+
+
+def _full_reindex(config: Config, zk: Zettelkasten, progress: IndexingProgressTracker) -> tuple[int, int]:
+    progress.start_scanning()
+    print("Performing full reindex...")
+    files_processed = 0
+    total_files: int | None = None
+
+    def progress_callback(filename: str, processed_count: int, total_count: int):
+        nonlocal files_processed, total_files
+        if total_files is None:
+            total_files = total_count
+            progress.finish_scanning(total_count)
+        files_processed = processed_count
+        progress.update_file_processing(filename, processed_count)
+
+    zk.reindex(
+        excerpt_size=config.chunk_size,
+        excerpt_overlap=config.chunk_overlap,
+        progress_callback=progress_callback,
+    )
+    return files_processed, total_files or 0
+
+
+def _incremental_reindex(config: Config, zk: Zettelkasten, progress: IndexingProgressTracker,
+                          last_indexed: datetime) -> tuple[int, int]:
+    progress.start_scanning("Scanning for modified documents...")
+    print(f"Performing incremental reindex since {last_indexed}...")
+    files_processed = 0
+    total_files: int | None = None
+
+    def progress_callback(filename: str, processed_count: int, total_count: int):
+        nonlocal files_processed, total_files
+        if total_files is None:
+            total_files = total_count
+            if total_count == 0:
+                progress.update_progress(description="No documents need updating")
+            else:
+                progress.finish_scanning(total_count)
+        files_processed = processed_count
+        if total_count > 0:
+            progress.update_file_processing(filename, processed_count)
+
+    zk.update_index(
+        since=last_indexed,
+        excerpt_size=config.chunk_size,
+        excerpt_overlap=config.chunk_overlap,
+        progress_callback=progress_callback,
+    )
+    return files_processed, total_files or 0
+
+
+def reindex(config: Config, force_full: bool = False):
+    """Reindex the Zettelkasten vault with progress tracking."""
+    db_dir = os.path.join(config.vault, ".zk_chat_db")
+    chroma = ChromaGateway(config.gateway, db_dir=db_dir)
+    gateway = _make_gateway(config)
+    zk = _build_zk(config, chroma, gateway)
 
     # Initialize progress tracker
     with IndexingProgressTracker() as progress:
         last_indexed = config.get_last_indexed()
-
         if force_full or last_indexed is None:
-            # Full reindex
-            progress.start_scanning()
-            print("Performing full reindex...")
-
-            # Create callback that will transition from scanning to processing
-            files_processed = 0
-            total_files = None
-
-            def progress_callback(filename: str, processed_count: int, total_count: int):
-                nonlocal files_processed, total_files
-
-                if total_files is None:
-                    # First callback - we now know the total
-                    total_files = total_count
-                    progress.finish_scanning(total_count)
-
-                files_processed = processed_count
-                progress.update_file_processing(filename, processed_count)
-
-            zk.reindex(
-                excerpt_size=config.chunk_size,
-                excerpt_overlap=config.chunk_overlap,
-                progress_callback=progress_callback
-            )
-
+            files_processed, total_files = _full_reindex(config, zk, progress)
         else:
-            # Incremental reindex
-            progress.start_scanning("Scanning for modified documents...")
-            print(f"Performing incremental reindex since {last_indexed}...")
-
-            files_processed = 0
-            total_files = None
-
-            def progress_callback(filename: str, processed_count: int, total_count: int):
-                nonlocal files_processed, total_files
-
-                if total_files is None:
-                    # First callback - we now know the total
-                    total_files = total_count
-                    if total_count == 0:
-                        progress.update_progress(description="No documents need updating")
-                    else:
-                        progress.finish_scanning(total_count)
-
-                files_processed = processed_count
-                if total_count > 0:
-                    progress.update_file_processing(filename, processed_count)
-
-            zk.update_index(
-                since=last_indexed,
-                excerpt_size=config.chunk_size,
-                excerpt_overlap=config.chunk_overlap,
-                progress_callback=progress_callback
-            )
+            files_processed, total_files = _incremental_reindex(config, zk, progress, last_indexed)
 
         # Show completion message
         if total_files == 0:
