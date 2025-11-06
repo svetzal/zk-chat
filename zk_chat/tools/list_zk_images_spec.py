@@ -1,6 +1,6 @@
 import pytest
-from pytest_mock import MockerFixture
 from mojentic.llm.tools.llm_tool import LLMTool
+from pytest_mock import MockerFixture
 
 from zk_chat.tools.list_zk_images import ListZkImages
 from zk_chat.zettelkasten import Zettelkasten
@@ -27,13 +27,16 @@ class DescribeListZkImages:
         assert isinstance(tool, ListZkImages)
         assert tool.zk is mock_zk
 
-    def should_return_list_of_image_paths(self, tool: ListZkImages, mock_zk: Zettelkasten, mocker: MockerFixture):
+    def should_return_list_of_image_paths(self, tool: ListZkImages, mock_zk: Zettelkasten,
+                                          mocker: MockerFixture):
         image_paths = [
             "images/photo1.jpg",
             "assets/diagram.png",
             "screenshots/screen.jpeg"
         ]
-        iterate_mock = mocker.patch.object(mock_zk.filesystem_gateway, 'iterate_files_by_extensions', return_value=iter(image_paths))
+        iterate_mock = mocker.patch.object(mock_zk.filesystem_gateway,
+                                           'iterate_files_by_extensions',
+                                           return_value=iter(image_paths))
 
         result = tool.run()
 
@@ -41,8 +44,11 @@ class DescribeListZkImages:
         assert result == expected
         iterate_mock.assert_called_once_with(['.jpg', '.jpeg', '.png'])
 
-    def should_return_no_images_message_when_vault_has_no_images(self, tool: ListZkImages, mock_zk: Zettelkasten, mocker: MockerFixture):
-        iterate_mock = mocker.patch.object(mock_zk.filesystem_gateway, 'iterate_files_by_extensions', return_value=iter([]))
+    def should_return_no_images_message_when_vault_has_no_images(self, tool: ListZkImages,
+                                                                 mock_zk: Zettelkasten,
+                                                                 mocker: MockerFixture):
+        iterate_mock = mocker.patch.object(mock_zk.filesystem_gateway,
+                                           'iterate_files_by_extensions', return_value=iter([]))
 
         result = tool.run()
 

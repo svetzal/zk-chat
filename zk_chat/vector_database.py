@@ -1,22 +1,22 @@
-from typing import List, Union
-
 import structlog
+
 # CollectionName import no longer needed in ChromaDB 1.1.0
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 
 from zk_chat.chroma_collections import ZkCollectionName
-from zk_chat.models import VectorDocumentForStorage, VectorDocumentWithEmbeddings, QueryResult
 from zk_chat.chroma_gateway import ChromaGateway
+from zk_chat.models import QueryResult, VectorDocumentForStorage, VectorDocumentWithEmbeddings
 
 logger = structlog.get_logger()
 
-class VectorDatabase:
 
+class VectorDatabase:
     chroma_gateway: ChromaGateway
-    gateway: Union[OllamaGateway, OpenAIGateway]
+    gateway: OllamaGateway | OpenAIGateway
     collection_name: ZkCollectionName
 
-    def __init__(self, chroma_gateway: ChromaGateway, gateway: Union[OllamaGateway, OpenAIGateway], collection_name: ZkCollectionName):
+    def __init__(self, chroma_gateway: ChromaGateway, gateway: OllamaGateway | OpenAIGateway,
+                 collection_name: ZkCollectionName):
         """
         Initialize the VectorDatabase with a ChromaGateway and a gateway for embeddings.
 
@@ -29,7 +29,7 @@ class VectorDatabase:
         self.gateway = gateway
         self.collection_name = collection_name
 
-    def add_documents(self, documents: List[VectorDocumentForStorage]) -> None:
+    def add_documents(self, documents: list[VectorDocumentForStorage]) -> None:
         """
         Add documents to the vector database.
 
@@ -55,7 +55,7 @@ class VectorDatabase:
         """
         self.chroma_gateway.reset_indexes(collection_name=self.collection_name)
 
-    def query(self, query_text: str, n_results: int) -> List[QueryResult]:
+    def query(self, query_text: str, n_results: int) -> list[QueryResult]:
         """
         Query the vector database.
 
@@ -86,7 +86,7 @@ class VectorDatabase:
 
         logger.info(
             "Vector query results",
-            extra = {
+            extra={
                 "query_text": query_text,
                 "num_results": len(query_results),
                 "min_distance": min(r.distance for r in query_results) if query_results else None,

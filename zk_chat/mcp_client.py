@@ -4,7 +4,6 @@ MCP Client functionality for connecting to and verifying MCP servers.
 This module provides functionality for zk-chat to act as a client
 to external MCP servers.
 """
-from typing import List
 
 import structlog
 
@@ -120,7 +119,7 @@ def verify_mcp_server(server_config: MCPServerConfig) -> bool:
         return False
 
 
-def verify_all_mcp_servers() -> List[str]:
+def verify_all_mcp_servers() -> list[str]:
     """
     Verify all registered MCP servers and return list of unavailable servers.
 

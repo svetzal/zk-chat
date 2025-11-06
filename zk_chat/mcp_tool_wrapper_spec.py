@@ -2,6 +2,7 @@
 Tests for MCP tool wrapper functionality.
 """
 from unittest.mock import Mock
+
 from zk_chat.mcp_tool_wrapper import MCPToolWrapper
 
 
@@ -22,7 +23,8 @@ class DescribeMCPToolWrapper:
             }
         }
 
-        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor,
+                                 mock_loop)
 
         assert wrapper.tool_name == "test_tool"
         assert wrapper.server_name == "test-server"
@@ -47,7 +49,8 @@ class DescribeMCPToolWrapper:
             }
         }
 
-        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor,
+                                 mock_loop)
         descriptor = wrapper.descriptor
 
         assert descriptor["type"] == "function"
@@ -63,7 +66,8 @@ class DescribeMCPToolWrapper:
             "inputSchema": {}
         }
 
-        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor,
+                                 mock_loop)
         descriptor = wrapper.descriptor
 
         assert "Tool from test-server" in descriptor["function"]["description"]
@@ -83,7 +87,8 @@ class DescribeMCPToolWrapper:
             }
         }
 
-        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor,
+                                 mock_loop)
 
         # Test coercion
         coerced = wrapper._coerce_types({"timeout": "30.5", "count": "42"})
@@ -107,7 +112,8 @@ class DescribeMCPToolWrapper:
             }
         }
 
-        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor,
+                                 mock_loop)
 
         # Test coercion
         assert wrapper._coerce_types({"enabled": "true"})["enabled"] is True

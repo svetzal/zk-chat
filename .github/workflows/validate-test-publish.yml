@@ -61,15 +61,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-venv-
 
-      - name: Lint with flake8
+
+      - name: Lint with Ruff
         shell: bash
         run: |
           source .venv/bin/activate
-          # stop the validation if there are Python syntax errors or undefined names
-          flake8 zk_chat --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings
-          flake8 zk_chat --count --exit-zero --max-complexity=10 --max-line-length=127 \
-            --statistics --ignore=F401
+          # Fail on any lint errors; uses configuration from pyproject.toml
+          ruff check zk_chat --output-format=github
 
       - name: Test with pytest
         shell: bash

@@ -1,5 +1,3 @@
-from typing import Optional
-
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
@@ -10,7 +8,7 @@ logger = structlog.get_logger()
 
 
 class ListZkImages(LLMTool):
-    def __init__(self, zk: Zettelkasten, console_service: Optional[RichConsoleService] = None):
+    def __init__(self, zk: Zettelkasten, console_service: RichConsoleService | None = None):
         self.zk = zk
         self.console_service = console_service or RichConsoleService()
 
@@ -33,7 +31,10 @@ class ListZkImages(LLMTool):
             "type": "function",
             "function": {
                 "name": "list_images",
-                "description": "List all image file paths in the Zettelkasten vault. Returns paths to JPG, JPEG, and PNG files that can be analyzed or referenced. Use this when you need to see what image files are available in the system.",
+                "description": "List all image file paths in the Zettelkasten vault. Returns "
+                               "paths to JPG, JPEG, and PNG files that can be analyzed or "
+                               "referenced. Use this when you need to see what image files are available in the "
+                               "system.",
                 "parameters": {
                     "type": "object",
                     "properties": {},

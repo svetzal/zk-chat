@@ -5,7 +5,7 @@ Creates isolated test vaults with documents and images for testing.
 """
 import shutil
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from integration_tests.scenario_harness import Document, ImageFile
@@ -20,8 +20,8 @@ class VaultBuilder:
 
     def build(
         self,
-        documents: List["Document"],
-        images: Optional[List["ImageFile"]] = None
+        documents: list["Document"],
+        images: list["ImageFile"] | None = None
     ) -> Path:
         """
         Build a test vault with specified documents and images.

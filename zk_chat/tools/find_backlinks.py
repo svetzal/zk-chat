@@ -20,7 +20,8 @@ class FindBacklinks(LLMTool):
         Find all documents that contain wikilinks pointing to the target document.
 
         Args:
-            target_document: The document to find backlinks to (can be relative path or wikilink text)
+            target_document: The document to find backlinks to (can be relative path or wikilink
+            text)
 
         Returns:
             JSON string containing list of BacklinkResult objects
@@ -43,21 +44,24 @@ class FindBacklinks(LLMTool):
             "type": "function",
             "function": {
                 "name": "find_backlinks",
-                "description": ("Find all documents that contain wikilinks pointing to a specific target "
-                                "document. This provides fast discovery of what documents reference a "
-                                "given document, enabling reverse navigation through the knowledge graph. "
-                                "Returns documents with context snippets showing how they reference the "
-                                "target document. Use this to understand what content builds upon or "
-                                "references a particular document."),
+                "description": (
+                    "Find all documents that contain wikilinks pointing to a specific target "
+                    "document. This provides fast discovery of what documents reference a "
+                    "given document, enabling reverse navigation through the knowledge graph. "
+                    "Returns documents with context snippets showing how they reference the "
+                    "target document. Use this to understand what content builds upon or "
+                    "references a particular document."),
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "target_document": {
                             "type": "string",
-                            "description": ("The target document to find backlinks to. Can be either a "
-                                            "relative path (e.g., 'concepts/systems-thinking.md') or "
-                                            "wikilink text (e.g., 'Systems Thinking'). The service will "
-                                            "handle resolution and find all documents that link to this target.")
+                            "description": (
+                                "The target document to find backlinks to. Can be either a "
+                                "relative path (e.g., 'concepts/systems-thinking.md') or "
+                                "wikilink text (e.g., 'Systems Thinking'). The service will "
+                                "handle resolution and find all documents that link to this "
+                                "target.")
                         }
                     },
                     "required": ["target_document"]

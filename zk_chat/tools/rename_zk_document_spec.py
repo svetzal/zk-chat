@@ -20,6 +20,7 @@ class DescribeRenameZkDocument:
     """
     Tests for the RenameZkDocument tool which handles renaming Zettelkasten documents
     """
+
     def should_be_instantiated_with_zettelkasten(self, mock_zk: Zettelkasten):
         tool = RenameZkDocument(mock_zk)
 
@@ -48,7 +49,7 @@ class DescribeRenameZkDocument:
         target_title = 'target_document'
         source_path = 'source_document.md'
         target_path = 'target_document.md'
-        
+
         # Set up the mock to return a document when rename_document is called
         renamed_document = ZkDocument(
             relative_path=target_path,
@@ -62,7 +63,7 @@ class DescribeRenameZkDocument:
 
         # Verify the mock was called with the correct arguments
         mock_zk.rename_document.assert_called_once_with(source_path, target_path)
-        
+
         # Verify the result is a success message
         assert f"Successfully renamed document from '{source_path}' to '{target_path}'" in result
 
@@ -70,7 +71,7 @@ class DescribeRenameZkDocument:
         source_title = 'nonexistent_document'
         target_title = 'target_document'
         source_path = 'nonexistent_document.md'
-        
+
         # Set up the mock to raise FileNotFoundError when rename_document is called
         error_message = f"Source document {source_path} does not exist"
         mock_zk.rename_document.side_effect = FileNotFoundError(error_message)
@@ -87,7 +88,7 @@ class DescribeRenameZkDocument:
         target_title = 'target_document'
         source_path = 'source_document.md'
         target_path = 'target_document.md'
-        
+
         # Set up the mock to raise OSError when rename_document is called
         error_message = "Permission denied"
         mock_zk.rename_document.side_effect = OSError(error_message)

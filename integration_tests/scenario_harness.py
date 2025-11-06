@@ -3,8 +3,9 @@ Scenario harness for integration tests.
 
 Provides declarative way to define and execute integration test scenarios.
 """
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -17,7 +18,7 @@ class Document(BaseModel):
     """Represents a document to be created in test vault"""
     path: str
     content: str
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
 
 class ImageFile(BaseModel):
@@ -30,19 +31,19 @@ class ValidationCriterion(BaseModel):
     """A single validation criterion"""
     description: str
     prompt: str
-    success_keywords: Optional[List[str]] = None
+    success_keywords: list[str] | None = None
 
 
 class IntegrationScenario(BaseModel):
     """Complete specification of an integration test scenario"""
     name: str
     description: str
-    initial_documents: List[Document]
+    initial_documents: list[Document]
     execution_prompt: str
-    initial_images: Optional[List[ImageFile]] = None
+    initial_images: list[ImageFile] | None = None
     agent_mode: str = "interactive"  # Note: For documentation only; execution always uses agent mode
-    validation_criteria: Optional[List[ValidationCriterion]] = None
-    custom_validation: Optional[Callable] = Field(default=None, exclude=True)
+    validation_criteria: list[ValidationCriterion] | None = None
+    custom_validation: Callable | None = Field(default=None, exclude=True)
 
 
 class ScenarioResult(BaseModel):
@@ -59,7 +60,7 @@ class ScenarioResult(BaseModel):
 class ScenarioRunner:
     """Executes integration scenarios"""
 
-    def __init__(self, gateway: str, model: str, visual_model: Optional[str] = None):
+    def __init__(self, gateway: str, model: str, visual_model: str | None = None):
         self.gateway = gateway
         self.model = model
         self.visual_model = visual_model

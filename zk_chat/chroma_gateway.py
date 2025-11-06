@@ -1,5 +1,4 @@
 import os
-from typing import Dict, Optional
 
 import chromadb
 from chromadb import Settings
@@ -31,7 +30,7 @@ class ChromaGateway:
         )
 
         # Initialize collections dictionary
-        self._collections: Dict[ZkCollectionName, Collection] = {}
+        self._collections: dict[ZkCollectionName, Collection] = {}
 
     def get_collection(self, collection_name: ZkCollectionName) -> Collection:
         """
@@ -54,8 +53,8 @@ class ChromaGateway:
             )
         return self._collections[collection_name]
 
-
-    def add_items(self, ids, documents, metadatas, embeddings, collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN):
+    def add_items(self, ids, documents, metadatas, embeddings,
+                  collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN):
         """
         Add items to a collection.
 
@@ -74,7 +73,7 @@ class ChromaGateway:
             embeddings=embeddings,
         )
 
-    def reset_indexes(self, collection_name: Optional[ZkCollectionName] = None):
+    def reset_indexes(self, collection_name: ZkCollectionName | None = None):
         """
         Reset the indexes for a collection or all collections.
 
@@ -95,7 +94,8 @@ class ChromaGateway:
             self.chroma_client.reset()
             self._collections = {}
 
-    def query(self, query_embeddings, n_results, collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN):
+    def query(self, query_embeddings, n_results,
+              collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN):
         """
         Query a collection.
 

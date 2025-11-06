@@ -1,6 +1,5 @@
 import os
 import subprocess
-from typing import Tuple
 
 import structlog
 
@@ -12,6 +11,7 @@ class GitGateway:
     Gateway class for Git operations.
     Provides an interface for executing git commands and handling errors.
     """
+
     def __init__(self, base_path: str):
         """
         Initialize the GitGateway with the repository path.
@@ -23,7 +23,7 @@ class GitGateway:
         """
         self.base_path = base_path
 
-    def _run_git_command(self, command: list) -> Tuple[bool, str]:
+    def _run_git_command(self, command: list) -> tuple[bool, str]:
         """
         Run a git command and handle errors.
         
@@ -47,13 +47,14 @@ class GitGateway:
             )
             return True, result.stdout
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error executing git command: {command[0]}", error=str(e), stderr=e.stderr)
+            logger.error(f"Error executing git command: {command[0]}", error=str(e),
+                         stderr=e.stderr)
             return False, e.stderr
         except Exception as e:
             logger.error(f"Unexpected error in git command: {command[0]}", error=str(e))
             return False, str(e)
 
-    def add_all_files(self) -> Tuple[bool, str]:
+    def add_all_files(self) -> tuple[bool, str]:
         """
         Add all files to git staging.
         
@@ -64,7 +65,7 @@ class GitGateway:
         """
         return self._run_git_command(["git", "add", "--all"])
 
-    def get_status(self) -> Tuple[bool, str]:
+    def get_status(self) -> tuple[bool, str]:
         """
         Get the git status in porcelain format.
         
@@ -75,7 +76,7 @@ class GitGateway:
         """
         return self._run_git_command(["git", "status", "--porcelain"])
 
-    def get_diff(self) -> Tuple[bool, str]:
+    def get_diff(self) -> tuple[bool, str]:
         """
         Get the git diff against HEAD.
         
@@ -86,7 +87,7 @@ class GitGateway:
         """
         return self._run_git_command(["git", "diff", "HEAD"])
 
-    def commit(self, message: str) -> Tuple[bool, str]:
+    def commit(self, message: str) -> tuple[bool, str]:
         """
         Commit changes with the provided message.
         

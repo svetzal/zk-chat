@@ -12,10 +12,10 @@ logging.basicConfig(level=logging.WARN)
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
 os.environ['CHROMA_TELEMETRY'] = 'false'
 
-import typer
 from pathlib import Path
-from typing import Optional
-from typing_extensions import Annotated
+from typing import Annotated
+
+import typer
 from rich.console import Console
 
 gui_app = typer.Typer(
@@ -29,7 +29,8 @@ console = Console()
 
 @gui_app.command()
 def launch(
-    vault: Annotated[Optional[Path], typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
+        vault: Annotated[Path | None, typer.Option("--vault", "-v",
+                                                   help="Path to your Zettelkasten vault")] = None,
 ):
     """
     Launch the graphical user interface for zk-chat.

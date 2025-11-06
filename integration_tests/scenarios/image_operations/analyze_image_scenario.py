@@ -3,12 +3,7 @@ Scenario: Image analysis and description.
 
 Tests the agent's ability to analyze an image and provide a description.
 """
-from integration_tests.scenario_harness import (
-    IntegrationScenario,
-    Document,
-    ImageFile,
-    ValidationCriterion
-)
+from integration_tests.scenario_harness import Document, ImageFile, IntegrationScenario, ValidationCriterion
 
 
 def analyze_architecture_diagram_scenario() -> IntegrationScenario:

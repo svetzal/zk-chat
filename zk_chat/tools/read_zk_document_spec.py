@@ -19,7 +19,7 @@ def test_read_document_when_exists(read_tool, mock_zk):
     relative_path = "test/path.md"
     mock_zk.document_exists.return_value = True
     expected_result = ZkDocument(relative_path=relative_path, metadata={"title": "Test"},
-                      content="# Test Content")
+                                 content="# Test Content")
     mock_zk.read_document.return_value = expected_result
 
     result = read_tool.run(relative_path=relative_path)

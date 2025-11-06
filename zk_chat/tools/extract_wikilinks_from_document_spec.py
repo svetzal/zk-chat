@@ -3,10 +3,7 @@ from unittest.mock import Mock
 import pytest
 
 from zk_chat.console_service import RichConsoleService
-from zk_chat.markdown.markdown_filesystem_gateway import WikiLink
-from zk_chat.models import ZkDocument
 from zk_chat.tools.extract_wikilinks_from_document import ExtractWikilinksFromDocument
-from zk_chat.services.link_traversal_service import WikiLinkReference
 from zk_chat.zettelkasten import Zettelkasten
 
 
@@ -29,7 +26,8 @@ class DescribeExtractWikilinksFromDocument:
     def extract_tool(self, mock_zk, mock_console_service):
         return ExtractWikilinksFromDocument(mock_zk, mock_console_service)
 
-    def should_be_instantiated_with_zettelkasten_and_console_service(self, mock_zk, mock_console_service):
+    def should_be_instantiated_with_zettelkasten_and_console_service(self, mock_zk,
+                                                                     mock_console_service):
         tool = ExtractWikilinksFromDocument(mock_zk, mock_console_service)
 
         assert isinstance(tool, ExtractWikilinksFromDocument)

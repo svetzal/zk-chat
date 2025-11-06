@@ -46,7 +46,8 @@ class DescribeFindBacklinks:
             )
         ]
 
-    def should_be_instantiated_with_zettelkasten_and_console_service(self, mock_zk, mock_console_service):
+    def should_be_instantiated_with_zettelkasten_and_console_service(self, mock_zk,
+                                                                     mock_console_service):
         tool = FindBacklinks(mock_zk, mock_console_service)
 
         assert isinstance(tool, FindBacklinks)
@@ -109,7 +110,9 @@ class DescribeFindBacklinks:
         assert "line_number" in result
         assert "context_snippet" in result
 
-    def should_print_console_feedback_about_results_found(self, backlinks_tool, mock_console_service, mock_backlink_results):
+    def should_print_console_feedback_about_results_found(self, backlinks_tool,
+                                                          mock_console_service,
+                                                          mock_backlink_results):
         target = "test-document.md"
 
         backlinks_tool.link_service.find_backlinks = Mock(return_value=mock_backlink_results)
@@ -149,7 +152,8 @@ class DescribeFindBacklinks:
                 target_wikilink="Important Concept",
                 resolved_target="important-concept.md",
                 line_number=8,
-                context_snippet="Before we proceed, we must understand [[Important Concept]] thoroughly."
+                context_snippet="Before we proceed, we must understand [[Important Concept]] "
+                                "thoroughly."
             )
         ]
 
@@ -186,7 +190,8 @@ class DescribeFindBacklinks:
         assert descriptor["type"] == "function"
         function_def = descriptor["function"]
         assert function_def["name"] == "find_backlinks"
-        assert "find all documents that contain wikilinks pointing to" in function_def["description"].lower()
+        assert "find all documents that contain wikilinks pointing to" in function_def[
+            "description"].lower()
 
         params = function_def["parameters"]
         assert params["type"] == "object"

@@ -1,19 +1,19 @@
-from datetime import datetime
 import argparse
 import os
+from datetime import datetime
 
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
 os.environ['CHROMA_TELEMETRY'] = 'false'
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
+from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.progress_tracker import IndexingProgressTracker
 from zk_chat.vector_database import VectorDatabase
 from zk_chat.zettelkasten import Zettelkasten
-from zk_chat.chroma_collections import ZkCollectionName
 
 
 def reindex(config: Config, force_full: bool = False):
@@ -109,7 +109,9 @@ def reindex(config: Config, force_full: bool = False):
         if total_files == 0:
             print("\n✓ No documents needed updating")
         else:
-            print(f"\n✓ Successfully processed {files_processed} document{'s' if files_processed != 1 else ''}")
+            print(
+                f"\n✓ Successfully processed {files_processed} document"
+                f"{'s' if files_processed != 1 else ''}")
 
     config.set_last_indexed(datetime.now())
     config.save()
@@ -120,7 +122,8 @@ def main():
     parser.add_argument('--vault', required=True, help='Path to your Zettelkasten vault')
     parser.add_argument('--full', action='store_true', default=False, help='Force full reindex')
     parser.add_argument('--gateway', choices=['ollama', 'openai'], default='ollama',
-                        help='Set the model gateway to use (ollama or openai). OpenAI requires OPENAI_API_KEY environment variable')
+                        help='Set the model gateway to use (ollama or openai). OpenAI requires '
+                        'OPENAI_API_KEY environment variable')
     args = parser.parse_args()
 
     # Ensure vault path exists

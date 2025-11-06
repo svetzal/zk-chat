@@ -5,7 +5,7 @@ This module provides an MCP implementation that directly bridges to the specific
 tools used in the ZK Chat application.
 """
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import structlog
 
@@ -21,6 +21,7 @@ from zk_chat.zettelkasten import Zettelkasten
 # Initialize logger
 logger = structlog.get_logger()
 
+
 class MCPServer:
     """
     Model Context Protocol server that wraps specific ZK Chat tools.
@@ -28,12 +29,12 @@ class MCPServer:
     This server provides an MCP-compatible interface to the predefined tools
     used in the ZK Chat application.
     """
-    
+
     def __init__(
-        self, 
-        zk: Zettelkasten,
-        smart_memory: SmartMemory,
-        enable_unsafe_operations: bool = False
+            self,
+            zk: Zettelkasten,
+            smart_memory: SmartMemory,
+            enable_unsafe_operations: bool = False
     ):
         """
         Initialize the MCP server with required dependencies.
@@ -51,9 +52,9 @@ class MCPServer:
         self.smart_memory = smart_memory
         self.enable_unsafe_operations = enable_unsafe_operations
         self.tools = {}
-        
+
         self._register_tools()
-    
+
     def _register_tools(self) -> None:
         """
         Register the specific tools with appropriate dependencies.
@@ -64,11 +65,11 @@ class MCPServer:
         self._register_tool(FindZkDocumentsRelatedTo(self.zk))
         self._register_tool(RetrieveFromSmartMemory(self.smart_memory))
         self._register_tool(StoreInSmartMemory(self.smart_memory))
-        
+
         # Register potentially unsafe tools if enabled
         if self.enable_unsafe_operations:
             self._register_tool(CreateOrOverwriteZkDocument(self.zk))
-    
+
     def _register_tool(self, tool_instance: Any) -> None:
         """
         Register a tool instance with the server.
@@ -83,8 +84,8 @@ class MCPServer:
             tool_name = descriptor["function"]["name"]
             self.tools[tool_name] = tool_instance
             logger.info("Registered tool", name=tool_name)
-    
-    def get_available_tools(self) -> List[Dict[str, Any]]:
+
+    def get_available_tools(self) -> list[dict[str, Any]]:
         """
         Get a list of available tools and their metadata in MCP format.
         
@@ -94,8 +95,8 @@ class MCPServer:
             List of tool descriptors in MCP format
         """
         return [tool.descriptor for tool in self.tools.values()]
-    
-    def execute_tool(self, tool_name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+
+    def execute_tool(self, tool_name: str, parameters: dict[str, Any]) -> dict[str, Any]:
         """
         Execute a tool with the given parameters.
         
@@ -114,20 +115,20 @@ class MCPServer:
         if tool_name not in self.tools:
             logger.error("Tool not found", tool_name=tool_name)
             return {"status": "error", "error": f"Tool '{tool_name}' not found"}
-        
+
         logger.info("Executing tool", tool_name=tool_name, parameters=parameters)
-        
+
         try:
             # Call the tool's run method with the parameters
             result = self.tools[tool_name].run(**parameters)
             return {"status": "success", "result": result}
         except Exception as e:
-            logger.error("Tool execution failed", 
-                        tool_name=tool_name, 
-                        error=str(e))
+            logger.error("Tool execution failed",
+                         tool_name=tool_name,
+                         error=str(e))
             return {"status": "error", "error": str(e)}
-    
-    def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+
+    def process_request(self, request: dict[str, Any]) -> dict[str, Any]:
         """
         Process an MCP request and return the response.
         
@@ -143,25 +144,26 @@ class MCPServer:
         """
         if "type" not in request:
             return {"status": "error", "error": "Invalid request format: missing 'type'"}
-        
+
         if request["type"] == "tool_call":
             if "tool" not in request or "parameters" not in request:
-                return {"status": "error", "error": "Invalid tool_call request: missing 'tool' or 'parameters'"}
-            
+                return {"status": "error",
+                        "error": "Invalid tool_call request: missing 'tool' or 'parameters'"}
+
             tool_name = request["tool"]
             parameters = request["parameters"]
-            
+
             return self.execute_tool(tool_name, parameters)
-            
+
         elif request["type"] == "list_tools":
             return {
                 "status": "success",
                 "tools": self.get_available_tools()
             }
-            
+
         else:
             return {"status": "error", "error": f"Unsupported request type: {request['type']}"}
-    
+
     def handle_mcp_request(self, request_json: str) -> str:
         """
         Handle an MCP request in JSON format and return the response.
@@ -189,9 +191,9 @@ class MCPServer:
 
 
 def create_mcp_server(
-    zk: Zettelkasten, 
-    smart_memory: SmartMemory,
-    enable_unsafe_operations: bool = False
+        zk: Zettelkasten,
+        smart_memory: SmartMemory,
+        enable_unsafe_operations: bool = False
 ) -> MCPServer:
     """
     Helper function to create and configure an MCP server.
@@ -210,4 +212,5 @@ def create_mcp_server(
     MCPServer
         Configured MCP server instance
     """
-    return MCPServer(zk=zk, smart_memory=smart_memory, enable_unsafe_operations=enable_unsafe_operations)
+    return MCPServer(zk=zk, smart_memory=smart_memory,
+                     enable_unsafe_operations=enable_unsafe_operations)

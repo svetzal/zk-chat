@@ -1,7 +1,6 @@
-import os
 from typing import override
 
-from zk_chat.config import Config, ModelGateway
+from zk_chat.config import Config
 from zk_chat.upgraders.gateway_specific_index_folder import Upgrader
 
 
@@ -17,8 +16,8 @@ class GatewaySpecificLastIndexed(Upgrader):
     def should_run(self) -> bool:
         # Run if we have a last_indexed value but no gateway-specific values
         return (
-            self.config.last_indexed is not None and 
-            not self.config.gateway_last_indexed
+                self.config.last_indexed is not None and
+                not self.config.gateway_last_indexed
         )
 
     @override
@@ -26,6 +25,8 @@ class GatewaySpecificLastIndexed(Upgrader):
         # Migrate the last_indexed value to the gateway-specific dictionary
         if self.config.last_indexed is not None:
             self.config.set_last_indexed(self.config.last_indexed)
-            print(f"Migrated last_indexed value to gateway-specific storage for {self.config.gateway.value}")
+            print(
+                f"Migrated last_indexed value to gateway-specific storage for "
+                f"{self.config.gateway.value}")
             # Save the updated config
             self.config.save()

@@ -1,0 +1,51 @@
+# EditorConfig is awesome: https://EditorConfig.org
+# This file aligns PyCharm/JetBrains code style with our Ruff settings
+# and project guidelines.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+# Many tools read this; PyCharm uses ij_* right margin for enforcement
+max_line_length = 120
+
+[*.py]
+# Match Ruff line length
+ij_python_right_margin = 120
+
+# Prefer PEP 8 style imports and sorting handled by isort/Ruff
+# Encourage consistent import layout in PyCharm (JetBrains-specific keys)
+# Order: Standard library, Third-party, Local (first-party)
+# Note: PyCharm uses these keys when "Enable EditorConfig support" is on
+ij_python_sort_imports = true
+ij_python_sort_names_in_imports = true
+# Layout sections separated with a pipe
+# STDLIB | THIRDPARTY | FIRSTPARTY | LOCALFOLDER
+ij_python_imports_layout = STDLIB,|,THIRDPARTY,|,FIRSTPARTY,|,LOCALFOLDER
+
+# Keep one blank line between import groups (PyCharm derives this from layout pipes)
+# Ensure from ... import ... are kept grouped/combined where practical
+ij_python_join_from_imports_with_same_source = true
+ij_python_use_import_on_demand = false
+
+# Continuation indent
+ij_python_continuation_indent_size = 4
+
+# Trailing commas per Black/Ruff default preferences when wrapping
+ij_python_keep_trailing_comma = true
+
+# Spaces around typing annotations
+ij_python_space_after_type_colon = true
+ij_python_space_before_type_colon = false
+
+# Blank lines
+ij_python_keep_blank_lines_in_declarations = 1
+ij_python_keep_blank_lines_in_code = 1
+
+# Ensure files end with a newline
+insert_final_newline = true

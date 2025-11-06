@@ -8,7 +8,6 @@ logger = structlog.get_logger()
 
 
 class ReadZkDocument(LLMTool):
-
     zk: Zettelkasten
 
     def __init__(self, zk: Zettelkasten, console_service: RichConsoleService = None):
@@ -29,7 +28,11 @@ class ReadZkDocument(LLMTool):
             "type": "function",
             "function": {
                 "name": "read_document",
-                "description": "Retrieve and read the full content of a specific document from the Zettelkasten knowledge base. Use this when you need to access the complete content of a document that you already know exists (for example, after using list_documents or find_documents). This returns the entire document including its metadata and content.",
+                "description": "Retrieve and read the full content of a specific document from "
+                               "the Zettelkasten knowledge base. Use this when you need to access "
+                               "the complete content of a document that you already know exists (for example, "
+                               "after using list_documents or find_documents). This returns the entire document "
+                               "including its metadata and content.",
                 "parameters": {
                     "type": "object",
                     "properties": {

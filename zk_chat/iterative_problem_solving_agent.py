@@ -1,8 +1,5 @@
-from typing import List, Optional
-
 import structlog
-
-from mojentic.llm import LLMBroker, ChatSession
+from mojentic.llm import ChatSession, LLMBroker
 from mojentic.llm.tools.llm_tool import LLMTool
 
 logger = structlog.get_logger()
@@ -26,8 +23,9 @@ class IterativeProblemSolvingAgent:
     max_iterations: int
     chat: ChatSession
 
-    def __init__(self, llm: LLMBroker, available_tools: Optional[List[LLMTool]] = None, max_iterations: int = 3,
-                 system_prompt: Optional[str] = None):
+    def __init__(self, llm: LLMBroker, available_tools: list[LLMTool] | None = None,
+                 max_iterations: int = 3,
+                 system_prompt: str | None = None):
         """Initialize the IterativeProblemSolver.
 
         Parameters
@@ -43,8 +41,10 @@ class IterativeProblemSolvingAgent:
         self.available_tools = available_tools or []
         self.chat = ChatSession(
             llm=llm,
-            system_prompt=system_prompt or "You are a problem-solving assistant that can solve complex problems step by step. "
-                                           "You analyze problems, break them down into smaller parts, and solve them systematically. "
+            system_prompt=system_prompt or "You are a problem-solving assistant that can solve "
+                                           "complex problems step by step. "
+                                           "You analyze problems, break them down into smaller "
+                                           "parts, and solve them systematically. "
                                            "If you cannot solve a problem completely in one step, you make progress and identify what to do next.",
             tools=self.available_tools,
         )

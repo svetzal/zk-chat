@@ -6,7 +6,8 @@ needing to know about implementation details or requiring changes to
 plugin constructors as new services are added.
 """
 from enum import Enum
-from typing import Any, Dict, Optional, Type, TypeVar
+from typing import Any, TypeVar
+
 import structlog
 
 logger = structlog.get_logger()
@@ -16,24 +17,24 @@ T = TypeVar('T')
 
 class ServiceType(Enum):
     """Enumeration of available services that plugins can request."""
-    
+
     # Core services
     FILESYSTEM_GATEWAY = "filesystem_gateway"
     LLM_BROKER = "llm_broker"
     ZETTELKASTEN = "zettelkasten"
     SMART_MEMORY = "smart_memory"
-    
+
     # Database services
     CHROMA_GATEWAY = "chroma_gateway"
     VECTOR_DATABASE = "vector_database"
-    
+
     # Gateway services
     MODEL_GATEWAY = "model_gateway"  # The underlying LLM gateway (Ollama/OpenAI)
     TOKENIZER_GATEWAY = "tokenizer_gateway"
-    
+
     # Git services (when enabled)
     GIT_GATEWAY = "git_gateway"
-    
+
     # Configuration
     CONFIG = "config"
 
@@ -46,11 +47,11 @@ class ServiceRegistry:
     to know about specific implementations or requiring constructor
     parameter changes as new services are added.
     """
-    
+
     def __init__(self):
-        self._services: Dict[ServiceType, Any] = {}
+        self._services: dict[ServiceType, Any] = {}
         self._logger = logger
-    
+
     def register_service(self, service_type: ServiceType, service_instance: Any) -> None:
         """
         Register a service instance for the given service type.
@@ -61,8 +62,9 @@ class ServiceRegistry:
         """
         self._services[service_type] = service_instance
         self._logger.info("Registered service", service_type=service_type.value)
-    
-    def get_service(self, service_type: ServiceType, expected_type: Optional[Type[T]] = None) -> Optional[T]:
+
+    def get_service(self, service_type: ServiceType,
+                    expected_type: type[T] | None = None) -> T | None:
         """
         Get a service instance by type.
         
@@ -77,7 +79,7 @@ class ServiceRegistry:
         if service is None:
             self._logger.warning("Service not available", service_type=service_type.value)
         return service
-    
+
     def has_service(self, service_type: ServiceType) -> bool:
         """
         Check if a service is available.
@@ -89,7 +91,7 @@ class ServiceRegistry:
             True if the service is available, False otherwise
         """
         return service_type in self._services
-    
+
     def list_available_services(self) -> list[ServiceType]:
         """
         Get a list of all available services.

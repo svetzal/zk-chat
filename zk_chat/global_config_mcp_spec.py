@@ -1,7 +1,7 @@
 """
 Tests for MCP server management in GlobalConfig.
 """
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from zk_chat.global_config import GlobalConfig, MCPServerConfig, MCPServerType
 
@@ -134,21 +134,21 @@ class DescribeMCPServerConfig:
 
     def should_validate_stdio_server_requires_command(self):
         try:
-            server = MCPServerConfig(
+            MCPServerConfig(
                 name="test",
                 server_type=MCPServerType.STDIO
             )
-            assert False, "Should have raised ValueError"
+            raise AssertionError("Should have raised ValueError")
         except ValueError as e:
             assert "command" in str(e)
 
     def should_validate_http_server_requires_url(self):
         try:
-            server = MCPServerConfig(
+            MCPServerConfig(
                 name="test",
                 server_type=MCPServerType.HTTP
             )
-            assert False, "Should have raised ValueError"
+            raise AssertionError("Should have raised ValueError")
         except ValueError as e:
             assert "URL" in str(e)
 

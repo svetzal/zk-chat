@@ -1,18 +1,10 @@
-from unittest.mock import Mock, patch
 from datetime import datetime
+from unittest.mock import Mock
 
 import pytest
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway, WikiLink
-from zk_chat.services.link_traversal_service import (
-    LinkTraversalService,
-    WikiLinkReference,
-    BacklinkResult,
-    ForwardLinkResult,
-    LinkPath,
-    LinkMetrics,
-    LinkGraphIndex
-)
+from zk_chat.services.link_traversal_service import LinkGraphIndex, LinkTraversalService, WikiLinkReference
 
 
 class DescribeLinkTraversalService:
@@ -57,10 +49,12 @@ Just plain markdown content.
         assert service.filesystem_gateway == mock_filesystem
         assert isinstance(service.link_index, LinkGraphIndex)
 
-    def should_extract_wikilinks_from_content_with_context(self, link_service, sample_content_with_links):
+    def should_extract_wikilinks_from_content_with_context(self, link_service,
+                                                           sample_content_with_links):
         source_document = "test.md"
 
-        result = link_service.extract_wikilinks_from_content(sample_content_with_links, source_document)
+        result = link_service.extract_wikilinks_from_content(sample_content_with_links,
+                                                             source_document)
 
         assert len(result) == 4  # Four wikilinks total
 
@@ -83,7 +77,8 @@ Just plain markdown content.
         assert duplicate_link.wikilink.title == "Document A"
         assert duplicate_link.line_number == 10
 
-    def should_extract_wikilinks_from_document_file(self, link_service, mock_filesystem, sample_content_with_links):
+    def should_extract_wikilinks_from_document_file(self, link_service, mock_filesystem,
+                                                    sample_content_with_links):
         test_path = "test/document.md"
         mock_filesystem.path_exists.return_value = True
         mock_filesystem.read_markdown.return_value = ({}, sample_content_with_links)
@@ -144,7 +139,8 @@ Another valid: [[Another Good Link]]"""
         assert backlink.resolved_target == target_doc
         assert backlink.line_number == 5
 
-    def should_find_backlinks_by_scanning_when_index_unavailable(self, link_service, mock_filesystem):
+    def should_find_backlinks_by_scanning_when_index_unavailable(self, link_service,
+                                                                 mock_filesystem):
         target_doc = "target.md"
         linking_doc = "linking.md"
 
@@ -203,7 +199,7 @@ Another valid: [[Another Good Link]]"""
         # doc1 links to doc2
         mock_filesystem.read_markdown.side_effect = [
             ({}, "Link to [[doc2]]"),  # doc1 content
-            ({}, "No links here")      # doc2 content
+            ({}, "No links here")  # doc2 content
         ]
 
         # Resolve wikilink from doc1 to doc2
@@ -281,15 +277,15 @@ Another valid: [[Another Good Link]]"""
         doc1, doc2, doc3 = "doc1.md", "doc2.md", "doc3.md"
 
         link_service.link_index.forward_links = {
-            doc1: {doc2},      # doc1 links to doc2
-            doc2: {doc3},      # doc2 links to doc3
-            doc3: set()        # doc3 has no outgoing links
+            doc1: {doc2},  # doc1 links to doc2
+            doc2: {doc3},  # doc2 links to doc3
+            doc3: set()  # doc3 has no outgoing links
         }
 
         link_service.link_index.backward_links = {
-            doc1: set(),       # doc1 has no incoming links (orphaned)
-            doc2: {doc1},      # doc2 is linked by doc1
-            doc3: {doc2}       # doc3 is linked by doc2
+            doc1: set(),  # doc1 has no incoming links (orphaned)
+            doc2: {doc1},  # doc2 is linked by doc1
+            doc3: {doc2}  # doc3 is linked by doc2
         }
 
         link_service.link_index.broken_links = {

@@ -12,14 +12,14 @@ logging.basicConfig(level=logging.WARN)
 
 from importlib.metadata import version
 
+from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
+
+from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
 from zk_chat.console_service import RichConsoleService
 from zk_chat.global_config import GlobalConfig
 from zk_chat.index import reindex
 from zk_chat.memory.smart_memory import SmartMemory
-from zk_chat.chroma_gateway import ChromaGateway
-from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
-from rich.console import Console
 
 
 def get_version():
@@ -41,11 +41,13 @@ def display_banner(config, title: str, unsafe=False, use_git=False, store_prompt
     console.print("[banner.copyright]Copyright (C) 2024-2025 Stacey Vetzal[/]\n")
 
     # Display configuration information
-    console.print(f"[banner.info.label]Using gateway:[/] [banner.info.value]{config.gateway.value}[/]")
+    console.print(
+        f"[banner.info.label]Using gateway:[/] [banner.info.value]{config.gateway.value}[/]")
     console.print(f"[banner.info.label]Chat model:[/] [banner.info.value]{config.model}[/]")
 
     if config.visual_model:
-        console.print(f"[banner.info.label]Visual Model:[/] [banner.info.value]{config.visual_model}[/]")
+        console.print(
+            f"[banner.info.label]Visual Model:[/] [banner.info.value]{config.visual_model}[/]")
 
     console.print(f"[banner.info.label]Using vault:[/] [banner.info.value]{config.vault}[/]\n")
 
@@ -53,30 +55,40 @@ def display_banner(config, title: str, unsafe=False, use_git=False, store_prompt
     if unsafe:
         if not use_git:
             console.print(
-                "[banner.warning.unsafe]ZkChat can write files to your vault, we strongly recommend using the --git option when using --unsafe.[/]\n")
+                "[banner.warning.unsafe]ZkChat can write files to your vault, we strongly "
+                "recommend using the --git option when using --unsafe.[/]\n")
         else:
             console.print(
-                "[banner.warning.git]ZkChat can write files to your vault, and will use git to provide a full change history and rollback functions.[/]\n")
+                "[banner.warning.git]ZkChat can write files to your vault, and will use git to "
+                "provide a full change history and rollback functions.[/]\n")
 
     # Display information about store_prompt
     if store_prompt:
         console.print(
-            f"[banner.info.label]System prompt will be stored as 'ZkSystemPrompt.md' in the vault. Edit this document to help tune your ZkChat experience in this particular vault.[/]\n")
+            "[banner.info.label]System prompt will be stored as 'ZkSystemPrompt.md' in the vault. "
+            "Edit this document to help tune your ZkChat experience in this particular vault.[/]\n")
 
 
 def add_common_args(parser: argparse.ArgumentParser):
-    parser.add_argument('--vault', required=False, help='Path to your Zettelkasten vault (can be relative)')
-    parser.add_argument('--save', action='store_true', help='Save the provided vault path as a bookmark')
-    parser.add_argument('--remove-bookmark', metavar='PATH', help='Remove a bookmark for PATH (can be relative)')
+    parser.add_argument('--vault', required=False,
+                        help='Path to your Zettelkasten vault (can be relative)')
+    parser.add_argument('--save', action='store_true',
+                        help='Save the provided vault path as a bookmark')
+    parser.add_argument('--remove-bookmark', metavar='PATH',
+                        help='Remove a bookmark for PATH (can be relative)')
     parser.add_argument('--list-bookmarks', action='store_true', help='List all bookmarks')
     parser.add_argument('--reindex', action='store_true', help='Reindex the Zettelkasten vault')
-    parser.add_argument('--full', action='store_true', help='Force full reindex (only with --reindex)')
+    parser.add_argument('--full', action='store_true',
+                        help='Force full reindex (only with --reindex)')
     parser.add_argument('--gateway', choices=['ollama', 'openai'], default=None,
-                        help='Set the model gateway to use (ollama or openai). OpenAI requires OPENAI_API_KEY environment variable')
+                        help='Set the model gateway to use (ollama or openai). OpenAI requires '
+                             'OPENAI_API_KEY environment variable')
     parser.add_argument('--model', nargs='?', const="choose",
-                        help='Set the model to use for chat. Use without a value to select from available models')
+                        help='Set the model to use for chat. Use without a value to select from '
+                             'available models')
     parser.add_argument('--visual-model', nargs='?', const="choose",
-                        help='Set the model to use for visual analysis. Use without a value to select from available models')
+                        help='Set the model to use for visual analysis. Use without a value to '
+                             'select from available models')
     parser.add_argument('--reset-memory', action='store_true', help='Reset the smart memory')
 
 
@@ -152,7 +164,9 @@ def common_init(args):
             new_gateway = ModelGateway(args.gateway)
 
             if new_gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
-                print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
+                print(
+                    "Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI "
+                    "gateway.")
                 return
 
             if new_gateway != config.gateway:
@@ -163,7 +177,8 @@ def common_init(args):
         if gateway_changed or args.model:
             if args.model == "choose":
                 config.update_model(gateway=gateway)
-                # If user chose to select a model and no visual model is specified, also prompt for visual model
+                # If user chose to select a model and no visual model is specified, also prompt
+                # for visual model
                 if not args.visual_model and not config.visual_model:
                     print("Would you like to select a visual model? (y/n): ")
                     choice = input().strip().lower()
@@ -201,11 +216,14 @@ def common_init(args):
         if args.gateway:
             gateway = ModelGateway(args.gateway)
             if gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
-                print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
+                print(
+                    "Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI "
+                    "gateway.")
                 return
 
         if args.model == "choose":
-            # Non-interactive default: if visual_model not provided, leave as None (visual tools disabled)
+            # Non-interactive default: if visual_model not provided, leave as None (visual tools
+            # disabled)
             config = Config.load_or_initialize(
                 vault_path,
                 gateway=gateway,
@@ -218,7 +236,9 @@ def common_init(args):
                 vault_path,
                 gateway=gateway,
                 model=args.model,
-                visual_model=(args.visual_model if hasattr(args, "visual_model") and args.visual_model is not None else args.model)
+                visual_model=(args.visual_model if hasattr(args,
+                                                           "visual_model") and args.visual_model
+                                                   is not None else args.model)
             )
 
         reindex(config, force_full=True)
