@@ -1,6 +1,6 @@
 [project]
 name = "zk-chat"
-version = "3.2.2"
+version = "3.5.0"
 authors = [
     { name = "Stacey Vetzal", email = "stacey@vetzal.com" },
 ]

@@ -1,368 +1,353 @@
-# 💬 Chat With Your Zettelkasten
+# 💬 zk-chat: AI-Powered Chat for Your Zettelkasten
 
-This is a simple tool that lets you chat with an "AI" that has access to the documents in your Zettelkasten. It will
-index your markdown documents, and in your chat session it may choose to query your content, retrieve excerpts, read
-entire documents, and generate responses based on the content in your Zettelkasten.
+**Transform your Zettelkasten into an intelligent knowledge assistant.** zk-chat lets you have natural conversations with your notes using AI—whether you run models locally with Ollama or use OpenAI's cloud API.
 
-For "AI" it communicates with either a local running instance of Ollama or OpenAI's API. By default, Ollama is used and must be installed and running for zk-chat to function, but you can also configure it to use OpenAI with the `--gateway openai` option.
+[![PyPI](https://img.shields.io/pypi/v/zk-chat)](https://pypi.org/project/zk-chat/)
+[![Python Version](https://img.shields.io/pypi/pyversions/zk-chat)](https://pypi.org/project/zk-chat/)
+[![Documentation](https://img.shields.io/badge/docs-vetzal.com-blue)](https://vetzal.com/zk-chat/)
+[![License](https://img.shields.io/github/license/svetzal/zk-chat)](https://github.com/svetzal/zk-chat/blob/main/LICENSE)
+
+## 🎯 Why zk-chat?
+
+- **🔒 Privacy First**: Run everything locally with Ollama—no data leaves your machine
+- **🤖 AI-Powered RAG**: Semantic search with vector embeddings finds exactly what you need
+- **📊 Visual Analysis**: Analyze diagrams, charts, and images in your notes
+- **🔗 Graph Traversal**: Discover connections through wikilinks, backlinks, and forward links
+- **🧠 Smart Memory**: AI remembers context across conversations
+- **🔌 Extensible**: MCP server support and plugin architecture
+- **⚡ Fast**: Efficient local indexing and incremental updates
+- **💻 CLI & GUI**: Choose your interface—powerful command-line or experimental GUI
 
 ## 📚 Documentation
 
-**Full documentation is available at [https://vetzal.com/zk-chat/](https://vetzal.com/zk-chat/)**
+**Full documentation:** [https://vetzal.com/zk-chat/](https://vetzal.com/zk-chat/)
 
-- [Installation Guide](https://vetzal.com/zk-chat/installation/)
-- [Quick Start Tutorial](https://vetzal.com/zk-chat/quick-start/)
-- [Command Line Reference](https://vetzal.com/zk-chat/usage/cli/)
-- [Plugin Development Guide](https://vetzal.com/zk-chat/plugins/guide/)
+- [Installation Guide](https://vetzal.com/zk-chat/installation/) - Get started in minutes
+- [Quick Start Tutorial](https://vetzal.com/zk-chat/quick-start/) - Your first conversation
+- [Model Selection Guide](https://vetzal.com/zk-chat/configuration/models/) - Choose the right model for your hardware
+- [Command Reference](https://vetzal.com/zk-chat/usage/cli/) - Complete CLI documentation
+- [Plugin Development](https://vetzal.com/zk-chat/plugins/guide/) - Extend zk-chat with custom tools
 
-## ✨ Features
+## 🚀 Quick Start
 
-- Command-line interface for quick access
-- (Experimental) Graphical user interface for a more user-friendly experience
-- RAG queries across your document base
-- Interactive chat with context from your Zettelkasten
-- Configurable LLM model selection
-- Optional visual analysis capability for images in your Zettelkasten
-- Easy Zettelkasten folder configuration
-
-### 🛠️ Tools
-
-The chat interface provides access to several tools that enhance its capabilities:
-
-- **Document Management Tools**
-  - Find Documents: Locates relevant documents in your Zettelkasten based on your query
-  - Find Excerpts: Retrieves specific passages from your documents that match your search criteria
-  - List Documents: Displays all documents in your Zettelkasten for easier navigation
-  - Read Document: Accesses the full content of a specific document in your Zettelkasten
-  - Write Document: Creates or updates documents in your Zettelkasten (requires --unsafe flag)
-  - Rename Document: Changes the name of an existing document in your Zettelkasten (requires --unsafe flag)
-  - Delete Document: Permanently removes a document from your Zettelkasten (requires --unsafe flag)
-
-- **Visual Analysis Tools**
-  - Analyze Image: Examines and describes the content of images in your Zettelkasten (requires a visual model to be configured)
-
-- **Navigation Tools**
-  - Resolve WikiLink: Converts wikilinks (e.g., [[Document Title]]) to relative file paths for navigation between documents
-
-- **Graph Traversal Tools** 🆕
-  - Extract Wikilinks: Fast extraction of all wikilinks from documents with line numbers and context
-  - Find Backlinks: Discover what documents link TO a target document (reverse navigation)
-  - Find Forward Links: Discover what documents a source document links TO (forward navigation)
-  - Link Path Finding: Find connection paths between documents through wikilinks
-  - Link Metrics: Analyze connectivity patterns and identify hub documents
-
-- **Smart Memory Tools**
-  - Store Information: Saves important facts and context from conversations for future reference
-  - Retrieve Information: Recalls previously stored information to provide more personalized responses
-
-- **Git Integration Tools**
-  - View Uncommitted Changes: Shows pending changes in your Zettelkasten vault
-  - Commit Changes: Commits changes with AI-generated commit messages
-
-- **Available Tool Plugins**
-  - [zk-rag-wikipedia](https://pypi.org/project/zk-rag-wikipedia/): A plugin for looking up information on Wikipedia and creating documents from the results
-  - [zk-rag-image-generator](https://pypi.org/project/zk-rag-image-generator/): A plugin for generating images using Stable Diffusion 3.5 Medium
-
-### 🔌 Plugin Development
-
-Zk-Chat supports a rich plugin architecture that allows developers to extend the chat agent with custom tools. See [PLUGINS.md](PLUGINS.md) for a comprehensive guide on developing plugins that integrate with the zk-chat runtime environment.
-
-## 🔧 Requirements
-
-If using the default Ollama gateway, you must have [ollama](https://ollama.com/) installed and running.
-
-If using the OpenAI gateway, you must have the OPENAI_API_KEY environment variable set with your OpenAI API key.
-
-For visual analysis capabilities, you need a model that supports image analysis:
-- For Ollama: models like llava, bakllava, or other multimodal models
-- For OpenAI: models like gpt-4-vision or other vision-capable models
-
-You must have a local knowledgebase / zettelkasten with content in markdown format. I
-use [Obsidian](https://obsidian.md/), because I favour working locally, and I favour using the markdown format for
-notes - because everything's local, and in plain text, I can simply point this tool at a Vault folder.
-
-## 💻 Workstation setup
-
-**_Right now, while this tool should run on Windows, but we've only written instructions for Mac._**
-
-### Using pipx (recommended)
-
-[pipx](https://pypa.github.io/pipx/) is a tool that allows you to install and run Python applications in isolated environments. It's ideal for end-user applications like zk-chat, as it keeps the application and its dependencies isolated from your system Python and other applications.
-
-Installing pipx:
+### Installation
 
 ```bash
-# On macOS
-brew install pipx
-pipx ensurepath
-
-# On Linux
-python3 -m pip install --user pipx
-python3 -m pipx ensurepath
-```
-
-Installing zk-chat with pipx:
-
-```bash
+# Install with pipx (recommended)
 pipx install zk-chat
-```
 
-Upgrading zk-chat with pipx:
-
-```bash
-pipx upgrade zk-chat
-```
-
-Installing plugins with pipx inject:
-
-```bash
-# Install the Wikipedia plugin
-pipx inject zk-chat zk-rag-wikipedia
-```
-
-The benefit of using pipx is that it creates isolated environments for each application, avoiding dependency conflicts while still making the commands globally available.
-
-### Alternative: Using a virtual environment
-
-If you prefer more control over your Python environment, you can set up a local virtual environment:
-
-Setting up a local environment, and activating it:
-
-```bash
-cd $HOME
-python3 -mvenv .venv
-source .venv/bin/activate
-```
-
-Installing the zk-chat module from PyPi:
-
-```bash
-pip install zk-chat
-```
-
-Optionally install tool plugins from PyPi:
-
-```bash
-pip install zk-rag-wikipedia
-```
-
-Setting up Ollama and installing a local model (if using the Ollama gateway):
-
-```bash
+# Install Ollama and a model
 brew install ollama
-ollama pull qwen2.5:14b
+ollama pull qwen3:8b
+
+# For visual analysis (optional)
+ollama pull gemma3:27b
 ```
 
-Setting up OpenAI (if using the OpenAI gateway):
+### Your First Chat
 
 ```bash
-export OPENAI_API_KEY=your_api_key_here
+# Start interactive session
+zk-chat interactive --vault /path/to/your/notes
+
+# Ask a question
+zk-chat query "What are my main ideas about productivity?"
+
+# Single query with visual model
+zk-chat query "Analyze diagram.png" --visual-model gemma3:27b
 ```
 
-## 🚀 Usage
+## ✨ Key Features
 
-### 📟 Command-line Interface
+### 🔍 Intelligent Search & Retrieval
+- **Semantic Search**: Vector embeddings find conceptually similar content
+- **Excerpt Retrieval**: Extract relevant passages from your documents
+- **Full Document Access**: AI can read complete notes when needed
+- **Graph Traversal**: Explore connections via wikilinks, backlinks, and forward links
+- **Link Path Finding**: Discover how concepts connect through your knowledge graph
 
-The CLI uses a modern command-based interface. Use `zk-chat --help` to see all available commands.
+### 🤖 AI Capabilities
+- **RAG (Retrieval Augmented Generation)**: AI answers using your actual notes
+- **Smart Memory**: Persistent context across conversations
+- **Visual Analysis**: Understand diagrams, charts, and images
+- **Multi-Model Support**: Choose from dozens of Ollama models or use OpenAI
+- **Autonomous Agent Mode**: AI can plan and execute complex multi-step tasks
 
-#### 💬 Interactive Chat
+### 🛠️ Content Management
+- **Read-Only by Default**: Safe exploration of your knowledge base
+- **Optional Writing**: Enable `--unsafe` mode for AI-assisted content creation
+- **Git Integration**: Track all AI changes with automatic commits
+- **Wikilink Support**: Full understanding of `[[wikilink]]` syntax
+- **Markdown Native**: Works seamlessly with Obsidian and other markdown tools
 
-Start an interactive chat session with your Zettelkasten:
+### 🔌 Extensibility
+- **MCP Server Support**: Connect external tools via Model Context Protocol
+- **Plugin Architecture**: Extend with custom Python plugins
+- **Available Plugins**:
+  - [Wikipedia Integration](https://pypi.org/project/zk-rag-wikipedia/) - Research and create notes from Wikipedia
+  - [Image Generation](https://pypi.org/project/zk-rag-image-generator/) - Generate images with Stable Diffusion 3.5
 
+## 📦 What's New in v3.5.0
+
+### 🔖 Bookmark Management
 ```bash
-# First time with a new vault
-zk-chat interactive --vault /path/to/vault
+# List all vault bookmarks
+zk-chat bookmarks list
 
-# Subsequent uses (remembers last vault)
+# Remove a bookmark
+zk-chat bookmarks remove /path/to/vault
+```
+
+### 🔍 Index Diagnostics
+```bash
+# Check index health
+zk-chat diagnose index
+
+# Run test query to verify search
+zk-chat diagnose index --query "test"
+```
+
+### 🔌 MCP Server Integration
+```bash
+# Register external tools
+zk-chat mcp register figma stdio "figma-mcp"
+
+# List and verify servers
+zk-chat mcp list
+zk-chat mcp verify
+```
+
+### 🤖 Updated Model Recommendations (2025)
+
+**Choose based on your RAM:**
+
+| RAM Available | Text Model | Visual Model |
+|---------------|------------|--------------|
+| **64GB+** | `gpt-oss:120b`, `qwen3:32b` | `gemma3:27b` |
+| **36-48GB** | `gpt-oss:20b`, `qwen3:14b` | `gemma3:27b` |
+| **16-32GB** | `qwen3:8b`, `qwen2.5:7b` | `gemma3:9b` |
+| **8-16GB** | `qwen3:1.5b`, `qwen2.5:3b` | `gemma3:2b` |
+
+See the [Model Selection Guide](https://vetzal.com/zk-chat/configuration/models/) for detailed recommendations by task and hardware.
+
+## 💡 Usage Examples
+
+### Interactive Chat
+```bash
+# Start a conversation
 zk-chat interactive
 
-# Use autonomous agent mode for complex tasks
-zk-chat interactive --agent
+# With specific model
+zk-chat interactive --model qwen3:14b
 
-# Allow AI to modify files (use with caution!)
+# Allow AI to edit files (with git tracking)
 zk-chat interactive --unsafe --git
+
+# With visual analysis
+zk-chat interactive --visual-model gemma3:27b
 ```
 
-If `zk-chat` hasn't been used with the vault before, it will prompt you for:
-1. A chat model (using the default Ollama gateway)
-2. Whether you want to select a visual analysis model (optional)
-
-It will then perform a full index of your vault before starting the chat.
-
-#### ❓ Single Query
-
-Ask a single question without starting an interactive session:
-
+### Single Queries
 ```bash
-# Ask a question directly
-zk-chat query "What are my thoughts on productivity?"
+# Direct question
+zk-chat query "What are my thoughts on AI?"
 
-# Read question from a file
-cat prompt.txt | zk-chat query
+# From file or stdin
+cat question.txt | zk-chat query
 
-# Use agent mode for complex queries
-zk-chat query "Find all related concepts" --agent
+# Complex multi-step query
+zk-chat query "Find all notes about productivity and create a summary"
 ```
 
-#### 🖥️ Graphical Interface
-
-Launch the experimental GUI:
-
+### Bookmark Management
 ```bash
-zk-chat gui launch
+# Save current vault
+zk-chat interactive --vault ~/notes --save
+
+# List bookmarks
+zk-chat bookmarks list
+
+# Remove bookmark
+zk-chat bookmarks remove ~/old-notes
 ```
 
-**Note:** The GUI is experimental and uses an older configuration system.
-
-#### 🔍 Index Management
-
-Manage your Zettelkasten search index:
-
+### Index Management
 ```bash
-# Rebuild index (incremental - fast)
-zk-chat index rebuild
+# Quick incremental update
+zk-chat index update
 
-# Full rebuild (comprehensive - slower)
-zk-chat index rebuild --full
+# Full rebuild
+zk-chat index update --full
 
-# Check index status
+# Check status
 zk-chat index status
 ```
 
-#### 🔌 MCP Server Management
+### Visual Analysis
+Ask natural questions about images in your vault:
+- "What's in the diagram at architecture.png?"
+- "Describe the chart in sales-data.jpg"
+- "Extract text from screenshot.png"
 
-Register and manage Model Context Protocol (MCP) servers to extend zk-chat with external tools:
+## 🎛️ Command-Line Options
 
-```bash
-# Add a new MCP server (STDIO)
-zk-chat mcp add figma --type stdio --command figma-mcp
+### Common Options (All Commands)
+- `--vault PATH` or `-v` - Path to your Zettelkasten
+- `--gateway {ollama,openai}` or `-g` - Choose AI provider
+- `--model NAME` or `-m` - Specify chat model
+- `--visual-model NAME` - Specify visual analysis model
+- `--save` - Bookmark the current vault
+- `--no-index` - Skip indexing on startup (faster start)
 
-# Add a new MCP server (HTTP)
-zk-chat mcp add chrome --type http --url http://localhost:8080
+### Agent Mode Options
+- `--unsafe` - Allow AI to create/edit files ⚠️
+- `--git` - Enable git integration (recommended with --unsafe)
+- `--store-prompt` / `--no-store-prompt` - Control system prompt storage
+- `--reset-memory` - Clear smart memory
 
-# List all registered MCP servers with status
-zk-chat mcp list
+> **⚠️ Safety:** The `--unsafe` flag allows AI to modify your notes. Always use with `--git` for tracking changes.
 
-# Verify server availability
-zk-chat mcp verify           # Verify all servers
-zk-chat mcp verify figma     # Verify specific server
+## 🔧 Requirements
 
-# Remove a registered server
-zk-chat mcp remove figma
+### For Local AI (Ollama)
+- [Ollama](https://ollama.com/) installed and running
+- Sufficient RAM for your chosen model (8GB minimum, 16GB+ recommended)
+- Compatible with macOS (M1/M2/M3 recommended), Linux, and Windows
+
+### For Cloud AI (OpenAI)
+- OpenAI API key set in `OPENAI_API_KEY` environment variable
+- Internet connection
+- API credits
+
+### Your Zettelkasten
+- Markdown notes (`.md` files)
+- Works with Obsidian, Logseq, or any markdown-based system
+- Supports wikilinks (`[[Note Name]]`)
+
+## 🏗️ Architecture
+
+zk-chat uses a modern RAG architecture:
+
+1. **Indexing**: Creates vector embeddings of your notes using ChromaDB
+2. **Retrieval**: Semantic search finds relevant content for queries
+3. **Generation**: LLM generates responses using retrieved context
+4. **Tools**: AI can use 15+ tools to explore and interact with your vault
+
+The AI agent has access to:
+- Document search and retrieval
+- Wikilink graph traversal
+- Visual analysis (with vision models)
+- Smart memory storage
+- Git version control
+- External tools via MCP servers
+
+## 🔌 Plugin Development
+
+Create custom tools for your specific needs:
+
+```python
+from zk_chat.services import ZkChatPlugin, ServiceProvider
+
+class MyPlugin(ZkChatPlugin):
+    def __init__(self, service_provider: ServiceProvider):
+        super().__init__(service_provider)
+
+    def run(self, input_text: str) -> str:
+        # Access zk-chat services
+        fs = self.filesystem_gateway
+        zk = self.zettelkasten
+        llm = self.llm_broker
+
+        # Your plugin logic
+        return result
 ```
 
-MCP servers are automatically verified before starting chat or agent sessions. Unavailable servers will trigger a warning, but you can continue with the session.
+See the [Plugin Development Guide](https://vetzal.com/zk-chat/plugins/guide/) for complete documentation.
 
-#### 📚 Vault and Bookmark Management
+## 📊 Performance Tips
 
-The CLI supports bookmarking vault paths for easy access:
+### For Faster Responses
+- Use smaller models (qwen3:1.5b, qwen2.5:3b)
+- Increase concurrency: `export OLLAMA_NUM_PARALLEL=4`
+- Skip indexing on startup: `--no-index`
 
+### For Better Quality
+- Use larger models (gpt-oss:20b, qwen3:14b)
+- Increase context window: `export OLLAMA_NUM_CTX=16384`
+- Enable visual analysis for image-heavy vaults
+
+### Resource Management
 ```bash
-# Save current vault as bookmark
-zk-chat interactive --vault /path/to/vault --save
+# Check running models
+ollama ps
 
-# List all bookmarks
-zk-chat interactive --list-bookmarks
+# Monitor system resources
+htop  # or Activity Monitor on Mac
 
-# Remove a bookmark
-zk-chat interactive --remove-bookmark /path/to/vault
+# Remove unused models
+ollama list
+ollama rm unused-model
 ```
 
-#### ⚙️ Command Options
+## 🗂️ Storage
 
-**Common options available across commands:**
+zk-chat stores its data in your vault:
+- `.zk_chat` - Configuration file
+- `.zk_chat_db/` - Vector database (ChromaDB)
+- `ZkSystemPrompt.md` - System prompt (customizable)
 
-- `--vault PATH` / `-v PATH`: Specify the path to your Zettelkasten vault
-- `--gateway {ollama,openai}` / `-g`: Set the model gateway (requires OPENAI_API_KEY for OpenAI)
-- `--model MODEL` / `-m`: Set the chat model to use
-- `--visual-model MODEL`: Set the visual analysis model (optional)
+Add these to `.gitignore`:
+```
+.zk_chat_db/
+.zk_chat
+```
 
-**Interactive chat specific options:**
+## 🆘 Troubleshooting
 
-- `--agent`: Use autonomous agent mode for complex problem-solving
-- `--unsafe`: Allow AI to modify your Zettelkasten files (use with caution!)
-- `--git`: Enable Git integration for version control
-- `--store-prompt` / `--no-store-prompt`: Control whether system prompt is stored in vault
-- `--reindex`: Rebuild index before starting chat
-- `--full`: Force full reindex (use with --reindex)
-- `--reset-memory`: Clear the smart memory storage
-- `--save`: Save the vault path as a bookmark
-- `--remove-bookmark PATH`: Remove a bookmarked vault path
-- `--list-bookmarks`: List all bookmarked vault paths
+### Ollama Connection Issues
+```bash
+# Start Ollama
+ollama serve
 
-> **⚠️ Safety Note:** If you want to allow the AI to make changes to your Zettelkasten, you must use the `--unsafe` flag. We highly recommend using `--git` for version control if you enable this option.
+# Verify model installed
+ollama list
+```
 
-> **📁 Git Integration:** Specifying `--git` will initialize a new git repository for your vault if one doesn't already exist.
+### Index Problems
+```bash
+# Diagnose index health
+zk-chat diagnose index
 
-#### Note on Models
+# Force full rebuild
+zk-chat index update --full
+```
 
-For **local models** on Ollama, you're going to need to choose a model that fits in your available RAM (on MacOS) or in the VRAM on your GPU. The actual RAM used will vary based on many factors.
+### Performance Issues
+- Try a smaller model
+- Close other applications
+- Increase system resources
+- Use OpenAI instead of local models
 
-Our recommendation is a 14B to 28B parameter model like qwen2.5:14b or phi4:14b or even qwq:32b (if you don't run a lot of other programs at the same time) on a Macbook Pro M1 or later with 36GB of RAM or more.
+## 🤝 Contributing
 
-The lower the number of parameters, the faster the model will be, but the less capable it will be. The higher the number of parameters, the slower the model will be, but the more capable it will be.
+Contributions welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-In general, newer models are more capable and more accurate. Certain models will be tuned for specific use cases. Read up on the models to understand what they're good at.
+## 📜 License
 
-You will need to experiment to find the right balance for your system and use cases.
+[MIT License](LICENSE) - Copyright (c) 2024-2025 Stacey Vetzal
 
-### 🖼️ Visual Analysis
+## 🔗 Links
 
-If you've configured a visual analysis model, you can analyze images in your Zettelkasten by asking the AI about them. For example:
-- "What's in the image at images/diagram.png?"
-- "Can you describe the chart in assets/sales-data.jpg?"
-- "Analyze the photo in attachments/meeting-whiteboard.png"
+- **Documentation**: https://vetzal.com/zk-chat/
+- **PyPI**: https://pypi.org/project/zk-chat/
+- **GitHub**: https://github.com/svetzal/zk-chat
+- **Issues**: https://github.com/svetzal/zk-chat/issues
+- **Discussions**: https://github.com/svetzal/zk-chat/discussions
 
-The AI will use the configured visual model to analyze the image and provide a description of its contents. This is particularly useful for:
-- Understanding diagrams and charts in your notes
-- Extracting text from images
-- Getting descriptions of visual content for reference
-- Analyzing screenshots or photos you've added to your knowledge base
+## ⭐ Star History
 
-Note: Visual analysis is only available if you've configured a visual model during setup.
+If you find zk-chat useful, please consider starring the repository on GitHub!
 
-### 🧠 Smart Memory
+---
 
-The tool includes a Smart Memory mechanism that allows the AI to store and retrieve information during conversations. This memory:
-- Persists between chat sessions
-- Uses vector embeddings for semantic similarity search
-- Enables the AI to recall previous context and information
-- Can be cleared using the `--reset-memory` CLI option
-
-### 🖥️ Graphical Interface (Experimental)
-
-**_The GUI is experimental and may not work as expected. It is provided as a preview feature only._**
-
-**Note:** The GUI has not yet been updated to use the new command-line vault path configuration. It still uses the old method of storing the configuration file in the user's home directory.
-
-Run `zk-chat gui launch` to start the graphical interface. The GUI provides:
-
-- A multi-line chat input for composing messages
-- A scrollable chat history showing the entire conversation
-- A resizable divider between chat history and input areas
-- Settings menu (accessible via Settings -> Configure...) for:
-  - Selecting the LLM model for chat from available models (based on the configured gateway)
-  - Selecting an optional visual analysis model or disabling visual analysis
-  - Configuring the Zettelkasten folder location
-- Asynchronous chat responses that keep the interface responsive
-
-When first run, both `zk-chat interactive` and `zk-chat gui launch` will need initial configuration:
-
-For the command-line interface:
-- You must provide the path to your Zettelkasten vault using the `--vault` argument
-- You can select which gateway to use (Ollama or OpenAI) with the `--gateway` argument
-- You'll be prompted to select an LLM model for chat from the available models for your chosen gateway (or you can specify it with `--model`)
-- You'll be asked if you want to select a visual analysis model (optional)
-
-For the GUI:
-- You can configure these settings through the Settings menu
-- You can enable or disable visual analysis by selecting a model or choosing "None - Disable Visual Analysis"
-
-After initial configuration, the tool will start a full index build of your Zettelkasten.
-
-### 📁 Storage Location
-
-The tool stores its configuration and database in your Zettelkasten vault:
-- `.zk_chat` - Configuration file stored in the vault root
-- `.zk_chat_db/` - Chroma vector database folder stored in the vault root
-- `ZkSystemPrompt.md` - System prompt file created in the vault root if it doesn't exist. This file defines the behavior of the AI assistant and can be customized to change how the assistant interacts with your Zettelkasten. By default, this file is created and used. You can prevent the creation of this file by not using the `--store-prompt` parameter, in which case the default system prompt will be used.
+**Made with ❤️ for the Zettelkasten community**

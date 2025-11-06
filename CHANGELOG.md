@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+## [3.5.0] - 2025-11-05
+
 ### Added
 
 - **MCP Server Management**: Added comprehensive support for managing Model Context Protocol (MCP) server connections
@@ -22,6 +24,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Async/sync conversion for tool execution
   - Connection lifecycle management per tool
   - FastMCP library integration for MCP client functionality
+- **Bookmarks Management**: New `zk-chat bookmarks` command for vault bookmark management
+  - `zk-chat bookmarks list` - Display all bookmarked vaults with last opened indicator
+  - `zk-chat bookmarks remove <path>` - Remove vault bookmarks
+  - Removed bookmark management flags from interactive/query commands for cleaner CLI
+- **Documentation Site**: Complete MkDocs-based documentation site
+  - Comprehensive guides for installation, configuration, and usage
+  - Feature documentation for all tools and capabilities
+  - Plugin development guide
+  - Deployed to GitHub Pages via automated workflow
+- **Index Diagnostics**: New `zk-chat diagnose` command for troubleshooting
+  - Check index health and collection status
+  - Run test queries to verify search functionality
+  - Display sample documents and index statistics
+- **Unified CI/CD Workflow**: Consolidated GitHub Actions into single workflow
+  - Combined build, test, and publish into `validate-test-publish.yml`
+  - Added GitHub Pages deployment for documentation
+  - Virtual environment caching for faster CI runs
+  - Test coverage artifacts and JUnit XML reports
+
+### Changed
+
+- **CLI Command Structure**: Improved command organization and consistency
+  - Unified parameters between `interactive` and `query` commands
+  - Both commands now support `--save`, `--unsafe`, `--git`, `--store-prompt`, `--reset-memory`
+  - Consistent `--visual-model` flag across all commands
+  - Removed obsolete `--agent` flag from integration tests
+- **Model Recommendations**: Updated documentation with 2025 Ollama model recommendations
+  - Primary recommendations now favor qwen3, gpt-oss, and gemma3
+  - Added comprehensive visual model guidance (gemma3, qwen3-vl, llama3.2-vision)
+  - Updated default models: qwen3:8b (text), gemma3:27b (vision)
+  - Tiered recommendations by RAM (64GB+, 36-48GB, 16-32GB, 8-16GB)
+  - Detailed performance characteristics and use case guidance
+- **Integration Testing**: Enhanced test harness with visual model support
+  - Separate configuration for text and visual models
+  - Environment variables: `ZK_TEST_MODEL`, `ZK_TEST_VISUAL_MODEL`
+  - Updated defaults: qwen3:8b (text), gemma3:27b (vision)
+  - Automatic model passing to CLI via `--visual-model` flag
+
+### Fixed
+
+- **Document Not Found**: Fixed crash when indexed document doesn't exist on filesystem
+  - Added proper error handling in `read_document` method
+  - Returns empty string instead of crashing when file not found
+  - Improved error messages for missing documents
 
 ## [3.2.2] - 2025-09-29
 
