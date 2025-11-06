@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+## [3.5.1] - 2025-11-06
+
+### Fixed
+
+- **Packaging**: Fixed missing `agent_prompt.txt` file in distribution package
+  - Added `[tool.setuptools.package-data]` configuration to include `.txt` files
+  - Resolves `FileNotFoundError` when running `zk-chat interactive` after installation
+
 ## [3.5.0] - 2025-11-05
 
 ### Added

@@ -1,6 +1,6 @@
 [project]
 name = "zk-chat"
-version = "3.5.0"
+version = "3.5.1"
 authors = [
     { name = "Stacey Vetzal", email = "stacey@vetzal.com" },
 ]
@@ -41,6 +41,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["zk_chat", "zk_chat.*"]
+
+[tool.setuptools.package-data]
+zk_chat = ["*.txt"]
 
 [project.urls]
 Homepage = "https://github.com/svetzal/zk-chat"
