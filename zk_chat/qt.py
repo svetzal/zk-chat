@@ -1,3 +1,4 @@
+# ruff: noqa: E402  # Set telemetry env var before imports to avoid side effects
 import os
 import sys
 

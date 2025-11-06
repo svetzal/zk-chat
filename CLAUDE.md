@@ -166,3 +166,85 @@ The project uses specification-style testing with files named `*_spec.py` alongs
 ## Git Integration
 
 Optional git integration allows the AI to view uncommitted changes and create commits. Git operations are handled through the `GitGateway` service when enabled with the `--git` flag.
+
+## Release Process
+
+This project follows [Semantic Versioning](https://semver.org/) (SemVer) for version numbering. The version format is MAJOR.MINOR.PATCH.
+
+### Release Checklist
+
+Follow these steps in order when preparing and publishing a release:
+
+1. **Verification Phase**:
+   ```bash
+   # All lint checks must pass
+   ruff check zk_chat
+
+   # All unit tests must pass
+   pytest zk_chat/
+
+   # All integration tests must pass
+   pytest integration_tests/
+   ```
+
+2. **Documentation Phase**:
+   - Ensure CHANGELOG.md is up to date with all changes for this release
+   - Verify README.md reflects current features and version
+   - Ensure all documentation in docs/ is current
+   - Update version in pyproject.toml
+
+3. **Commit and Push**:
+   ```bash
+   # Commit release changes
+   git add pyproject.toml CHANGELOG.md README.md docs/
+   git commit -m "Release vX.Y.Z with [brief description]"
+
+   # Push to trigger CI/CD validation
+   git push
+   ```
+
+4. **Monitor Build**:
+   ```bash
+   # Monitor the GitHub Actions workflow
+   gh run watch
+
+   # Wait for green build before proceeding
+   # If build fails, fix issues and repeat from step 1
+   ```
+
+5. **Tag Release**:
+   ```bash
+   # Create tag in format RELEASE_MAJOR_MINOR_PATCH
+   # Example: for version 3.5.0, tag is RELEASE_3_5_0
+   git tag RELEASE_X_Y_Z
+
+   # Push the tag to trigger release workflow
+   git push origin RELEASE_X_Y_Z
+   ```
+
+6. **Monitor Release Build**:
+   ```bash
+   # Watch the release workflow
+   gh run watch
+
+   # Verify:
+   # - Documentation deployed to GitHub Pages
+   # - Package published to PyPI
+   ```
+
+7. **Create GitHub Release**:
+   ```bash
+   # Create release with content from CHANGELOG
+   gh release create RELEASE_X_Y_Z \
+     --title "vX.Y.Z - [Brief Title]" \
+     --notes "$(sed -n '/## \[X.Y.Z\]/,/## \[/p' CHANGELOG.md | head -n -1)"
+
+   # Or create interactively to edit release notes
+   gh release create RELEASE_X_Y_Z --draft --generate-notes
+   ```
+
+### Release Types
+
+- **Major Release (X.0.0)**: Breaking API changes, architectural changes
+- **Minor Release (0.X.0)**: New features, non-breaking enhancements
+- **Patch Release (0.0.X)**: Bug fixes, security updates, documentation fixes

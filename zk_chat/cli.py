@@ -1,3 +1,4 @@
+# ruff: noqa: E402  # Configure logging/env before imports to reduce noisy logs and disable telemetry
 import argparse
 import logging
 import os
@@ -92,158 +93,209 @@ def add_common_args(parser: argparse.ArgumentParser):
     parser.add_argument('--reset-memory', action='store_true', help='Reset the smart memory')
 
 
-def common_init(args):
-    global_config = GlobalConfig.load()
+def _handle_save(args, global_config: GlobalConfig) -> bool:
+    """Handle --save option. Returns True if the command should exit early."""
+    if not args.save:
+        return False
+    if not args.vault:
+        print("Error: --save requires --vault to be specified.")
+        return True
+    path = args.vault
+    if not os.path.exists(path):
+        print(f"Error: Path '{path}' does not exist.")
+        return True
+    abs_path = os.path.abspath(path)
+    global_config.add_bookmark(abs_path)
+    global_config.set_last_opened_bookmark(abs_path)
+    print(f"Bookmark added for '{abs_path}'.")
+    return True
 
-    if args.save:
-        if not args.vault:
-            print("Error: --save requires --vault to be specified.")
-            return
-        path = args.vault
-        if not os.path.exists(path):
-            print(f"Error: Path '{path}' does not exist.")
-            return
-        abs_path = os.path.abspath(path)
-        global_config.add_bookmark(abs_path)
-        global_config.set_last_opened_bookmark(abs_path)
-        print(f"Bookmark added for '{abs_path}'.")
 
-    if args.remove_bookmark:
-        path = args.remove_bookmark
-        abs_path = os.path.abspath(path)
-        if global_config.remove_bookmark(abs_path):
-            print(f"Bookmark for '{abs_path}' removed.")
-        else:
-            print(f"Error: Bookmark for '{abs_path}' not found.")
-        return
+def _handle_remove_bookmark(args, global_config: GlobalConfig) -> bool:
+    """Handle --remove-bookmark. Returns True if handled and should exit."""
+    if not args.remove_bookmark:
+        return False
+    path = args.remove_bookmark
+    abs_path = os.path.abspath(path)
+    if global_config.remove_bookmark(abs_path):
+        print(f"Bookmark for '{abs_path}' removed.")
+    else:
+        print(f"Error: Bookmark for '{abs_path}' not found.")
+    return True
 
-    if args.list_bookmarks:
-        if not global_config.bookmarks:
-            print("No bookmarks found.")
-        else:
-            print("Bookmarks:")
-            for path in global_config.bookmarks:
-                last_opened = " (last opened)" if path == global_config.last_opened_bookmark else ""
-                print(f"  {path}{last_opened}")
-        return
 
-    vault_path = None
+def _handle_list_bookmarks(global_config: GlobalConfig, should_list: bool) -> bool:
+    """Handle --list-bookmarks. Returns True if listed and should exit."""
+    if not should_list:
+        return False
+    if not global_config.bookmarks:
+        print("No bookmarks found.")
+    else:
+        print("Bookmarks:")
+        for path in global_config.bookmarks:
+            last_opened = " (last opened)" if path == global_config.last_opened_bookmark else ""
+            print(f"  {path}{last_opened}")
+    return True
 
+
+def _handle_admin_commands(args, global_config: GlobalConfig) -> bool:
+    """Process save/remove/list commands. Returns True if handled and should exit."""
+    return (
+        _handle_save(args, global_config)
+        or _handle_remove_bookmark(args, global_config)
+        or _handle_list_bookmarks(global_config, getattr(args, "list_bookmarks", False))
+    )
+
+
+def _resolve_vault_path(args, global_config: GlobalConfig) -> str | None:
+    """Resolve the vault path from args or bookmarks and ensure it exists."""
     if args.vault:
         vault_path = os.path.abspath(args.vault)
-
         if vault_path in global_config.bookmarks:
             global_config.set_last_opened_bookmark(vault_path)
             print(f"Using bookmarked vault: {vault_path}")
-
     else:
         vault_path = global_config.get_last_opened_bookmark_path()
         if not vault_path:
             print("Error: No vault specified. Use --vault or set a bookmark first.")
-            return
-
+            return None
     if not os.path.exists(vault_path):
         print(f"Error: Vault path '{vault_path}' does not exist.")
+        return None
+    return vault_path
+
+
+def _run_upgraders(config: Config) -> None:
+    """Run config upgraders if needed."""
+    upgraders = [GatewaySpecificIndexFolder(config), GatewaySpecificLastIndexed(config)]
+    for upgrader in upgraders:
+        if upgrader.should_run():
+            upgrader.run()
+
+
+def _maybe_select_gateway(args, current_gateway: ModelGateway) -> tuple[ModelGateway, bool]:
+    """Return (gateway, changed) based on args.gateway with validation."""
+    gateway = current_gateway
+    changed = False
+    if args.gateway:
+        new_gateway = ModelGateway(args.gateway)
+        if new_gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
+            print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
+            return gateway, changed
+        if new_gateway != current_gateway:
+            changed = True
+        gateway = new_gateway
+    return gateway, changed
+
+
+def _maybe_update_models(args, config: Config, gateway: ModelGateway) -> None:
+    """Update chat and visual models based on args."""
+    if args.model is not None:
+        if args.model == "choose":
+            config.update_model(gateway=gateway)
+            if not args.visual_model and not getattr(config, "visual_model", None):
+                print("Would you like to select a visual model? (y/n): ")
+                choice = input().strip().lower()
+                if choice == 'y':
+                    config.update_model(gateway=gateway, is_visual=True)
+        else:
+            config.update_model(args.model, gateway=gateway)
+
+    if args.visual_model:
+        if args.visual_model == "choose":
+            config.update_model(gateway=gateway, is_visual=True)
+        else:
+            config.update_model(args.visual_model, gateway=gateway, is_visual=True)
+
+
+def _reset_smart_memory(vault_path: str, config: Config) -> None:
+    """Reset SmartMemory for the vault."""
+    db_dir = os.path.join(vault_path, ".zk_chat_db")
+    chroma_gateway = ChromaGateway(config.gateway, db_dir=db_dir)
+    if config.gateway == ModelGateway.OLLAMA:
+        gateway = OllamaGateway()
+    elif config.gateway == ModelGateway.OPENAI:
+        gateway = OpenAIGateway(os.environ.get("OPENAI_API_KEY"))
+    else:
+        gateway = OllamaGateway()
+    memory = SmartMemory(chroma_gateway, gateway)
+    memory.reset()
+    print("Smart memory has been reset.")
+
+
+
+def _initialize_config(vault_path: str, args) -> Config | None:
+    """Initialize config for a new vault based on CLI args without prompting unnecessarily."""
+    gateway = ModelGateway.OLLAMA
+    if args.gateway:
+        gateway = ModelGateway(args.gateway)
+        if gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
+            print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
+            return None
+    if args.model == "choose":
+        return Config.load_or_initialize(
+            vault_path,
+            gateway=gateway,
+            model=None,
+            visual_model=(args.visual_model if hasattr(args, "visual_model") else None),
+        )
+    visual_model = (
+        args.visual_model
+        if hasattr(args, "visual_model") and args.visual_model is not None
+        else args.model
+    )
+    return Config.load_or_initialize(
+        vault_path,
+        gateway=gateway,
+        model=args.model,
+        visual_model=visual_model,
+    )
+
+
+def _handle_existing_config(args, vault_path: str, config: Config) -> Config | None:
+    """Handle flows when a config already exists for the vault."""
+    _run_upgraders(config)
+    gateway, changed = _maybe_select_gateway(args, config.gateway)
+    if changed or args.model is not None:
+        _maybe_update_models(args, config, gateway)
+    if args.reset_memory:
+        _reset_smart_memory(vault_path, config)
+        return None
+    if args.reindex:
+        reindex(config, force_full=args.full)
+    return config
+
+
+def _handle_new_config(args, vault_path: str) -> Config | None:
+    """Initialize a new config and trigger initial reindex."""
+    config = _initialize_config(vault_path, args)
+    if not config:
+        return None
+    reindex(config, force_full=True)
+    return config
+
+
+def common_init(args):
+    global_config = GlobalConfig.load()
+
+    if _handle_save(args, global_config):
+        return
+
+    if _handle_remove_bookmark(args, global_config):
+        return
+
+    if _handle_list_bookmarks(global_config, args.list_bookmarks):
+        return
+
+    vault_path = _resolve_vault_path(args, global_config)
+    if not vault_path:
         return
 
     config = Config.load(vault_path)
     if config:
-        gateway = config.gateway
-        gateway_changed = False
-
-        # Run upgraders
-        upgraders = [
-            GatewaySpecificIndexFolder(config),
-            GatewaySpecificLastIndexed(config),
-        ]
-        for upgrader in upgraders:
-            if upgrader.should_run():
-                upgrader.run()
-
-        if args.gateway:
-            new_gateway = ModelGateway(args.gateway)
-
-            if new_gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
-                print(
-                    "Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI "
-                    "gateway.")
-                return
-
-            if new_gateway != config.gateway:
-                gateway_changed = True
-
-            gateway = new_gateway
-
-        if gateway_changed or args.model:
-            if args.model == "choose":
-                config.update_model(gateway=gateway)
-                # If user chose to select a model and no visual model is specified, also prompt
-                # for visual model
-                if not args.visual_model and not config.visual_model:
-                    print("Would you like to select a visual model? (y/n): ")
-                    choice = input().strip().lower()
-                    if choice == 'y':
-                        config.update_model(gateway=gateway, is_visual=True)
-            else:
-                config.update_model(args.model, gateway=gateway)
-
-        if args.visual_model:
-            if args.visual_model == "choose":
-                config.update_model(gateway=gateway, is_visual=True)
-            else:
-                config.update_model(args.visual_model, gateway=gateway, is_visual=True)
-
-        if args.reset_memory:
-            db_dir = os.path.join(vault_path, ".zk_chat_db")
-            chroma_gateway = ChromaGateway(config.gateway, db_dir=db_dir)
-
-            if config.gateway == ModelGateway.OLLAMA:
-                gateway = OllamaGateway()
-            elif config.gateway == ModelGateway.OPENAI:
-                gateway = OpenAIGateway(os.environ.get("OPENAI_API_KEY"))
-            else:
-                gateway = OllamaGateway()
-
-            memory = SmartMemory(chroma_gateway, gateway)
-            memory.reset()
-            print("Smart memory has been reset.")
-            return
-
-        if args.reindex:
-            reindex(config, force_full=args.full)
+        return _handle_existing_config(args, vault_path, config)
     else:
-        gateway = ModelGateway.OLLAMA
-        if args.gateway:
-            gateway = ModelGateway(args.gateway)
-            if gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
-                print(
-                    "Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI "
-                    "gateway.")
-                return
-
-        if args.model == "choose":
-            # Non-interactive default: if visual_model not provided, leave as None (visual tools
-            # disabled)
-            config = Config.load_or_initialize(
-                vault_path,
-                gateway=gateway,
-                model=None,
-                visual_model=(args.visual_model if hasattr(args, "visual_model") else None)
-            )
-        else:
-            # Ensure we do not prompt for visual model in non-interactive runs
-            config = Config.load_or_initialize(
-                vault_path,
-                gateway=gateway,
-                model=args.model,
-                visual_model=(args.visual_model if hasattr(args,
-                                                           "visual_model") and args.visual_model
-                                                   is not None else args.model)
-            )
-
-        reindex(config, force_full=True)
-
-    return config
+        return _handle_new_config(args, vault_path)
 
 
 def common_init_typer(args):

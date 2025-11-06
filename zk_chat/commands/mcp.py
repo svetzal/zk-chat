@@ -73,10 +73,10 @@ def _validate_server_type(server_type: str) -> MCPServerType:
     """Validate and return the server type."""
     try:
         return MCPServerType(server_type.lower())
-    except ValueError:
+    except ValueError as e:
         console.print(
             f"[red]❌ Error:[/] Invalid server type '{server_type}'. Use 'stdio' or 'http'.")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 def _validate_required_params(srv_type: MCPServerType, command: str | None,
@@ -109,7 +109,7 @@ def _create_server_config(
         )
     except ValueError as e:
         console.print(f"[red]❌ Error:[/] {str(e)}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 def _verify_server(name: str, server_config: MCPServerConfig) -> None:

@@ -117,41 +117,82 @@ This project follows [Semantic Versioning](https://semver.org/) (SemVer) for ver
 2. MINOR version increases for backward-compatible functionality additions
 3. PATCH version increases for backward-compatible bug fixes
 
-### Preparing a Release
+### Release Checklist
 
-When preparing a release, follow these steps:
+Follow these steps in order when preparing and publishing a release:
 
-1. **Update CHANGELOG.md**:
-   - Move items from the "[Next]" section to a new version section
-   - Add the new version number and release date: `## [x.y.z] - YYYY-MM-DD`
-   - Ensure all changes are properly categorized under "Added", "Changed", "Deprecated", "Removed", "Fixed", or "Security"
-   - Keep the empty "[Next]" section at the top for future changes
+1. **Verification Phase**:
+   ```bash
+   # All lint checks must pass
+   ruff check zk_chat
 
-2. **Update Version Number**:
-   - Update the version number in `pyproject.toml`
-   - Ensure the version number follows semantic versioning principles based on the nature of changes:
-     - **Major Release**: Breaking changes that require users to modify their code
-     - **Minor Release**: New features that don't break backward compatibility
-     - **Patch Release**: Bug fixes that don't add features or break compatibility
+   # All unit tests must pass
+   pytest zk_chat/
 
-3. **Update Documentation**:
-   - Review and update `README.md` to reflect any new features, changed behavior, or updated requirements
-   - Update any other documentation files that reference features or behaviors that have changed
-   - Ensure installation instructions and examples are up to date
+   # All integration tests must pass
+   pytest integration_tests/
+   ```
 
-4. **Synchronize Dependencies**:
-   - Ensure all dependencies are properly declared in `pyproject.toml`
-   - Update version constraints if necessary
+2. **Documentation Phase**:
+   - Ensure CHANGELOG.md is up to date with all changes for this release
+   - Move items from "[Next]" section to new version section: `## [X.Y.Z] - YYYY-MM-DD`
+   - Verify README.md reflects current features and version
+   - Ensure all documentation in docs/ is current
+   - Update version in pyproject.toml
 
-5. **Final Verification**:
-   - Run all tests to ensure they pass
-   - Run all linters and formatters to ensure code consistency
-   - Verify that the application works as expected with the updated version
-   - Check that all documentation accurately reflects the current state of the project
+3. **Commit and Push**:
+   ```bash
+   # Commit release changes
+   git add pyproject.toml CHANGELOG.md README.md docs/
+   git commit -m "Release vX.Y.Z with [brief description]"
+
+   # Push to trigger CI/CD validation
+   git push
+   ```
+
+4. **Monitor Build**:
+   ```bash
+   # Monitor the GitHub Actions workflow
+   gh run watch
+
+   # Wait for green build before proceeding
+   # If build fails, fix issues and repeat from step 1
+   ```
+
+5. **Tag Release**:
+   ```bash
+   # Create tag in format RELEASE_MAJOR_MINOR_PATCH
+   # Example: for version 3.5.0, tag is RELEASE_3_5_0
+   git tag RELEASE_X_Y_Z
+
+   # Push the tag to trigger release workflow
+   git push origin RELEASE_X_Y_Z
+   ```
+
+6. **Monitor Release Build**:
+   ```bash
+   # Watch the release workflow
+   gh run watch
+
+   # Verify:
+   # - Documentation deployed to GitHub Pages
+   # - Package published to PyPI
+   ```
+
+7. **Create GitHub Release**:
+   ```bash
+   # Create release with content from CHANGELOG
+   gh release create RELEASE_X_Y_Z \
+     --title "vX.Y.Z - [Brief Title]" \
+     --notes "$(sed -n '/## \[X.Y.Z\]/,/## \[/p' CHANGELOG.md | head -n -1)"
+
+   # Or create interactively to edit release notes
+   gh release create RELEASE_X_Y_Z --draft --generate-notes
+   ```
 
 ### Release Types
 
-#### Major Releases (x.0.0)
+#### Major Releases (X.0.0)
 
 Major releases may include:
 - Breaking API changes (eg tool plugin interfacing)
@@ -164,7 +205,7 @@ For major releases, consider:
 - Updating all documentation thoroughly
 - Highlighting breaking changes prominently in the CHANGELOG
 
-#### Minor Releases (0.x.0)
+#### Minor Releases (0.X.0)
 
 Minor releases may include:
 - New features
@@ -177,7 +218,7 @@ For minor releases:
 - Update README to highlight new capabilities
 - Ensure backward compatibility
 
-#### Patch Releases (0.0.x)
+#### Patch Releases (0.0.X)
 
 Patch releases should be limited to:
 - Bug fixes

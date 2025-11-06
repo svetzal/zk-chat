@@ -1,3 +1,4 @@
+# ruff: noqa: E402  # Configure logging/env before imports to reduce noisy logs and disable telemetry
 """
 Main CLI interface for zk-chat using Typer.
 
