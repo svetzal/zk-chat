@@ -1,13 +1,13 @@
 import os
 import re
-from typing import List, Any
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 
 class ZkDocument(BaseModel):
     relative_path: str
-    metadata: dict[str,Any]
+    metadata: dict[str, Any]
     content: str
 
     @property
@@ -35,6 +35,7 @@ class ZkQueryExcerptResult(BaseModel):
     excerpt: ZkDocumentExcerpt
     distance: float
 
+
 class ZkQueryDocumentResult(BaseModel):
     document: ZkDocument
     distance: float
@@ -59,11 +60,11 @@ class QueryResult(BaseModel):
 
 class VectorDocumentWithEmbeddings(VectorDocument):
     """Document with calculated embeddings, ready for vector database storage"""
-    embedding: List[float] = Field(..., description="The vector embedding of the content")
+    embedding: list[float] = Field(..., description="The vector embedding of the content")
 
     @classmethod
     def from_document(cls, document: VectorDocumentForStorage,
-                      embedding: List[float]) -> 'VectorDocumentWithEmbeddings':
+                      embedding: list[float]) -> 'VectorDocumentWithEmbeddings':
         return cls(
             id=document.id,
             content=document.content,

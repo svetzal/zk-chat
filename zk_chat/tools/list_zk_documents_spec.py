@@ -1,6 +1,6 @@
 import pytest
-from pytest_mock import MockerFixture
 from mojentic.llm.tools.llm_tool import LLMTool
+from pytest_mock import MockerFixture
 
 from zk_chat.models import ZkDocument
 from zk_chat.tools.list_zk_documents import ListZkDocuments
@@ -18,8 +18,8 @@ def tool(mock_zk: Zettelkasten) -> LLMTool:
 
 
 def test_run_returns_list_of_document_titles(
-    tool: ListZkDocuments,
-    mock_zk: Zettelkasten,
+        tool: ListZkDocuments,
+        mock_zk: Zettelkasten,
 ):
     # Create mock documents
     documents = [

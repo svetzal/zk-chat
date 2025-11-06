@@ -1,6 +1,6 @@
 import os
 from enum import Enum
-from typing import Dict, List, Optional, Set
+
 from pydantic import BaseModel, Field
 
 
@@ -19,9 +19,9 @@ class MCPServerConfig(BaseModel):
     """Configuration for an MCP server."""
     name: str
     server_type: MCPServerType
-    command: Optional[str] = None
-    url: Optional[str] = None
-    args: Optional[List[str]] = Field(default_factory=list)
+    command: str | None = None
+    url: str | None = None
+    args: list[str] | None = Field(default_factory=list)
 
     def model_post_init(self, __context):
         if self.server_type == MCPServerType.STDIO and not self.command:
@@ -35,9 +35,10 @@ class GlobalConfig(BaseModel):
     Global configuration for zk_chat that persists across sessions.
     Stores bookmarks, the last opened bookmark, and registered MCP servers.
     """
-    bookmarks: Set[str] = set()  # set of absolute vault paths
-    last_opened_bookmark: Optional[str] = None  # absolute path of the last opened bookmark
-    mcp_servers: Dict[str, MCPServerConfig] = Field(default_factory=dict)  # registered MCP servers by name
+    bookmarks: set[str] = set()  # set of absolute vault paths
+    last_opened_bookmark: str | None = None  # absolute path of the last opened bookmark
+    mcp_servers: dict[str, MCPServerConfig] = Field(
+        default_factory=dict)  # registered MCP servers by name
 
     @classmethod
     def load(cls) -> 'GlobalConfig':
@@ -45,7 +46,7 @@ class GlobalConfig(BaseModel):
         config_path = get_global_config_path()
         if os.path.exists(config_path):
             try:
-                with open(config_path, 'r') as f:
+                with open(config_path) as f:
                     return cls.model_validate_json(f.read())
             except Exception:
                 # If there's an error loading the config, create a new one
@@ -77,7 +78,7 @@ class GlobalConfig(BaseModel):
             return True
         return False
 
-    def get_bookmark(self, vault_path: str) -> Optional[str]:
+    def get_bookmark(self, vault_path: str) -> str | None:
         """Get the absolute path for a bookmark with the given path."""
         abs_path = os.path.abspath(vault_path)
         return abs_path if abs_path in self.bookmarks else None
@@ -91,7 +92,7 @@ class GlobalConfig(BaseModel):
             return True
         return False
 
-    def get_last_opened_bookmark_path(self) -> Optional[str]:
+    def get_last_opened_bookmark_path(self) -> str | None:
         """Get the path for the last opened bookmark."""
         if self.last_opened_bookmark and self.last_opened_bookmark in self.bookmarks:
             return self.last_opened_bookmark
@@ -110,10 +111,10 @@ class GlobalConfig(BaseModel):
             return True
         return False
 
-    def get_mcp_server(self, server_name: str) -> Optional[MCPServerConfig]:
+    def get_mcp_server(self, server_name: str) -> MCPServerConfig | None:
         """Get an MCP server configuration by name."""
         return self.mcp_servers.get(server_name)
 
-    def list_mcp_servers(self) -> List[MCPServerConfig]:
+    def list_mcp_servers(self) -> list[MCPServerConfig]:
         """List all registered MCP servers."""
         return list(self.mcp_servers.values())

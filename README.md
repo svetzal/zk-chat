@@ -351,3 +351,38 @@ If you find zk-chat useful, please consider starring the repository on GitHub!
 ---
 
 **Made with ❤️ for the Zettelkasten community**
+
+
+## 🧹 Linting and Auto-fixing
+
+This project uses Ruff for linting and auto-fixes (including removing unused imports/variables and sorting imports).
+
+### Install dev tools
+
+```bash
+python -m pip install -e ".[dev]"
+```
+
+### Check for issues (no changes written)
+
+```bash
+# Lint with Ruff (fails on errors; uses pyproject.toml configuration)
+ruff check zk_chat
+```
+
+### Auto-fix common issues (writes changes)
+
+```bash
+# Apply safe fixes (remove unused imports/variables, sort imports, etc.)
+ruff check zk_chat --fix
+```
+
+Optional formatting (if desired):
+```bash
+# Ruff can also format code
+ruff format zk_chat
+```
+
+Notes:
+- Line length is enforced at 120 characters via Ruff (`pyproject.toml`).
+- CI runs Ruff in the validation workflow; Flake8 and Autoflake are no longer used.

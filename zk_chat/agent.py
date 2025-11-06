@@ -4,25 +4,27 @@ logging.basicConfig(
     level=logging.WARN
 )
 
-from zk_chat.mcp_tool_wrapper import MCPClientManager
-
 import os
+
+from zk_chat.mcp_tool_wrapper import MCPClientManager
 
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
 os.environ['CHROMA_TELEMETRY'] = 'false'
 from pathlib import Path
-from typing import List
 
 from mojentic.llm import LLMBroker
+from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
-from mojentic.llm.tools.date_resolver import ResolveDateTool
 from mojentic.llm.tools.current_datetime import CurrentDateTimeTool
+from mojentic.llm.tools.date_resolver import ResolveDateTool
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.chroma_collections import ZkCollectionName
+from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
 from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
+from zk_chat.mcp_client import verify_all_mcp_servers
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.tools.analyze_image import AnalyzeImage
 from zk_chat.tools.commit_changes import CommitChanges
@@ -45,11 +47,6 @@ from zk_chat.tools.uncommitted_changes import UncommittedChanges
 from zk_chat.vector_database import VectorDatabase
 from zk_chat.zettelkasten import Zettelkasten
 
-from mojentic.llm.gateways import OllamaGateway
-from mojentic.llm.gateways import OpenAIGateway
-from zk_chat.chroma_gateway import ChromaGateway
-from zk_chat.mcp_client import verify_all_mcp_servers
-
 
 def agent(config: Config):
     from zk_chat.global_config import GlobalConfig
@@ -62,8 +59,11 @@ def agent(config: Config):
             print("\nWarning: The following MCP servers are unavailable:")
             for name in unavailable:
                 print(f"  - {name}")
-            print("\nYou can continue, but these servers will not be accessible during the session.")
-            print("Use 'zk-chat mcp verify' to check server status or 'zk-chat mcp list' to see all servers.\n")
+            print(
+                "\nYou can continue, but these servers will not be accessible during the session.")
+            print(
+                "Use 'zk-chat mcp verify' to check server status or 'zk-chat mcp list' to see all "
+                "servers.\n")
 
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     chroma_gateway = ChromaGateway(config.gateway, db_dir=db_dir)
@@ -100,7 +100,7 @@ def agent(config: Config):
 
     git_gateway = GitGateway(config.vault)
 
-    tools: List[LLMTool] = [
+    tools: list[LLMTool] = [
         # Real world context
         CurrentDateTimeTool(),
         ResolveDateTool(),
@@ -138,10 +138,11 @@ def agent(config: Config):
         tools.extend(mcp_manager.get_tools())
 
         agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
-        with open(agent_prompt_path, "r") as f:
+        with open(agent_prompt_path) as f:
             agent_prompt = f.read()
 
-        solver = IterativeProblemSolvingAgent(llm=llm, available_tools=tools, system_prompt=agent_prompt)
+        solver = IterativeProblemSolvingAgent(llm=llm, available_tools=tools,
+                                              system_prompt=agent_prompt)
 
         while True:
             query = input("Agent request: ")
@@ -193,7 +194,7 @@ def agent_single_query(config: Config, query: str) -> str:
     smart_memory = SmartMemory(chroma_gateway=chroma_gateway, gateway=gateway)
     git_gateway = GitGateway(config.vault)
 
-    tools: List[LLMTool] = [
+    tools: list[LLMTool] = [
         # Real world context
         CurrentDateTimeTool(),
         ResolveDateTool(),
@@ -231,9 +232,10 @@ def agent_single_query(config: Config, query: str) -> str:
         tools.extend(mcp_manager.get_tools())
 
         agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
-        with open(agent_prompt_path, "r") as f:
+        with open(agent_prompt_path) as f:
             agent_prompt = f.read()
 
-        solver = IterativeProblemSolvingAgent(llm=llm, available_tools=tools, system_prompt=agent_prompt)
+        solver = IterativeProblemSolvingAgent(llm=llm, available_tools=tools,
+                                              system_prompt=agent_prompt)
 
         return solver.solve(query)

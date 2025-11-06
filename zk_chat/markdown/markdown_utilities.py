@@ -1,5 +1,4 @@
 import json
-from typing import Tuple, Dict
 
 import yaml
 
@@ -11,7 +10,7 @@ class MarkdownUtilities:
     """
 
     @staticmethod
-    def load_markdown(document_path: str) -> Tuple[Dict, str]:
+    def load_markdown(document_path: str) -> tuple[dict, str]:
         """
         Load a markdown file and split it into metadata and content.
 
@@ -25,12 +24,12 @@ class MarkdownUtilities:
         Tuple[Dict, str]
             A tuple containing the metadata dictionary and the content string
         """
-        with open(document_path, 'r') as file:
+        with open(document_path) as file:
             file_content = file.read()
             return MarkdownUtilities.split_metadata_and_content(file_content)
 
     @staticmethod
-    def split_metadata_and_content(file_content: str) -> Tuple[Dict, str]:
+    def split_metadata_and_content(file_content: str) -> tuple[dict, str]:
         """
         Split the file content into metadata and content sections.
 
@@ -48,7 +47,7 @@ class MarkdownUtilities:
         return MarkdownUtilities.separate_metadata_lines_from_content_lines(lines)
 
     @staticmethod
-    def separate_metadata_lines_from_content_lines(lines: list) -> Tuple[Dict, str]:
+    def separate_metadata_lines_from_content_lines(lines: list) -> tuple[dict, str]:
         """
         Separate metadata and content from the lines of the file.
 
@@ -75,7 +74,7 @@ class MarkdownUtilities:
         return metadata, content
 
     @staticmethod
-    def parse_metadata(metadata_str: str) -> Dict:
+    def parse_metadata(metadata_str: str) -> dict:
         """
         Parse metadata string in either JSON or YAML format.
 

@@ -113,7 +113,8 @@ This is part two of the content."""
             "author": "John Doe"
         }
         expected_content = "This is the content of the document."
-        metadata, content = MarkdownUtilities.split_metadata_and_content(file_content_with_json_metadata)
+        metadata, content = MarkdownUtilities.split_metadata_and_content(
+            file_content_with_json_metadata)
         assert metadata == expected_metadata
         assert content == expected_content
 
@@ -123,36 +124,42 @@ This is part two of the content."""
             "author": "John Doe"
         }
         expected_content = "This is the content of the document."
-        metadata, content = MarkdownUtilities.split_metadata_and_content(file_content_with_yaml_metadata)
+        metadata, content = MarkdownUtilities.split_metadata_and_content(
+            file_content_with_yaml_metadata)
         assert metadata == expected_metadata
         assert content == expected_content
 
-    def should_treat_incorrect_start_marker_as_content(self, file_content_with_incorrect_metadata_start_marker):
+    def should_treat_incorrect_start_marker_as_content(self,
+                                                       file_content_with_incorrect_metadata_start_marker):
         expected_metadata = {}
         expected_content = """--
 title: Sample Document
 author: John Doe
 ---
 This is the content of the document."""
-        metadata, content = MarkdownUtilities.split_metadata_and_content(file_content_with_incorrect_metadata_start_marker)
+        metadata, content = MarkdownUtilities.split_metadata_and_content(
+            file_content_with_incorrect_metadata_start_marker)
         assert metadata == expected_metadata
         assert content == expected_content
 
-    def should_treat_incorrect_end_marker_as_content(self, file_content_with_incorrect_metadata_end_marker):
+    def should_treat_incorrect_end_marker_as_content(self,
+                                                     file_content_with_incorrect_metadata_end_marker):
         expected_metadata = {}
         expected_content = """---
 title: Sample Document
 author: John Doe
 --
 This is the content of the document."""
-        metadata, content = MarkdownUtilities.split_metadata_and_content(file_content_with_incorrect_metadata_end_marker)
+        metadata, content = MarkdownUtilities.split_metadata_and_content(
+            file_content_with_incorrect_metadata_end_marker)
         assert metadata == expected_metadata
         assert content == expected_content
 
     def should_handle_content_without_metadata(self, file_content_without_metadata):
         expected_metadata = {}
         expected_content = "This is the content of the document without metadata."
-        metadata, content = MarkdownUtilities.split_metadata_and_content(file_content_without_metadata)
+        metadata, content = MarkdownUtilities.split_metadata_and_content(
+            file_content_without_metadata)
         assert metadata == expected_metadata
         assert content == expected_content
 
@@ -162,7 +169,8 @@ This is the content of the document."""
             "author": "John Doe"
         }
         expected_content = ""
-        metadata, content = MarkdownUtilities.split_metadata_and_content(file_content_with_no_content)
+        metadata, content = MarkdownUtilities.split_metadata_and_content(
+            file_content_with_no_content)
         assert metadata == expected_metadata
         assert content == expected_content
 
@@ -174,11 +182,12 @@ This is the content of the document."""
         assert content == expected_content
 
     def should_preserve_separators_in_content_when_no_metadata(self,
-            file_content_with_no_metadata_and_separators_in_body_content):
+                                                               file_content_with_no_metadata_and_separators_in_body_content):
         expected_metadata = {}
         expected_content = """This is part one of the content.
 ---
 This is part two of the content."""
-        metadata, content = MarkdownUtilities.split_metadata_and_content(file_content_with_no_metadata_and_separators_in_body_content)
+        metadata, content = MarkdownUtilities.split_metadata_and_content(
+            file_content_with_no_metadata_and_separators_in_body_content)
         assert metadata == expected_metadata
         assert content == expected_content

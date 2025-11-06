@@ -3,7 +3,7 @@ import json
 import pytest
 from pytest_mock import MockerFixture
 
-from zk_chat.models import ZkQueryExcerptResult, ZkDocumentExcerpt
+from zk_chat.models import ZkDocumentExcerpt, ZkQueryExcerptResult
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 
 

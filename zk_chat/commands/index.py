@@ -12,10 +12,10 @@ logging.basicConfig(level=logging.WARN)
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
 os.environ['CHROMA_TELEMETRY'] = 'false'
 
-import typer
 from pathlib import Path
-from typing import Optional
-from typing_extensions import Annotated
+from typing import Annotated
+
+import typer
 from rich.console import Console
 
 from zk_chat.cli import common_init_typer
@@ -31,10 +31,15 @@ console = Console()
 
 @index_app.command()
 def update(
-    vault: Annotated[Optional[Path], typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
-    full: Annotated[bool, typer.Option("--full", help="Force full rebuild (slower but comprehensive)")] = False,
-    gateway: Annotated[Optional[str], typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
-    model: Annotated[Optional[str], typer.Option("--model", "-m", help="Model for generating embeddings")] = None,
+        vault: Annotated[Path | None, typer.Option("--vault", "-v",
+                                                   help="Path to your Zettelkasten vault")] = None,
+        full: Annotated[bool, typer.Option("--full",
+                                           help="Force full rebuild (slower but comprehensive)")]
+        = False,
+        gateway: Annotated[str | None, typer.Option("--gateway", "-g",
+                                                    help="Model gateway (ollama/openai)")] = None,
+        model: Annotated[str | None, typer.Option("--model", "-m",
+                                                  help="Model for generating embeddings")] = None,
 ):
     """
     Update the search index for your Zettelkasten.
@@ -53,6 +58,7 @@ def update(
     [bold yellow]💡 Tip:[/] Incremental update is fast and happens automatically on startup.
     Use --full after major changes or for troubleshooting.
     """
+
     class Args:
         def __init__(self):
             self.vault = str(vault) if vault else None
@@ -82,7 +88,8 @@ def update(
 
 @index_app.command()
 def status(
-    vault: Annotated[Optional[Path], typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
+        vault: Annotated[Path | None, typer.Option("--vault", "-v",
+                                                   help="Path to your Zettelkasten vault")] = None,
 ):
     """
     Show the current status of your Zettelkasten index.
@@ -99,10 +106,11 @@ def status(
     • [cyan]zk-chat index status[/] - Show status for bookmarked vault
     • [cyan]zk-chat index status --vault ~/notes[/] - Show status for specific vault
     """
-    from zk_chat.config import Config
-    from zk_chat.global_config import GlobalConfig
     import os
     from datetime import datetime
+
+    from zk_chat.config import Config
+    from zk_chat.global_config import GlobalConfig
 
     # Determine vault path
     if vault:
@@ -123,7 +131,8 @@ def status(
     config = Config.load(vault_path)
     if not config:
         console.print("[yellow]⚠️  Warning:[/] No zk-chat configuration found in vault.")
-        console.print("[dim]Run [cyan]zk-chat interactive --vault {vault_path}[/dim] to initialize.")
+        console.print(
+            "[dim]Run [cyan]zk-chat interactive --vault {vault_path}[/dim] to initialize.")
         raise typer.Exit(1)
 
     # Display status information
@@ -136,7 +145,7 @@ def status(
     if config.visual_model:
         console.print(f"[bold]Visual Model:[/] {config.visual_model}")
 
-    console.print(f"\n[bold]Chunk Settings:[/]")
+    console.print("\n[bold]Chunk Settings:[/]")
     console.print(f"  • Size: {config.chunk_size} tokens")
     console.print(f"  • Overlap: {config.chunk_overlap} tokens")
 
@@ -164,7 +173,7 @@ def status(
         # Calculate directory size
         total_size = 0
         file_count = 0
-        for dirpath, dirnames, filenames in os.walk(db_dir):
+        for dirpath, _dirnames, filenames in os.walk(db_dir):
             for filename in filenames:
                 filepath = os.path.join(dirpath, filename)
                 total_size += os.path.getsize(filepath)
@@ -178,16 +187,16 @@ def status(
         else:
             size_str = f"{total_size / (1024 * 1024 * 1024):.1f} GB"
 
-        console.print(f"\n[bold]Index Database:[/]")
+        console.print("\n[bold]Index Database:[/]")
         console.print(f"  • Location: {db_dir}")
         console.print(f"  • Size: {size_str}")
         console.print(f"  • Files: {file_count}")
     else:
-        console.print(f"\n[yellow]⚠️  No index database found[/]")
+        console.print("\n[yellow]⚠️  No index database found[/]")
 
     # Count markdown files in vault
     markdown_count = 0
-    for root, dirs, files in os.walk(vault_path):
+    for root, _dirs, files in os.walk(vault_path):
         # Skip database directory
         if '.zk_chat_db' in root:
             continue
@@ -195,15 +204,15 @@ def status(
             if file.endswith('.md'):
                 markdown_count += 1
 
-    console.print(f"\n[bold]Vault Statistics:[/]")
+    console.print("\n[bold]Vault Statistics:[/]")
     console.print(f"  • Markdown files: {markdown_count}")
 
     if last_indexed and markdown_count > 0:
-        console.print(f"\n[green]✅ Index appears healthy[/]")
+        console.print("\n[green]✅ Index appears healthy[/]")
     elif markdown_count == 0:
-        console.print(f"\n[yellow]⚠️  No markdown files found in vault[/]")
+        console.print("\n[yellow]⚠️  No markdown files found in vault[/]")
     else:
-        console.print(f"\n[red]❌ Index needs updating[/]")
+        console.print("\n[red]❌ Index needs updating[/]")
         console.print("[dim]Run: [cyan]zk-chat index update[/dim]")
 
 
@@ -219,5 +228,6 @@ def index_default(ctx: typer.Context):
     if ctx.invoked_subcommand is None:
         # Show help by default
         console.print(ctx.get_help())
-        console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat index --help[/] to see available commands.")
+        console.print(
+            "\n[yellow]💡 Tip:[/] Use [cyan]zk-chat index --help[/] to see available commands.")
         console.print("Most common: [cyan]zk-chat index update[/] or [cyan]zk-chat index status[/]")

@@ -7,7 +7,6 @@ discovery, and graph analysis operations.
 """
 import re
 from datetime import datetime
-from typing import Dict, List, Set, Optional, Tuple, Iterator
 from pathlib import Path
 
 import structlog
@@ -30,7 +29,7 @@ class BacklinkResult(BaseModel):
     """Result of a backlink search - a document that links to the target."""
     linking_document: str
     target_wikilink: str
-    resolved_target: Optional[str]
+    resolved_target: str | None
     line_number: int
     context_snippet: str
 
@@ -39,7 +38,7 @@ class ForwardLinkResult(BaseModel):
     """Result of a forward link search - a document linked from the source."""
     source_document: str
     target_wikilink: str
-    resolved_target: Optional[str]
+    resolved_target: str | None
     line_number: int
     context_snippet: str
 
@@ -48,7 +47,7 @@ class LinkPath(BaseModel):
     """A path through the link graph between two documents."""
     from_document: str
     to_document: str
-    path: List[str]
+    path: list[str]
     hops: int
 
 
@@ -58,8 +57,8 @@ class LinkMetrics(BaseModel):
     total_links: int
     total_resolved_links: int
     total_broken_links: int
-    orphaned_documents: List[str]  # documents with no incoming links
-    hub_documents: List[Tuple[str, int]]  # documents with most incoming links
+    orphaned_documents: list[str]  # documents with no incoming links
+    hub_documents: list[tuple[str, int]]  # documents with most incoming links
     average_links_per_document: float
     link_density: float  # ratio of actual links to possible links
 
@@ -68,14 +67,14 @@ class LinkGraphIndex:
     """In-memory index of the wikilink graph structure for fast traversal."""
 
     def __init__(self):
-        self.forward_links: Dict[str, Set[str]] = {}  # document -> documents it links to
-        self.backward_links: Dict[str, Set[str]] = {}  # document -> documents that link to it
-        self.broken_links: Dict[str, Set[str]] = {}  # document -> broken wikilinks
-        self.wikilink_references: Dict[str, List[WikiLinkReference]] = {}  # cached extractions
-        self.last_updated: Optional[datetime] = None
+        self.forward_links: dict[str, set[str]] = {}  # document -> documents it links to
+        self.backward_links: dict[str, set[str]] = {}  # document -> documents that link to it
+        self.broken_links: dict[str, set[str]] = {}  # document -> broken wikilinks
+        self.wikilink_references: dict[str, list[WikiLinkReference]] = {}  # cached extractions
+        self.last_updated: datetime | None = None
 
-    def add_document_links(self, document: str, wikilink_refs: List[WikiLinkReference],
-                          resolved_targets: Dict[str, Optional[str]]) -> None:
+    def add_document_links(self, document: str, wikilink_refs: list[WikiLinkReference],
+                           resolved_targets: dict[str, str | None]) -> None:
         """Add or update links for a document."""
         # Clear existing links for this document
         if document in self.forward_links:
@@ -103,19 +102,19 @@ class LinkGraphIndex:
                 # Broken link
                 self.broken_links[document].add(wikilink_title)
 
-    def get_forward_links(self, document: str) -> Set[str]:
+    def get_forward_links(self, document: str) -> set[str]:
         """Get documents that this document links to."""
         return self.forward_links.get(document, set())
 
-    def get_backward_links(self, document: str) -> Set[str]:
+    def get_backward_links(self, document: str) -> set[str]:
         """Get documents that link to this document."""
         return self.backward_links.get(document, set())
 
-    def get_broken_links(self, document: str) -> Set[str]:
+    def get_broken_links(self, document: str) -> set[str]:
         """Get broken wikilinks from this document."""
         return self.broken_links.get(document, set())
 
-    def find_path(self, from_doc: str, to_doc: str, max_hops: int = 3) -> Optional[LinkPath]:
+    def find_path(self, from_doc: str, to_doc: str, max_hops: int = 3) -> LinkPath | None:
         """Find shortest path between documents using BFS."""
         if from_doc == to_doc:
             return LinkPath(from_document=from_doc, to_document=to_doc, path=[from_doc], hops=0)
@@ -167,7 +166,8 @@ class LinkTraversalService:
         self.link_index = LinkGraphIndex()
         self._wikilink_pattern = re.compile(r'\[\[(.*?)(?:\|(.*?))?\]\]')
 
-    def extract_wikilinks_from_content(self, content: str, source_document: str = "") -> List[WikiLinkReference]:
+    def extract_wikilinks_from_content(self, content: str, source_document: str = "") -> list[
+        WikiLinkReference]:
         """
         Extract all wikilinks from document content with context information.
 
@@ -209,7 +209,7 @@ class LinkTraversalService:
 
         return wikilink_references
 
-    def extract_wikilinks_from_document(self, relative_path: str) -> List[WikiLinkReference]:
+    def extract_wikilinks_from_document(self, relative_path: str) -> list[WikiLinkReference]:
         """
         Extract all wikilinks from a specific document.
 
@@ -228,10 +228,10 @@ class LinkTraversalService:
             return self.extract_wikilinks_from_content(content, relative_path)
         except Exception as e:
             logger.error("Failed to extract wikilinks from document",
-                        path=relative_path, error=str(e))
+                         path=relative_path, error=str(e))
             return []
 
-    def find_backlinks(self, target_document: str) -> List[BacklinkResult]:
+    def find_backlinks(self, target_document: str) -> list[BacklinkResult]:
         """
         Find all documents that link to the target document.
 
@@ -281,7 +281,7 @@ class LinkTraversalService:
 
         return backlinks
 
-    def find_forward_links(self, source_document: str) -> List[ForwardLinkResult]:
+    def find_forward_links(self, source_document: str) -> list[ForwardLinkResult]:
         """
         Find all documents that are linked from the source document.
 
@@ -337,10 +337,11 @@ class LinkTraversalService:
 
         self.link_index.last_updated = datetime.now()
         logger.info("Link graph index built",
-                   documents=len(self.link_index.forward_links),
-                   total_links=sum(len(links) for links in self.link_index.forward_links.values()))
+                    documents=len(self.link_index.forward_links),
+                    total_links=sum(len(links) for links in self.link_index.forward_links.values()))
 
-    def find_link_path(self, from_document: str, to_document: str, max_hops: int = 3) -> Optional[LinkPath]:
+    def find_link_path(self, from_document: str, to_document: str,
+                       max_hops: int = 3) -> LinkPath | None:
         """
         Find a path between two documents through wikilinks.
 
@@ -358,7 +359,7 @@ class LinkTraversalService:
 
         return self.link_index.find_path(from_document, to_document, max_hops)
 
-    def get_link_metrics(self, document: Optional[str] = None) -> LinkMetrics:
+    def get_link_metrics(self, document: str | None = None) -> LinkMetrics:
         """
         Get metrics about the link graph structure.
 
@@ -402,7 +403,7 @@ class LinkTraversalService:
 
         # Find hub documents (most incoming links)
         hub_scores = [(doc, len(self.link_index.get_backward_links(doc)))
-                     for doc in self.link_index.forward_links]
+                      for doc in self.link_index.forward_links]
         hub_documents = sorted(hub_scores, key=lambda x: x[1], reverse=True)[:10]
 
         # Calculate metrics
@@ -421,7 +422,8 @@ class LinkTraversalService:
             link_density=link_density
         )
 
-    def _create_context_snippet(self, line: str, start: int, end: int, context_chars: int = 50) -> str:
+    def _create_context_snippet(self, line: str, start: int, end: int,
+                                context_chars: int = 50) -> str:
         """Create a context snippet showing the wikilink within its surrounding text."""
         # Get context before and after the wikilink
         context_start = max(0, start - context_chars)

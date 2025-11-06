@@ -4,7 +4,7 @@ Tests for MCP client server verification functionality.
 from unittest.mock import Mock, patch
 
 from zk_chat.global_config import MCPServerConfig, MCPServerType
-from zk_chat.mcp_client import verify_mcp_server, verify_stdio_server, verify_http_server
+from zk_chat.mcp_client import verify_http_server, verify_mcp_server, verify_stdio_server
 
 
 class DescribeVerifyStdioServer:

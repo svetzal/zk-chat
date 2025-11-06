@@ -1,17 +1,18 @@
 """Progress tracking for long-running operations using Rich library."""
-from typing import Optional, Callable
+from collections.abc import Callable
+
+import structlog
+from rich.console import Console
 from rich.progress import (
-    Progress,
     BarColumn,
+    MofNCompleteColumn,
+    Progress,
+    SpinnerColumn,
+    TaskID,
     TextColumn,
     TimeElapsedColumn,
     TimeRemainingColumn,
-    SpinnerColumn,
-    MofNCompleteColumn,
-    TaskID
 )
-from rich.console import Console
-import structlog
 
 logger = structlog.get_logger()
 
@@ -25,18 +26,18 @@ class ProgressTracker:
     Provides progress bars with file counts, processing rates, and current operation display.
     """
 
-    def __init__(self, console: Optional[Console] = None):
+    def __init__(self, console: Console | None = None):
         """Initialize progress tracker.
 
         Args:
             console: Optional Rich Console instance. Creates new one if None.
         """
         self.console = console or Console()
-        self._progress: Optional[Progress] = None
-        self._main_task: Optional[TaskID] = None
+        self._progress: Progress | None = None
+        self._main_task: TaskID | None = None
         self._current_operation = ""
 
-    def start_progress(self, description: str = "Processing", total: Optional[int] = None) -> TaskID:
+    def start_progress(self, description: str = "Processing", total: int | None = None) -> TaskID:
         """Start a new progress tracking session.
 
         Args:
@@ -71,10 +72,10 @@ class ProgressTracker:
         return self._main_task
 
     def update_progress(self,
-                       advance: Optional[int] = None,
-                       completed: Optional[int] = None,
-                       description: Optional[str] = None,
-                       current_file: Optional[str] = None) -> None:
+                        advance: int | None = None,
+                        completed: int | None = None,
+                        description: str | None = None,
+                        current_file: str | None = None) -> None:
         """Update progress bar.
 
         Args:
@@ -146,6 +147,7 @@ class ProgressTracker:
         Returns:
             A callback function that can be passed to other methods
         """
+
         def callback(current_file: str, processed: int, total: int) -> None:
             if processed == 1:  # First file, set total if not already set
                 self.set_total(total)

@@ -30,13 +30,15 @@ class DeleteZkDocument(LLMTool):
             "type": "function",
             "function": {
                 "name": "delete_document",
-                "description": "Permanently delete a document from the Zettelkasten knowledge base. This operation cannot be undone. Use with extreme caution.",
+                "description": "Permanently delete a document from the Zettelkasten knowledge "
+                               "base. This operation cannot be undone. Use with extreme caution.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "relative_path": {
                             "type": "string",
-                            "description": "The relative path within the Zettelkasten of the document to delete."
+                            "description": "The relative path within the Zettelkasten of the "
+                            "document to delete."
                         }
                     },
                     "required": ["relative_path"]

@@ -29,7 +29,10 @@ class FindZkDocumentsRelatedTo(LLMTool):
             "type": "function",
             "function": {
                 "name": "find_documents",
-                "description": "Search for complete documents in the Zettelkasten knowledge base that are relevant to a query. This returns entire documents rather than specific excerpts, which is useful when you need comprehensive information on a topic rather than just specific passages.",
+                "description": "Search for complete documents in the Zettelkasten knowledge base "
+                               "that are relevant to a query. This returns entire documents "
+                               "rather than specific excerpts, which is useful when you need comprehensive "
+                               "information on a topic rather than just specific passages.",
                 "parameters": {
                     "type": "object",
                     "properties": {

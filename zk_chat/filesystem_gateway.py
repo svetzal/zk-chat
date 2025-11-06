@@ -1,6 +1,6 @@
 import os
+from collections.abc import Iterator
 from datetime import datetime
-from typing import Iterator, List
 
 
 class FilesystemGateway:
@@ -103,7 +103,7 @@ class FilesystemGateway:
             str: Contents of the file
         """
         full_path = self._get_full_path(relative_path)
-        with open(full_path, "r") as f:
+        with open(full_path) as f:
             return f.read()
 
     def write_file(self, relative_path: str, content: str) -> None:
@@ -177,7 +177,7 @@ class FilesystemGateway:
 
         return self._get_full_path(relative_path)
 
-    def iterate_files_by_extensions(self, extensions: List[str]) -> Iterator[str]:
+    def iterate_files_by_extensions(self, extensions: list[str]) -> Iterator[str]:
         """Iterate through all files matching the given extensions.
 
         Args:
@@ -187,7 +187,7 @@ class FilesystemGateway:
             str: Relative paths of matching files
         """
         import os
-        for root, dirs, files in os.walk(self.root_path):
+        for root, _dirs, files in os.walk(self.root_path):
             for file in files:
                 _, ext = os.path.splitext(file)
                 if ext.lower().lstrip('.') in [e.lower().lstrip('.') for e in extensions]:

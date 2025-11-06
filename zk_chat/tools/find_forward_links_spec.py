@@ -42,11 +42,13 @@ class DescribeFindForwardLinks:
                 target_wikilink="Feedback Loops",
                 resolved_target="concepts/feedback-loops.md",
                 line_number=15,
-                context_snippet="The importance of [[Feedback Loops|feedback mechanisms]] cannot be overstated."
+                context_snippet="The importance of [[Feedback Loops|feedback mechanisms]] cannot "
+                                "be overstated."
             )
         ]
 
-    def should_be_instantiated_with_zettelkasten_and_console_service(self, mock_zk, mock_console_service):
+    def should_be_instantiated_with_zettelkasten_and_console_service(self, mock_zk,
+                                                                     mock_console_service):
         tool = FindForwardLinks(mock_zk, mock_console_service)
 
         assert isinstance(tool, FindForwardLinks)
@@ -69,12 +71,14 @@ class DescribeFindForwardLinks:
         mock_zk.document_exists.assert_called_once_with(test_path)
         assert result == f"Document not found at {test_path}"
 
-    def should_find_forward_links_from_source_document(self, forward_links_tool, mock_zk, mock_forward_link_results):
+    def should_find_forward_links_from_source_document(self, forward_links_tool, mock_zk,
+                                                       mock_forward_link_results):
         source = "concepts/systems-thinking.md"
         mock_zk.document_exists.return_value = True
 
         # Mock the LinkTraversalService's find_forward_links method
-        forward_links_tool.link_service.find_forward_links = Mock(return_value=mock_forward_link_results)
+        forward_links_tool.link_service.find_forward_links = Mock(
+            return_value=mock_forward_link_results)
 
         result = forward_links_tool.run(source)
 
@@ -96,11 +100,13 @@ class DescribeFindForwardLinks:
         forward_links_tool.link_service.find_forward_links.assert_called_once_with(source)
         assert result == "[]"
 
-    def should_return_json_formatted_forward_link_results(self, forward_links_tool, mock_zk, mock_forward_link_results):
+    def should_return_json_formatted_forward_link_results(self, forward_links_tool, mock_zk,
+                                                          mock_forward_link_results):
         source = "test-document.md"
         mock_zk.document_exists.return_value = True
 
-        forward_links_tool.link_service.find_forward_links = Mock(return_value=mock_forward_link_results)
+        forward_links_tool.link_service.find_forward_links = Mock(
+            return_value=mock_forward_link_results)
 
         result = forward_links_tool.run(source)
 
@@ -111,11 +117,14 @@ class DescribeFindForwardLinks:
         assert "line_number" in result
         assert "context_snippet" in result
 
-    def should_print_console_feedback_about_results_found(self, forward_links_tool, mock_zk, mock_console_service, mock_forward_link_results):
+    def should_print_console_feedback_about_results_found(self, forward_links_tool, mock_zk,
+                                                          mock_console_service,
+                                                          mock_forward_link_results):
         source = "test-document.md"
         mock_zk.document_exists.return_value = True
 
-        forward_links_tool.link_service.find_forward_links = Mock(return_value=mock_forward_link_results)
+        forward_links_tool.link_service.find_forward_links = Mock(
+            return_value=mock_forward_link_results)
 
         forward_links_tool.run(source)
 
@@ -153,7 +162,8 @@ class DescribeFindForwardLinks:
                 target_wikilink="Deep Topic",
                 resolved_target="deep/topic.md",
                 line_number=12,
-                context_snippet="To fully grasp this concept, we must explore [[Deep Topic]] in detail."
+                context_snippet="To fully grasp this concept, we must explore [[Deep Topic]] in "
+                "detail."
             )
         ]
         mock_zk.document_exists.return_value = True

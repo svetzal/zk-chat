@@ -4,7 +4,7 @@ LLM validator for "LLM as judge" validation.
 Uses the agent to validate that scenario outcomes meet criteria.
 """
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -14,7 +14,7 @@ from integration_tests.agent_runner import AgentRunner
 class ValidationResult(BaseModel):
     """Result of validation"""
     passed: bool
-    criteria_results: List[Dict[str, Any]]
+    criteria_results: list[dict[str, Any]]
     overall_reasoning: str
 
     def merge(self, other: 'ValidationResult') -> 'ValidationResult':
@@ -33,13 +33,13 @@ class LLMValidator:
         self,
         vault_path: Path,
         gateway: str,
-        model: Optional[str] = None
+        model: str | None = None
     ):
         self.vault_path = vault_path
         self.gateway = gateway
         self.model = model
 
-    def validate(self, criteria: List) -> ValidationResult:
+    def validate(self, criteria: list) -> ValidationResult:
         """
         Validate using LLM as judge.
 
@@ -62,7 +62,7 @@ class LLMValidator:
             overall_reasoning=reasoning
         )
 
-    def _validate_criterion(self, criterion) -> Dict:
+    def _validate_criterion(self, criterion) -> dict:
         """Validate a single criterion"""
         validation_prompt = f"""
 You are validating the results of a task. Examine the vault and determine if the following criterion is satisfied:
@@ -127,7 +127,7 @@ Reasoning: [Your detailed reasoning]
 
         return positive_count > negative_count
 
-    def _generate_overall_reasoning(self, criteria_results: List[Dict]) -> str:
+    def _generate_overall_reasoning(self, criteria_results: list[dict]) -> str:
         """Generate overall reasoning from individual results"""
         passed_count = sum(1 for r in criteria_results if r["passed"])
         total_count = len(criteria_results)

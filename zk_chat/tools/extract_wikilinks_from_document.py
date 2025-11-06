@@ -46,18 +46,20 @@ class ExtractWikilinksFromDocument(LLMTool):
             "type": "function",
             "function": {
                 "name": "extract_wikilinks_from_document",
-                "description": ("Extract all wikilinks from a document along with their line numbers and "
-                                "context snippets. This provides fast, local analysis of a document's "
-                                "explicit connections to other documents without requiring semantic "
-                                "processing. Use this to quickly discover what documents are directly "
-                                "referenced from a given document."),
+                "description": (
+                    "Extract all wikilinks from a document along with their line numbers and "
+                    "context snippets. This provides fast, local analysis of a document's "
+                    "explicit connections to other documents without requiring semantic "
+                    "processing. Use this to quickly discover what documents are directly "
+                    "referenced from a given document."),
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "relative_path": {
                             "type": "string",
-                            "description": ("The relative path within the Zettelkasten of the document "
-                                            "to analyze for wikilinks.")
+                            "description": (
+                                "The relative path within the Zettelkasten of the document "
+                                "to analyze for wikilinks.")
                         }
                     },
                     "required": ["relative_path"]

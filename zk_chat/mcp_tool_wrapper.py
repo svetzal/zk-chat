@@ -5,7 +5,7 @@ This module provides a wrapper that allows external MCP server tools to be used
 as mojentic-compatible tools within zk-chat.
 """
 import asyncio
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import structlog
 from fastmcp import Client
@@ -23,7 +23,8 @@ class MCPToolWrapper(LLMTool):
     This wrapper uses a shared Client connection managed by MCPClientManager.
     """
 
-    def __init__(self, client: Client, server_name: str, tool_name: str, tool_descriptor: Dict[str, Any], loop: asyncio.AbstractEventLoop):
+    def __init__(self, client: Client, server_name: str, tool_name: str,
+                 tool_descriptor: dict[str, Any], loop: asyncio.AbstractEventLoop):
         """
         Initialize the MCP tool wrapper.
 
@@ -46,7 +47,7 @@ class MCPToolWrapper(LLMTool):
         self.tool_descriptor = tool_descriptor
         self._loop = loop
 
-    def _coerce_types(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    def _coerce_types(self, arguments: dict[str, Any]) -> dict[str, Any]:
         """
         Coerce argument types to match the input schema.
 
@@ -133,7 +134,7 @@ class MCPToolWrapper(LLMTool):
                          error=str(e))
             return error_msg
 
-    async def _async_run(self, arguments: Dict[str, Any]) -> Any:
+    async def _async_run(self, arguments: dict[str, Any]) -> Any:
         """
         Async implementation of tool execution.
 
@@ -151,7 +152,7 @@ class MCPToolWrapper(LLMTool):
         return result
 
     @property
-    def descriptor(self) -> Dict[str, Any]:
+    def descriptor(self) -> dict[str, Any]:
         """
         Get the tool descriptor in mojentic format.
 
@@ -166,7 +167,8 @@ class MCPToolWrapper(LLMTool):
             "type": "function",
             "function": {
                 "name": self.tool_name,
-                "description": self.tool_descriptor.get("description", f"Tool from {self.server_name}"),
+                "description": self.tool_descriptor.get("description",
+                                                        f"Tool from {self.server_name}"),
                 "parameters": input_schema
             }
         }
@@ -188,10 +190,10 @@ class MCPClientManager:
 
     def __init__(self):
         """Initialize the MCP client manager."""
-        self._clients: Dict[str, Client] = {}
-        self._tools: List[MCPToolWrapper] = []
+        self._clients: dict[str, Client] = {}
+        self._tools: list[MCPToolWrapper] = []
         self._initialized = False
-        self._loop: Optional[asyncio.AbstractEventLoop] = None
+        self._loop: asyncio.AbstractEventLoop | None = None
         self._loop_thread = None
 
     def __enter__(self):
@@ -237,7 +239,6 @@ class MCPClientManager:
 
     def initialize_sync(self):
         """Initialize connections synchronously by running async code in background loop."""
-        import concurrent.futures
 
         # Start the background event loop
         self._start_event_loop()
@@ -294,12 +295,12 @@ class MCPClientManager:
                 await self._connect_server(server_config)
             except Exception as e:
                 logger.error("Failed to connect to MCP server",
-                           server_name=server_config.name,
-                           error=str(e))
+                             server_name=server_config.name,
+                             error=str(e))
 
         logger.info("MCP client initialization complete",
-                   connected_servers=len(self._clients),
-                   total_tools=len(self._tools))
+                    connected_servers=len(self._clients),
+                    total_tools=len(self._tools))
 
         self._initialized = True
 
@@ -374,17 +375,18 @@ class MCPClientManager:
                 self._tools.append(wrapper)
 
                 logger.info("Discovered MCP tool",
-                          server_name=server_config.name,
-                          tool_name=tool.name)
+                            server_name=server_config.name,
+                            tool_name=tool.name)
 
             logger.info("Tool discovery complete",
-                       server_name=server_config.name,
-                       tool_count=len([t for t in self._tools if t.server_name == server_config.name]))
+                        server_name=server_config.name,
+                        tool_count=len(
+                            [t for t in self._tools if t.server_name == server_config.name]))
 
         except Exception as e:
             logger.error("Failed to discover tools from MCP server",
-                        server_name=server_config.name,
-                        error=str(e))
+                         server_name=server_config.name,
+                         error=str(e))
 
     async def cleanup(self):
         """Cleanup all client connections."""
@@ -399,14 +401,14 @@ class MCPClientManager:
                 logger.info("Disconnected from MCP server", server_name=server_name)
             except Exception as e:
                 logger.error("Error disconnecting from MCP server",
-                           server_name=server_name,
-                           error=str(e))
+                             server_name=server_name,
+                             error=str(e))
 
         self._clients.clear()
         self._tools.clear()
         self._initialized = False
 
-    def get_tools(self) -> List[LLMTool]:
+    def get_tools(self) -> list[LLMTool]:
         """
         Get all discovered tools from connected MCP servers.
 
@@ -418,7 +420,7 @@ class MCPClientManager:
         return self._tools.copy()
 
 
-def load_mcp_tools_from_registered_servers() -> List[LLMTool]:
+def load_mcp_tools_from_registered_servers() -> list[LLMTool]:
     """
     DEPRECATED: Use MCPClientManager instead.
 
@@ -430,5 +432,6 @@ def load_mcp_tools_from_registered_servers() -> List[LLMTool]:
     List[LLMTool]
         Empty list - this function is deprecated
     """
-    logger.warning("load_mcp_tools_from_registered_servers is deprecated. Use MCPClientManager instead.")
+    logger.warning(
+        "load_mcp_tools_from_registered_servers is deprecated. Use MCPClientManager instead.")
     return []

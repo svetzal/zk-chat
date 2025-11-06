@@ -43,7 +43,11 @@ class UncommittedChanges(LLMTool):
             "type": "function",
             "function": {
                 "name": "get_uncommitted_changes",
-                "description": "View all changes made to the Zettelkasten knowledge base that haven't been committed yet. Use this to review your modifications before committing them permanently with the commit_changes tool. This helps you verify what documents have been created, modified, or deleted since the last commit.",
+                "description": "View all changes made to the Zettelkasten knowledge base that "
+                               "haven't been committed yet. Use this to review your modifications "
+                               "before committing them permanently with the commit_changes tool. "
+                               "This helps you verify what documents have been created, modified, "
+                               "or deleted since the last commit.",
                 "parameters": {
                     "type": "object",
                     "properties": {},

@@ -1,5 +1,5 @@
 import re
-from typing import Iterator, Dict, Tuple, Optional
+from collections.abc import Iterator
 
 from pydantic import BaseModel
 
@@ -9,7 +9,7 @@ from zk_chat.markdown.markdown_utilities import MarkdownUtilities
 
 class WikiLink(BaseModel):
     title: str
-    caption: Optional[str]
+    caption: str | None
 
     @classmethod
     def parse(cls, value: str) -> "WikiLink":
@@ -34,7 +34,8 @@ class WikiLink(BaseModel):
 
 
 class MarkdownFilesystemGateway(FilesystemGateway):
-    """Gateway for markdown filesystem operations that abstracts OS dependencies and markdown handling."""
+    """Gateway for markdown filesystem operations that abstracts OS dependencies and markdown
+    handling."""
 
     def resolve_wikilink(self, wikilink: str) -> str:
         link = WikiLink.parse(wikilink)
@@ -53,7 +54,7 @@ class MarkdownFilesystemGateway(FilesystemGateway):
         """
         yield from self.iterate_files_by_extensions(['.md'])
 
-    def read_markdown(self, relative_path: str) -> Tuple[Dict, str]:
+    def read_markdown(self, relative_path: str) -> tuple[dict, str]:
         """Read a markdown file and split it into metadata and content.
 
         Args:
@@ -65,7 +66,7 @@ class MarkdownFilesystemGateway(FilesystemGateway):
         full_path = self._get_full_path(relative_path)
         return MarkdownUtilities.load_markdown(full_path)
 
-    def write_markdown(self, relative_path: str, metadata: Dict, content: str) -> None:
+    def write_markdown(self, relative_path: str, metadata: dict, content: str) -> None:
         """Write metadata and content to a markdown file.
 
         Args:

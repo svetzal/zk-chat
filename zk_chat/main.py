@@ -16,24 +16,25 @@ logging.basicConfig(level=logging.WARN)
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
 os.environ['CHROMA_TELEMETRY'] = 'false'
 
+import sys
+from pathlib import Path
+from typing import Annotated
+
 import typer
 from rich.console import Console
 from rich.panel import Panel
-from pathlib import Path
-from typing import Optional
-from typing_extensions import Annotated
-import sys
+
+from zk_chat.agent import agent as run_agent
+
+# Import functions for interactive and query commands
+from zk_chat.cli import common_init_typer, display_banner
+from zk_chat.commands.bookmarks import bookmarks_app
+from zk_chat.commands.diagnose import diagnose_app
 
 # Import subcommands
 from zk_chat.commands.gui import gui_app
 from zk_chat.commands.index import index_app
 from zk_chat.commands.mcp import mcp_app
-from zk_chat.commands.diagnose import diagnose_app
-from zk_chat.commands.bookmarks import bookmarks_app
-
-# Import functions for interactive and query commands
-from zk_chat.cli import common_init_typer, display_banner
-from zk_chat.agent import agent as run_agent
 
 # Create the main app
 app = typer.Typer(
@@ -56,11 +57,11 @@ console = Console()
 
 
 def create_args_namespace(
-    vault: Optional[Path] = None,
+    vault: Path | None = None,
     save: bool = False,
-    gateway: Optional[str] = None,
-    model: Optional[str] = None,
-    visual_model: Optional[str] = None,
+    gateway: str | None = None,
+    model: str | None = None,
+    visual_model: str | None = None,
     no_index: bool = False,
     unsafe: bool = False,
     git: bool = False,
@@ -68,6 +69,7 @@ def create_args_namespace(
     reset_memory: bool = False,
 ):
     """Create a namespace object similar to argparse for common_init_typer."""
+
     class Args:
         def __init__(self):
             self.vault = str(vault) if vault else None
@@ -90,24 +92,34 @@ def create_args_namespace(
 @app.command()
 def interactive(
     # Vault options
-    vault: Annotated[Optional[Path], typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
-    save: Annotated[bool, typer.Option("--save", help="Save the vault path as a bookmark")] = False,
+    vault: Annotated[Path | None, typer.Option("--vault", "-v",
+                                               help="Path to your Zettelkasten vault")] = None,
+    save: Annotated[
+        bool, typer.Option("--save", help="Save the vault path as a bookmark")] = False,
 
     # Model options
-    gateway: Annotated[Optional[str], typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
-    model: Annotated[Optional[str], typer.Option("--model", "-m", help="Chat model to use")] = None,
-    visual_model: Annotated[Optional[str], typer.Option("--visual-model", help="Visual analysis model")] = None,
+    gateway: Annotated[str | None, typer.Option("--gateway", "-g",
+                                                help="Model gateway (ollama/openai)")] = None,
+    model: Annotated[
+        str | None, typer.Option("--model", "-m", help="Chat model to use")] = None,
+    visual_model: Annotated[
+        str | None, typer.Option("--visual-model", help="Visual analysis model")] = None,
 
     # Index options
-    no_index: Annotated[bool, typer.Option("--no-index", help="Skip indexing new documents on startup")] = False,
+    no_index: Annotated[bool, typer.Option("--no-index",
+                                           help="Skip indexing new documents on startup")] =
+    False,
 
     # Agent options
-    unsafe: Annotated[bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")] = False,
+    unsafe: Annotated[
+        bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")] = False,
     git: Annotated[bool, typer.Option("--git", help="Enable git integration")] = False,
-    store_prompt: Annotated[bool, typer.Option("--store-prompt/--no-store-prompt", help="Store system prompt in vault")] = True,
+    store_prompt: Annotated[bool, typer.Option("--store-prompt/--no-store-prompt",
+                                               help="Store system prompt in vault")] = True,
 
     # Memory options
-    reset_memory: Annotated[bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
+    reset_memory: Annotated[
+        bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
 ):
     """
     Start an interactive agent session with your Zettelkasten.
@@ -141,33 +153,44 @@ def interactive(
         return
 
     # Display banner and run agent
-    display_banner(config, title="ZkChat Agent", unsafe=unsafe, use_git=git, store_prompt=store_prompt)
+    display_banner(config, title="ZkChat Agent", unsafe=unsafe, use_git=git,
+                   store_prompt=store_prompt)
     run_agent(config)
 
 
 @app.command()
 def query(
-    prompt: Annotated[Optional[str], typer.Argument(help="Query to ask your Zettelkasten (or read from STDIN if not provided)")] = None,
+    prompt: Annotated[str | None, typer.Argument(
+        help="Query to ask your Zettelkasten (or read from STDIN if not provided)")] = None,
 
     # Vault options
-    vault: Annotated[Optional[Path], typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
-    save: Annotated[bool, typer.Option("--save", help="Save the vault path as a bookmark")] = False,
+    vault: Annotated[Path | None, typer.Option("--vault", "-v",
+                                               help="Path to your Zettelkasten vault")] = None,
+    save: Annotated[
+        bool, typer.Option("--save", help="Save the vault path as a bookmark")] = False,
 
     # Model options
-    gateway: Annotated[Optional[str], typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
-    model: Annotated[Optional[str], typer.Option("--model", "-m", help="Chat model to use")] = None,
-    visual_model: Annotated[Optional[str], typer.Option("--visual-model", help="Visual analysis model")] = None,
+    gateway: Annotated[str | None, typer.Option("--gateway", "-g",
+                                                help="Model gateway (ollama/openai)")] = None,
+    model: Annotated[
+        str | None, typer.Option("--model", "-m", help="Chat model to use")] = None,
+    visual_model: Annotated[
+        str | None, typer.Option("--visual-model", help="Visual analysis model")] = None,
 
     # Index options
-    no_index: Annotated[bool, typer.Option("--no-index", help="Skip indexing new documents")] = False,
+    no_index: Annotated[
+        bool, typer.Option("--no-index", help="Skip indexing new documents")] = False,
 
     # Agent options
-    unsafe: Annotated[bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")] = False,
+    unsafe: Annotated[
+        bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")] = False,
     git: Annotated[bool, typer.Option("--git", help="Enable git integration")] = False,
-    store_prompt: Annotated[bool, typer.Option("--store-prompt/--no-store-prompt", help="Store system prompt in vault")] = True,
+    store_prompt: Annotated[bool, typer.Option("--store-prompt/--no-store-prompt",
+                                               help="Store system prompt in vault")] = True,
 
     # Memory options
-    reset_memory: Annotated[bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
+    reset_memory: Annotated[
+        bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
 ):
     """
     Ask a single question to your Zettelkasten and exit.
@@ -189,7 +212,9 @@ def query(
     # Get prompt from argument or STDIN
     if prompt is None:
         if sys.stdin.isatty():
-            console.print("[red]Error:[/] No prompt provided. Either pass a prompt as an argument or pipe input via STDIN.")
+            console.print(
+                "[red]Error:[/] No prompt provided. Either pass a prompt as an argument or pipe "
+                "input via STDIN.")
             console.print("Examples:")
             console.print("  [cyan]zk-chat query \"Your question here\"[/]")
             console.print("  [cyan]cat prompt.txt | zk-chat query[/]")
@@ -220,7 +245,8 @@ def query(
 
     # Display banner if using unsafe or git modes
     if unsafe or git:
-        display_banner(config, title="ZkChat Query", unsafe=unsafe, use_git=git, store_prompt=store_prompt)
+        display_banner(config, title="ZkChat Query", unsafe=unsafe, use_git=git,
+                       store_prompt=store_prompt)
 
     # Execute single query using agent
     console.print(f"[bold cyan]Query:[/] {prompt}")
@@ -235,7 +261,8 @@ def query(
 @app.callback()
 def main(
     ctx: typer.Context,
-    version: Annotated[bool, typer.Option("--version", help="Show version information")] = False,
+    version: Annotated[
+        bool, typer.Option("--version", help="Show version information")] = False,
 ):
     """
     💬 ZkChat - AI Agent for your Zettelkasten

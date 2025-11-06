@@ -72,7 +72,8 @@ The project uses pytest with specification-style output configuration. Test file
 
 ### Linting
 ```bash
-flake8                    # Run linting (max line length: 127, max complexity: 10)
+# Ruff uses configuration from pyproject.toml (line length 120, max complexity 10)
+ruff check zk_chat
 ```
 
 ### Dependencies

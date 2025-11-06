@@ -2,7 +2,6 @@ import structlog
 from mojentic.llm import LLMBroker
 from mojentic.llm.gateways.models import LLMMessage
 from mojentic.llm.tools.llm_tool import LLMTool
-from pydantic import BaseModel, Field
 
 from zk_chat.console_service import RichConsoleService
 from zk_chat.tools.git_gateway import GitGateway
@@ -11,12 +10,12 @@ logger = structlog.get_logger()
 
 
 class CommitChanges(LLMTool):
-
     base_path: str
     llm: LLMBroker
     git: GitGateway
 
-    def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway, console_service: RichConsoleService = None):
+    def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway,
+                 console_service: RichConsoleService = None):
         self.base_path = base_path
         self.llm = llm
         self.git = git
@@ -73,7 +72,8 @@ class CommitChanges(LLMTool):
 
         message = self.llm.generate([
             LLMMessage(content=f"""
-The user is committing changes to a content repository managed by git. The following is the output from git diff. Summarize a suitable git commit message about the content changes.
+The user is committing changes to a content repository managed by git. The following is the
+output from git diff. Summarize a suitable git commit message about the content changes.
 Output only the commit message, no other text, do not put it in code fences.
 
 ```
@@ -91,7 +91,10 @@ Output only the commit message, no other text, do not put it in code fences.
             "type": "function",
             "function": {
                 "name": "commit_changes",
-                "description": "Save all changes made to the Zettelkasten knowledge base by creating a Git commit. Use this after making modifications to documents (creating, updating, or renaming) to permanently store those changes in the version control system. This ensures your changes are preserved and can be tracked over time.",
+                "description": "Save all changes made to the Zettelkasten knowledge base by "
+                               "creating a Git commit. Use this after making modifications to documents (creating, "
+                               "updating, or renaming) to permanently store those changes in the version control "
+                               "system. This ensures your changes are preserved and can be tracked over time.",
                 "parameters": {
                     "type": "object",
                     "properties": {},

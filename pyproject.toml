@@ -24,7 +24,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "flake8",
+    "ruff",
     "pytest",
     "pytest-spec",
     "pytest-cov",
@@ -48,3 +48,69 @@ Issues = "https://github.com/svetzal/zk-chat/issues"
 
 [project.scripts]
 zk-chat = "zk_chat.main:app"
+
+[tool.ruff]
+line-length = 120
+# Match project runtime
+target-version = "py311"
+
+[tool.ruff.lint]
+# E,F: pycodestyle/pyflakes, I: import sorting, B: bugbear, UP: pyupgrade, C90: mccabe complexity
+select = ["E", "F", "I", "B", "UP", "C90"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["zk_chat"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+
+[tool.pytest.ini_options]
+spec_header_format = "{module_path}:"
+spec_test_format = "{result} {name}"
+# pytest-spec expects a comma-separated string here, not a list
+spec_ignore = "FLAKE8"
+spec_success_indicator = "✓"
+
+# File patterns for test discovery
+python_files = [
+    "test_*.py",
+    "*_test.py",
+    "*_spec.py",
+    "*_integration.py",
+]
+
+# Display settings for better specification-style output
+addopts = [
+    "--spec",
+    "--tb=short",
+    "--showlocals",
+    "--color=yes",
+]
+
+# Custom test summary / paths
+testpaths = ["zk_chat"]
+
+# Improve readability of test names
+python_functions = ["test_*", "should_*"]
+python_classes = ["Test*", "Describe*"]
+
+# Configure test collection
+norecursedirs = [".*", "build", "dist", "venv", "site"]
+
+
+# isort configuration for IDEs/tools that read native isort settings (PyCharm, CLI isort)
+# Mirrors Ruff's isort configuration in [tool.ruff.lint.isort]
+[tool.isort]
+# Keep consistent with [tool.ruff] line-length
+line_length = 120
+# Ensure our package is treated as first-party
+known_first_party = ["zk_chat"]
+# Explicit section order to match our guidelines: stdlib, third-party, local/first-party
+sections = ["STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+default_section = "THIRDPARTY"
+# Add a blank line between sections (PyCharm/isort will handle this by sections definition)
+# Keep imports alphabetically sorted within sections
+force_alphabetical_sort_within_sections = true
+# Keep as/from imports grouped consistently
+combine_as_imports = true

@@ -1,26 +1,29 @@
-from unittest.mock import Mock, ANY
+from unittest.mock import ANY, Mock
 
 import pytest
-from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
+from mojentic.llm.gateways import OllamaGateway
 
+from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.memory.smart_memory import SmartMemory
-from zk_chat.chroma_collections import ZkCollectionName
 
 
 @pytest.fixture
 def mock_chroma_gateway():
     return Mock(spec=ChromaGateway)
 
+
 @pytest.fixture
 def mock_embeddings():
     return [0.1, 0.2, 0.3]
+
 
 @pytest.fixture
 def mock_gateway(mock_embeddings):
     mock = Mock(spec=OllamaGateway)
     mock.calculate_embeddings.return_value = mock_embeddings
     return mock
+
 
 class DescribeSmartMemory:
     """
@@ -35,7 +38,8 @@ class DescribeSmartMemory:
         assert memory.chroma == mock_chroma_gateway
         assert memory.gateway == mock_gateway
 
-    def should_store_information_in_chroma_db(self, mock_chroma_gateway, mock_gateway, mock_embeddings):
+    def should_store_information_in_chroma_db(self, mock_chroma_gateway, mock_gateway,
+                                              mock_embeddings):
         memory = SmartMemory(mock_chroma_gateway, mock_gateway)
 
         memory.store("some information")
@@ -49,7 +53,8 @@ class DescribeSmartMemory:
             collection_name=ZkCollectionName.SMART_MEMORY
         )
 
-    def should_retrieve_information_from_chroma_db_with_default_results(self, mock_chroma_gateway, mock_gateway):
+    def should_retrieve_information_from_chroma_db_with_default_results(self, mock_chroma_gateway,
+                                                                        mock_gateway):
         memory = SmartMemory(mock_chroma_gateway, mock_gateway)
 
         _ = memory.retrieve("some information")
@@ -61,7 +66,8 @@ class DescribeSmartMemory:
             collection_name=ZkCollectionName.SMART_MEMORY
         )
 
-    def should_retrieve_information_from_chroma_db_with_custom_results(self, mock_chroma_gateway, mock_gateway):
+    def should_retrieve_information_from_chroma_db_with_custom_results(self, mock_chroma_gateway,
+                                                                       mock_gateway):
         memory = SmartMemory(mock_chroma_gateway, mock_gateway)
 
         _ = memory.retrieve("some information", n_results=10)
@@ -79,4 +85,5 @@ class DescribeSmartMemory:
 
         memory.reset()
 
-        mock_chroma_gateway.reset_indexes.assert_called_once_with(collection_name=ZkCollectionName.SMART_MEMORY)
+        mock_chroma_gateway.reset_indexes.assert_called_once_with(
+            collection_name=ZkCollectionName.SMART_MEMORY)

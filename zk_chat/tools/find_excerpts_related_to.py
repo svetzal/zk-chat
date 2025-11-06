@@ -1,5 +1,4 @@
 import json
-from typing import List
 
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
@@ -18,7 +17,7 @@ class FindExcerptsRelatedTo(LLMTool):
 
     def run(self, query: str) -> str:
         self.console_service.print(f"[tool.info]Querying excerpts related to {query}[/]")
-        results: List[ZkQueryExcerptResult] = self.zk.query_excerpts(query, max_distance=200.0)
+        results: list[ZkQueryExcerptResult] = self.zk.query_excerpts(query, max_distance=200.0)
         # Use model_dump with mode='json' to handle datetime serialization
         return json.dumps([
             result.model_dump(mode='json')
@@ -31,7 +30,10 @@ class FindExcerptsRelatedTo(LLMTool):
             "type": "function",
             "function": {
                 "name": "find_excerpts",
-                "description": "Search for specific passages or excerpts within documents in the Zettelkasten knowledge base that are relevant to a query. This returns smaller chunks of text (excerpts) rather than entire documents, which is useful when you need specific information rather than complete documents.",
+                "description": "Search for specific passages or excerpts within documents in the "
+                               "Zettelkasten knowledge base that are relevant to a query. This "
+                               "returns smaller chunks of text (excerpts) rather than entire documents, "
+                               "which is useful when you need specific information rather than complete documents.",
                 "parameters": {
                     "type": "object",
                     "properties": {

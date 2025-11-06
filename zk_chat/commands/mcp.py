@@ -3,9 +3,10 @@ MCP subcommand for zk-chat.
 
 Manages MCP (Model Context Protocol) server connections.
 """
+
+from typing import Annotated
+
 import typer
-from typing import Optional
-from typing_extensions import Annotated
 from rich.console import Console
 from rich.table import Table
 
@@ -23,12 +24,18 @@ console = Console()
 
 @mcp_app.command()
 def add(
-    name: Annotated[str, typer.Argument(help="Name for this MCP server")],
-    server_type: Annotated[str, typer.Option("--type", "-t", help="Server type (stdio or http)")],
-    command: Annotated[Optional[str], typer.Option("--command", "-c", help="Command for STDIO server")] = None,
-    url: Annotated[Optional[str], typer.Option("--url", "-u", help="URL for HTTP server")] = None,
-    args: Annotated[Optional[str], typer.Option("--args", "-a", help="Command line arguments (comma-separated)")] = None,
-    no_verify: Annotated[bool, typer.Option("--no-verify", help="Skip server availability verification")] = False,
+        name: Annotated[str, typer.Argument(help="Name for this MCP server")],
+        server_type: Annotated[
+            str, typer.Option("--type", "-t", help="Server type (stdio or http)")],
+        command: Annotated[
+            str | None, typer.Option("--command", "-c", help="Command for STDIO server")] = None,
+        url: Annotated[str | None, typer.Option("--url", "-u", help="URL for HTTP server")] = None,
+        args: Annotated[str | None, typer.Option("--args", "-a",
+                                                 help="Command line arguments ("
+                                                      "comma-separated)")] = None,
+        no_verify: Annotated[bool, typer.Option("--no-verify",
+                                                help="Skip server availability verification")] =
+                                                False,
 ):
     """
     Add a new MCP server connection.
@@ -67,11 +74,13 @@ def _validate_server_type(server_type: str) -> MCPServerType:
     try:
         return MCPServerType(server_type.lower())
     except ValueError:
-        console.print(f"[red]❌ Error:[/] Invalid server type '{server_type}'. Use 'stdio' or 'http'.")
+        console.print(
+            f"[red]❌ Error:[/] Invalid server type '{server_type}'. Use 'stdio' or 'http'.")
         raise typer.Exit(1)
 
 
-def _validate_required_params(srv_type: MCPServerType, command: Optional[str], url: Optional[str]) -> None:
+def _validate_required_params(srv_type: MCPServerType, command: str | None,
+                              url: str | None) -> None:
     """Validate required parameters based on server type."""
     if srv_type == MCPServerType.STDIO and not command:
         console.print("[red]❌ Error:[/] STDIO server requires --command parameter.")
@@ -83,11 +92,11 @@ def _validate_required_params(srv_type: MCPServerType, command: Optional[str], u
 
 
 def _create_server_config(
-    name: str,
-    srv_type: MCPServerType,
-    command: Optional[str],
-    url: Optional[str],
-    args_list: list
+        name: str,
+        srv_type: MCPServerType,
+        command: str | None,
+        url: str | None,
+        args_list: list
 ) -> MCPServerConfig:
     """Create server configuration."""
     try:
@@ -110,7 +119,8 @@ def _verify_server(name: str, server_config: MCPServerConfig) -> None:
         console.print(f"[green]✅ Server {name} is available[/]")
     else:
         console.print(f"[red]❌ Server {name} is not available[/]")
-        console.print("[yellow]Use --no-verify to register anyway, or fix the server configuration.[/]")
+        console.print(
+            "[yellow]Use --no-verify to register anyway, or fix the server configuration.[/]")
         raise typer.Exit(1)
 
 
@@ -121,11 +131,11 @@ def _register_server(server_config: MCPServerConfig) -> None:
 
 
 def _display_registration_success(
-    name: str,
-    srv_type: MCPServerType,
-    command: Optional[str],
-    url: Optional[str],
-    args_list: list
+        name: str,
+        srv_type: MCPServerType,
+        command: str | None,
+        url: str | None,
+        args_list: list
 ) -> None:
     """Display success message and configuration."""
     console.print(f"\n[green]✅ MCP server '{name}' registered successfully![/]")
@@ -144,7 +154,7 @@ def _display_registration_success(
 
 @mcp_app.command()
 def remove(
-    name: Annotated[str, typer.Argument(help="Name of the MCP server to remove")],
+        name: Annotated[str, typer.Argument(help="Name of the MCP server to remove")],
 ):
     """
     Remove a registered MCP server.
@@ -178,7 +188,8 @@ def list():
 
     if not servers:
         console.print("[yellow]No MCP servers registered.[/]")
-        console.print("\n[dim]Add a server with:[/] [cyan]zk-chat mcp add <name> --type <stdio|http> ...[/]")
+        console.print(
+            "\n[dim]Add a server with:[/] [cyan]zk-chat mcp add <name> --type <stdio|http> ...[/]")
         return
 
     # Create a table
@@ -220,7 +231,8 @@ def list():
 
 @mcp_app.command()
 def verify(
-    name: Annotated[Optional[str], typer.Argument(help="Name of the MCP server to verify (or all if not specified)")] = None,
+        name: Annotated[str | None, typer.Argument(
+            help="Name of the MCP server to verify (or all if not specified)")] = None,
 ):
     """
     Verify the availability of MCP servers.
@@ -279,5 +291,7 @@ def mcp_default(ctx: typer.Context):
     """
     if ctx.invoked_subcommand is None:
         console.print(ctx.get_help())
-        console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat mcp --help[/] to see available commands.")
-        console.print("Most common: [cyan]zk-chat mcp add[/], [cyan]zk-chat mcp list[/], or [cyan]zk-chat mcp verify[/]")
+        console.print(
+            "\n[yellow]💡 Tip:[/] Use [cyan]zk-chat mcp --help[/] to see available commands.")
+        console.print(
+            "Most common: [cyan]zk-chat mcp add[/], [cyan]zk-chat mcp list[/], or [cyan]zk-chat mcp verify[/]")

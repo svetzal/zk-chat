@@ -23,13 +23,18 @@ class StoreInSmartMemory(LLMTool):
             "type": "function",
             "function": {
                 "name": "store_in_smart_memory",
-                "description": "Store important facts and contextual information about the user and their surroundings for future reference. Use this when you learn new information about the user's preferences, environment, or circumstances that might be relevant for future interactions.",
+                "description": "Store important facts and contextual information about the user "
+                               "and their surroundings for future reference. Use this when you "
+                               "learn new information about the user's preferences, environment, or circumstances "
+                               "that might be relevant for future interactions.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "information": {
                             "type": "string",
-                            "description": "The fact or contextual information to store. This should be a clear, concise statement about the user, their preferences, environment, or circumstances."
+                            "description": "The fact or contextual information to store. This should be a clear, "
+                                           "concise statement about the user, their preferences, environment, "
+                                           "or circumstances."
                         }
                     },
                     "required": ["information"]

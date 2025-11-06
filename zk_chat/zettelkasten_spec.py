@@ -30,7 +30,8 @@ class DescribeZettelkasten:
 
     @pytest.fixture
     def zk(self, mock_tokenizer_gateway, mock_vector_db, mock_filesystem_gateway):
-        return Zettelkasten(mock_tokenizer_gateway, mock_vector_db, mock_vector_db, mock_filesystem_gateway)
+        return Zettelkasten(mock_tokenizer_gateway, mock_vector_db, mock_vector_db,
+                            mock_filesystem_gateway)
 
     class DescribeAppendToDocument:
         def should_merge_metadata_dictionaries_recursively(self, zk):
@@ -64,12 +65,13 @@ class DescribeZettelkasten:
                 content="Appended content"
             )
 
-            with patch.object(zk.filesystem_gateway, 'read_markdown', return_value=(original_doc.metadata, original_doc.content)), \
-                 patch.object(zk, 'create_or_overwrite_document') as mock_write, \
-                 patch.object(zk.filesystem_gateway, 'get_directory_path', return_value='test_dir'), \
-                 patch.object(zk.filesystem_gateway, 'path_exists', return_value=True), \
-                 patch.object(zk.filesystem_gateway, 'create_directory'):
-
+            with patch.object(zk.filesystem_gateway, 'read_markdown',
+                              return_value=(original_doc.metadata, original_doc.content)), \
+                    patch.object(zk, 'create_or_overwrite_document') as mock_write, \
+                    patch.object(zk.filesystem_gateway, 'get_directory_path',
+                                 return_value='test_dir'), \
+                    patch.object(zk.filesystem_gateway, 'path_exists', return_value=True), \
+                    patch.object(zk.filesystem_gateway, 'create_directory'):
                 # Act
                 zk.append_to_document(append_doc)
 
@@ -106,12 +108,13 @@ class DescribeZettelkasten:
                 content="Appended content"
             )
 
-            with patch.object(zk.filesystem_gateway, 'read_markdown', return_value=(original_doc.metadata, original_doc.content)), \
-                 patch.object(zk, 'create_or_overwrite_document') as mock_write, \
-                 patch.object(zk.filesystem_gateway, 'get_directory_path', return_value='test_dir'), \
-                 patch.object(zk.filesystem_gateway, 'path_exists', return_value=True), \
-                 patch.object(zk.filesystem_gateway, 'create_directory'):
-
+            with patch.object(zk.filesystem_gateway, 'read_markdown',
+                              return_value=(original_doc.metadata, original_doc.content)), \
+                    patch.object(zk, 'create_or_overwrite_document') as mock_write, \
+                    patch.object(zk.filesystem_gateway, 'get_directory_path',
+                                 return_value='test_dir'), \
+                    patch.object(zk.filesystem_gateway, 'path_exists', return_value=True), \
+                    patch.object(zk.filesystem_gateway, 'create_directory'):
                 # Act
                 zk.append_to_document(append_doc)
 
@@ -138,18 +141,19 @@ class DescribeZettelkasten:
                 relative_path="test.md",
                 metadata={
                     "value": ["new", "value"],  # string to list
-                    "list": {"key": "value"},   # list to dict
-                    "nested": "string"          # dict to string
+                    "list": {"key": "value"},  # list to dict
+                    "nested": "string"  # dict to string
                 },
                 content="Appended content"
             )
 
-            with patch.object(zk.filesystem_gateway, 'read_markdown', return_value=(original_doc.metadata, original_doc.content)), \
-                 patch.object(zk, 'create_or_overwrite_document') as mock_write, \
-                 patch.object(zk.filesystem_gateway, 'get_directory_path', return_value='test_dir'), \
-                 patch.object(zk.filesystem_gateway, 'path_exists', return_value=True), \
-                 patch.object(zk.filesystem_gateway, 'create_directory'):
-
+            with patch.object(zk.filesystem_gateway, 'read_markdown',
+                              return_value=(original_doc.metadata, original_doc.content)), \
+                    patch.object(zk, 'create_or_overwrite_document') as mock_write, \
+                    patch.object(zk.filesystem_gateway, 'get_directory_path',
+                                 return_value='test_dir'), \
+                    patch.object(zk.filesystem_gateway, 'path_exists', return_value=True), \
+                    patch.object(zk.filesystem_gateway, 'create_directory'):
                 # Act
                 zk.append_to_document(append_doc)
 
@@ -178,12 +182,13 @@ class DescribeZettelkasten:
                 content="Appended content here."
             )
 
-            with patch.object(zk.filesystem_gateway, 'read_markdown', return_value=(original_doc.metadata, original_doc.content)), \
-                 patch.object(zk, 'create_or_overwrite_document') as mock_write, \
-                 patch.object(zk.filesystem_gateway, 'get_directory_path', return_value='test_dir'), \
-                 patch.object(zk.filesystem_gateway, 'path_exists', return_value=True), \
-                 patch.object(zk.filesystem_gateway, 'create_directory'):
-
+            with patch.object(zk.filesystem_gateway, 'read_markdown',
+                              return_value=(original_doc.metadata, original_doc.content)), \
+                    patch.object(zk, 'create_or_overwrite_document') as mock_write, \
+                    patch.object(zk.filesystem_gateway, 'get_directory_path',
+                                 return_value='test_dir'), \
+                    patch.object(zk.filesystem_gateway, 'path_exists', return_value=True), \
+                    patch.object(zk.filesystem_gateway, 'create_directory'):
                 # Act
                 zk.append_to_document(append_doc)
 
@@ -202,7 +207,8 @@ class DescribeZettelkasten:
                 assert written_doc.relative_path == "Document.md"
 
     class DescribeQueryDocuments:
-        def should_filter_out_missing_documents_from_query_results(self, zk, mock_filesystem_gateway):
+        def should_filter_out_missing_documents_from_query_results(self, zk,
+                                                                   mock_filesystem_gateway):
             mock_results = [
                 QueryResult(
                     document=VectorDocumentForStorage(

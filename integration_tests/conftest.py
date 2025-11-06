@@ -4,8 +4,9 @@ Pytest configuration for integration tests.
 Provides fixtures and configuration for integration test execution.
 """
 import os
-import pytest
 from pathlib import Path
+
+import pytest
 
 from integration_tests.scenario_harness import ScenarioRunner
 

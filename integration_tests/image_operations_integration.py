@@ -3,11 +3,8 @@ Integration tests for image operations.
 
 Tests the agent's ability to analyze and describe images.
 """
-import pytest
 
-from integration_tests.scenarios.image_operations.analyze_image_scenario import (
-    analyze_architecture_diagram_scenario
-)
+from integration_tests.scenarios.image_operations.analyze_image_scenario import analyze_architecture_diagram_scenario
 
 
 class DescribeImageAnalysis:

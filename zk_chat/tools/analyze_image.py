@@ -12,7 +12,8 @@ class AnalyzeImage(LLMTool):
     zk: Zettelkasten
     llm: LLMBroker
 
-    def __init__(self, zk: Zettelkasten, llm: LLMBroker, console_service: RichConsoleService | None = None):
+    def __init__(self, zk: Zettelkasten, llm: LLMBroker,
+                 console_service: RichConsoleService | None = None):
         self.zk = zk
         self.llm = llm
         self.console_service = console_service or RichConsoleService()
@@ -23,7 +24,8 @@ class AnalyzeImage(LLMTool):
             return f"Image not found at {relative_path}"
 
         message = MessageBuilder("Describe what you see in the image in plain text.") \
-            .add_image(self.zk.filesystem_gateway.get_absolute_path_for_tool_access(relative_path)) \
+            .add_image(self.zk.filesystem_gateway.get_absolute_path_for_tool_access(
+            relative_path)) \
             .build()
         analysis = self.llm.generate([message])
 
@@ -35,7 +37,8 @@ class AnalyzeImage(LLMTool):
             "type": "function",
             "function": {
                 "name": "analyze_image",
-                "description": "Analyze the contents of an image, returning a full description of what is visually contained within.",
+                "description": "Analyze the contents of an image, returning a full description of "
+                "what is visually contained within.",
                 "parameters": {
                     "type": "object",
                     "properties": {

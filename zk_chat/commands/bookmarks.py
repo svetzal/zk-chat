@@ -50,7 +50,7 @@ def list():
 
 @bookmarks_app.command()
 def remove(
-    path: str = typer.Argument(help="Path to the vault bookmark to remove (can be relative)")
+        path: str = typer.Argument(help="Path to the vault bookmark to remove (can be relative)")
 ):
     """
     Remove a vault bookmark.
@@ -84,4 +84,6 @@ def bookmarks_default(ctx: typer.Context):
     if ctx.invoked_subcommand is None:
         # Show help by default
         console.print(ctx.get_help())
-        console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat bookmarks list[/] to see your bookmarked vaults.")
+        console.print(
+            "\n[yellow]💡 Tip:[/] Use [cyan]zk-chat bookmarks list[/] to see your bookmarked "
+            "vaults.")

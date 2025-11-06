@@ -4,10 +4,9 @@ Agent runner for programmatic execution of zk-chat.
 Invokes the zk-chat CLI via subprocess and captures results.
 """
 import subprocess
+import sys
 import time
 from pathlib import Path
-from typing import Optional
-import sys
 
 from pydantic import BaseModel
 
@@ -16,7 +15,7 @@ class ExecutionResult(BaseModel):
     """Result of agent execution"""
     success: bool
     output: str
-    error: Optional[str] = None
+    error: str | None = None
     duration: float = 0.0
 
 
@@ -27,8 +26,8 @@ class AgentRunner:
         self,
         vault_path: Path,
         gateway: str,
-        model: Optional[str] = None,
-        visual_model: Optional[str] = None,
+        model: str | None = None,
+        visual_model: str | None = None,
         agent_mode: str = "interactive"
     ):
         self.vault_path = vault_path

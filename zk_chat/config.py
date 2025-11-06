@@ -1,9 +1,8 @@
 import os
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Optional
 
-import requests
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 from pydantic import BaseModel, Field
 
@@ -13,7 +12,7 @@ class ModelGateway(str, Enum):
     OPENAI = "openai"
 
 
-def get_available_models(gateway: ModelGateway = ModelGateway.OLLAMA) -> List[str]:
+def get_available_models(gateway: ModelGateway = ModelGateway.OLLAMA) -> list[str]:
     if gateway == ModelGateway.OLLAMA:
         g = OllamaGateway()
     elif gateway == ModelGateway.OPENAI:
@@ -30,7 +29,8 @@ def select_model(gateway: ModelGateway = ModelGateway.OLLAMA, is_visual: bool = 
     models = get_available_models(gateway)
     if not models:
         if gateway == ModelGateway.OLLAMA:
-            return input(f"No models found in Ollama. Please enter {model_type} model name manually: ")
+            return input(
+                f"No models found in Ollama. Please enter {model_type} model name manually: ")
         else:
             return input(f"No models available. Please enter {model_type} model name manually: ")
 
@@ -56,14 +56,14 @@ def get_config_path(vault_path: str) -> str:
 class Config(BaseModel):
     vault: str
     model: str  # Chat model
-    visual_model: Optional[str] = None  # Visual analysis model
+    visual_model: str | None = None  # Visual analysis model
     gateway: ModelGateway = ModelGateway.OLLAMA
     chunk_size: int = 500
     chunk_overlap: int = 100
-    last_indexed: Optional[datetime] = None  # Deprecated, kept for backward compatibility
-    gateway_last_indexed: Dict[str, datetime] = Field(default_factory=dict)
+    last_indexed: datetime | None = None  # Deprecated, kept for backward compatibility
+    gateway_last_indexed: dict[str, datetime] = Field(default_factory=dict)
 
-    def get_last_indexed(self, gateway: Optional[ModelGateway] = None) -> Optional[datetime]:
+    def get_last_indexed(self, gateway: ModelGateway | None = None) -> datetime | None:
         """
         Get the last indexed time for the specified gateway or the current gateway if not specified.
         Falls back to the deprecated last_indexed field if the gateway-specific value is not found.
@@ -73,7 +73,7 @@ class Config(BaseModel):
             return self.gateway_last_indexed[gateway_value]
         return self.last_indexed
 
-    def set_last_indexed(self, timestamp: datetime, gateway: Optional[ModelGateway] = None):
+    def set_last_indexed(self, timestamp: datetime, gateway: ModelGateway | None = None):
         """
         Set the last indexed time for the specified gateway or the current gateway if not specified.
         """
@@ -84,13 +84,14 @@ class Config(BaseModel):
     def load(cls, vault_path: str) -> Optional['Config']:
         config_path = get_config_path(vault_path)
         if os.path.exists(config_path):
-            with open(config_path, 'r') as f:
+            with open(config_path) as f:
                 return cls.model_validate_json(f.read())
         else:
             return None
 
     @classmethod
-    def load_or_initialize(cls, vault_path: str, gateway: ModelGateway = ModelGateway.OLLAMA, model: str = None, visual_model: str = None) -> 'Config':
+    def load_or_initialize(cls, vault_path: str, gateway: ModelGateway = ModelGateway.OLLAMA,
+                           model: str = None, visual_model: str = None) -> 'Config':
         config = cls.load(vault_path)
         if config:
             # If config exists, just return it - visual_model can be None
@@ -121,7 +122,8 @@ class Config(BaseModel):
         with open(config_path, 'w') as f:
             f.write(self.model_dump_json(indent=2))
 
-    def update_model(self, model_name: str = None, gateway: ModelGateway = None, is_visual: bool = False) -> None:
+    def update_model(self, model_name: str = None, gateway: ModelGateway = None,
+                     is_visual: bool = False) -> None:
         """
         Update the model in config. If model_name is None, interactive selection will be used.
 

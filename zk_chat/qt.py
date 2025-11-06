@@ -4,20 +4,35 @@ import sys
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
 os.environ['CHROMA_TELEMETRY'] = 'false'
 
-from PySide6.QtCore import Qt, Signal, Slot, QThread, QTimer
-from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                               QTextEdit, QPushButton, QDialog, QFrame,
-                               QLabel, QLineEdit, QComboBox, QFileDialog, QSplitter, QHBoxLayout, QSizePolicy,
-                               QTextBrowser, QScrollArea, QProgressBar)
 from mojentic.llm import ChatSession, LLMBroker
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 from mojentic.llm.tools.date_resolver import ResolveDateTool
+from PySide6.QtCore import Qt, QThread, QTimer, Signal, Slot
+from PySide6.QtWidgets import (
+    QApplication,
+    QComboBox,
+    QDialog,
+    QFileDialog,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QProgressBar,
+    QPushButton,
+    QScrollArea,
+    QSizePolicy,
+    QSplitter,
+    QTextBrowser,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
 
-from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.chroma_collections import ZkCollectionName
-from zk_chat.zettelkasten import Zettelkasten
-from zk_chat.config import Config, get_available_models, ModelGateway
+from zk_chat.chroma_gateway import ChromaGateway
+from zk_chat.config import Config, ModelGateway, get_available_models
 from zk_chat.global_config import GlobalConfig
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.analyze_image import AnalyzeImage
@@ -27,6 +42,7 @@ from zk_chat.tools.list_zk_images import ListZkImages
 from zk_chat.tools.read_zk_document import ReadZkDocument
 from zk_chat.tools.resolve_wikilink import ResolveWikiLink
 from zk_chat.vector_database import VectorDatabase
+from zk_chat.zettelkasten import Zettelkasten
 
 
 class LoadingSpinnerWidget(QWidget):
@@ -431,7 +447,8 @@ class MainWindow(QMainWindow):
         if dialog.exec():
             self.initialize_chat_session()
 
-    def append_message(self, role: str, content: str = "", loading: bool = False) -> ChatMessageWidget:
+    def append_message(self, role: str, content: str = "",
+                       loading: bool = False) -> ChatMessageWidget:
         # Remove the stretch if it exists
         if self.messages_layout.count() > 0:
             stretch_item = self.messages_layout.itemAt(self.messages_layout.count() - 1)
@@ -466,7 +483,8 @@ class MainWindow(QMainWindow):
 
         # Create and start worker thread for chat response
         self.worker = ChatWorker(self.chat_session, message)
-        self.worker.response_ready.connect(lambda response: self.update_assistant_response(assistant_widget, response))
+        self.worker.response_ready.connect(
+            lambda response: self.update_assistant_response(assistant_widget, response))
         self.worker.start()
 
     def update_assistant_response(self, widget: ChatMessageWidget, response: str):
