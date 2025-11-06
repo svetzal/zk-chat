@@ -61,10 +61,10 @@ pytest integration_tests/image_operations_integration.py::DescribeImageAnalysis:
 
 Tests use smart defaults configured in `conftest.py`:
 
-| Gateway | Text Model      | Visual Model    |
-|---------|-----------------|-----------------|
-| OpenAI  | gpt-4o          | gpt-4o          |
-| Ollama  | gpt-oss:120b    | gemma3:27b      |
+| Gateway | Text Model       | Visual Model             |
+|---------|------------------|--------------------------|
+| OpenAI  | gpt-4o           | gpt-4o                   |
+| Ollama  | qwen3:8b         | gemma3:27b               |
 
 Override via environment variables:
 

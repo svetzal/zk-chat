@@ -18,14 +18,26 @@ Do you want to enable visual analysis? (y/n):
 
 Type `y` and select a vision-capable model:
 
-**For Ollama:**
-- `llava` - LLaVA vision model
-- `bakllava` - BakLLaVA variant
-- `llava-phi3` - Phi-based variant
+**For Ollama (2025 Models):**
+
+*High Quality (36-48GB+ RAM):*
+- `gemma3:27b` - **Recommended** - Excellent vision, efficient resource use
+- `qwen3-vl:32b` - Most powerful Qwen vision model
+- `llama3.2-vision:90b` - Alternative (requires 64GB+ RAM)
+
+*Balanced (16-32GB RAM):*
+- `gemma3:9b` - **Recommended** - Good quality, reasonable resources
+- `qwen3-vl:8b` - Fast and capable
+- `llama3.2-vision:11b` - Alternative balanced option
+
+*Lightweight (8-16GB RAM):*
+- `gemma3:2b` - Fast inference with vision
+- `llava:7b` - Fallback for very limited resources
+- `llava-phi3` - Minimal resource requirements
 
 **For OpenAI:**
-- `gpt-4-vision-preview` - GPT-4 with vision
-- `gpt-4o` - Multimodal GPT-4
+- `gpt-4o` - Latest multimodal GPT-4
+- `gpt-5` - State-of-the-art multimodal (if available)
 
 ## Using Visual Analysis
 

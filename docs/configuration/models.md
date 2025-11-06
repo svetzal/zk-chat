@@ -36,25 +36,40 @@ Use OpenAI's hosted models.
 
 ## Ollama Models
 
-### Recommended Models
+### Recommended Models (2025)
 
-For **36GB+ RAM:**
+For **64GB+ RAM (High-End Workstation):**
 
-- **qwen2.5:14b** - Best balance of speed and capability
-- **phi4:14b** - Fast and efficient
-- **qwq:32b** - More capable, requires more resources
+- **gpt-oss:120b** - Most capable, excellent for RAG and complex reasoning
+- **qwen3:32b** - Latest generation, versatile across tasks
+- **deepseek-r1:32b** - Advanced reasoning capabilities
 
-For **16-32GB RAM:**
+For **36-48GB RAM (M2/M3 Mac, High-End PC):**
 
-- **qwen2.5:7b** - Good general purpose
-- **phi3:3.8b** - Fast, less capable
-- **llama3.2:3b** - Lightweight option
+- **gpt-oss:20b** - Excellent balance of capability and performance
+- **gemma3:27b** - Most capable single-GPU model with vision support
+- **qwen3:14b** - Fast and capable, good for RAG tasks
+- **phi-4:14b** - Microsoft's latest, efficient alternative
+
+For **16-32GB RAM (Standard Mac/PC):**
+
+- **qwen3:8b** - **Recommended** - Fast, versatile, excellent for RAG
+- **qwen2.5:7b** - Proven alternative, very reliable
+- **phi-4:14b** - Efficient on limited resources (if it fits)
+- **mistral:7b** - Proven reliable performer
+
+For **8-16GB RAM (Entry Level):**
+
+- **qwen3:1.5b** - Lightweight but capable
+- **qwen2.5:3b** - Good balance for limited resources
+- **phi-4:3b** - Fast for simple tasks
+- **gemma3:2b** - Minimal resource usage
 
 ### Installing Ollama Models
 
 ```bash
 # Pull a model
-ollama pull qwen2.5:14b
+ollama pull qwen3:8b
 
 # List installed models
 ollama list
@@ -63,30 +78,43 @@ ollama list
 ollama rm model-name
 ```
 
-### Visual Analysis Models
+### Visual Analysis Models (2025)
 
-For image analysis capabilities:
+For image analysis and multimodal capabilities:
 
-- **llava** - General purpose vision
-- **bakllava** - Alternative vision model
-- **llava-phi3** - Lightweight vision
+**High Quality (36GB+ RAM):**
+- **gemma3:27b** - **Recommended** - Excellent vision with manageable resources
+- **qwen3-vl:32b** - Most powerful in Qwen family for vision
+- **llama3.2-vision:90b** - Alternative option (requires 64GB+ RAM)
+
+**Balanced (16-32GB RAM):**
+- **gemma3:9b** - Good vision quality, reasonable resources
+- **qwen3-vl:8b** - Fast and capable
+- **llama3.2-vision:11b** - Alternative balanced option
+
+**Lightweight (8-16GB RAM):**
+- **gemma3:2b** - Fast inference with vision
+- **llava:7b** - Fallback option for very limited resources
+- **llava-phi3** - Efficient for minimal hardware
 
 ```bash
-ollama pull llava
+# Install a vision model
+ollama pull gemma3:27b
 ```
 
 ## OpenAI Models
 
 ### Chat Models
 
-- **gpt-4o** - Latest multimodal model
-- **gpt-4-turbo** - Fast GPT-4 variant
-- **gpt-3.5-turbo** - Cost-effective option
+- **gpt-5** - Latest multimodal model
+- **gpt-4.1** - Fast GPT-4 variant
+- **gpt-4o** - Cost-effective option
 
 ### Vision Models
 
-- **gpt-4o** - Multimodal (text + vision)
-- **gpt-4-vision-preview** - Older vision model
+- **gpt-5** - Latest multimodal model
+- **gpt-4.1** - Fast GPT-4 variant
+- **gpt-4o** - Cost-effective option
 
 ### Setting API Key
 
@@ -101,39 +129,49 @@ export OPENAI_API_KEY=your_api_key_here
 **Document Search & RAG:**
 - Medium models (7-14B parameters)
 - Fast inference preferred
-- Examples: qwen2.5:7b, phi4:14b
+- Examples: **qwen3:8b**, qwen2.5:7b, gpt-oss:20b
 
 **Complex Reasoning:**
 - Larger models (14B+ parameters)
 - Better at multi-step problems
-- Examples: qwen2.5:14b, qwq:32b
+- Examples: **gpt-oss:120b**, deepseek-r1:32b, qwen3:14b
 
 **Content Generation:**
 - Medium to large models
 - Good at following instructions
-- Examples: qwen2.5:14b, gpt-4o
+- Examples: **qwen3:14b**, gpt-oss:20b, gpt-4o
+
+**Visual Analysis:**
+- Vision-capable models
+- Multimodal understanding
+- Examples: **gemma3:27b**, qwen3-vl:8b, gemma3:9b
 
 **Quick Queries:**
 - Smaller, faster models
 - Good for simple tasks
-- Examples: phi3:3.8b, gpt-3.5-turbo
+- Examples: **qwen3:1.5b**, qwen2.5:3b, gemma3:2b
 
 ### By Hardware
 
 **High-end (64GB+ RAM, GPU):**
 - 32B+ parameter models
 - Best quality responses
-- Examples: qwq:32b, codestral
+- Examples: **gpt-oss:120b**, qwen3:32b, deepseek-r1:32b
 
-**Mid-range (36GB RAM, M1/M2 Mac):**
-- 14B parameter models
-- Good balance
-- Examples: qwen2.5:14b, phi4:14b
+**Mid-range (36-48GB RAM, M2/M3 Mac):**
+- 14-27B parameter models
+- Excellent balance
+- Examples: **gpt-oss:20b**, gemma3:27b, qwen3:14b
 
-**Entry-level (16GB RAM):**
-- 7B or smaller models
-- Faster, less capable
-- Examples: qwen2.5:7b, phi3:3.8b
+**Entry-level (16-32GB RAM):**
+- 7-8B models
+- Good for most tasks
+- Examples: **qwen3:8b**, qwen2.5:7b, mistral:7b
+
+**Resource-constrained (8-16GB RAM):**
+- 3B or smaller models
+- Basic capabilities
+- Examples: **qwen3:1.5b**, qwen2.5:3b, gemma3:2b
 
 ### By Cost
 
@@ -167,7 +205,19 @@ You'll be prompted to select:
 Specify model explicitly:
 
 ```bash
-zk-chat interactive --model qwen2.5:14b
+zk-chat interactive --model qwen3:8b
+```
+
+With visual model:
+
+```bash
+zk-chat interactive --model qwen3:14b --visual-model gemma3:27b
+```
+
+High-end setup:
+
+```bash
+zk-chat interactive --model gpt-oss:20b --visual-model gemma3:27b
 ```
 
 Or switch gateways:
@@ -204,7 +254,7 @@ Larger context windows help with:
 **For faster responses:**
 ```bash
 # Use smaller models
-ollama pull phi3:3.8b
+ollama pull qwen3:1.5b
 
 # Increase concurrency
 export OLLAMA_NUM_PARALLEL=4
@@ -212,11 +262,23 @@ export OLLAMA_NUM_PARALLEL=4
 
 **For better quality:**
 ```bash
-# Use larger models
-ollama pull qwen2.5:14b
+# Best RAG performance
+ollama pull gpt-oss:20b
 
-# More context
-export OLLAMA_NUM_CTX=8192
+# Or balanced option
+ollama pull qwen3:14b
+
+# More context (for long documents)
+export OLLAMA_NUM_CTX=16384
+```
+
+**For vision tasks:**
+```bash
+# Best vision model
+ollama pull gemma3:27b
+
+# Or lighter option
+ollama pull gemma3:9b
 ```
 
 ### Resource Management
