@@ -7,6 +7,7 @@ import subprocess
 import time
 from pathlib import Path
 from typing import Optional
+import sys
 
 from pydantic import BaseModel
 
@@ -28,29 +29,27 @@ class AgentRunner:
         gateway: str,
         model: Optional[str] = None,
         visual_model: Optional[str] = None,
-        agent_mode: str = "interactive",
-        unsafe: bool = False,
-        use_git: bool = False
+        agent_mode: str = "interactive"
     ):
         self.vault_path = vault_path
         self.gateway = gateway
         self.model = model
         self.visual_model = visual_model
-        self.agent_mode = agent_mode
-        self.unsafe = unsafe
-        self.use_git = use_git
+        self.agent_mode = agent_mode  # Note: For documentation only; query always uses agent mode
 
     def run(self, prompt: str, timeout: int = 300) -> ExecutionResult:
         """
         Execute agent with given prompt.
 
-        Uses subprocess to invoke zk-chat CLI with the prompt.
+        Uses subprocess to invoke `zk-chat query` which runs the agent.
+        The query command always uses agent mode with autonomous problem-solving.
+
         Returns ExecutionResult with output and timing.
         """
         start_time = time.time()
 
         cmd = [
-            "zk-chat", "query",
+            sys.executable, "-m", "zk_chat.main", "query",
             "--vault", str(self.vault_path),
             "--gateway", self.gateway
         ]
@@ -61,14 +60,7 @@ class AgentRunner:
         if self.visual_model:
             cmd.extend(["--visual-model", self.visual_model])
 
-        if self.agent_mode == "autonomous":
-            cmd.append("--agent")
-
-        if self.unsafe:
-            cmd.append("--unsafe")
-
-        if self.use_git:
-            cmd.append("--git")
+        # Note: query command now always uses agent mode, no flag needed
 
         cmd.append(prompt)
 

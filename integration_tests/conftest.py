@@ -11,11 +11,11 @@ from integration_tests.scenario_harness import ScenarioRunner
 
 DEFAULT_MODELS = {
     "openai": {
-        "text": "gpt-5",
-        "visual": "gpt-5"
+        "text": "gpt-4o",
+        "visual": "gpt-4o"
     },
     "ollama": {
-        "text": "qwen3:32b",
+        "text": "gpt-oss:120b",
         "visual": "gemma3:27b"
     }
 }
@@ -43,7 +43,12 @@ def _determine_gateway():
 
 
 def _get_models(gateway):
-    """Get text and visual models for the gateway"""
+    """
+    Get text and visual models for the gateway.
+
+    Returns dict with 'text' and 'visual' model names.
+    Environment variables ZK_TEST_MODEL and ZK_TEST_VISUAL_MODEL can override defaults.
+    """
     text_model = os.environ.get("ZK_TEST_MODEL")
     visual_model = os.environ.get("ZK_TEST_VISUAL_MODEL")
 
@@ -53,7 +58,10 @@ def _get_models(gateway):
     if not visual_model:
         visual_model = DEFAULT_MODELS[gateway]["visual"]
 
-    return text_model, visual_model
+    return {
+        "text": text_model,
+        "visual": visual_model
+    }
 
 
 @pytest.fixture(scope="session")
@@ -66,7 +74,7 @@ def test_resources_dir():
 def gateway_config():
     """Determine and validate gateway configuration"""
     gateway = _determine_gateway()
-    text_model, visual_model = _get_models(gateway)
+    models = _get_models(gateway)
 
     if gateway == "openai" and not os.environ.get("OPENAI_API_KEY"):
         pytest.skip(
@@ -76,8 +84,8 @@ def gateway_config():
 
     return {
         "gateway": gateway,
-        "text_model": text_model,
-        "visual_model": visual_model
+        "model": models["text"],
+        "visual_model": models["visual"]
     }
 
 
@@ -86,7 +94,7 @@ def scenario_runner(gateway_config):
     """Create a scenario runner for tests"""
     return ScenarioRunner(
         gateway=gateway_config["gateway"],
-        model=gateway_config["text_model"],
+        model=gateway_config["model"],
         visual_model=gateway_config["visual_model"]
     )
 

@@ -40,9 +40,7 @@ class IntegrationScenario(BaseModel):
     initial_documents: List[Document]
     execution_prompt: str
     initial_images: Optional[List[ImageFile]] = None
-    agent_mode: str = "interactive"
-    unsafe: bool = False
-    use_git: bool = False
+    agent_mode: str = "interactive"  # Note: For documentation only; execution always uses agent mode
     validation_criteria: Optional[List[ValidationCriterion]] = None
     custom_validation: Optional[Callable] = Field(default=None, exclude=True)
 
@@ -100,9 +98,7 @@ class ScenarioRunner:
             gateway=self.gateway,
             model=self.model,
             visual_model=self.visual_model,
-            agent_mode=scenario.agent_mode,
-            unsafe=scenario.unsafe,
-            use_git=scenario.use_git
+            agent_mode=scenario.agent_mode
         )
         return runner.run(scenario.execution_prompt)
 
