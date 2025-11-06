@@ -29,6 +29,7 @@ from zk_chat.commands.gui import gui_app
 from zk_chat.commands.index import index_app
 from zk_chat.commands.mcp import mcp_app
 from zk_chat.commands.diagnose import diagnose_app
+from zk_chat.commands.bookmarks import bookmarks_app
 
 # Import functions for interactive and query commands
 from zk_chat.cli import common_init_typer, display_banner
@@ -48,6 +49,7 @@ app.add_typer(gui_app, name="gui")
 app.add_typer(index_app, name="index")
 app.add_typer(mcp_app, name="mcp")
 app.add_typer(diagnose_app, name="diagnose")
+app.add_typer(bookmarks_app, name="bookmarks")
 
 # Global options that apply to all commands
 console = Console()
@@ -64,8 +66,6 @@ def create_args_namespace(
     git: bool = False,
     store_prompt: bool = True,
     reset_memory: bool = False,
-    remove_bookmark: Optional[str] = None,
-    list_bookmarks: bool = False,
 ):
     """Create a namespace object similar to argparse for common_init_typer."""
     class Args:
@@ -81,8 +81,8 @@ def create_args_namespace(
             self.git = git
             self.store_prompt = store_prompt
             self.reset_memory = reset_memory
-            self.remove_bookmark = remove_bookmark
-            self.list_bookmarks = list_bookmarks
+            self.remove_bookmark = None
+            self.list_bookmarks = False
 
     return Args()
 
@@ -108,16 +108,12 @@ def interactive(
 
     # Memory options
     reset_memory: Annotated[bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
-
-    # Bookmark management
-    remove_bookmark: Annotated[Optional[str], typer.Option("--remove-bookmark", help="Remove bookmark")] = None,
-    list_bookmarks: Annotated[bool, typer.Option("--list-bookmarks", help="List all bookmarks")] = False,
 ):
     """
     Start an interactive agent session with your Zettelkasten.
 
     The agent uses autonomous problem-solving with full tool access to help you
-    work with your knowledge base.
+    work with your knowledge base. Continue chatting until you exit.
 
     [bold]Examples:[/]
 
@@ -137,8 +133,6 @@ def interactive(
         git=git,
         store_prompt=store_prompt,
         reset_memory=reset_memory,
-        remove_bookmark=remove_bookmark,
-        list_bookmarks=list_bookmarks,
     )
 
     # Use common initialization logic
@@ -154,13 +148,32 @@ def interactive(
 @app.command()
 def query(
     prompt: Annotated[Optional[str], typer.Argument(help="Query to ask your Zettelkasten (or read from STDIN if not provided)")] = None,
+
+    # Vault options
     vault: Annotated[Optional[Path], typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
+    save: Annotated[bool, typer.Option("--save", help="Save the vault path as a bookmark")] = False,
+
+    # Model options
     gateway: Annotated[Optional[str], typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
     model: Annotated[Optional[str], typer.Option("--model", "-m", help="Chat model to use")] = None,
+    visual_model: Annotated[Optional[str], typer.Option("--visual-model", help="Visual analysis model")] = None,
+
+    # Index options
     no_index: Annotated[bool, typer.Option("--no-index", help="Skip indexing new documents")] = False,
+
+    # Agent options
+    unsafe: Annotated[bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")] = False,
+    git: Annotated[bool, typer.Option("--git", help="Enable git integration")] = False,
+    store_prompt: Annotated[bool, typer.Option("--store-prompt/--no-store-prompt", help="Store system prompt in vault")] = True,
+
+    # Memory options
+    reset_memory: Annotated[bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
 ):
     """
-    Ask a single question to your Zettelkasten using the agent.
+    Ask a single question to your Zettelkasten and exit.
+
+    The agent uses autonomous problem-solving with full tool access to help you
+    work with your knowledge base. Answers your query and exits.
 
     Can read input from command line argument or STDIN.
 
@@ -170,6 +183,7 @@ def query(
     • [cyan]cat prompt.txt | zk-chat query[/]
     • [cyan]echo "My question" | zk-chat query[/]
     • [cyan]zk-chat query "Find connections" --vault ~/notes[/]
+    • [cyan]zk-chat query "Update my notes" --unsafe --git[/]
     """
 
     # Get prompt from argument or STDIN
@@ -187,24 +201,26 @@ def query(
                 console.print("[red]Error:[/] No input received from STDIN.")
                 raise typer.Exit(1)
 
-    # Create args namespace using shared function with query-specific defaults
+    # Create args namespace using shared function
     args = create_args_namespace(
         vault=vault,
-        save=False,
+        save=save,
         gateway=gateway,
         model=model,
-        visual_model=None,
+        visual_model=visual_model,
         no_index=no_index,
-        unsafe=False,
-        git=False,
-        store_prompt=True,
-        reset_memory=False,
-        remove_bookmark=None,
-        list_bookmarks=False,
+        unsafe=unsafe,
+        git=git,
+        store_prompt=store_prompt,
+        reset_memory=reset_memory,
     )
     config = common_init_typer(args)
     if not config:
         return
+
+    # Display banner if using unsafe or git modes
+    if unsafe or git:
+        display_banner(config, title="ZkChat Query", unsafe=unsafe, use_git=git, store_prompt=store_prompt)
 
     # Execute single query using agent
     console.print(f"[bold cyan]Query:[/] {prompt}")

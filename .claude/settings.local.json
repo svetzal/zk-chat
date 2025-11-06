@@ -18,7 +18,13 @@
       "Read(//private/tmp/typer_test/**)",
       "Bash(printf \"What are my test thoughts?\")",
       "Read(//Users/svetzal/**)",
-      "WebFetch(domain:gofastmcp.com)"
+      "WebFetch(domain:gofastmcp.com)",
+      "Bash(git log:*)",
+      "Bash(xargs:*)",
+      "Bash(source .venv/bin/activate)",
+      "Bash(ZK_TEST_GATEWAY=ollama python:*)",
+      "Bash(. .venv/bin/activate)",
+      "Bash(.venv/bin/python:*)"
     ],
     "deny": [],
     "ask": []

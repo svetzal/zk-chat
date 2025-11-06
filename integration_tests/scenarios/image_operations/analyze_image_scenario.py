@@ -65,12 +65,9 @@ Look at the image carefully and provide a detailed description that includes:
 4. Key characteristics or notable features
 
 Replace the "TBD" section in the document with your analysis.
-Use the --unsafe flag to modify the document.
 """,
 
         agent_mode="autonomous",
-        unsafe=True,
-        use_git=True,
 
         validation_criteria=[
             ValidationCriterion(

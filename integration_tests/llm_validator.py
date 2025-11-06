@@ -85,9 +85,7 @@ Reasoning: [Your detailed reasoning]
             vault_path=self.vault_path,
             gateway=self.gateway,
             model=self.model,
-            agent_mode="interactive",
-            unsafe=False,
-            use_git=False
+            agent_mode="interactive"
         )
 
         result = runner.run(validation_prompt, timeout=120)

@@ -205,9 +205,21 @@ def common_init(args):
                 return
 
         if args.model == "choose":
-            config = Config.load_or_initialize(vault_path, gateway=gateway)
+            # Non-interactive default: if visual_model not provided, leave as None (visual tools disabled)
+            config = Config.load_or_initialize(
+                vault_path,
+                gateway=gateway,
+                model=None,
+                visual_model=(args.visual_model if hasattr(args, "visual_model") else None)
+            )
         else:
-            config = Config.load_or_initialize(vault_path, gateway=gateway, model=args.model)
+            # Ensure we do not prompt for visual model in non-interactive runs
+            config = Config.load_or_initialize(
+                vault_path,
+                gateway=gateway,
+                model=args.model,
+                visual_model=(args.visual_model if hasattr(args, "visual_model") and args.visual_model is not None else args.model)
+            )
 
         reindex(config, force_full=True)
 

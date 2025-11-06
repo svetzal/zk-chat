@@ -23,9 +23,9 @@ integration_tests/
 
 ## Prerequisites
 
-1. **zk-chat installed**: Integration tests run the actual `zk-chat` CLI
-2. **Test image**: Place `zk-chat-architecture.png` in `test_resources/`
-3. **Gateway configured**: Tests auto-detect gateway based on environment
+1. In-repo module invocation: Tests call `python -m zk_chat.main` (no need to install the `zk-chat` package).
+2. Test image: Place `zk-chat-architecture.png` in `integration_tests/test_resources/`.
+3. Gateway configured: Tests auto-detect gateway based on environment
 
 ## Running Tests
 
@@ -35,6 +35,8 @@ integration_tests/
 # Auto-detects OpenAI if OPENAI_API_KEY set, else uses Ollama
 pytest integration_tests/ -v --spec
 ```
+
+Note: The harness runs `python -m zk_chat.main query ...` to ensure the in-repo code is exercised.
 
 ### With Explicit Gateway
 
@@ -57,19 +59,24 @@ pytest integration_tests/image_operations_integration.py::DescribeImageAnalysis:
 
 ## Gateway Configuration
 
-Tests use smart defaults:
+Tests use smart defaults configured in `conftest.py`:
 
-| Gateway | Text Model | Visual Model |
-|---------|------------|--------------|
-| OpenAI | gpt-4o | gpt-4o |
-| Ollama | qwen2.5:32b | llama3.2-vision:11b |
+| Gateway | Text Model      | Visual Model    |
+|---------|-----------------|-----------------|
+| OpenAI  | gpt-4o          | gpt-4o          |
+| Ollama  | gpt-oss:120b    | gemma3:27b      |
 
 Override via environment variables:
 
 ```bash
-export ZK_TEST_MODEL=qwen2.5:14b
-export ZK_TEST_VISUAL_MODEL=llama3.2-vision:11b
+export ZK_TEST_GATEWAY=ollama              # or openai
+export ZK_TEST_MODEL=my-text-model         # overrides text model
+export ZK_TEST_VISUAL_MODEL=my-visual-model # overrides visual model
+# For OpenAI:
+export OPENAI_API_KEY=your_key_here
 ```
+
+The test harness automatically passes both `--model` and `--visual-model` to the CLI when running tests, ensuring visual features are available for image analysis scenarios.
 
 ## What the Tests Do
 
