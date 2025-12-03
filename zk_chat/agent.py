@@ -31,7 +31,6 @@ from zk_chat.tools.analyze_image import AnalyzeImage
 from zk_chat.tools.commit_changes import CommitChanges
 from zk_chat.tools.create_or_overwrite_zk_document import CreateOrOverwriteZkDocument
 from zk_chat.tools.delete_zk_document import DeleteZkDocument
-from zk_chat.tools.extract_wikilinks_from_document import ExtractWikilinksFromDocument
 from zk_chat.tools.find_backlinks import FindBacklinks
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_forward_links import FindForwardLinks
@@ -118,7 +117,6 @@ def agent(config: Config):
         DeleteZkDocument(zk),
 
         # Graph traversal tools
-        ExtractWikilinksFromDocument(zk),
         FindBacklinks(zk),
         FindForwardLinks(zk),
 
@@ -212,7 +210,6 @@ def agent_single_query(config: Config, query: str) -> str:
         DeleteZkDocument(zk),
 
         # Graph traversal tools
-        ExtractWikilinksFromDocument(zk),
         FindBacklinks(zk),
         FindForwardLinks(zk),
 
