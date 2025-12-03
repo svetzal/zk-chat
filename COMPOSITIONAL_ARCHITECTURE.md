@@ -4,6 +4,16 @@
 
 The current `Zettelkasten` class has grown large and handles multiple concerns (document CRUD, vector indexing, text processing, link traversal). This document outlines a compositional refactoring approach using specialized services, starting with the `LinkTraversalService` we've just implemented.
 
+### Current Progress Summary
+
+| Phase | Status | Completion |
+|-------|--------|------------|
+| Phase 1: LinkService | ✅ Complete | 100% |
+| Phase 2: DocumentService | ❌ Not Started | 0% |
+| Phase 3: IndexService | ❌ Not Started | 0% |
+| Phase 4: Integration | 🔶 Partially Started | ~25% |
+| **Overall** | **In Progress** | **~30%** |
+
 ## Current Architecture Analysis
 
 ### Current Zettelkasten Responsibilities
@@ -127,8 +137,10 @@ class IndexService:
     def get_index_stats(self) -> IndexStats
 ```
 
-#### 3. LinkTraversalService (Already Implemented)
+#### 3. LinkTraversalService (✅ Implemented)
 **Responsibility**: Wikilink analysis and graph traversal
+**Location**: `zk_chat/services/link_traversal_service.py`
+**Tests**: `zk_chat/services/link_traversal_service_spec.py`
 
 ```python
 class LinkTraversalService:
@@ -144,13 +156,17 @@ class LinkTraversalService:
     def get_link_metrics(self, document: Optional[str] = None) -> LinkMetrics
 ```
 
-### Refactored Zettelkasten (Orchestrator)
+### Future State: Service-First Architecture
+
+**Note:** The `Zettelkasten` class is an internal API, not a public interface. As services are extracted, tools will use services directly rather than going through a facade. The `Zettelkasten` class may eventually be deprecated or significantly reduced in scope.
+
+The following shows how `Zettelkasten` *could* be refactored as an orchestrator if a unified interface is desired, but this is **optional**:
 
 ```python
 class Zettelkasten:
     """
-    Orchestrator that composes specialized services to provide a unified interface.
-    Maintains backward compatibility while enabling compositional architecture.
+    Optional orchestrator that composes specialized services.
+    Tools can use services directly instead of going through this class.
     """
 
     def __init__(self,
@@ -164,7 +180,7 @@ class Zettelkasten:
         self.index_service = IndexService(tokenizer_gateway, excerpts_db, documents_db, self.document_service)
         self.link_service = LinkTraversalService(filesystem_gateway)
 
-        # Keep references for backward compatibility
+        # Keep references for service access
         self.filesystem_gateway = filesystem_gateway
         self.tokenizer_gateway = tokenizer_gateway
         self.excerpts_db = excerpts_db
@@ -217,29 +233,41 @@ class Zettelkasten:
 
 ## Migration Strategy
 
-### Phase 1: Service Creation (✅ Completed for LinkService)
+### Phase 1: Service Creation (✅ Complete for LinkService)
 1. ✅ Create `LinkTraversalService` with comprehensive functionality
+   - Implemented in `zk_chat/services/link_traversal_service.py` (441 lines)
+   - Includes: `extract_wikilinks_from_document`, `extract_wikilinks_from_content`, `find_backlinks`, `find_forward_links`, `build_link_index`, `find_link_path`, `get_link_metrics`
+   - Uses `LinkGraphIndex` for in-memory graph traversal
 2. ✅ Write comprehensive tests
+   - Implemented in `zk_chat/services/link_traversal_service_spec.py` (459 lines)
 3. ✅ Refactor existing tools to use the service
-4. ✅ Maintain backward compatibility
+   - `ExtractWikilinksFromDocument` uses `LinkTraversalService`
+   - `FindBacklinks` uses `LinkTraversalService`
+   - `FindForwardLinks` uses `LinkTraversalService`
+4. 🔶 Optional: Register `LinkTraversalService` in `ServiceRegistry`
+   - `ServiceType` enum does not yet include `LINK_TRAVERSAL_SERVICE`
+   - `ServiceProvider` does not yet have a `get_link_traversal_service()` method
+   - This is optional for plugin access; tools currently create service instances directly
 
-### Phase 2: Document Service Extraction
-1. Create `DocumentService` class
-2. Move document CRUD operations from Zettelkasten
-3. Update Zettelkasten to delegate to DocumentService
-4. Update all tools to optionally use DocumentService directly
+### Phase 2: Document Service Extraction (❌ Not Started)
+1. ❌ Create `DocumentService` class
+2. ❌ Move document CRUD operations from Zettelkasten
+3. ❌ Update all tools to use `DocumentService` directly
 
-### Phase 3: Index Service Extraction
-1. Create `IndexService` class
-2. Move vector indexing and search operations
-3. Add automatic index maintenance hooks
-4. Update Zettelkasten to delegate to IndexService
+### Phase 3: Index Service Extraction (❌ Not Started)
+1. ❌ Create `IndexService` class
+2. ❌ Move vector indexing and search operations
+3. ❌ Add automatic index maintenance hooks
+4. ❌ Update all tools to use `IndexService` directly
 
-### Phase 4: Integration and Optimization
-1. Add cross-service coordination (e.g., auto-reindex on document changes)
-2. Performance optimizations
-3. Enhanced caching strategies
-4. Service dependency injection for better testability
+### Phase 4: Integration and Optimization (🔶 Partially Started)
+1. ✅ Service Registry pattern implemented
+   - `ServiceRegistry` class exists with enum-based `ServiceType`
+   - `ServiceProvider` class exists for plugin access
+2. ❌ Add cross-service coordination (e.g., auto-reindex on document changes)
+3. ❌ Performance optimizations
+4. ❌ Enhanced caching strategies
+5. ❌ Service dependency injection for better testability
 
 ## Benefits of Compositional Architecture
 
@@ -292,11 +320,6 @@ class ComprehensiveAnalysisTool(LLMTool):
         self.document_service = document_service
         self.link_service = link_service
         self.index_service = index_service
-
-# Option 3: Backward compatibility (existing tools unchanged)
-class LegacyTool(LLMTool):
-    def __init__(self, zk: Zettelkasten):
-        self.zk = zk  # Still works, delegates to services internally
 ```
 
 ## Advanced Service Features
@@ -389,8 +412,16 @@ The compositional architecture provides:
 3. **Enhanced Testability**: Services can be tested independently with clear interfaces
 4. **Better Extensibility**: New functionality can be added as new services without modifying core classes
 5. **Performance Optimization**: Service-specific optimizations and caching strategies
-6. **Backward Compatibility**: Existing code continues to work through delegation
 
-The `LinkTraversalService` we've implemented is the first step in this transformation, demonstrating how specialized services can provide focused, high-performance functionality while integrating seamlessly with the existing system.
+### Current Implementation Status
 
-This approach transforms zk-chat from a monolithic design into a modular, extensible platform that can grow and adapt to new requirements while maintaining the simplicity of its current interface.
+The `LinkTraversalService` has been implemented as the first step in this transformation:
+- ✅ Core functionality implemented with comprehensive graph analysis capabilities
+- ✅ Tests written covering all major functionality
+- ✅ Three tools refactored to use the service (`ExtractWikilinksFromDocument`, `FindBacklinks`, `FindForwardLinks`)
+
+**Phase 1 is complete.** Tools create `LinkTraversalService` instances directly using the `MarkdownFilesystemGateway`.
+
+**Optional enhancement:** Register `LinkTraversalService` in `ServiceRegistry` if plugin access is needed.
+
+**Future phases** will extract `DocumentService` and `IndexService` from the monolithic `Zettelkasten` class, with tools using the services directly rather than going through a facade. This transforms zk-chat from a monolithic design into a modular, extensible platform.
