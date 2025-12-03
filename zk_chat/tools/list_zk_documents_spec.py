@@ -1,15 +1,24 @@
 import pytest
 from mojentic.llm.tools.llm_tool import LLMTool
 from pytest_mock import MockerFixture
+from unittest.mock import Mock
 
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.models import ZkDocument
 from zk_chat.tools.list_zk_documents import ListZkDocuments
 from zk_chat.zettelkasten import Zettelkasten
 
 
 @pytest.fixture
-def mock_zk(mocker: MockerFixture) -> Zettelkasten:
-    return mocker.Mock(spec=Zettelkasten)
+def mock_filesystem():
+    return Mock(spec=MarkdownFilesystemGateway)
+
+
+@pytest.fixture
+def mock_zk(mocker: MockerFixture, mock_filesystem) -> Zettelkasten:
+    mock = mocker.Mock(spec=Zettelkasten)
+    mock.filesystem_gateway = mock_filesystem
+    return mock
 
 
 @pytest.fixture
@@ -20,28 +29,15 @@ def tool(mock_zk: Zettelkasten) -> LLMTool:
 def test_run_returns_list_of_document_titles(
         tool: ListZkDocuments,
         mock_zk: Zettelkasten,
+        mock_filesystem,
 ):
-    # Create mock documents
-    documents = [
-        ZkDocument(
-            relative_path="doc1.md",
-            content="First Document Content",
-            metadata={},
-        ),
-        ZkDocument(
-            relative_path="doc2.md",
-            content="Second Document Content",
-            metadata={},
-        ),
-        ZkDocument(
-            relative_path="doc3.md",
-            content="Third Document Content",
-            metadata={},
-        )
+    # Set up the mock filesystem to return document paths and metadata/content
+    mock_filesystem.iterate_markdown_files.return_value = ["doc1.md", "doc2.md", "doc3.md"]
+    mock_filesystem.read_markdown.side_effect = [
+        ({}, "First Document Content"),
+        ({}, "Second Document Content"),
+        ({}, "Third Document Content"),
     ]
-
-    # Set up the mock to return the documents when iterate_documents is called
-    mock_zk.iterate_documents.return_value = documents
 
     # Call the tool's run method
     result = tool.run()

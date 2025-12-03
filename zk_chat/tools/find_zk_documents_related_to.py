@@ -5,6 +5,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
 from zk_chat.models import ZkQueryDocumentResult
+from zk_chat.services.index_service import IndexService
 from zk_chat.zettelkasten import Zettelkasten
 
 logger = structlog.get_logger()
@@ -14,10 +15,16 @@ class FindZkDocumentsRelatedTo(LLMTool):
     def __init__(self, zk: Zettelkasten, console_service: RichConsoleService = None):
         self.zk = zk
         self.console_service = console_service or RichConsoleService()
+        self.index_service = IndexService(
+            tokenizer_gateway=zk.tokenizer_gateway,
+            excerpts_db=zk.excerpts_db,
+            documents_db=zk.documents_db,
+            filesystem_gateway=zk.filesystem_gateway
+        )
 
     def run(self, query: str) -> str:
         self.console_service.print(f"[tool.info]Querying documents related to {query}[/]")
-        document_results: list[ZkQueryDocumentResult] = self.zk.query_documents(query)
+        document_results: list[ZkQueryDocumentResult] = self.index_service.query_documents(query)
         self.console_service.print(f"[tool.info]Found {len(document_results)} documents related to the query:[/]")
         for result in document_results:
             self.console_service.print(f"  [tool.info]{result.document.title} (distance: {result.distance:.4f})[/]")

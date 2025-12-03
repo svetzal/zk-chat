@@ -18,7 +18,7 @@ T = TypeVar('T')
 class ServiceProvider:
     """
     Provider that plugins can use to access services.
-    
+
     This provides a convenient interface for plugins to request services
     with proper error handling and logging.
     """
@@ -26,7 +26,7 @@ class ServiceProvider:
     def __init__(self, registry: ServiceRegistry):
         """
         Initialize the service provider with a service registry.
-        
+
         Args:
             registry: The service registry to use for service lookup
         """
@@ -77,15 +77,30 @@ class ServiceProvider:
         from zk_chat.config import Config
         return self._registry.get_service(ServiceType.CONFIG, Config)
 
+    def get_document_service(self):
+        """Get the DocumentService for document CRUD operations."""
+        from zk_chat.services.document_service import DocumentService
+        return self._registry.get_service(ServiceType.DOCUMENT_SERVICE, DocumentService)
+
+    def get_index_service(self):
+        """Get the IndexService for vector indexing and search operations."""
+        from zk_chat.services.index_service import IndexService
+        return self._registry.get_service(ServiceType.INDEX_SERVICE, IndexService)
+
+    def get_link_traversal_service(self):
+        """Get the LinkTraversalService for wikilink analysis and graph traversal."""
+        from zk_chat.services.link_traversal_service import LinkTraversalService
+        return self._registry.get_service(ServiceType.LINK_TRAVERSAL_SERVICE, LinkTraversalService)
+
     def get_service(self, service_type: ServiceType,
                     expected_type: type[T] | None = None) -> T | None:
         """
         Generic method to get a service by type.
-        
+
         Args:
             service_type: The type of service to retrieve
             expected_type: Optional type hint for better typing support
-            
+
         Returns:
             The service instance if available, None otherwise
         """
@@ -94,10 +109,10 @@ class ServiceProvider:
     def has_service(self, service_type: ServiceType) -> bool:
         """
         Check if a service is available.
-        
+
         Args:
             service_type: The type of service to check
-            
+
         Returns:
             True if the service is available, False otherwise
         """
@@ -106,14 +121,14 @@ class ServiceProvider:
     def require_service(self, service_type: ServiceType, expected_type: type[T] | None = None) -> T:
         """
         Get a required service and raise an exception if not available.
-        
+
         Args:
             service_type: The type of service to retrieve
             expected_type: Optional type hint for better typing support
-            
+
         Returns:
             The service instance
-            
+
         Raises:
             RuntimeError: If the required service is not available
         """

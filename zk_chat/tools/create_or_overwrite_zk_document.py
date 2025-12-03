@@ -6,6 +6,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
 from zk_chat.models import ZkDocument
+from zk_chat.services.document_service import DocumentService
 from zk_chat.zettelkasten import Zettelkasten
 
 logger = structlog.get_logger()
@@ -15,6 +16,7 @@ class CreateOrOverwriteZkDocument(LLMTool):
     def __init__(self, zk: Zettelkasten, console_service: RichConsoleService = None):
         self.zk = zk
         self.console_service = console_service or RichConsoleService()
+        self.document_service = DocumentService(zk.filesystem_gateway)
 
     def _sanitize_filename(self, filename: str) -> str:
         """
@@ -40,7 +42,7 @@ class CreateOrOverwriteZkDocument(LLMTool):
                         content=content)
             document = ZkDocument(relative_path=relative_path, metadata=augmented_metadata,
                                   content=content)
-            self.zk.create_or_overwrite_document(document)
+            self.document_service.write_document(document)
             return f"Successfully wrote to {document.relative_path}\n{document.model_dump_json()}"
         except OSError as e:
             error_message = (f"Failed to write document to {relative_path}: {str(e)}. This could "
