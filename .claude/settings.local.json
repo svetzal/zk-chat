@@ -27,7 +27,16 @@
       "Bash(.venv/bin/python:*)",
       "WebFetch(domain:ollama.com)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh release view:*)",
+      "Bash(sed:*)",
+      "Bash(gh release edit:*)",
+      "Bash(gh run watch:*)",
+      "Bash(.venv/bin/ruff check zk_chat)",
+      "Bash(.venv/bin/pytest zk_chat/ -q)",
+      "Bash(gh release create:*)"
     ],
     "deny": [],
     "ask": []

@@ -4,6 +4,7 @@ import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
+from zk_chat.models import ZkQueryDocumentResult
 from zk_chat.zettelkasten import Zettelkasten
 
 logger = structlog.get_logger()
@@ -16,11 +17,13 @@ class FindZkDocumentsRelatedTo(LLMTool):
 
     def run(self, query: str) -> str:
         self.console_service.print(f"[tool.info]Querying documents related to {query}[/]")
-        documents = self.zk.query_documents(query)
-        # Use model_dump with mode='json' to handle datetime serialization
+        document_results: list[ZkQueryDocumentResult] = self.zk.query_documents(query)
+        self.console_service.print(f"[tool.info]Found {len(document_results)} documents related to the query:[/]")
+        for result in document_results:
+            self.console_service.print(f"  [tool.info]{result.document.title} (distance: {result.distance:.4f})[/]")
         return json.dumps([
-            document.model_dump(mode='json')
-            for document in documents
+            document.model_dump(mode='json')  # mode json to handle datetime serialization
+            for document in document_results
         ])
 
     @property
