@@ -24,6 +24,11 @@ class ServiceType(Enum):
     ZETTELKASTEN = "zettelkasten"
     SMART_MEMORY = "smart_memory"
 
+    # Compositional services (new architecture)
+    DOCUMENT_SERVICE = "document_service"
+    INDEX_SERVICE = "index_service"
+    LINK_TRAVERSAL_SERVICE = "link_traversal_service"
+
     # Database services
     CHROMA_GATEWAY = "chroma_gateway"
     VECTOR_DATABASE = "vector_database"
@@ -42,7 +47,7 @@ class ServiceType(Enum):
 class ServiceRegistry:
     """
     Registry that holds references to all available services.
-    
+
     This allows plugins to request services by type without needing
     to know about specific implementations or requiring constructor
     parameter changes as new services are added.
@@ -55,7 +60,7 @@ class ServiceRegistry:
     def register_service(self, service_type: ServiceType, service_instance: Any) -> None:
         """
         Register a service instance for the given service type.
-        
+
         Args:
             service_type: The type of service being registered
             service_instance: The actual service instance
@@ -67,11 +72,11 @@ class ServiceRegistry:
                     expected_type: type[T] | None = None) -> T | None:
         """
         Get a service instance by type.
-        
+
         Args:
             service_type: The type of service to retrieve
             expected_type: Optional type hint for better typing support
-            
+
         Returns:
             The service instance if available, None otherwise
         """
@@ -83,10 +88,10 @@ class ServiceRegistry:
     def has_service(self, service_type: ServiceType) -> bool:
         """
         Check if a service is available.
-        
+
         Args:
             service_type: The type of service to check
-            
+
         Returns:
             True if the service is available, False otherwise
         """
@@ -95,7 +100,7 @@ class ServiceRegistry:
     def list_available_services(self) -> list[ServiceType]:
         """
         Get a list of all available services.
-        
+
         Returns:
             List of available service types
         """

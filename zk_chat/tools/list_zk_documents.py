@@ -2,6 +2,7 @@ import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
+from zk_chat.services.document_service import DocumentService
 from zk_chat.zettelkasten import Zettelkasten
 
 logger = structlog.get_logger()
@@ -11,6 +12,7 @@ class ListZkDocuments(LLMTool):
     def __init__(self, zk: Zettelkasten, console_service: RichConsoleService = None):
         self.zk = zk
         self.console_service = console_service or RichConsoleService()
+        self.document_service = DocumentService(zk.filesystem_gateway)
 
     def run(self) -> str:
         """
@@ -20,7 +22,7 @@ class ListZkDocuments(LLMTool):
             A simple list of all document paths.
         """
         self.console_service.print("[tool.info]Listing all available documents[/]")
-        paths = [document.relative_path for document in self.zk.iterate_documents()]
+        paths = [document.relative_path for document in self.document_service.iterate_documents()]
         logger.info("Listed all available documents", paths=paths)
         return "\n".join(paths)
 

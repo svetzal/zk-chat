@@ -2,6 +2,7 @@ import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
+from zk_chat.services.document_service import DocumentService
 from zk_chat.zettelkasten import Zettelkasten
 
 logger = structlog.get_logger()
@@ -11,6 +12,7 @@ class RenameZkDocument(LLMTool):
     def __init__(self, zk: Zettelkasten, console_service: RichConsoleService = None):
         self.zk = zk
         self.console_service = console_service or RichConsoleService()
+        self.document_service = DocumentService(zk.filesystem_gateway)
 
     def _sanitize_filename(self, filename: str) -> str:
         """
@@ -39,7 +41,7 @@ class RenameZkDocument(LLMTool):
             logger.info("renaming document", source_path=source_path, target_path=target_path)
 
             # Rename the document
-            self.zk.rename_document(source_path, target_path)
+            self.document_service.rename_document(source_path, target_path)
 
             return f"Successfully renamed document from '{source_path}' to '{target_path}'"
         except FileNotFoundError as e:

@@ -1,14 +1,23 @@
 import pytest
 from pytest_mock import MockerFixture
+from unittest.mock import Mock
 
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.models import ZkDocument
 from zk_chat.tools.rename_zk_document import RenameZkDocument
 from zk_chat.zettelkasten import Zettelkasten
 
 
 @pytest.fixture
-def mock_zk(mocker: MockerFixture) -> Zettelkasten:
-    return mocker.Mock(spec=Zettelkasten)
+def mock_filesystem():
+    return Mock(spec=MarkdownFilesystemGateway)
+
+
+@pytest.fixture
+def mock_zk(mocker: MockerFixture, mock_filesystem) -> Zettelkasten:
+    mock = mocker.Mock(spec=Zettelkasten)
+    mock.filesystem_gateway = mock_filesystem
+    return mock
 
 
 @pytest.fixture
@@ -44,54 +53,49 @@ class DescribeRenameZkDocument:
         assert result_without_extension == 'test_file.md'
         assert result_with_extension == 'test_file.md'
 
-    def should_rename_document_successfully(self, tool: RenameZkDocument, mock_zk: Zettelkasten):
+    def should_rename_document_successfully(self, tool: RenameZkDocument, mock_filesystem):
         source_title = 'source_document'
         target_title = 'target_document'
         source_path = 'source_document.md'
         target_path = 'target_document.md'
 
-        # Set up the mock to return a document when rename_document is called
-        renamed_document = ZkDocument(
-            relative_path=target_path,
-            content="Document Content",
-            metadata={},
-        )
-        mock_zk.rename_document.return_value = renamed_document
+        # Set up the mock filesystem
+        mock_filesystem.path_exists.return_value = True
 
         # Call the tool's run method
         result = tool.run(source_title, target_title)
 
         # Verify the mock was called with the correct arguments
-        mock_zk.rename_document.assert_called_once_with(source_path, target_path)
+        mock_filesystem.rename_file.assert_called_once_with(source_path, target_path)
 
         # Verify the result is a success message
         assert f"Successfully renamed document from '{source_path}' to '{target_path}'" in result
 
-    def should_handle_file_not_found_error(self, tool: RenameZkDocument, mock_zk: Zettelkasten):
+    def should_handle_file_not_found_error(self, tool: RenameZkDocument, mock_filesystem):
         source_title = 'nonexistent_document'
         target_title = 'target_document'
         source_path = 'nonexistent_document.md'
 
-        # Set up the mock to raise FileNotFoundError when rename_document is called
-        error_message = f"Source document {source_path} does not exist"
-        mock_zk.rename_document.side_effect = FileNotFoundError(error_message)
+        # Set up the mock to return False for document existence
+        mock_filesystem.path_exists.return_value = False
 
         # Call the tool's run method
         result = tool.run(source_title, target_title)
 
         # Verify the result is an error message
         assert "Failed to rename document" in result
-        assert error_message in result
+        assert source_path in result
 
-    def should_handle_os_error(self, tool: RenameZkDocument, mock_zk: Zettelkasten):
+    def should_handle_os_error(self, tool: RenameZkDocument, mock_filesystem):
         source_title = 'source_document'
         target_title = 'target_document'
         source_path = 'source_document.md'
         target_path = 'target_document.md'
 
-        # Set up the mock to raise OSError when rename_document is called
+        # Set up the mock to exist but raise OSError on rename
+        mock_filesystem.path_exists.return_value = True
         error_message = "Permission denied"
-        mock_zk.rename_document.side_effect = OSError(error_message)
+        mock_filesystem.rename_file.side_effect = OSError(error_message)
 
         # Call the tool's run method
         result = tool.run(source_title, target_title)

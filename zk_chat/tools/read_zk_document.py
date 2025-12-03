@@ -2,6 +2,7 @@ import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
+from zk_chat.services.document_service import DocumentService
 from zk_chat.zettelkasten import Zettelkasten
 
 logger = structlog.get_logger()
@@ -13,13 +14,14 @@ class ReadZkDocument(LLMTool):
     def __init__(self, zk: Zettelkasten, console_service: RichConsoleService = None):
         self.zk = zk
         self.console_service = console_service or RichConsoleService()
+        self.document_service = DocumentService(zk.filesystem_gateway)
 
     def run(self, relative_path: str) -> str:
         logger.info("Reading document", relative_path=relative_path)
-        if not self.zk.document_exists(relative_path):
+        if not self.document_service.document_exists(relative_path):
             return f"Document not found at {relative_path}"
 
-        document = self.zk.read_document(relative_path)
+        document = self.document_service.read_document(relative_path)
         return document.model_dump_json()
 
     @property
