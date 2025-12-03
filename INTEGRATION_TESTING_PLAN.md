@@ -1,6 +1,46 @@
 # Integration Testing Plan
 
-> **Note**: This branch has been rebased on the latest main branch to include the `copilot-setup-steps.yml` workflow, which enables running pytest and flake8 during development.
+## Implementation Status
+
+> **Last Updated**: December 2025
+
+### ✅ Completed
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **Core Infrastructure** | ✅ Done | All harness components implemented |
+| `scenario_harness.py` | ✅ Done | Pydantic models, ScenarioRunner |
+| `agent_runner.py` | ✅ Done | Subprocess CLI invocation |
+| `vault_builder.py` | ✅ Done | Document and image creation |
+| `llm_validator.py` | ✅ Done | LLM-as-judge validation |
+| `conftest.py` | ✅ Done | Smart gateway auto-detection |
+| **Image Operations** | ✅ Done | First scenario suite complete |
+| `analyze_image_scenario.py` | ✅ Done | Architecture diagram analysis |
+| `image_operations_integration.py` | ✅ Done | Test spec file |
+| **Test Resources** | ⚠️ Partial | Only architecture diagram |
+| `zk-chat-architecture.png` | ✅ Done | Available |
+| **Documentation** | ✅ Done | README files complete |
+
+### 🔲 Not Yet Implemented
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **Basic Operations** | 🔲 Not Started | Document CRUD scenarios |
+| `basic_operations/` | 🔲 Not Started | Create, read, update, rename |
+| `basic_operations_integration.py` | 🔲 Not Started | Test spec |
+| **RAG Operations** | 🔲 Not Started | Query and summarize scenarios |
+| `rag_operations/` | 🔲 Not Started | Query, summarize |
+| `rag_operations_integration.py` | 🔲 Not Started | Test spec |
+| **MoC Generation** | 🔲 Not Started | Map of Content scenarios |
+| `moc_generation/` | 🔲 Not Started | Generate, update MoCs |
+| `moc_generation_integration.py` | 🔲 Not Started | Test spec |
+| **Additional Image Ops** | 🔲 Not Started | Whiteboard, captions |
+| `generate_caption_scenario.py` | 🔲 Not Started | Caption generation |
+| `analyze_whiteboard_scenario.py` | 🔲 Not Started | Whiteboard analysis |
+| **Test Runner Script** | 🔲 Not Started | `scripts/run_integration_tests.sh` |
+| **Additional Test Images** | 🔲 Not Started | Whiteboards, code screenshots |
+
+---
 
 ## Overview
 
@@ -18,8 +58,8 @@ This document outlines the plan for implementing comprehensive integration tests
 ### Integration vs Unit Tests
 
 - **Unit tests** (`*_spec.py`): Test individual components in isolation with mocks
-- **Integration tests** (`*_integration_spec.py`): Test complete end-to-end workflows by invoking the agent programmatically
-- **Location**: Integration tests will be in a dedicated `zk_chat/integration/` directory
+- **Integration tests** (`*_integration.py`): Test complete end-to-end workflows by invoking the agent programmatically
+- **Location**: Integration tests are in a dedicated `integration_tests/` directory (not under `zk_chat/`)
 
 ### Test Data Strategy
 
@@ -62,50 +102,52 @@ All models in the integration test harness (`Document`, `ImageFile`, `Validation
 ```
 integration_tests/                          # Separate from unit tests
   __init__.py
-  conftest.py                               # Pytest configuration
+  conftest.py                               # Pytest configuration ✅
+  README.md                                 # Quick start guide ✅
 
-  # Core infrastructure
-  scenario_harness.py                       # Scenario execution framework
-  agent_runner.py                           # Programmatic agent invocation
-  vault_builder.py                          # Declarative vault construction
-  llm_validator.py                          # LLM as judge validation
+  # Core infrastructure (all implemented ✅)
+  scenario_harness.py                       # Scenario execution framework ✅
+  agent_runner.py                           # Programmatic agent invocation ✅
+  vault_builder.py                          # Declarative vault construction ✅
+  llm_validator.py                          # LLM as judge validation ✅
 
   # Test resources
   test_resources/
-    zk-chat-architecture.png
-    test_whiteboard_features.jpg
-    test_whiteboard_priorities.jpg
-    test_code_screenshot.png
-    test_presentation_slide.png
+    README.md                               # Documentation ✅
+    zk-chat-architecture.png                # Architecture diagram ✅
+    test_whiteboard_features.jpg            # 🔲 Not yet added
+    test_whiteboard_priorities.jpg          # 🔲 Not yet added
+    test_code_screenshot.png                # 🔲 Not yet added
+    test_presentation_slide.png             # 🔲 Not yet added
 
   # Scenario definitions
   scenarios/
     __init__.py
-    basic_operations/
+    image_operations/                       # ✅ Implemented
+      __init__.py
+      analyze_image_scenario.py             # ✅ Architecture diagram analysis
+      generate_caption_scenario.py          # 🔲 Not yet implemented
+      analyze_whiteboard_scenario.py        # 🔲 Not yet implemented
+    basic_operations/                       # 🔲 Not yet created
       __init__.py
       create_document_scenario.py
       read_document_scenario.py
       update_document_scenario.py
       rename_document_scenario.py
-    rag_operations/
+    rag_operations/                         # 🔲 Not yet created
       __init__.py
       query_documents_scenario.py
       summarize_topic_scenario.py
-    moc_generation/
+    moc_generation/                         # 🔲 Not yet created
       __init__.py
       generate_moc_scenario.py
       update_moc_scenario.py
-    image_operations/
-      __init__.py
-      generate_caption_scenario.py
-      analyze_screenshot_scenario.py
-      analyze_whiteboard_scenario.py
 
   # Test files that run scenarios (use _integration.py suffix)
-  basic_operations_integration.py
-  rag_operations_integration.py
-  moc_generation_integration.py
-  image_operations_integration.py
+  image_operations_integration.py           # ✅ Implemented
+  basic_operations_integration.py           # 🔲 Not yet created
+  rag_operations_integration.py             # 🔲 Not yet created
+  moc_generation_integration.py             # 🔲 Not yet created
 ```
 
 ### Naming Conventions
@@ -118,19 +160,20 @@ integration_tests/                          # Separate from unit tests
 
 ### Core Infrastructure Components
 
-#### 1. Scenario Harness (`scenario_harness.py`)
+#### 1. Scenario Harness (`scenario_harness.py`) ✅ IMPLEMENTED
 
 The harness provides a declarative way to define test scenarios using Pydantic models for strong typing:
 
 ```python
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Callable, Any
+from typing import Any
+from collections.abc import Callable
 
 class Document(BaseModel):
     """Represents a document to be created in test vault"""
     path: str
     content: str
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
 class ImageFile(BaseModel):
     """Represents an image file to be placed in test vault"""
@@ -141,7 +184,7 @@ class ValidationCriterion(BaseModel):
     """A single validation criterion"""
     description: str
     prompt: str
-    success_keywords: Optional[List[str]] = None
+    success_keywords: list[str] | None = None
 
 class IntegrationScenario(BaseModel):
     """Complete specification of an integration test scenario"""
@@ -149,130 +192,42 @@ class IntegrationScenario(BaseModel):
     description: str
 
     # Setup
-    initial_documents: List[Document]
-    initial_images: Optional[List[ImageFile]] = None
+    initial_documents: list[Document]
+    initial_images: list[ImageFile] | None = None
 
     # Execution
     execution_prompt: str
-    agent_mode: str = "interactive"  # or "autonomous"
-    unsafe: bool = False
-    use_git: bool = False
+    agent_mode: str = "interactive"  # Note: For documentation only; execution always uses agent mode
 
     # Validation
-    validation_criteria: Optional[List[ValidationCriterion]] = None
+    validation_criteria: list[ValidationCriterion] | None = None
 
     # Optional custom validation (excluded from serialization)
-    custom_validation: Optional[Callable] = Field(default=None, exclude=True)
-
-class ScenarioRunner:
-    """Executes integration scenarios"""
-
-    def __init__(self, gateway: str, model: str, visual_model: str = None):
-        self.gateway = gateway
-        self.model = model
-        self.visual_model = visual_model
-
-    def run_scenario(self, scenario: IntegrationScenario, tmp_path: Path) -> ScenarioResult:
-        """
-        Execute a complete integration scenario.
-
-        Returns ScenarioResult with pass/fail and details.
-        """
-        # 1. Build vault
-        vault_path = self._build_vault(scenario, tmp_path)
-
-        # 2. Execute agent with prompt
-        execution_result = self._execute_agent(scenario, vault_path)
-
-        # 3. Validate using LLM as judge
-        validation_result = self._validate_scenario(scenario, vault_path, execution_result)
-
-        # 4. Run custom validation if provided
-        if scenario.custom_validation:
-            custom_result = scenario.custom_validation(vault_path, execution_result)
-            validation_result = validation_result.merge(custom_result)
-
-        return validation_result
-
-    def _build_vault(self, scenario: IntegrationScenario, tmp_path: Path) -> Path:
-        """Build isolated test vault for scenario"""
-        vault_builder = VaultBuilder(tmp_path)
-        return vault_builder.build(scenario.initial_documents, scenario.initial_images)
-
-    def _execute_agent(self, scenario: IntegrationScenario, vault_path: Path) -> ExecutionResult:
-        """Execute agent with scenario prompt"""
-        runner = AgentRunner(
-            vault_path=vault_path,
-            gateway=self.gateway,
-            model=self.model,
-            agent_mode=scenario.agent_mode,
-            unsafe=scenario.unsafe,
-            use_git=scenario.use_git
-        )
-        return runner.run(scenario.execution_prompt)
-
-    def _validate_scenario(
-        self,
-        scenario: IntegrationScenario,
-        vault_path: Path,
-        execution_result: ExecutionResult
-    ) -> ValidationResult:
-        """Validate scenario using LLM as judge"""
-        validator = LLMValidator(
-            vault_path=vault_path,
-            gateway=self.gateway,
-            model=self.model
-        )
-        return validator.validate(scenario.validation_criteria)
-
-class ExecutionResult(BaseModel):
-    """Result of agent execution"""
-    success: bool
-    output: str
-    error: Optional[str] = None
-    duration: float = 0.0
-
-class ValidationResult(BaseModel):
-    """Result of validation"""
-    passed: bool
-    criteria_results: List[Dict[str, Any]]
-    overall_reasoning: str
-
-    def merge(self, other: 'ValidationResult') -> 'ValidationResult':
-        """Merge with another validation result"""
-        return ValidationResult(
-            passed=self.passed and other.passed,
-            criteria_results=self.criteria_results + other.criteria_results,
-            overall_reasoning=f"{self.overall_reasoning}\n\n{other.overall_reasoning}"
-        )
-
-class ScenarioResult(BaseModel):
-    """Complete result of scenario execution and validation"""
-    scenario_name: str
-    execution_result: ExecutionResult
-    validation_result: ValidationResult
-
-    @property
-    def passed(self) -> bool:
-        return self.execution_result.success and self.validation_result.passed
+    custom_validation: Callable | None = Field(default=None, exclude=True)
 ```
 
-**Note on Model Usage:** The integration test `Document` class is distinct from `ZkDocument` in `zk_chat/models.py`:
+**Note**: The `unsafe` and `use_git` flags from earlier designs have been removed. The agent now always runs in agent mode with full autonomous capabilities.
 
-- **`Document` (integration tests)**: A simple test fixture model for declaratively defining test scenario setup. Uses `path` (the file path where the document will be created), `content`, and `metadata`.
-  
-- **`ZkDocument` (zk_chat/models.py)**: The production model representing actual Zettelkasten documents. Uses `relative_path` (within the vault), `metadata`, and `content`, with additional methods for computing `title` and `id`.
-
-Both use Pydantic `BaseModel` following the project's coding guidelines. The integration test `Document` is intentionally simpler as it only needs to specify test data, while `ZkDocument` includes business logic for document handling.
-
-#### 2. Agent Runner (`agent_runner.py`)
+#### 2. Agent Runner (`agent_runner.py`) ✅ IMPLEMENTED
 
 Handles programmatic invocation of the agent:
 
 ```python
 import subprocess
+import sys
+import time
 from pathlib import Path
-from typing import Optional
+
+from pydantic import BaseModel
+
+
+class ExecutionResult(BaseModel):
+    """Result of agent execution"""
+    success: bool
+    output: str
+    error: str | None = None
+    duration: float = 0.0
+
 
 class AgentRunner:
     """Runs the zk-chat agent programmatically"""
@@ -281,34 +236,27 @@ class AgentRunner:
         self,
         vault_path: Path,
         gateway: str,
-        model: Optional[str] = None,
-        visual_model: Optional[str] = None,
-        agent_mode: str = "interactive",
-        unsafe: bool = False,
-        use_git: bool = False
+        model: str | None = None,
+        visual_model: str | None = None,
+        agent_mode: str = "interactive"  # For documentation only
     ):
         self.vault_path = vault_path
         self.gateway = gateway
         self.model = model
         self.visual_model = visual_model
         self.agent_mode = agent_mode
-        self.unsafe = unsafe
-        self.use_git = use_git
 
     def run(self, prompt: str, timeout: int = 300) -> ExecutionResult:
         """
         Execute agent with given prompt.
 
-        Uses subprocess to invoke zk-chat CLI with the prompt.
-        Returns ExecutionResult with output and timing.
+        Uses subprocess to invoke `python -m zk_chat.main query`.
+        The query command always uses agent mode with autonomous problem-solving.
         """
-        import time
-
         start_time = time.time()
 
-        # Build command
         cmd = [
-            "zk-chat", "query",
+            sys.executable, "-m", "zk_chat.main", "query",
             "--vault", str(self.vault_path),
             "--gateway", self.gateway
         ]
@@ -316,61 +264,28 @@ class AgentRunner:
         if self.model:
             cmd.extend(["--model", self.model])
 
-        if self.agent_mode == "autonomous":
-            cmd.append("--agent")
-
-        if self.unsafe:
-            cmd.append("--unsafe")
-
-        if self.use_git:
-            cmd.append("--git")
+        if self.visual_model:
+            cmd.extend(["--visual-model", self.visual_model])
 
         cmd.append(prompt)
 
-        try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=timeout
-            )
-
-            duration = time.time() - start_time
-
-            return ExecutionResult(
-                success=(result.returncode == 0),
-                output=result.stdout,
-                error=result.stderr if result.returncode != 0 else None,
-                duration=duration
-            )
-
-        except subprocess.TimeoutExpired:
-            duration = time.time() - start_time
-            return ExecutionResult(
-                success=False,
-                output="",
-                error=f"Agent execution timed out after {timeout} seconds",
-                duration=duration
-            )
-
-        except Exception as e:
-            duration = time.time() - start_time
-            return ExecutionResult(
-                success=False,
-                output="",
-                error=str(e),
-                duration=duration
-            )
+        # ... subprocess execution and result handling
 ```
 
-#### 3. Vault Builder (`vault_builder.py`)
+**Note**: The agent runner uses `python -m zk_chat.main` to ensure the in-repo code is exercised without requiring package installation.
+
+#### 3. Vault Builder (`vault_builder.py`) ✅ IMPLEMENTED
 
 Constructs test vaults from scenario specifications:
 
 ```python
 from pathlib import Path
-from typing import List, Optional
 import shutil
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from integration_tests.scenario_harness import Document, ImageFile
+
 
 class VaultBuilder:
     """Builds test vaults from scenario specifications"""
@@ -381,71 +296,31 @@ class VaultBuilder:
 
     def build(
         self,
-        documents: List[Document],
-        images: Optional[List[ImageFile]] = None
+        documents: list["Document"],
+        images: list["ImageFile"] | None = None
     ) -> Path:
-        """
-        Build a test vault with specified documents and images.
-
-        Returns path to created vault.
-        """
-        # Create vault directory
+        """Build a test vault with specified documents and images."""
         self.vault_path.mkdir(parents=True, exist_ok=True)
 
-        # Create documents
         for doc in documents:
             self._create_document(doc)
 
-        # Copy images if provided
         if images:
             for img in images:
                 self._copy_image(img)
 
-        # Initialize vault (this will create .zk_chat config)
-        self._initialize_vault()
-
         return self.vault_path
 
-    def _create_document(self, doc: Document):
+    def _create_document(self, doc: "Document"):
         """Create a document with optional frontmatter"""
-        doc_path = self.vault_path / doc.path
-        doc_path.parent.mkdir(parents=True, exist_ok=True)
+        # ... implementation handles metadata as YAML frontmatter
 
-        content = ""
-
-        # Add frontmatter if metadata provided
-        if doc.metadata:
-            content += "---\n"
-            for key, value in doc.metadata.items():
-                if isinstance(value, list):
-                    content += f"{key}:\n"
-                    for item in value:
-                        content += f"  - {item}\n"
-                else:
-                    content += f"{key}: {value}\n"
-            content += "---\n\n"
-
-        content += doc.content
-
-        doc_path.write_text(content)
-
-    def _copy_image(self, img: ImageFile):
-        """Copy image file to vault"""
-        dest_path = self.vault_path / img.path
-        dest_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # Copy from test resources
-        source_path = Path(__file__).parent / "test_resources" / img.source_path
-        shutil.copy(source_path, dest_path)
-
-    def _initialize_vault(self):
-        """Initialize vault with zk-chat (creates config, runs initial index)"""
-        # This could invoke zk-chat index rebuild
-        # or directly create minimal config
-        pass
+    def _copy_image(self, img: "ImageFile"):
+        """Copy image file to vault from test_resources/"""
+        # ... implementation with proper error handling
 ```
 
-#### 4. LLM Validator (`llm_validator.py`)
+#### 4. LLM Validator (`llm_validator.py`) ✅ IMPLEMENTED
 
 Implements "LLM as judge" validation:
 
@@ -581,14 +456,16 @@ Reasoning: [Your detailed reasoning]
 
 ## Test Suites
 
-### 1. Basic Document Operations (basic_operations_integration_spec.py)
+### 1. Basic Document Operations 🔲 NOT YET IMPLEMENTED
 
 **Objective**: Validate reading and writing documents in the Zettelkasten
 
-**Example Scenario Definition** (`scenarios/basic_operations/create_document_scenario.py`):
+**Status**: Scenarios and test file not yet created.
+
+**Planned Scenario Definition** (`scenarios/basic_operations/create_document_scenario.py`):
 
 ```python
-from zk_chat.integration.scenario_harness import (
+from integration_tests.scenario_harness import (
     IntegrationScenario, Document, ValidationCriterion
 )
 
@@ -617,8 +494,7 @@ Add metadata tags: ["programming", "python", "tutorial"]
 """,
 
         agent_mode="autonomous",
-        unsafe=True,
-        use_git=True,
+        # Note: unsafe and use_git flags removed - agent now always has full capabilities
 
         validation_criteria=[
             ValidationCriterion(
@@ -653,25 +529,18 @@ Does it include tags for 'programming', 'python', and 'tutorial'?
     )
 ```
 
-**Test Specification** (`basic_operations_integration.py`):
+**Planned Test Specification** (`basic_operations_integration.py`):
 
 ```python
 import pytest
-from pathlib import Path
-from zk_chat.integration.scenario_harness import ScenarioRunner
-from zk_chat.integration.scenarios.basic_operations import (
-    create_document_scenario,
-    read_document_scenario,
-    update_document_scenario,
-    rename_document_scenario
-)
+
+from integration_tests.scenario_harness import ScenarioRunner
+from integration_tests.scenarios.basic_operations.create_document_scenario import create_document_scenario
+# ... other scenario imports
+
 
 class DescribeBasicDocumentOperations:
     """Integration tests for basic document read/write operations"""
-
-    @pytest.fixture
-    def scenario_runner(self):
-        return ScenarioRunner(gateway="ollama")
 
     def should_create_new_document_with_metadata(self, scenario_runner, tmp_path):
         scenario = create_document_scenario()
@@ -703,11 +572,13 @@ class DescribeBasicDocumentOperations:
         assert result.passed, f"Scenario failed:\n{result.validation_result.overall_reasoning}"
 ```
 
-### 2. RAG Query and Summarization (rag_operations_integration.py)
+### 2. RAG Query and Summarization 🔲 NOT YET IMPLEMENTED
 
 **Objective**: Validate information retrieval and summarization across documents
 
-**Example Scenario** (`scenarios/rag_operations/summarize_topic_scenario.py`):
+**Status**: Scenarios and test file not yet created.
+
+**Planned Scenario** (`scenarios/rag_operations/summarize_topic_scenario.py`):
 
 ```python
 def summarize_topic_scenario() -> IntegrationScenario:
@@ -768,8 +639,7 @@ Create a new document called "Testing Summary.md" with your findings.
 """,
 
         agent_mode="autonomous",
-        unsafe=True,
-        use_git=True,
+        # Note: unsafe and use_git flags removed - agent now always has full capabilities
 
         validation_criteria=[
             ValidationCriterion(
@@ -812,11 +682,13 @@ Is this a well-structured summary?
     )
 ```
 
-### 3. Map of Content Generation (moc_generation_integration.py)
+### 3. Map of Content Generation 🔲 NOT YET IMPLEMENTED
 
 **Objective**: Validate automatic Map of Content (MoC) generation
 
-**Example Scenario** (`scenarios/moc_generation/generate_moc_scenario.py`):
+**Status**: Scenarios and test file not yet created.
+
+**Planned Scenario** (`scenarios/moc_generation/generate_moc_scenario.py`):
 
 ```python
 def generate_python_moc_scenario() -> IntegrationScenario:
@@ -873,8 +745,7 @@ Please create this MoC now.
 """,
 
         agent_mode="autonomous",
-        unsafe=True,
-        use_git=True,
+        # Note: unsafe and use_git flags removed - agent now always has full capabilities
 
         validation_criteria=[
             ValidationCriterion(
@@ -931,11 +802,13 @@ Does it include:
     )
 ```
 
-### 4. Image Caption Generation (image_operations_integration.py)
+### 4. Image Caption Generation 🔲 NOT YET IMPLEMENTED
 
 **Objective**: Validate image analysis and caption generation
 
-**Example Scenario** (`scenarios/image_operations/generate_caption_scenario.py`):
+**Status**: Scenario not yet created. Note: The `image_operations_integration.py` file exists with the architecture diagram analysis test (Section 6 below), but this caption generation scenario is not yet implemented.
+
+**Planned Scenario** (`scenarios/image_operations/generate_caption_scenario.py`):
 
 ```python
 def generate_caption_scenario() -> IntegrationScenario:
@@ -977,8 +850,7 @@ Update the document with the caption.
 """,
 
         agent_mode="autonomous",
-        unsafe=True,
-        use_git=True,
+        # Note: unsafe and use_git flags removed - agent now always has full capabilities
 
         validation_criteria=[
             ValidationCriterion(
@@ -1008,11 +880,13 @@ Is the formatting clean and readable?
     )
 ```
 
-### 5. Screenshot/Whiteboard Analysis (image_operations_integration.py)
+### 5. Screenshot/Whiteboard Analysis 🔲 NOT YET IMPLEMENTED
 
 **Objective**: Validate complex image analysis workflows
 
-**Example Scenario** (`scenarios/image_operations/analyze_whiteboard_scenario.py`):
+**Status**: Scenario and test images not yet created. Requires `test_whiteboard_features.jpg` and `test_whiteboard_priorities.jpg` test images.
+
+**Planned Scenario** (`scenarios/image_operations/analyze_whiteboard_scenario.py`):
 
 ```python
 def analyze_whiteboard_scenario() -> IntegrationScenario:
@@ -1068,8 +942,7 @@ The analysis should be comprehensive and capture all visible information.
 """,
 
         agent_mode="autonomous",
-        unsafe=True,
-        use_git=True,
+        # Note: unsafe and use_git flags removed - agent now always has full capabilities
 
         validation_criteria=[
             ValidationCriterion(
@@ -1113,9 +986,106 @@ Does it integrate or relate information from the different photos?
     )
 ```
 
-## Test Runner Script
+### 6. Architecture Diagram Analysis ✅ IMPLEMENTED
 
-Create a dedicated script for running integration tests:
+**Objective**: Validate image analysis for architecture diagrams
+
+**Status**: This is the first fully implemented integration test scenario.
+
+**Scenario** (`scenarios/image_operations/analyze_image_scenario.py`):
+
+```python
+def analyze_architecture_diagram_scenario() -> IntegrationScenario:
+    """Scenario: Agent analyzes an architecture diagram and describes it."""
+    return IntegrationScenario(
+        name="analyze_architecture_diagram",
+        description="Agent should analyze an architecture diagram and provide a detailed description",
+
+        initial_documents=[
+            Document(
+                path="Architecture Notes.md",
+                content="""# System Architecture Notes
+
+We have created an architecture diagram showing our system design.
+
+![Architecture Diagram](images/architecture_diagram.png)
+
+## Description
+
+TBD - Please analyze the diagram above and provide a detailed description.
+""",
+                metadata={"tags": ["architecture", "documentation"]}
+            )
+        ],
+
+        initial_images=[
+            ImageFile(
+                path="images/architecture_diagram.png",
+                source_path="zk-chat-architecture.png"
+            )
+        ],
+
+        execution_prompt="""
+Please analyze the architecture diagram referenced in 'Architecture Notes.md'.
+
+Look at the image carefully and provide a detailed description that includes:
+1. What components or systems are shown
+2. How they are connected or related
+3. Any patterns or architectural style visible
+4. Key characteristics or notable features
+
+Replace the "TBD" section in the document with your analysis.
+""",
+
+        agent_mode="autonomous",
+
+        validation_criteria=[
+            ValidationCriterion(
+                description="Document was updated with analysis",
+                prompt="...",
+                success_keywords=["analysis", "updated", "description"]
+            ),
+            ValidationCriterion(
+                description="Analysis describes components",
+                prompt="...",
+                success_keywords=["components", "systems", "elements"]
+            ),
+            ValidationCriterion(
+                description="Analysis describes relationships",
+                prompt="...",
+                success_keywords=["connections", "relationships", "interact", "flow"]
+            ),
+            ValidationCriterion(
+                description="Analysis is substantive",
+                prompt="...",
+                success_keywords=["detailed", "specific", "shows"]
+            )
+        ]
+    )
+```
+
+**Test Specification** (`image_operations_integration.py`):
+
+```python
+class DescribeImageAnalysis:
+    """Integration tests for image analysis capabilities"""
+
+    def should_analyze_architecture_diagram(self, scenario_runner, tmp_path):
+        """Test that the agent can analyze an architecture diagram image."""
+        scenario = analyze_architecture_diagram_scenario()
+
+        result = scenario_runner.run_scenario(scenario, tmp_path)
+
+        assert result.execution_result.success, \
+            f"Execution failed: {result.execution_result.error}"
+
+        assert result.passed, \
+            f"Scenario validation failed:\n{result.validation_result.overall_reasoning}"
+```
+
+## Test Runner Script 🔲 NOT YET IMPLEMENTED
+
+The dedicated test runner script is planned but not yet created:
 
 ```bash
 #!/bin/bash
@@ -1193,14 +1163,14 @@ if [ "$GATEWAY" = "ollama" ]; then
 
     # Set default models if not already set
     if [ -z "${ZK_TEST_MODEL}" ]; then
-        export ZK_TEST_MODEL="qwen2.5:32b"
+        export ZK_TEST_MODEL="qwen3:8b"
         echo "Using default text model: $ZK_TEST_MODEL"
     else
         echo "Using custom text model: $ZK_TEST_MODEL"
     fi
 
     if [ -z "${ZK_TEST_VISUAL_MODEL}" ]; then
-        export ZK_TEST_VISUAL_MODEL="llama3.2-vision:11b"
+        export ZK_TEST_VISUAL_MODEL="gemma3:27b"
         echo "Using default visual model: $ZK_TEST_VISUAL_MODEL"
     else
         echo "Using custom visual model: $ZK_TEST_VISUAL_MODEL"
@@ -1294,7 +1264,7 @@ fi
 
 ### Test Resource Images
 
-Create a library of test images in `zk_chat/integration/test_resources/`:
+Create a library of test images in `integration_tests/test_resources/`:
 
 1. **zk-chat-architecture.png** - Simple architecture diagram (boxes and arrows)
 2. **test_whiteboard_features.jpg** - Whiteboard with feature list
@@ -1304,61 +1274,82 @@ Create a library of test images in `zk_chat/integration/test_resources/`:
 
 These images will be copied into test vaults as needed by scenario definitions.
 
-### Pytest Configuration (`conftest.py`)
+### Pytest Configuration (`conftest.py`) ✅ IMPLEMENTED
+
+The actual implementation uses smart gateway auto-detection:
 
 ```python
-import pytest
+import os
 from pathlib import Path
-from zk_chat.integration.scenario_harness import ScenarioRunner
+
+import pytest
+
+from integration_tests.scenario_harness import ScenarioRunner
+
+DEFAULT_MODELS = {
+    "openai": {"text": "gpt-4o", "visual": "gpt-4o"},
+    "ollama": {"text": "qwen3:8b", "visual": "gemma3:27b"}
+}
+
+
+def _determine_gateway():
+    """
+    Determine which gateway to use with smart defaults.
+
+    Priority:
+    1. ZK_TEST_GATEWAY environment variable if set
+    2. OpenAI if OPENAI_API_KEY is set
+    3. Ollama as fallback
+    """
+    explicit_gateway = os.environ.get("ZK_TEST_GATEWAY")
+    if explicit_gateway:
+        return explicit_gateway
+
+    if os.environ.get("OPENAI_API_KEY"):
+        return "openai"
+
+    return "ollama"
+
 
 @pytest.fixture(scope="session")
 def test_resources_dir():
     """Path to test resource files"""
     return Path(__file__).parent / "test_resources"
 
-```python
-@pytest.fixture
-def scenario_runner():
-    """Create a scenario runner for tests"""
-    # Gateway must be explicitly set via environment variable
-    gateway = os.environ.get("ZK_TEST_GATEWAY")
 
-    if not gateway:
-        pytest.skip(
-            "ZK_TEST_GATEWAY environment variable not set. "
-            "Set to 'ollama' or 'openai' before running integration tests."
-        )
+@pytest.fixture(scope="session")
+def gateway_config():
+    """Determine and validate gateway configuration"""
+    gateway = _determine_gateway()
+    models = _get_models(gateway)
 
-    if gateway not in ["ollama", "openai"]:
-        pytest.fail(f"Invalid ZK_TEST_GATEWAY: {gateway}. Must be 'ollama' or 'openai'.")
-
-    # For OpenAI, verify API key is set
     if gateway == "openai" and not os.environ.get("OPENAI_API_KEY"):
-        pytest.skip(
-            "OPENAI_API_KEY environment variable not set. "
-            "Required when using openai gateway."
-        )
+        pytest.skip("OPENAI_API_KEY not set for OpenAI gateway")
 
-    model = os.environ.get("ZK_TEST_MODEL", None)
+    return {"gateway": gateway, "model": models["text"], "visual_model": models["visual"]}
 
-    return ScenarioRunner(gateway=gateway, model=model)# Pytest configuration for better output
+
+@pytest.fixture
+def scenario_runner(gateway_config):
+    """Create a scenario runner for tests"""
+    return ScenarioRunner(
+        gateway=gateway_config["gateway"],
+        model=gateway_config["model"],
+        visual_model=gateway_config["visual_model"]
+    )
+
+
 def pytest_configure(config):
     """Configure pytest for integration tests"""
-    config.addinivalue_line(
-        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
-    )
-    config.addinivalue_line(
-        "markers", "requires_visual: marks tests requiring visual model"
-    )
+    config.addinivalue_line("markers", "slow: marks tests as slow")
+    config.addinivalue_line("markers", "requires_visual: marks tests requiring visual model")
+
 
 def pytest_collection_modifyitems(config, items):
     """Add markers to integration tests"""
     for item in items:
-        # Mark all integration tests as slow
         if "integration" in str(item.fspath):
             item.add_marker(pytest.mark.slow)
-
-        # Mark tests requiring visual models
         if "image" in item.name.lower() or "visual" in item.name.lower():
             item.add_marker(pytest.mark.requires_visual)
 ```
@@ -1375,12 +1366,12 @@ Integration tests support **smart defaults** for gateway selection:
 
 ### Default Models
 
-When models are not explicitly specified, these defaults are used:
+When models are not explicitly specified, these defaults are used (configured in `conftest.py`):
 
 | Gateway | Text Model | Visual Model |
 |---------|------------|--------------|
 | **OpenAI** | `gpt-4o` | `gpt-4o` |
-| **Ollama** | `qwen2.5:32b` | `llama3.2-vision:11b` |
+| **Ollama** | `qwen3:8b` | `gemma3:27b` |
 
 ### Quick Start Examples
 
@@ -1388,7 +1379,7 @@ When models are not explicitly specified, these defaults are used:
 
 ```bash
 # If OPENAI_API_KEY is set, uses OpenAI with gpt-4o
-# Otherwise uses Ollama with qwen2.5:32b
+# Otherwise uses Ollama with qwen3:8b
 pytest integration_tests/ --spec -v
 ```
 
@@ -1398,7 +1389,7 @@ pytest integration_tests/ --spec -v
 # Force Ollama usage
 export ZK_TEST_GATEWAY=ollama
 
-# Run tests (uses qwen2.5:32b and llama3.2-vision:11b by default)
+# Run tests (uses qwen3:8b and gemma3:27b by default)
 pytest integration_tests/ --spec -v
 
 # Override default models
@@ -1431,7 +1422,7 @@ pytest integration_tests/ --spec -v
 | **Privacy** | Completely local | Data sent to OpenAI |
 | **Reliability** | Depends on model/hardware | More consistent |
 | **Setup** | Requires Ollama + models | Requires API key |
-| **Default Models** | qwen2.5:32b, llama3.2-vision:11b | gpt-4o |
+| **Default Models** | qwen3:8b, gemma3:27b | gpt-4o |
 
 ### Pre-Release Validation
 
@@ -1499,14 +1490,14 @@ jobs:
         curl -fsSL https://ollama.com/install.sh | sh
         ollama serve &
         sleep 5
-        ollama pull qwen2.5:14b
+        ollama pull qwen3:8b
 
     - name: Run integration tests with Ollama
       if: ${{ github.event.inputs.gateway == 'ollama' }}
       env:
         ZK_TEST_GATEWAY: ollama
-        ZK_TEST_MODEL: qwen2.5:32b
-        ZK_TEST_VISUAL_MODEL: llama3.2-vision:11b
+        ZK_TEST_MODEL: qwen3:8b
+        ZK_TEST_VISUAL_MODEL: gemma3:27b
       run: |
         pytest integration_tests/ --spec -v --tb=short
 
@@ -1579,46 +1570,45 @@ Before preparing any release:
 
 ## Implementation Timeline
 
-### Phase 1: Core Infrastructure (2-3 days)
-- Implement `scenario_harness.py` with core data structures
-- Implement `agent_runner.py` for programmatic agent invocation
-- Implement `vault_builder.py` for test vault creation
-- Implement `llm_validator.py` for LLM-as-judge validation
-- Set up pytest configuration and test resources directory
+### Phase 1: Core Infrastructure ✅ COMPLETED
+- ✅ Implement `scenario_harness.py` with core data structures
+- ✅ Implement `agent_runner.py` for programmatic agent invocation
+- ✅ Implement `vault_builder.py` for test vault creation
+- ✅ Implement `llm_validator.py` for LLM-as-judge validation
+- ✅ Set up pytest configuration and test resources directory
 
-### Phase 2: First Scenario & Validation (2-3 days)
-- Create test resource images
-- Implement first complete scenario (e.g., create document)
-- Implement first test spec using the scenario
-- Validate end-to-end flow works correctly
-- Refine infrastructure based on learnings
+### Phase 2: First Scenario & Validation ✅ COMPLETED
+- ✅ Create test resource image (architecture diagram)
+- ✅ Implement first complete scenario (architecture diagram analysis)
+- ✅ Implement first test spec using the scenario
+- ✅ Validate end-to-end flow works correctly
+- ✅ Refine infrastructure based on learnings
 
-### Phase 3: Basic Operations Scenarios (2-3 days)
-- Implement remaining document operation scenarios
-- Add read, update, rename scenarios
-- Test and validate each scenario
-- Refine validation criteria based on actual LLM responses
+### Phase 3: Basic Operations Scenarios 🔲 NOT STARTED
+- 🔲 Implement document creation scenario
+- 🔲 Add read, update, rename scenarios
+- 🔲 Test and validate each scenario
+- 🔲 Refine validation criteria based on actual LLM responses
 
-### Phase 4: Advanced Scenarios (3-4 days)
-- Implement RAG/summarization scenarios
-- Implement MoC generation scenarios
-- Implement image operation scenarios (caption generation, whiteboard analysis)
-- Test and validate advanced workflows
+### Phase 4: Advanced Scenarios 🔲 NOT STARTED
+- 🔲 Implement RAG/summarization scenarios
+- 🔲 Implement MoC generation scenarios
+- 🔲 Implement additional image operation scenarios (caption generation, whiteboard analysis)
+- 🔲 Add required test images (whiteboards)
+- 🔲 Test and validate advanced workflows
 
-### Phase 5: Polish and Documentation (1-2 days)
-- Create test runner script
-- Update documentation (README, release process)
-- Add CI/CD integration
-- Create troubleshooting guide
-
-**Total Estimated Time: 10-15 days**
+### Phase 5: Polish and Automation 🔲 NOT STARTED
+- 🔲 Create test runner script
+- 🔲 Update release process documentation
+- 🔲 Add CI/CD integration workflow
+- 🔲 Create troubleshooting guide
 
 ### Implementation Priority Order
 
-1. **Critical Path**: scenario_harness.py → agent_runner.py → vault_builder.py → llm_validator.py
-2. **First Validation**: One complete scenario end-to-end
-3. **Expand Coverage**: Additional scenarios in order of complexity
-4. **Polish**: Documentation and automation
+1. ✅ **Critical Path**: scenario_harness.py → agent_runner.py → vault_builder.py → llm_validator.py
+2. ✅ **First Validation**: One complete scenario end-to-end (architecture diagram analysis)
+3. 🔲 **Expand Coverage**: Additional scenarios in order of complexity
+4. 🔲 **Polish**: Documentation and automation
 
 ## Benefits
 
@@ -1654,8 +1644,9 @@ Before preparing any release:
 ### Test Execution Considerations
 
 1. **Gateway Selection**:
-   - **Must** be explicitly chosen via `ZK_TEST_GATEWAY` environment variable
-   - Tests will be skipped if gateway not configured
+   - Auto-detected based on environment (see `conftest.py`)
+   - Uses OpenAI if `OPENAI_API_KEY` is set, otherwise Ollama
+   - Can be explicitly set via `ZK_TEST_GATEWAY` environment variable
    - Different gateways have different characteristics (see table above)
 
 2. **Cost** (OpenAI only):
@@ -1701,30 +1692,33 @@ When a test fails:
 Set environment variables to control test behavior:
 
 ```bash
-# === REQUIRED: Choose gateway ===
+# === Gateway Selection (auto-detects by default) ===
+# If OPENAI_API_KEY is set, uses OpenAI; otherwise uses Ollama
+# Explicitly override:
 export ZK_TEST_GATEWAY=ollama  # or openai
 
 # === For Ollama ===
-export ZK_TEST_MODEL=qwen2.5:14b  # Optional: defaults to model in config
+export ZK_TEST_MODEL=qwen3:8b            # Optional: defaults to qwen3:8b
+export ZK_TEST_VISUAL_MODEL=gemma3:27b   # Optional: defaults to gemma3:27b
 # Ensure Ollama is running: ollama serve
 
 # === For OpenAI ===
-export OPENAI_API_KEY=your_key_here  # Required for OpenAI
-export ZK_TEST_MODEL=gpt-4  # Optional: specify model
+export OPENAI_API_KEY=your_key_here      # Required for OpenAI
+export ZK_TEST_MODEL=gpt-4o              # Optional: defaults to gpt-4o
 
 # === Additional Options ===
 
 # Keep temp directories for debugging
-pytest --keep-tmp-path
+pytest --basetemp=./test_output -v
 
 # Run only fast tests (skip slow integration tests)
 pytest -m "not slow"
 
 # Run specific scenario
-pytest zk_chat/integration/basic_operations_integration_spec.py::DescribeBasicDocumentOperations::should_create_new_document_with_metadata -v
+pytest integration_tests/image_operations_integration.py::DescribeImageAnalysis::should_analyze_architecture_diagram -v
 
-# Increase timeout for slow models
-export ZK_TEST_TIMEOUT=600  # seconds, default is 300
+# Run with verbose output
+pytest integration_tests/ -v -s
 ```
 
 ### Choosing Between Gateways
