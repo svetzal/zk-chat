@@ -1,8 +1,29 @@
+import re
+
 import structlog
 from mojentic.llm import ChatSession, LLMBroker
 from mojentic.llm.tools.llm_tool import LLMTool
 
 logger = structlog.get_logger()
+
+
+def strip_thinking(text: str) -> str:
+    """Remove <think>...</think> blocks from text.
+
+    Some models (like Qwen) output chain-of-thought reasoning in <think> tags.
+    This function strips those blocks to get the actual response content.
+
+    Parameters
+    ----------
+    text : str
+        The text that may contain <think> blocks
+
+    Returns
+    -------
+    str
+        The text with all <think>...</think> blocks removed
+    """
+    return re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
 
 
 class IterativeProblemSolvingAgent:
@@ -73,11 +94,12 @@ class IterativeProblemSolvingAgent:
 
         while True:
             result = self._step(problem)
+            result_for_eval = strip_thinking(result).upper()
 
-            if "FAIL".lower() in result.lower():
+            if "FAIL" in result_for_eval:
                 logger.info("Task failed", user_request=problem, result=result)
                 break
-            elif "DONE".lower() in result.lower():
+            elif "DONE" in result_for_eval:
                 logger.info("Task completed", user_request=problem, result=result)
                 break
 

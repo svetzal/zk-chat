@@ -65,12 +65,20 @@ class LLMValidator:
     def _validate_criterion(self, criterion) -> dict:
         """Validate a single criterion"""
         validation_prompt = f"""
-You are validating the results of a task. Examine the vault and determine if the following criterion is satisfied:
+You are validating the results of a task. You MUST use the available tools to examine the vault.
 
+IMPORTANT: Use the read_document tool to access file contents. Do NOT say you cannot access files - you have tools available to read them.
+
+Criterion to validate:
 {criterion.description}
 
 Specific validation instructions:
 {criterion.prompt}
+
+Steps:
+1. Use read_document or list_documents tools to access the vault contents
+2. Examine the relevant files
+3. Determine if the criterion is satisfied
 
 Respond with:
 - PASS or FAIL
