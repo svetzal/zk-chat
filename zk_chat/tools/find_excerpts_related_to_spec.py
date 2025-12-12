@@ -1,11 +1,11 @@
 import json
+from unittest.mock import Mock
 
 import pytest
 from pytest_mock import MockerFixture
-from unittest.mock import Mock
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
-from zk_chat.models import ZkDocumentExcerpt, ZkQueryExcerptResult, QueryResult, VectorDocumentForStorage
+from zk_chat.models import QueryResult, VectorDocumentForStorage
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.vector_database import VectorDatabase
 

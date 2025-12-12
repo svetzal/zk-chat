@@ -1,12 +1,12 @@
 import json
+from unittest.mock import Mock
 
 import pytest
 from mojentic.llm.tools.llm_tool import LLMTool
 from pytest_mock import MockerFixture
-from unittest.mock import Mock
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
-from zk_chat.models import ZkDocument, ZkQueryDocumentResult, QueryResult, VectorDocumentForStorage
+from zk_chat.models import QueryResult, VectorDocumentForStorage
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.vector_database import VectorDatabase
 from zk_chat.zettelkasten import Zettelkasten
@@ -33,7 +33,9 @@ def mock_tokenizer_gateway():
 
 
 @pytest.fixture
-def mock_zk(mocker: MockerFixture, mock_filesystem, mock_excerpts_db, mock_documents_db, mock_tokenizer_gateway) -> Zettelkasten:
+def mock_zk(
+    mocker: MockerFixture, mock_filesystem, mock_excerpts_db, mock_documents_db, mock_tokenizer_gateway
+) -> Zettelkasten:
     mock = mocker.Mock(spec=Zettelkasten)
     mock.filesystem_gateway = mock_filesystem
     mock.excerpts_db = mock_excerpts_db
