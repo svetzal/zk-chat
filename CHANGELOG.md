@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Next]
 
+### Changed
+
+- **Dependencies**: Updated minimum version requirements for all core dependencies
+  - mojentic: 0.8.2 → 1.0.0 (first stable release)
+  - chromadb: 1.1.0 → 1.3.0
+  - PySide6: 6.6.0 → 6.8.0
+  - typer: 0.9.0 → 0.20.0 (removed deprecated `[all]` extra)
+  - rich: added minimum version 14.0.0
+  - pyyaml: added minimum version 6.0.3
+
 ## [3.5.1] - 2025-11-06
 
 ### Fixed
