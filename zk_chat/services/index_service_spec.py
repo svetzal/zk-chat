@@ -2,7 +2,7 @@
 Tests for the IndexService which handles vector indexing and semantic search in a Zettelkasten.
 """
 from datetime import datetime, timedelta
-from unittest.mock import Mock, call
+from unittest.mock import Mock
 
 import pytest
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway

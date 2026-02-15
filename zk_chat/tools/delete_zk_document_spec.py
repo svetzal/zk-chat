@@ -1,6 +1,7 @@
+from unittest.mock import Mock
+
 import pytest
 from pytest_mock import MockerFixture
-from unittest.mock import Mock
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.delete_zk_document import DeleteZkDocument

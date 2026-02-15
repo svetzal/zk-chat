@@ -151,13 +151,13 @@ zk_rag_plugins = { my_plugin = "my_plugin:MyPlugin" }
 
 ## Key Dependencies
 
-- **mojentic**: LLM broker and gateway abstraction (>=0.8.2)
-- **chromadb**: Vector database for semantic search (>=1.1.0)
-- **PySide6**: Qt-based GUI framework (>=6.6.0)
-- **typer**: CLI framework with rich output support (>=0.9.0)
+- **mojentic**: LLM broker and gateway abstraction (>=1.0.0)
+- **chromadb**: Vector database for semantic search (>=1.3.0)
+- **PySide6**: Qt-based GUI framework (>=6.8.0)
+- **typer**: CLI framework with rich output support (>=0.20.0)
 - **fastmcp**: Model Context Protocol support (>=2.0.0)
-- **rich**: Terminal formatting and UI
-- **pyyaml**: Configuration file parsing
+- **rich**: Terminal formatting and UI (>=14.0.0)
+- **pyyaml**: Configuration file parsing (>=6.0.3)
 
 ## Testing Strategy
 

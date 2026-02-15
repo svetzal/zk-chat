@@ -3428,20 +3428,20 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "chromadb", specifier = ">=1.1.0" },
+    { name = "chromadb", specifier = ">=1.3.0" },
     { name = "fastmcp", specifier = ">=2.0.0" },
     { name = "mkdocs", marker = "extra == 'dev'" },
     { name = "mkdocs-material", marker = "extra == 'dev'" },
-    { name = "mojentic", specifier = ">=0.8.2" },
+    { name = "mojentic", specifier = ">=1.0.0" },
     { name = "pymdown-extensions", marker = "extra == 'dev'" },
-    { name = "pyside6", specifier = ">=6.6.0" },
+    { name = "pyside6", specifier = ">=6.8.0" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-cov", marker = "extra == 'dev'" },
     { name = "pytest-mock", marker = "extra == 'dev'" },
     { name = "pytest-spec", marker = "extra == 'dev'" },
-    { name = "pyyaml" },
-    { name = "rich" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
+    { name = "rich", specifier = ">=14.0.0" },
     { name = "ruff", marker = "extra == 'dev'" },
-    { name = "typer", extras = ["all"], specifier = ">=0.9.0" },
+    { name = "typer", specifier = ">=0.20.0" },
 ]
 provides-extras = ["dev"]

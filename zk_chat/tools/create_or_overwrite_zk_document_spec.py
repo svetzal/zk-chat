@@ -1,9 +1,9 @@
-import pytest
-from pytest_mock import MockerFixture
 from unittest.mock import Mock
 
+import pytest
+from pytest_mock import MockerFixture
+
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
-from zk_chat.models import ZkDocument
 from zk_chat.tools.create_or_overwrite_zk_document import CreateOrOverwriteZkDocument
 
 
