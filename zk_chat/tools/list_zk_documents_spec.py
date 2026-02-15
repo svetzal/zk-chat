@@ -1,10 +1,10 @@
+from unittest.mock import Mock
+
 import pytest
 from mojentic.llm.tools.llm_tool import LLMTool
 from pytest_mock import MockerFixture
-from unittest.mock import Mock
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
-from zk_chat.models import ZkDocument
 from zk_chat.tools.list_zk_documents import ListZkDocuments
 from zk_chat.zettelkasten import Zettelkasten
 
