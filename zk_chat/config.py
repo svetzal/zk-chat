@@ -1,13 +1,13 @@
 import os
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Optional
 
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 from pydantic import BaseModel, Field
 
 
-class ModelGateway(str, Enum):
+class ModelGateway(StrEnum):
     OLLAMA = "ollama"
     OPENAI = "openai"
 
