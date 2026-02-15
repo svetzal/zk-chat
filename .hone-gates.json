@@ -1,0 +1,14 @@
+{
+  "gates": [
+    {
+      "name": "lint",
+      "command": "source .venv/bin/activate && ruff check .",
+      "required": true
+    },
+    {
+      "name": "test",
+      "command": "source .venv/bin/activate && pytest",
+      "required": true
+    }
+  ]
+}
