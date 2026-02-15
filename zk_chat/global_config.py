@@ -1,5 +1,5 @@
 import os
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
@@ -9,7 +9,7 @@ def get_global_config_path() -> str:
     return os.path.expanduser("~/.zk_chat")
 
 
-class MCPServerType(str, Enum):
+class MCPServerType(StrEnum):
     """Type of MCP server connection."""
     STDIO = "stdio"
     HTTP = "http"

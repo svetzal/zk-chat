@@ -67,7 +67,8 @@ class LLMValidator:
         validation_prompt = f"""
 You are validating the results of a task. You MUST use the available tools to examine the vault.
 
-IMPORTANT: Use the read_document tool to access file contents. Do NOT say you cannot access files - you have tools available to read them.
+IMPORTANT: Use the read_document tool to access file contents.
+Do NOT say you cannot access files - you have tools available to read them.
 
 Criterion to validate:
 {criterion.description}
