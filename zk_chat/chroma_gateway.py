@@ -53,8 +53,9 @@ class ChromaGateway:
             )
         return self._collections[collection_name]
 
-    def add_items(self, ids, documents, metadatas, embeddings,
-                  collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN):
+    def add_items(
+        self, ids, documents, metadatas, embeddings, collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN
+    ):
         """
         Add items to a collection.
 
@@ -94,8 +95,7 @@ class ChromaGateway:
             self.chroma_client.reset()
             self._collections = {}
 
-    def query(self, query_embeddings, n_results,
-              collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN):
+    def query(self, query_embeddings, n_results, collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN):
         """
         Query a collection.
 

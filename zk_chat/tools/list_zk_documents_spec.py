@@ -19,8 +19,8 @@ def tool(mock_filesystem) -> LLMTool:
 
 
 def test_run_returns_list_of_document_titles(
-        tool: ListZkDocuments,
-        mock_filesystem,
+    tool: ListZkDocuments,
+    mock_filesystem,
 ):
     # Set up the mock filesystem to return document paths and metadata/content
     mock_filesystem.iterate_markdown_files.return_value = ["doc1.md", "doc2.md", "doc3.md"]

@@ -20,18 +20,16 @@ def tool(mock_index_service) -> LLMTool:
 
 
 def test_run_returns_document_ids_and_titles(
-        tool: FindZkDocumentsRelatedTo,
-        mock_index_service,
+    tool: FindZkDocumentsRelatedTo,
+    mock_index_service,
 ):
     mock_results = [
         ZkQueryDocumentResult(
-            document=ZkDocument(relative_path="doc1", metadata={}, content="First Document"),
-            distance=0.8
+            document=ZkDocument(relative_path="doc1", metadata={}, content="First Document"), distance=0.8
         ),
         ZkQueryDocumentResult(
-            document=ZkDocument(relative_path="doc2", metadata={}, content="Second Document"),
-            distance=0.7
-        )
+            document=ZkDocument(relative_path="doc2", metadata={}, content="Second Document"), distance=0.7
+        ),
     ]
     mock_index_service.query_documents.return_value = mock_results
 

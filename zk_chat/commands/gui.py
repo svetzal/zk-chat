@@ -4,6 +4,7 @@ GUI subcommand for zk-chat.
 
 Launches the graphical user interface.
 """
+
 import logging
 import os
 
@@ -11,7 +12,7 @@ import os
 logging.basicConfig(level=logging.WARN)
 
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
-os.environ['CHROMA_TELEMETRY'] = 'false'
+os.environ["CHROMA_TELEMETRY"] = "false"
 
 from pathlib import Path
 from typing import Annotated
@@ -19,19 +20,14 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
-gui_app = typer.Typer(
-    name="gui",
-    help="🖥️ Launch the graphical user interface",
-    rich_markup_mode="rich"
-)
+gui_app = typer.Typer(name="gui", help="🖥️ Launch the graphical user interface", rich_markup_mode="rich")
 
 console = Console()
 
 
 @gui_app.command()
 def launch(
-        vault: Annotated[Path | None, typer.Option("--vault", "-v",
-                                                   help="Path to your Zettelkasten vault")] = None,
+    vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
 ):
     """
     Launch the graphical user interface for zk-chat.

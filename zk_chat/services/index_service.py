@@ -4,6 +4,7 @@ Index Service for Zettelkasten
 This service provides functionality for vector indexing and semantic search in a Zettelkasten.
 It handles document indexing, excerpt creation, and query operations using vector databases.
 """
+
 import hashlib
 from collections.abc import Callable
 from datetime import datetime
@@ -32,6 +33,7 @@ ProgressCallback = Callable[[str, int, int], None]
 
 class IndexStats(BaseModel):
     """Statistics about the index state."""
+
     total_documents: int
     total_excerpts: int
     last_indexed: datetime | None
@@ -50,11 +52,13 @@ class IndexService:
     This service does not handle document CRUD - that is the responsibility of DocumentService.
     """
 
-    def __init__(self,
-                 tokenizer_gateway: TokenizerGateway,
-                 excerpts_db: VectorDatabase,
-                 documents_db: VectorDatabase,
-                 filesystem_gateway: MarkdownFilesystemGateway):
+    def __init__(
+        self,
+        tokenizer_gateway: TokenizerGateway,
+        excerpts_db: VectorDatabase,
+        documents_db: VectorDatabase,
+        filesystem_gateway: MarkdownFilesystemGateway,
+    ):
         """
         Initialize the IndexService with required dependencies.
 
@@ -75,8 +79,9 @@ class IndexService:
         self.filesystem_gateway = filesystem_gateway
         self._last_indexed: datetime | None = None
 
-    def reindex_all(self, excerpt_size: int = 500, excerpt_overlap: int = 100,
-                    progress_callback: ProgressCallback | None = None) -> None:
+    def reindex_all(
+        self, excerpt_size: int = 500, excerpt_overlap: int = 100, progress_callback: ProgressCallback | None = None
+    ) -> None:
         """
         Reindex all documents in the Zettelkasten.
 
@@ -106,8 +111,13 @@ class IndexService:
         self._last_indexed = datetime.now()
         logger.info("Reindex completed", processed_files=total_files)
 
-    def update_index(self, since: datetime, excerpt_size: int = 500, excerpt_overlap: int = 100,
-                     progress_callback: ProgressCallback | None = None) -> None:
+    def update_index(
+        self,
+        since: datetime,
+        excerpt_size: int = 500,
+        excerpt_overlap: int = 100,
+        progress_callback: ProgressCallback | None = None,
+    ) -> None:
         """
         Update the index for documents modified since a given date.
 
@@ -139,8 +149,7 @@ class IndexService:
         self._last_indexed = datetime.now()
         logger.info("Incremental update completed", processed_files=total_files)
 
-    def index_document(self, relative_path: str, excerpt_size: int = 500,
-                       excerpt_overlap: int = 100) -> None:
+    def index_document(self, relative_path: str, excerpt_size: int = 500, excerpt_overlap: int = 100) -> None:
         """
         Index a single document.
 
@@ -168,11 +177,9 @@ class IndexService:
         relative_path : str
             Path to the document to remove from index
         """
-        logger.warning("Document removal from index not yet implemented",
-                       path=relative_path)
+        logger.warning("Document removal from index not yet implemented", path=relative_path)
 
-    def query_excerpts(self, query: str, n_results: int = 8,
-                       max_distance: float = 1.0) -> list[ZkQueryExcerptResult]:
+    def query_excerpts(self, query: str, n_results: int = 8, max_distance: float = 1.0) -> list[ZkQueryExcerptResult]:
         """
         Query the excerpt index for relevant text excerpts.
 
@@ -196,8 +203,7 @@ class IndexService:
             if result.distance <= max_distance
         ]
 
-    def query_documents(self, query: str, n_results: int = 3,
-                        max_distance: float = 0.0) -> list[ZkQueryDocumentResult]:
+    def query_documents(self, query: str, n_results: int = 3, max_distance: float = 0.0) -> list[ZkQueryDocumentResult]:
         """
         Query the document index for whole documents.
 
@@ -237,11 +243,10 @@ class IndexService:
         return IndexStats(
             total_documents=total_documents,
             total_excerpts=0,  # Would need Chroma API to get actual count
-            last_indexed=self._last_indexed
+            last_indexed=self._last_indexed,
         )
 
-    def _index_document(self, relative_path: str, excerpt_size: int,
-                        excerpt_overlap: int) -> None:
+    def _index_document(self, relative_path: str, excerpt_size: int, excerpt_overlap: int) -> None:
         """Index a single document by reading and processing it."""
         document = self._read_document(relative_path)
         if document.content:
@@ -251,37 +256,29 @@ class IndexService:
     def _read_document(self, relative_path: str) -> ZkDocument:
         """Read a document from the filesystem."""
         metadata, content = self.filesystem_gateway.read_markdown(relative_path)
-        return ZkDocument(
-            relative_path=relative_path,
-            metadata=metadata,
-            content=content
-        )
+        return ZkDocument(relative_path=relative_path, metadata=metadata, content=content)
 
-    def _split_document(self, document: ZkDocument, excerpt_size: int = 200,
-                        excerpt_overlap: int = 100) -> None:
+    def _split_document(self, document: ZkDocument, excerpt_size: int = 200, excerpt_overlap: int = 100) -> None:
         """Split a document into excerpts and index them."""
         logger.info("Processing", document_title=document.title)
         tokens = self.tokenizer_gateway.encode(document.content)
         logger.info("Content length", text=len(document.content), tokens=len(tokens))
-        token_chunks = split_tokens(tokens, excerpt_size=excerpt_size,
-                                    excerpt_overlap=excerpt_overlap)
+        token_chunks = split_tokens(tokens, excerpt_size=excerpt_size, excerpt_overlap=excerpt_overlap)
         if len(token_chunks) > 0:
-            logger.info("Document split into", n_excerpts=len(token_chunks),
-                        excerpt_lengths=[len(chunk) for chunk in token_chunks])
+            logger.info(
+                "Document split into",
+                n_excerpts=len(token_chunks),
+                excerpt_lengths=[len(chunk) for chunk in token_chunks],
+            )
             excerpts = self._decode_tokens_to_text(token_chunks)
             self._add_text_excerpts_to_index(document, excerpts)
 
-    def _add_text_excerpts_to_index(self, document: ZkDocument,
-                                    text_excerpts: list[str]) -> None:
+    def _add_text_excerpts_to_index(self, document: ZkDocument, text_excerpts: list[str]) -> None:
         """Add text excerpts to the excerpts index."""
-        docs_for_storage = [
-            self._create_vector_document_for_storage(excerpt, document)
-            for excerpt in text_excerpts
-        ]
+        docs_for_storage = [self._create_vector_document_for_storage(excerpt, document) for excerpt in text_excerpts]
         self.excerpts_db.add_documents(docs_for_storage)
 
-    def _create_vector_document_for_storage(self, excerpt: str,
-                                            document: ZkDocument) -> VectorDocumentForStorage:
+    def _create_vector_document_for_storage(self, excerpt: str, document: ZkDocument) -> VectorDocumentForStorage:
         """Create a vector document for storage from an excerpt."""
         return VectorDocumentForStorage(
             id=hashlib.md5(bytes(excerpt, "utf-8")).hexdigest(),
@@ -289,7 +286,7 @@ class IndexService:
             metadata={
                 "id": document.id,
                 "title": document.title,
-            }
+            },
         )
 
     def _add_document_to_index(self, document: ZkDocument) -> None:
@@ -301,7 +298,7 @@ class IndexService:
             metadata={
                 "id": document.id,
                 "title": document.title,
-            }
+            },
         )
         self.documents_db.add_documents([doc_for_storage])
 
@@ -321,22 +318,18 @@ class IndexService:
         """Create an excerpt query result from a query result."""
         return ZkQueryExcerptResult(
             excerpt=ZkDocumentExcerpt(
-                document_id=result.document.metadata['id'],
-                document_title=result.document.metadata['title'],
-                text=result.document.content
+                document_id=result.document.metadata["id"],
+                document_title=result.document.metadata["title"],
+                text=result.document.content,
             ),
-            distance=result.distance
+            distance=result.distance,
         )
 
     def _create_document_query_result(self, result: QueryResult) -> ZkQueryDocumentResult | None:
         """Create a document query result, returning None if the document no longer exists."""
         try:
             document = self._read_document(result.document.id)
-            return ZkQueryDocumentResult(
-                document=document,
-                distance=result.distance
-            )
+            return ZkQueryDocumentResult(document=document, distance=result.distance)
         except FileNotFoundError:
-            logger.warning("Document in index not found on filesystem",
-                           document_id=result.document.id)
+            logger.warning("Document in index not found on filesystem", document_id=result.document.id)
             return None

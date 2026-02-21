@@ -1,6 +1,7 @@
 """
 Tests for the service provider system.
 """
+
 from unittest.mock import Mock
 
 from zk_chat.services.service_provider import ServiceProvider

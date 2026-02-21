@@ -1,4 +1,5 @@
 """Factory for building the application service registry from configuration."""
+
 import os
 
 from mojentic.llm import LLMBroker
@@ -7,7 +8,9 @@ from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config
+from zk_chat.config_gateway import ConfigGateway
 from zk_chat.gateway_factory import create_model_gateway
+from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.services.document_service import DocumentService
@@ -38,6 +41,12 @@ def build_service_registry(config: Config) -> ServiceRegistry:
     registry = ServiceRegistry()
 
     registry.register_service(ServiceType.CONFIG, config)
+
+    config_gateway = ConfigGateway()
+    registry.register_service(ServiceType.CONFIG_GATEWAY, config_gateway)
+
+    global_config_gateway = GlobalConfigGateway()
+    registry.register_service(ServiceType.GLOBAL_CONFIG_GATEWAY, global_config_gateway)
 
     gateway = create_model_gateway(config.gateway)
     registry.register_service(ServiceType.MODEL_GATEWAY, gateway)

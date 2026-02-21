@@ -23,12 +23,14 @@ class FindExcerptsRelatedTo(LLMTool):
             title = result.excerpt.document_title
             distance = result.distance
             self.console_service.print(f"  [tool.info]{title} (distance: {distance:.4f})[/]")
-            preview = result.excerpt.text[:100].replace('\n', ' ')
+            preview = result.excerpt.text[:100].replace("\n", " ")
             self.console_service.print(f"    [tool.info]{preview}...[/]")
-        return json.dumps([
-            result.model_dump(mode='json')  # mode json to handle datetime serialization
-            for result in results
-        ])
+        return json.dumps(
+            [
+                result.model_dump(mode="json")  # mode json to handle datetime serialization
+                for result in results
+            ]
+        )
 
     @property
     def descriptor(self) -> dict:
@@ -37,18 +39,15 @@ class FindExcerptsRelatedTo(LLMTool):
             "function": {
                 "name": "find_excerpts",
                 "description": "Search for specific passages or excerpts within documents in the "
-                               "Zettelkasten knowledge base that are relevant to a query. This "
-                               "returns smaller chunks of text (excerpts) rather than entire documents, "
-                               "which is useful when you need specific information rather than complete documents.",
+                "Zettelkasten knowledge base that are relevant to a query. This "
+                "returns smaller chunks of text (excerpts) rather than entire documents, "
+                "which is useful when you need specific information rather than complete documents.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "query": {
-                            "type": "string",
-                            "description": "The search query to find relevant excerpts."
-                        }
+                        "query": {"type": "string", "description": "The search query to find relevant excerpts."}
                     },
-                    "required": ["query"]
+                    "required": ["query"],
                 },
             },
         }

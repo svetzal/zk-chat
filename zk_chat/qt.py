@@ -3,7 +3,7 @@ import os
 import sys
 
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
-os.environ['CHROMA_TELEMETRY'] = 'false'
+os.environ["CHROMA_TELEMETRY"] = "false"
 
 from mojentic.llm import ChatSession, LLMBroker
 from mojentic.llm.tools.date_resolver import ResolveDateTool
@@ -29,8 +29,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from zk_chat.config import Config, ModelGateway, get_available_models
-from zk_chat.global_config import GlobalConfig
+from zk_chat.config import Config, ModelGateway
+from zk_chat.config_gateway import ConfigGateway
+from zk_chat.global_config_gateway import GlobalConfigGateway
+from zk_chat.model_selection import get_available_models
 from zk_chat.service_factory import build_service_registry
 from zk_chat.services.service_provider import ServiceProvider
 from zk_chat.tools.analyze_image import AnalyzeImage
@@ -269,17 +271,24 @@ class SettingsDialog(QDialog):
 
     def save_settings(self):
         new_vault_path = self.folder_edit.text()
+        config_gateway = ConfigGateway()
 
         # If vault path changed, update global config bookmarks
         if new_vault_path != self.config.vault:
-            global_config = GlobalConfig.load()
+            global_config_gateway = GlobalConfigGateway()
+            global_config = global_config_gateway.load()
             global_config.add_bookmark(new_vault_path)
             global_config.set_last_opened_bookmark(new_vault_path)
+            global_config_gateway.save(global_config)
 
             # Load or create config for the new vault
-            self.config = Config.load(new_vault_path)
+            self.config = config_gateway.load(new_vault_path)
             if not self.config:
-                self.config = Config.load_or_initialize(new_vault_path)
+                self.config = Config(
+                    vault=new_vault_path,
+                    model=self.chat_model_combo.currentText(),
+                    gateway=ModelGateway(self.gateway_combo.currentText()),
+                )
         else:
             self.config.vault = new_vault_path
 
@@ -293,7 +302,7 @@ class SettingsDialog(QDialog):
         else:
             self.config.visual_model = selected_visual_model
 
-        self.config.save()
+        config_gateway.save(self.config)
         self.accept()
 
 
@@ -301,15 +310,14 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         # Load global config to get the last opened bookmark
-        global_config = GlobalConfig.load()
+        global_config_gateway = GlobalConfigGateway()
+        global_config = global_config_gateway.load()
         vault_path = global_config.get_last_opened_bookmark_path()
 
         if not vault_path:
             # No bookmark found, ask user to select a vault
             vault_path = QFileDialog.getExistingDirectory(
-                self,
-                "Select Your Zettelkasten Vault Directory",
-                os.path.expanduser("~")
+                self, "Select Your Zettelkasten Vault Directory", os.path.expanduser("~")
             )
             if not vault_path:
                 # User cancelled, exit
@@ -318,11 +326,15 @@ class MainWindow(QMainWindow):
             # Add as bookmark and save
             global_config.add_bookmark(vault_path)
             global_config.set_last_opened_bookmark(vault_path)
+            global_config_gateway.save(global_config)
 
-        self.config = Config.load(vault_path)
+        config_gateway = ConfigGateway()
+        self.config = config_gateway.load(vault_path)
         if not self.config:
-            # Config doesn't exist, initialize it
-            self.config = Config.load_or_initialize(vault_path)
+            # Config doesn't exist — create a default config for the GUI context
+            # (GUI will prompt for model selection via the settings dialog)
+            self.config = Config(vault=vault_path, model="")
+            config_gateway.save(self.config)
 
         self.chat_session = None
         self.initialize_chat_session()
@@ -413,19 +425,14 @@ class MainWindow(QMainWindow):
             visual_llm = LLMBroker(self.config.visual_model, gateway=gateway)
             tools.append(AnalyzeImage(filesystem_gateway, visual_llm))
 
-        self.chat_session = ChatSession(
-            chat_llm,
-            system_prompt="You are a helpful research assistant.",
-            tools=tools
-        )
+        self.chat_session = ChatSession(chat_llm, system_prompt="You are a helpful research assistant.", tools=tools)
 
     def show_settings(self):
         dialog = SettingsDialog(self.config, self)
         if dialog.exec():
             self.initialize_chat_session()
 
-    def append_message(self, role: str, content: str = "",
-                       loading: bool = False) -> ChatMessageWidget:
+    def append_message(self, role: str, content: str = "", loading: bool = False) -> ChatMessageWidget:
         # Remove the stretch if it exists
         if self.messages_layout.count() > 0:
             stretch_item = self.messages_layout.itemAt(self.messages_layout.count() - 1)
@@ -440,9 +447,9 @@ class MainWindow(QMainWindow):
         self.messages_layout.addStretch()
 
         # Scroll to the bottom to show the new message
-        QTimer.singleShot(1, lambda: self.scroll_area.verticalScrollBar().setValue(
-            self.scroll_area.verticalScrollBar().maximum()
-        ))
+        QTimer.singleShot(
+            1, lambda: self.scroll_area.verticalScrollBar().setValue(self.scroll_area.verticalScrollBar().maximum())
+        )
 
         return message_widget
 
@@ -460,17 +467,16 @@ class MainWindow(QMainWindow):
 
         # Create and start worker thread for chat response
         self.worker = ChatWorker(self.chat_session, message)
-        self.worker.response_ready.connect(
-            lambda response: self.update_assistant_response(assistant_widget, response))
+        self.worker.response_ready.connect(lambda response: self.update_assistant_response(assistant_widget, response))
         self.worker.start()
 
     def update_assistant_response(self, widget: ChatMessageWidget, response: str):
         widget.set_loading(False)
         widget.set_content(response)
         # Ensure we scroll to see the complete response
-        QTimer.singleShot(1, lambda: self.scroll_area.verticalScrollBar().setValue(
-            self.scroll_area.verticalScrollBar().maximum()
-        ))
+        QTimer.singleShot(
+            1, lambda: self.scroll_area.verticalScrollBar().setValue(self.scroll_area.verticalScrollBar().maximum())
+        )
 
 
 def main():

@@ -10,13 +10,12 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from zk_chat.global_config import GlobalConfig, MCPServerConfig, MCPServerType
+from zk_chat.global_config import MCPServerConfig, MCPServerType
+from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.mcp_client import verify_mcp_server
 
 mcp_app = typer.Typer(
-    name="mcp",
-    help="🔌 Manage MCP (Model Context Protocol) server connections",
-    rich_markup_mode="rich"
+    name="mcp", help="🔌 Manage MCP (Model Context Protocol) server connections", rich_markup_mode="rich"
 )
 
 console = Console()
@@ -24,18 +23,12 @@ console = Console()
 
 @mcp_app.command()
 def add(
-        name: Annotated[str, typer.Argument(help="Name for this MCP server")],
-        server_type: Annotated[
-            str, typer.Option("--type", "-t", help="Server type (stdio or http)")],
-        command: Annotated[
-            str | None, typer.Option("--command", "-c", help="Command for STDIO server")] = None,
-        url: Annotated[str | None, typer.Option("--url", "-u", help="URL for HTTP server")] = None,
-        args: Annotated[str | None, typer.Option("--args", "-a",
-                                                 help="Command line arguments ("
-                                                      "comma-separated)")] = None,
-        no_verify: Annotated[bool, typer.Option("--no-verify",
-                                                help="Skip server availability verification")] =
-                                                False,
+    name: Annotated[str, typer.Argument(help="Name for this MCP server")],
+    server_type: Annotated[str, typer.Option("--type", "-t", help="Server type (stdio or http)")],
+    command: Annotated[str | None, typer.Option("--command", "-c", help="Command for STDIO server")] = None,
+    url: Annotated[str | None, typer.Option("--url", "-u", help="URL for HTTP server")] = None,
+    args: Annotated[str | None, typer.Option("--args", "-a", help="Command line arguments (comma-separated)")] = None,
+    no_verify: Annotated[bool, typer.Option("--no-verify", help="Skip server availability verification")] = False,
 ):
     """
     Add a new MCP server connection.
@@ -74,13 +67,11 @@ def _validate_server_type(server_type: str) -> MCPServerType:
     try:
         return MCPServerType(server_type.lower())
     except ValueError as e:
-        console.print(
-            f"[red]❌ Error:[/] Invalid server type '{server_type}'. Use 'stdio' or 'http'.")
+        console.print(f"[red]❌ Error:[/] Invalid server type '{server_type}'. Use 'stdio' or 'http'.")
         raise typer.Exit(1) from e
 
 
-def _validate_required_params(srv_type: MCPServerType, command: str | None,
-                              url: str | None) -> None:
+def _validate_required_params(srv_type: MCPServerType, command: str | None, url: str | None) -> None:
     """Validate required parameters based on server type."""
     if srv_type == MCPServerType.STDIO and not command:
         console.print("[red]❌ Error:[/] STDIO server requires --command parameter.")
@@ -92,21 +83,11 @@ def _validate_required_params(srv_type: MCPServerType, command: str | None,
 
 
 def _create_server_config(
-        name: str,
-        srv_type: MCPServerType,
-        command: str | None,
-        url: str | None,
-        args_list: list
+    name: str, srv_type: MCPServerType, command: str | None, url: str | None, args_list: list
 ) -> MCPServerConfig:
     """Create server configuration."""
     try:
-        return MCPServerConfig(
-            name=name,
-            server_type=srv_type,
-            command=command,
-            url=url,
-            args=args_list
-        )
+        return MCPServerConfig(name=name, server_type=srv_type, command=command, url=url, args=args_list)
     except ValueError as e:
         console.print(f"[red]❌ Error:[/] {str(e)}")
         raise typer.Exit(1) from e
@@ -119,23 +100,20 @@ def _verify_server(name: str, server_config: MCPServerConfig) -> None:
         console.print(f"[green]✅ Server {name} is available[/]")
     else:
         console.print(f"[red]❌ Server {name} is not available[/]")
-        console.print(
-            "[yellow]Use --no-verify to register anyway, or fix the server configuration.[/]")
+        console.print("[yellow]Use --no-verify to register anyway, or fix the server configuration.[/]")
         raise typer.Exit(1)
 
 
 def _register_server(server_config: MCPServerConfig) -> None:
     """Register server in global config."""
-    global_config = GlobalConfig.load()
+    gateway = GlobalConfigGateway()
+    global_config = gateway.load()
     global_config.add_mcp_server(server_config)
+    gateway.save(global_config)
 
 
 def _display_registration_success(
-        name: str,
-        srv_type: MCPServerType,
-        command: str | None,
-        url: str | None,
-        args_list: list
+    name: str, srv_type: MCPServerType, command: str | None, url: str | None, args_list: list
 ) -> None:
     """Display success message and configuration."""
     console.print(f"\n[green]✅ MCP server '{name}' registered successfully![/]")
@@ -148,13 +126,13 @@ def _display_registration_success(
     if url:
         console.print(f"  • URL: {url}")
     if args_list:
-        args_str = ', '.join(args_list)
+        args_str = ", ".join(args_list)
         console.print(f"  • Args: {args_str}")
 
 
 @mcp_app.command()
 def remove(
-        name: Annotated[str, typer.Argument(help="Name of the MCP server to remove")],
+    name: Annotated[str, typer.Argument(help="Name of the MCP server to remove")],
 ):
     """
     Remove a registered MCP server.
@@ -164,9 +142,11 @@ def remove(
     • [cyan]zk-chat mcp remove figma[/]
     • [cyan]zk-chat mcp remove chrome[/]
     """
-    global_config = GlobalConfig.load()
+    gateway = GlobalConfigGateway()
+    global_config = gateway.load()
 
     if global_config.remove_mcp_server(name):
+        gateway.save(global_config)
         console.print(f"[green]✅ MCP server '{name}' removed successfully![/]")
     else:
         console.print(f"[red]❌ Error:[/] MCP server '{name}' not found.")
@@ -183,13 +163,12 @@ def list():
 
     • [cyan]zk-chat mcp list[/]
     """
-    global_config = GlobalConfig.load()
+    global_config = GlobalConfigGateway().load()
     servers = global_config.list_mcp_servers()
 
     if not servers:
         console.print("[yellow]No MCP servers registered.[/]")
-        console.print(
-            "\n[dim]Add a server with:[/] [cyan]zk-chat mcp add <name> --type <stdio|http> ...[/]")
+        console.print("\n[dim]Add a server with:[/] [cyan]zk-chat mcp add <name> --type <stdio|http> ...[/]")
         return
 
     # Create a table
@@ -213,12 +192,7 @@ def list():
         is_available = verify_mcp_server(server)
         status = "✅ Available" if is_available else "❌ Unavailable"
 
-        table.add_row(
-            server.name,
-            server.server_type.value,
-            config_str,
-            status
-        )
+        table.add_row(server.name, server.server_type.value, config_str, status)
 
     console.print(table)
 
@@ -231,8 +205,9 @@ def list():
 
 @mcp_app.command()
 def verify(
-        name: Annotated[str | None, typer.Argument(
-            help="Name of the MCP server to verify (or all if not specified)")] = None,
+    name: Annotated[
+        str | None, typer.Argument(help="Name of the MCP server to verify (or all if not specified)")
+    ] = None,
 ):
     """
     Verify the availability of MCP servers.
@@ -242,7 +217,7 @@ def verify(
     • [cyan]zk-chat mcp verify[/] - Verify all servers
     • [cyan]zk-chat mcp verify figma[/] - Verify specific server
     """
-    global_config = GlobalConfig.load()
+    global_config = GlobalConfigGateway().load()
 
     if name:
         # Verify specific server
@@ -291,7 +266,7 @@ def mcp_default(ctx: typer.Context):
     """
     if ctx.invoked_subcommand is None:
         console.print(ctx.get_help())
+        console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat mcp --help[/] to see available commands.")
         console.print(
-            "\n[yellow]💡 Tip:[/] Use [cyan]zk-chat mcp --help[/] to see available commands.")
-        console.print(
-            "Most common: [cyan]zk-chat mcp add[/], [cyan]zk-chat mcp list[/], or [cyan]zk-chat mcp verify[/]")
+            "Most common: [cyan]zk-chat mcp add[/], [cyan]zk-chat mcp list[/], or [cyan]zk-chat mcp verify[/]"
+        )

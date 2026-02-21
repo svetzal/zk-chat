@@ -27,27 +27,22 @@ class DescribeListZkImages:
         assert tool.fs is mock_filesystem
 
     def should_return_list_of_image_paths(self, tool: ListZkImages, mock_filesystem):
-        image_paths = [
-            "images/photo1.jpg",
-            "assets/diagram.png",
-            "screenshots/screen.jpeg"
-        ]
+        image_paths = ["images/photo1.jpg", "assets/diagram.png", "screenshots/screen.jpeg"]
         mock_filesystem.iterate_files_by_extensions.return_value = iter(image_paths)
 
         result = tool.run()
 
         expected = "images/photo1.jpg\nassets/diagram.png\nscreenshots/screen.jpeg"
         assert result == expected
-        mock_filesystem.iterate_files_by_extensions.assert_called_once_with(['.jpg', '.jpeg', '.png'])
+        mock_filesystem.iterate_files_by_extensions.assert_called_once_with([".jpg", ".jpeg", ".png"])
 
-    def should_return_no_images_message_when_vault_has_no_images(self, tool: ListZkImages,
-                                                                   mock_filesystem):
+    def should_return_no_images_message_when_vault_has_no_images(self, tool: ListZkImages, mock_filesystem):
         mock_filesystem.iterate_files_by_extensions.return_value = iter([])
 
         result = tool.run()
 
         assert result == "No image files found in the vault."
-        mock_filesystem.iterate_files_by_extensions.assert_called_once_with(['.jpg', '.jpeg', '.png'])
+        mock_filesystem.iterate_files_by_extensions.assert_called_once_with([".jpg", ".jpeg", ".png"])
 
     def should_have_correct_descriptor(self, tool: ListZkImages):
         descriptor = tool.descriptor

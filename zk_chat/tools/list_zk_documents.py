@@ -31,13 +31,9 @@ class ListZkDocuments(LLMTool):
             "function": {
                 "name": "list_documents",
                 "description": "List all document paths in the Zettelkasten knowledge base. Use "
-                               "this when you need to see what documents are available in the "
-                               "system before searching or reading specific documents. This provides an overview of "
-                               "the available knowledge without retrieving the actual content.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {},
-                    "required": []
-                },
+                "this when you need to see what documents are available in the "
+                "system before searching or reading specific documents. This provides an overview of "
+                "the available knowledge without retrieving the actual content.",
+                "parameters": {"type": "object", "properties": {}, "required": []},
             },
         }

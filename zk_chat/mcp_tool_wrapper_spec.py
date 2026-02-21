@@ -1,6 +1,7 @@
 """
 Tests for MCP tool wrapper functionality.
 """
+
 from unittest.mock import Mock
 
 from zk_chat.mcp_tool_wrapper import MCPToolWrapper
@@ -15,16 +16,10 @@ class DescribeMCPToolWrapper:
         tool_descriptor = {
             "name": "test_tool",
             "description": "A test tool",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "param1": {"type": "string"}
-                }
-            }
+            "inputSchema": {"type": "object", "properties": {"param1": {"type": "string"}}},
         }
 
-        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor,
-                                 mock_loop)
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
 
         assert wrapper.tool_name == "test_tool"
         assert wrapper.server_name == "test-server"
@@ -39,18 +34,12 @@ class DescribeMCPToolWrapper:
             "description": "A test tool that does something",
             "inputSchema": {
                 "type": "object",
-                "properties": {
-                    "param1": {
-                        "type": "string",
-                        "description": "First parameter"
-                    }
-                },
-                "required": ["param1"]
-            }
+                "properties": {"param1": {"type": "string", "description": "First parameter"}},
+                "required": ["param1"],
+            },
         }
 
-        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor,
-                                 mock_loop)
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
         descriptor = wrapper.descriptor
 
         assert descriptor["type"] == "function"
@@ -61,13 +50,9 @@ class DescribeMCPToolWrapper:
     def should_handle_missing_description(self):
         mock_client = Mock()
         mock_loop = Mock()
-        tool_descriptor = {
-            "name": "test_tool",
-            "inputSchema": {}
-        }
+        tool_descriptor = {"name": "test_tool", "inputSchema": {}}
 
-        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor,
-                                 mock_loop)
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
         descriptor = wrapper.descriptor
 
         assert "Tool from test-server" in descriptor["function"]["description"]
@@ -80,15 +65,11 @@ class DescribeMCPToolWrapper:
             "description": "A test tool",
             "inputSchema": {
                 "type": "object",
-                "properties": {
-                    "timeout": {"type": "number"},
-                    "count": {"type": "integer"}
-                }
-            }
+                "properties": {"timeout": {"type": "number"}, "count": {"type": "integer"}},
+            },
         }
 
-        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor,
-                                 mock_loop)
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
 
         # Test coercion
         coerced = wrapper._coerce_types({"timeout": "30.5", "count": "42"})
@@ -104,16 +85,10 @@ class DescribeMCPToolWrapper:
         tool_descriptor = {
             "name": "test_tool",
             "description": "A test tool",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "enabled": {"type": "boolean"}
-                }
-            }
+            "inputSchema": {"type": "object", "properties": {"enabled": {"type": "boolean"}}},
         }
 
-        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor,
-                                 mock_loop)
+        wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
 
         # Test coercion
         assert wrapper._coerce_types({"enabled": "true"})["enabled"] is True

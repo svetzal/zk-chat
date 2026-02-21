@@ -4,9 +4,11 @@ import os
 from datetime import datetime
 
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
-os.environ['CHROMA_TELEMETRY'] = 'false'
+os.environ["CHROMA_TELEMETRY"] = "false"
 
 from zk_chat.config import Config, ModelGateway
+from zk_chat.config_gateway import ConfigGateway
+from zk_chat.model_selection import select_model
 from zk_chat.progress_tracker import IndexingProgressTracker
 from zk_chat.service_factory import build_service_registry
 from zk_chat.services.index_service import IndexService
@@ -35,8 +37,9 @@ def _full_reindex(config: Config, index_service: IndexService, progress: Indexin
     return files_processed, total_files or 0
 
 
-def _incremental_reindex(config: Config, index_service: IndexService, progress: IndexingProgressTracker,
-                          last_indexed: datetime) -> tuple[int, int]:
+def _incremental_reindex(
+    config: Config, index_service: IndexService, progress: IndexingProgressTracker, last_indexed: datetime
+) -> tuple[int, int]:
     progress.start_scanning("Scanning for modified documents...")
     print(f"Performing incremental reindex since {last_indexed}...")
     files_processed = 0
@@ -63,7 +66,7 @@ def _incremental_reindex(config: Config, index_service: IndexService, progress: 
     return files_processed, total_files or 0
 
 
-def reindex(config: Config, force_full: bool = False):
+def reindex(config: Config, force_full: bool = False, config_gateway: ConfigGateway | None = None):
     """Reindex the Zettelkasten vault with progress tracking."""
     registry = build_service_registry(config)
     provider = ServiceProvider(registry)
@@ -81,21 +84,23 @@ def reindex(config: Config, force_full: bool = False):
         if total_files == 0:
             print("\n✓ No documents needed updating")
         else:
-            print(
-                f"\n✓ Successfully processed {files_processed} document"
-                f"{'s' if files_processed != 1 else ''}")
+            print(f"\n✓ Successfully processed {files_processed} document{'s' if files_processed != 1 else ''}")
 
     config.set_last_indexed(datetime.now())
-    config.save()
+    gateway = config_gateway or ConfigGateway()
+    gateway.save(config)
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Index the Zettelkasten vault')
-    parser.add_argument('--vault', required=True, help='Path to your Zettelkasten vault')
-    parser.add_argument('--full', action='store_true', default=False, help='Force full reindex')
-    parser.add_argument('--gateway', choices=['ollama', 'openai'], default='ollama',
-                        help='Set the model gateway to use (ollama or openai). OpenAI requires '
-                        'OPENAI_API_KEY environment variable')
+    parser = argparse.ArgumentParser(description="Index the Zettelkasten vault")
+    parser.add_argument("--vault", required=True, help="Path to your Zettelkasten vault")
+    parser.add_argument("--full", action="store_true", default=False, help="Force full reindex")
+    parser.add_argument(
+        "--gateway",
+        choices=["ollama", "openai"],
+        default="ollama",
+        help="Set the model gateway to use (ollama or openai). OpenAI requires OPENAI_API_KEY environment variable",
+    )
     args = parser.parse_args()
 
     # Ensure vault path exists
@@ -114,18 +119,22 @@ def main():
         print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
         return
 
-    config = Config.load(vault_path)
+    config_gateway = ConfigGateway()
+    config = config_gateway.load(vault_path)
     if config:
         # Update gateway if different from config
         if gateway != config.gateway:
             config.gateway = gateway
-            config.save()
+            config_gateway.save(config)
     else:
-        # Initialize new config with specified gateway
-        config = Config.load_or_initialize(vault_path, gateway=gateway)
+        # Initialize new config with specified gateway — prompt interactively
+        print("Please select a model for chat:")
+        model = select_model(gateway)
+        config = Config(vault=vault_path, model=model, gateway=gateway)
+        config_gateway.save(config)
 
-    reindex(config, force_full=args.full)
+    reindex(config, force_full=args.full, config_gateway=config_gateway)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

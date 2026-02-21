@@ -1,6 +1,7 @@
 """
 Tests for the service registry system.
 """
+
 from unittest.mock import Mock
 
 from zk_chat.services.service_registry import ServiceRegistry, ServiceType

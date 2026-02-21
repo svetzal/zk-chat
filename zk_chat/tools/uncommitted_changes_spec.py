@@ -33,8 +33,7 @@ class DescribeUncommittedChanges:
         assert tool.base_path == base_path
         assert tool.git == mock_git
 
-    def should_return_error_message_when_adding_files_fails(self, uncommitted_changes,
-                                                            mock_git_gateway):
+    def should_return_error_message_when_adding_files_fails(self, uncommitted_changes, mock_git_gateway):
         """Test that run returns an error message when adding files fails."""
         mock_git_gateway.add_all_files.return_value = (False, "Error adding files")
 
@@ -43,8 +42,7 @@ class DescribeUncommittedChanges:
         mock_git_gateway.add_all_files.assert_called_once()
         assert result == "Error adding files: Error adding files"
 
-    def should_return_error_message_when_getting_diff_fails(self, uncommitted_changes,
-                                                            mock_git_gateway):
+    def should_return_error_message_when_getting_diff_fails(self, uncommitted_changes, mock_git_gateway):
         """Test that run returns an error message when getting diff fails."""
         mock_git_gateway.add_all_files.return_value = (True, "Files added")
         mock_git_gateway.get_diff.return_value = (False, "Error getting diff")
@@ -55,8 +53,7 @@ class DescribeUncommittedChanges:
         mock_git_gateway.get_diff.assert_called_once()
         assert result == "Error getting diff: Error getting diff"
 
-    def should_return_no_changes_message_when_diff_is_empty(self, uncommitted_changes,
-                                                            mock_git_gateway):
+    def should_return_no_changes_message_when_diff_is_empty(self, uncommitted_changes, mock_git_gateway):
         """Test that run returns a no changes message when diff is empty."""
         mock_git_gateway.add_all_files.return_value = (True, "Files added")
         mock_git_gateway.get_diff.return_value = (True, "")
@@ -76,8 +73,7 @@ class DescribeUncommittedChanges:
 
         mock_git_gateway.add_all_files.assert_called_once()
         mock_git_gateway.get_diff.assert_called_once()
-        assert result == ("Uncommitted changes in the vault folder:\ndiff --git a/file.txt "
-                          "b/file.txt")
+        assert result == ("Uncommitted changes in the vault folder:\ndiff --git a/file.txt b/file.txt")
 
     def should_handle_unexpected_exceptions(self, uncommitted_changes, mock_git_gateway, mocker):
         """Test that run handles unexpected exceptions."""

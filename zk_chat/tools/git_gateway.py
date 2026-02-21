@@ -15,7 +15,7 @@ class GitGateway:
     def __init__(self, base_path: str):
         """
         Initialize the GitGateway with the repository path.
-        
+
         Parameters
         ----------
         base_path : str
@@ -26,29 +26,22 @@ class GitGateway:
     def _run_git_command(self, command: list) -> tuple[bool, str]:
         """
         Run a git command and handle errors.
-        
+
         Parameters
         ----------
         command : list
             The git command to run as a list of strings
-            
+
         Returns
         -------
         Tuple[bool, str]
             A tuple containing a success flag and the command output or error message
         """
         try:
-            result = subprocess.run(
-                command,
-                cwd=self.base_path,
-                capture_output=True,
-                text=True,
-                check=True
-            )
+            result = subprocess.run(command, cwd=self.base_path, capture_output=True, text=True, check=True)
             return True, result.stdout
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error executing git command: {command[0]}", error=str(e),
-                         stderr=e.stderr)
+            logger.error(f"Error executing git command: {command[0]}", error=str(e), stderr=e.stderr)
             return False, e.stderr
         except Exception as e:
             logger.error(f"Unexpected error in git command: {command[0]}", error=str(e))
@@ -57,7 +50,7 @@ class GitGateway:
     def add_all_files(self) -> tuple[bool, str]:
         """
         Add all files to git staging.
-        
+
         Returns
         -------
         Tuple[bool, str]
@@ -68,7 +61,7 @@ class GitGateway:
     def get_status(self) -> tuple[bool, str]:
         """
         Get the git status in porcelain format.
-        
+
         Returns
         -------
         Tuple[bool, str]
@@ -79,7 +72,7 @@ class GitGateway:
     def get_diff(self) -> tuple[bool, str]:
         """
         Get the git diff against HEAD.
-        
+
         Returns
         -------
         Tuple[bool, str]
@@ -90,12 +83,12 @@ class GitGateway:
     def commit(self, message: str) -> tuple[bool, str]:
         """
         Commit changes with the provided message.
-        
+
         Parameters
         ----------
         message : str
             The commit message
-            
+
         Returns
         -------
         Tuple[bool, str]

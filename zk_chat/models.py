@@ -19,7 +19,7 @@ class ZkDocument(BaseModel):
         return self.relative_path
 
     def _strip_identifier_prefix(self, string: str) -> str:
-        return re.sub(r'^[@!]\s*', '', string)
+        return re.sub(r"^[@!]\s*", "", string)
 
     def _base_filename_without_extension(self) -> str:
         return os.path.splitext(os.path.basename(self.relative_path))[0]
@@ -49,25 +49,24 @@ class VectorDocument(BaseModel):
 
 class VectorDocumentForStorage(VectorDocument):
     """Document ready for storage, before embedding calculation"""
+
     pass
 
 
 class QueryResult(BaseModel):
     """Document with its distance from the query vector"""
+
     document: VectorDocumentForStorage
     distance: float
 
 
 class VectorDocumentWithEmbeddings(VectorDocument):
     """Document with calculated embeddings, ready for vector database storage"""
+
     embedding: list[float] = Field(..., description="The vector embedding of the content")
 
     @classmethod
-    def from_document(cls, document: VectorDocumentForStorage,
-                      embedding: list[float]) -> 'VectorDocumentWithEmbeddings':
-        return cls(
-            id=document.id,
-            content=document.content,
-            metadata=document.metadata,
-            embedding=embedding
-        )
+    def from_document(
+        cls, document: VectorDocumentForStorage, embedding: list[float]
+    ) -> "VectorDocumentWithEmbeddings":
+        return cls(id=document.id, content=document.content, metadata=document.metadata, embedding=embedding)

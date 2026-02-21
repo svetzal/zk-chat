@@ -27,19 +27,19 @@ class ReadZkDocument(LLMTool):
             "function": {
                 "name": "read_document",
                 "description": "Retrieve and read the full content of a specific document from "
-                               "the Zettelkasten knowledge base. Use this when you need to access "
-                               "the complete content of a document that you already know exists (for example, "
-                               "after using list_documents or find_documents). This returns the entire document "
-                               "including its metadata and content.",
+                "the Zettelkasten knowledge base. Use this when you need to access "
+                "the complete content of a document that you already know exists (for example, "
+                "after using list_documents or find_documents). This returns the entire document "
+                "including its metadata and content.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "relative_path": {
                             "type": "string",
-                            "description": "The relative path within the Zettelkasten from which to read the file."
+                            "description": "The relative path within the Zettelkasten from which to read the file.",
                         }
                     },
-                    "required": ["relative_path"]
+                    "required": ["relative_path"],
                 },
             },
         }

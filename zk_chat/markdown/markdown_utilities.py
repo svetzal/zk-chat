@@ -65,7 +65,7 @@ class MarkdownUtilities:
             return {}, "\n".join(lines)
         try:
             metadata_divider = lines[1:].index("---") + 1
-            content = "\n".join(lines[metadata_divider + 1:])
+            content = "\n".join(lines[metadata_divider + 1 :])
             metadata_str = "\n".join(lines[1:metadata_divider])
             metadata = MarkdownUtilities.parse_metadata(metadata_str)
         except ValueError:  # no metadata markers found

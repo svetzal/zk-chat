@@ -128,6 +128,7 @@ class FilesystemGateway:
             OSError: If there are filesystem-related errors (permissions, file not found, etc.)
         """
         import os
+
         full_source_path = self._get_full_path(source_path)
         full_target_path = self._get_full_path(target_path)
 
@@ -149,6 +150,7 @@ class FilesystemGateway:
             OSError: If there are filesystem-related errors (permissions, etc.)
         """
         import os
+
         full_path = self._get_full_path(relative_path)
 
         if not os.path.exists(full_path):
@@ -187,14 +189,16 @@ class FilesystemGateway:
             str: Relative paths of matching files
         """
         import os
+
         for root, _dirs, files in os.walk(self.root_path):
             for file in files:
                 _, ext = os.path.splitext(file)
-                if ext.lower().lstrip('.') in [e.lower().lstrip('.') for e in extensions]:
+                if ext.lower().lstrip(".") in [e.lower().lstrip(".") for e in extensions]:
                     full_path = os.path.join(root, file)
                     yield self._get_relative_path(full_path)
 
     def _walk_filesystem(self):
         """Wrapper for os.walk to make it easier to mock in tests."""
         import os
+
         return os.walk(self.root_path)

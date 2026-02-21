@@ -8,6 +8,7 @@ This provides a modern, discoverable CLI with commands:
 - zk-chat gui         # Launch the graphical interface
 - zk-chat index       # Index management operations
 """
+
 import logging
 import os
 
@@ -15,7 +16,7 @@ import os
 logging.basicConfig(level=logging.WARN)
 
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
-os.environ['CHROMA_TELEMETRY'] = 'false'
+os.environ["CHROMA_TELEMETRY"] = "false"
 
 import sys
 from pathlib import Path
@@ -93,34 +94,22 @@ def create_args_namespace(
 @app.command()
 def interactive(
     # Vault options
-    vault: Annotated[Path | None, typer.Option("--vault", "-v",
-                                               help="Path to your Zettelkasten vault")] = None,
-    save: Annotated[
-        bool, typer.Option("--save", help="Save the vault path as a bookmark")] = False,
-
+    vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
+    save: Annotated[bool, typer.Option("--save", help="Save the vault path as a bookmark")] = False,
     # Model options
-    gateway: Annotated[str | None, typer.Option("--gateway", "-g",
-                                                help="Model gateway (ollama/openai)")] = None,
-    model: Annotated[
-        str | None, typer.Option("--model", "-m", help="Chat model to use")] = None,
-    visual_model: Annotated[
-        str | None, typer.Option("--visual-model", help="Visual analysis model")] = None,
-
+    gateway: Annotated[str | None, typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
+    model: Annotated[str | None, typer.Option("--model", "-m", help="Chat model to use")] = None,
+    visual_model: Annotated[str | None, typer.Option("--visual-model", help="Visual analysis model")] = None,
     # Index options
-    no_index: Annotated[bool, typer.Option("--no-index",
-                                           help="Skip indexing new documents on startup")] =
-    False,
-
+    no_index: Annotated[bool, typer.Option("--no-index", help="Skip indexing new documents on startup")] = False,
     # Agent options
-    unsafe: Annotated[
-        bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")] = False,
+    unsafe: Annotated[bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")] = False,
     git: Annotated[bool, typer.Option("--git", help="Enable git integration")] = False,
-    store_prompt: Annotated[bool, typer.Option("--store-prompt/--no-store-prompt",
-                                               help="Store system prompt in vault")] = True,
-
+    store_prompt: Annotated[
+        bool, typer.Option("--store-prompt/--no-store-prompt", help="Store system prompt in vault")
+    ] = True,
     # Memory options
-    reset_memory: Annotated[
-        bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
+    reset_memory: Annotated[bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
 ):
     """
     Start an interactive agent session with your Zettelkasten.
@@ -154,44 +143,32 @@ def interactive(
         return
 
     # Display banner and run agent
-    display_banner(config, title="ZkChat Agent", unsafe=unsafe, use_git=git,
-                   store_prompt=store_prompt)
+    display_banner(config, title="ZkChat Agent", unsafe=unsafe, use_git=git, store_prompt=store_prompt)
     run_agent(config)
 
 
 @app.command()
 def query(
-    prompt: Annotated[str | None, typer.Argument(
-        help="Query to ask your Zettelkasten (or read from STDIN if not provided)")] = None,
-
+    prompt: Annotated[
+        str | None, typer.Argument(help="Query to ask your Zettelkasten (or read from STDIN if not provided)")
+    ] = None,
     # Vault options
-    vault: Annotated[Path | None, typer.Option("--vault", "-v",
-                                               help="Path to your Zettelkasten vault")] = None,
-    save: Annotated[
-        bool, typer.Option("--save", help="Save the vault path as a bookmark")] = False,
-
+    vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
+    save: Annotated[bool, typer.Option("--save", help="Save the vault path as a bookmark")] = False,
     # Model options
-    gateway: Annotated[str | None, typer.Option("--gateway", "-g",
-                                                help="Model gateway (ollama/openai)")] = None,
-    model: Annotated[
-        str | None, typer.Option("--model", "-m", help="Chat model to use")] = None,
-    visual_model: Annotated[
-        str | None, typer.Option("--visual-model", help="Visual analysis model")] = None,
-
+    gateway: Annotated[str | None, typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
+    model: Annotated[str | None, typer.Option("--model", "-m", help="Chat model to use")] = None,
+    visual_model: Annotated[str | None, typer.Option("--visual-model", help="Visual analysis model")] = None,
     # Index options
-    no_index: Annotated[
-        bool, typer.Option("--no-index", help="Skip indexing new documents")] = False,
-
+    no_index: Annotated[bool, typer.Option("--no-index", help="Skip indexing new documents")] = False,
     # Agent options
-    unsafe: Annotated[
-        bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")] = False,
+    unsafe: Annotated[bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")] = False,
     git: Annotated[bool, typer.Option("--git", help="Enable git integration")] = False,
-    store_prompt: Annotated[bool, typer.Option("--store-prompt/--no-store-prompt",
-                                               help="Store system prompt in vault")] = True,
-
+    store_prompt: Annotated[
+        bool, typer.Option("--store-prompt/--no-store-prompt", help="Store system prompt in vault")
+    ] = True,
     # Memory options
-    reset_memory: Annotated[
-        bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
+    reset_memory: Annotated[bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
 ):
     """
     Ask a single question to your Zettelkasten and exit.
@@ -214,10 +191,10 @@ def query(
     if prompt is None:
         if sys.stdin.isatty():
             console.print(
-                "[red]Error:[/] No prompt provided. Either pass a prompt as an argument or pipe "
-                "input via STDIN.")
+                "[red]Error:[/] No prompt provided. Either pass a prompt as an argument or pipe input via STDIN."
+            )
             console.print("Examples:")
-            console.print("  [cyan]zk-chat query \"Your question here\"[/]")
+            console.print('  [cyan]zk-chat query "Your question here"[/]')
             console.print("  [cyan]cat prompt.txt | zk-chat query[/]")
             raise typer.Exit(1)
         else:
@@ -246,8 +223,7 @@ def query(
 
     # Display banner if using unsafe or git modes
     if unsafe or git:
-        display_banner(config, title="ZkChat Query", unsafe=unsafe, use_git=git,
-                       store_prompt=store_prompt)
+        display_banner(config, title="ZkChat Query", unsafe=unsafe, use_git=git, store_prompt=store_prompt)
 
     # Execute single query using agent
     console.print(f"[bold cyan]Query:[/] {prompt}")
@@ -255,6 +231,7 @@ def query(
 
     # Import and run agent with single query
     from zk_chat.agent import agent_single_query
+
     result = agent_single_query(config, prompt)
     console.print(f"\n[bold green]Response:[/]\n{result}")
 
@@ -262,8 +239,7 @@ def query(
 @app.callback()
 def main(
     ctx: typer.Context,
-    version: Annotated[
-        bool, typer.Option("--version", help="Show version information")] = False,
+    version: Annotated[bool, typer.Option("--version", help="Show version information")] = False,
 ):
     """
     💬 ZkChat - AI Agent for your Zettelkasten
@@ -287,17 +263,19 @@ def main(
     """
     if version:
         from importlib.metadata import version as get_version
+
         try:
             pkg_version = get_version("zk-chat")
         except Exception:
             pkg_version = "unknown"
 
-        console.print(Panel(
-            f"[bold cyan]zk-chat[/] version [green]{pkg_version}[/]\n"
-            f"[dim]Copyright (C) 2024-2025 Stacey Vetzal[/]",
-            title="Version Information",
-            border_style="cyan"
-        ))
+        console.print(
+            Panel(
+                f"[bold cyan]zk-chat[/] version [green]{pkg_version}[/]\n[dim]Copyright (C) 2024-2025 Stacey Vetzal[/]",
+                title="Version Information",
+                border_style="cyan",
+            )
+        )
         raise typer.Exit()
 
 

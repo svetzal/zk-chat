@@ -17,10 +17,10 @@ logger = structlog.get_logger()
 class ZkChatPlugin(LLMTool):
     """
     Base class for zk-chat plugins that provides convenient service access.
-    
+
     Plugin developers can inherit from this class to get easy access to
     all available services without needing to manage service discovery.
-    
+
     Example:
         class MyPlugin(ZkChatPlugin):
             def __init__(self, service_provider: ServiceProvider):
@@ -39,7 +39,7 @@ class ZkChatPlugin(LLMTool):
     def __init__(self, service_provider: ServiceProvider):
         """
         Initialize the plugin with a service provider.
-        
+
         Args:
             service_provider: Service provider for accessing zk-chat services
         """
@@ -118,13 +118,13 @@ class ZkChatPlugin(LLMTool):
     def require_service(self, service_type: ServiceType):
         """
         Get a required service and raise an exception if not available.
-        
+
         Args:
             service_type: The type of service to retrieve
-            
+
         Returns:
             The service instance
-            
+
         Raises:
             RuntimeError: If the required service is not available
         """
@@ -133,10 +133,10 @@ class ZkChatPlugin(LLMTool):
     def has_service(self, service_type: ServiceType) -> bool:
         """
         Check if a service is available.
-        
+
         Args:
             service_type: The type of service to check
-            
+
         Returns:
             True if the service is available, False otherwise
         """

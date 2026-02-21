@@ -18,8 +18,9 @@ class RenameZkDocument(LLMTool):
         Replaces spaces with underscores and removes characters not allowed in relative paths.
         """
         import re
+
         sanitized = filename.strip()
-        sanitized = re.sub(r'[\\/*?:"<>|]', '', sanitized)
+        sanitized = re.sub(r'[\\/*?:"<>|]', "", sanitized)
         return sanitized
 
     def _ensure_md_extension(self, path: str) -> str:
@@ -47,9 +48,11 @@ class RenameZkDocument(LLMTool):
             logger.error(error_message)
             return error_message
         except OSError as e:
-            error_message = (f"Failed to rename document from '{source_path}' to '{target_path}': "
-                             f"{str(e)}. This could be due to insufficient permissions, "
-                             f"the target file already existing, or other filesystem issues.")
+            error_message = (
+                f"Failed to rename document from '{source_path}' to '{target_path}': "
+                f"{str(e)}. This could be due to insufficient permissions, "
+                f"the target file already existing, or other filesystem issues."
+            )
             logger.error(error_message)
             return error_message
 
@@ -60,26 +63,26 @@ class RenameZkDocument(LLMTool):
             "function": {
                 "name": "rename_document",
                 "description": "Change the name or path of an existing document in the Zettelkasten knowledge base. "
-                               "Use this when you need to reorganize the knowledge base or provide a more appropriate "
-                               "name for a document. This preserves the document's content while changing its "
-                               "identifier. Returns a success message if the rename operation succeeds, or a detailed "
-                               "error message if it fails.",
+                "Use this when you need to reorganize the knowledge base or provide a more appropriate "
+                "name for a document. This preserves the document's content while changing its "
+                "identifier. Returns a success message if the rename operation succeeds, or a detailed "
+                "error message if it fails.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "source_title": {
                             "type": "string",
                             "description": "The title or relative path of the document to rename. The .md extension "
-                                           "is optional."
+                            "is optional.",
                         },
                         "target_title": {
                             "type": "string",
                             "description": "The new title or relative path for the document. The .md extension is "
-                                           "optional."
-                        }
+                            "optional.",
+                        },
                     },
                     "additionalProperties": False,
-                    "required": ["source_title", "target_title"]
+                    "required": ["source_title", "target_title"],
                 },
             },
         }

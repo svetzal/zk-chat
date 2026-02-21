@@ -21,8 +21,8 @@ class DescribeRetrieveFromSmartMemory:
     def should_return_formatted_results_when_information_found(self):
         mock_memory = Mock(spec=SmartMemory)
         mock_memory.retrieve.return_value = {
-            'documents': [['Test document 1'], ['Test document 2']],
-            'distances': [[0.2], [0.5]]
+            "documents": [["Test document 1"], ["Test document 2"]],
+            "distances": [[0.2], [0.5]],
         }
         tool = RetrieveFromSmartMemory(mock_memory)
         test_query = "test query"
@@ -36,7 +36,7 @@ class DescribeRetrieveFromSmartMemory:
 
     def should_return_no_results_message_when_nothing_found(self):
         mock_memory = Mock(spec=SmartMemory)
-        mock_memory.retrieve.return_value = {'documents': [], 'distances': []}
+        mock_memory.retrieve.return_value = {"documents": [], "distances": []}
         tool = RetrieveFromSmartMemory(mock_memory)
         test_query = "test query"
 

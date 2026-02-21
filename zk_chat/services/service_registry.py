@@ -5,6 +5,7 @@ This provides a type-safe way for plugins to request services without
 needing to know about implementation details or requiring changes to
 plugin constructors as new services are added.
 """
+
 from enum import Enum
 from typing import Any, TypeVar
 
@@ -12,7 +13,7 @@ import structlog
 
 logger = structlog.get_logger()
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class ServiceType(Enum):
@@ -41,6 +42,8 @@ class ServiceType(Enum):
 
     # Configuration
     CONFIG = "config"
+    CONFIG_GATEWAY = "config_gateway"
+    GLOBAL_CONFIG_GATEWAY = "global_config_gateway"
 
 
 class ServiceRegistry:
@@ -67,8 +70,7 @@ class ServiceRegistry:
         self._services[service_type] = service_instance
         self._logger.info("Registered service", service_type=service_type.value)
 
-    def get_service(self, service_type: ServiceType,
-                    expected_type: type[T] | None = None) -> T | None:
+    def get_service(self, service_type: ServiceType, expected_type: type[T] | None = None) -> T | None:
         """
         Get a service instance by type.
 

@@ -38,21 +38,20 @@ class DescribeFindForwardLinks:
                 target_wikilink="Complex Systems",
                 resolved_target="concepts/complex-systems.md",
                 line_number=8,
-                context_snippet="Building on [[Complex Systems]] theory, we can understand..."
+                context_snippet="Building on [[Complex Systems]] theory, we can understand...",
             ),
             ForwardLinkResult(
                 source_document="concepts/systems-thinking.md",
                 target_wikilink="Feedback Loops",
                 resolved_target="concepts/feedback-loops.md",
                 line_number=15,
-                context_snippet="The importance of [[Feedback Loops|feedback mechanisms]] cannot "
-                                "be overstated."
-            )
+                context_snippet="The importance of [[Feedback Loops|feedback mechanisms]] cannot be overstated.",
+            ),
         ]
 
-    def should_be_instantiated_with_services_and_console_service(self, mock_filesystem,
-                                                                  mock_link_service,
-                                                                  mock_console_service):
+    def should_be_instantiated_with_services_and_console_service(
+        self, mock_filesystem, mock_link_service, mock_console_service
+    ):
         document_service = DocumentService(mock_filesystem)
         tool = FindForwardLinks(document_service, mock_link_service, mock_console_service)
 
@@ -67,8 +66,7 @@ class DescribeFindForwardLinks:
         assert isinstance(tool, FindForwardLinks)
         assert isinstance(tool.console_service, RichConsoleService)
 
-    def should_return_error_message_when_document_does_not_exist(self, forward_links_tool,
-                                                                   mock_filesystem):
+    def should_return_error_message_when_document_does_not_exist(self, forward_links_tool, mock_filesystem):
         test_path = "nonexistent/document.md"
         mock_filesystem.path_exists.return_value = False
 
@@ -77,14 +75,14 @@ class DescribeFindForwardLinks:
         mock_filesystem.path_exists.assert_called_once_with(test_path)
         assert result == f"Document not found at {test_path}"
 
-    def should_find_forward_links_from_source_document(self, forward_links_tool, mock_filesystem,
-                                                        mock_forward_link_results):
+    def should_find_forward_links_from_source_document(
+        self, forward_links_tool, mock_filesystem, mock_forward_link_results
+    ):
         source = "concepts/systems-thinking.md"
         mock_filesystem.path_exists.return_value = True
 
         # Mock the LinkTraversalService's find_forward_links method
-        forward_links_tool.link_service.find_forward_links = Mock(
-            return_value=mock_forward_link_results)
+        forward_links_tool.link_service.find_forward_links = Mock(return_value=mock_forward_link_results)
 
         result = forward_links_tool.run(source)
 
@@ -106,13 +104,13 @@ class DescribeFindForwardLinks:
         forward_links_tool.link_service.find_forward_links.assert_called_once_with(source)
         assert result == "[]"
 
-    def should_return_json_formatted_forward_link_results(self, forward_links_tool, mock_filesystem,
-                                                           mock_forward_link_results):
+    def should_return_json_formatted_forward_link_results(
+        self, forward_links_tool, mock_filesystem, mock_forward_link_results
+    ):
         source = "test-document.md"
         mock_filesystem.path_exists.return_value = True
 
-        forward_links_tool.link_service.find_forward_links = Mock(
-            return_value=mock_forward_link_results)
+        forward_links_tool.link_service.find_forward_links = Mock(return_value=mock_forward_link_results)
 
         result = forward_links_tool.run(source)
 
@@ -123,14 +121,13 @@ class DescribeFindForwardLinks:
         assert "line_number" in result
         assert "context_snippet" in result
 
-    def should_print_console_feedback_about_results_found(self, forward_links_tool, mock_filesystem,
-                                                           mock_console_service,
-                                                           mock_forward_link_results):
+    def should_print_console_feedback_about_results_found(
+        self, forward_links_tool, mock_filesystem, mock_console_service, mock_forward_link_results
+    ):
         source = "test-document.md"
         mock_filesystem.path_exists.return_value = True
 
-        forward_links_tool.link_service.find_forward_links = Mock(
-            return_value=mock_forward_link_results)
+        forward_links_tool.link_service.find_forward_links = Mock(return_value=mock_forward_link_results)
 
         forward_links_tool.run(source)
 
@@ -148,7 +145,7 @@ class DescribeFindForwardLinks:
                 target_wikilink="target-doc",
                 resolved_target="references/target-doc.md",
                 line_number=7,
-                context_snippet="For more info see [[target-doc]] in the references."
+                context_snippet="For more info see [[target-doc]] in the references.",
             )
         ]
         mock_filesystem.path_exists.return_value = True
@@ -168,8 +165,7 @@ class DescribeFindForwardLinks:
                 target_wikilink="Deep Topic",
                 resolved_target="deep/topic.md",
                 line_number=12,
-                context_snippet="To fully grasp this concept, we must explore [[Deep Topic]] in "
-                "detail."
+                context_snippet="To fully grasp this concept, we must explore [[Deep Topic]] in detail.",
             )
         ]
         mock_filesystem.path_exists.return_value = True
@@ -190,7 +186,7 @@ class DescribeFindForwardLinks:
                 target_wikilink="technical-guide",
                 resolved_target="guides/technical-guide.md",
                 line_number=20,
-                context_snippet="Check out [[technical-guide|this excellent resource]] for implementation details."
+                context_snippet="Check out [[technical-guide|this excellent resource]] for implementation details.",
             )
         ]
         mock_filesystem.path_exists.return_value = True

@@ -1,4 +1,5 @@
 """Factory for creating model gateways based on configuration."""
+
 import os
 
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway

@@ -47,7 +47,8 @@ class FindBacklinks(LLMTool):
                     "given document, enabling reverse navigation through the knowledge graph. "
                     "Returns documents with context snippets showing how they reference the "
                     "target document. Use this to understand what content builds upon or "
-                    "references a particular document."),
+                    "references a particular document."
+                ),
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -58,10 +59,11 @@ class FindBacklinks(LLMTool):
                                 "relative path (e.g., 'concepts/systems-thinking.md') or "
                                 "wikilink text (e.g., 'Systems Thinking'). The service will "
                                 "handle resolution and find all documents that link to this "
-                                "target.")
+                                "target."
+                            ),
                         }
                     },
-                    "required": ["target_document"]
+                    "required": ["target_document"],
                 },
             },
         }
