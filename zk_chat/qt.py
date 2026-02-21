@@ -277,8 +277,9 @@ class SettingsDialog(QDialog):
         if new_vault_path != self.config.vault:
             global_config_gateway = GlobalConfigGateway()
             global_config = global_config_gateway.load()
-            global_config.add_bookmark(new_vault_path)
-            global_config.set_last_opened_bookmark(new_vault_path)
+            abs_vault_path = os.path.abspath(new_vault_path)
+            global_config.add_bookmark(abs_vault_path)
+            global_config.set_last_opened_bookmark(abs_vault_path)
             global_config_gateway.save(global_config)
 
             # Load or create config for the new vault

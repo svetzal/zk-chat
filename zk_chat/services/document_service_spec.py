@@ -8,7 +8,7 @@ import pytest
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.models import ZkDocument
-from zk_chat.services.document_service import DocumentService
+from zk_chat.services.document_service import DocumentService, merge_metadata
 
 
 class DescribeDocumentService:
@@ -206,72 +206,64 @@ class DescribeDocumentService:
         assert "tags" in written_metadata  # Original tag preserved
 
 
-class DescribeDocumentServiceMetadataMerging:
-    """Tests for the metadata merging functionality in DocumentService."""
+class DescribeMergeMetadata:
+    """Tests for the pure merge_metadata function."""
 
-    @pytest.fixture
-    def mock_filesystem(self):
-        return Mock(spec=MarkdownFilesystemGateway)
-
-    @pytest.fixture
-    def document_service(self, mock_filesystem):
-        return DocumentService(mock_filesystem)
-
-    def should_merge_non_overlapping_keys(self, document_service):
+    def should_merge_non_overlapping_keys(self):
         original = {"key1": "value1"}
         new = {"key2": "value2"}
 
-        result = document_service._merge_metadata(original, new)
+        result = merge_metadata(original, new)
 
         assert result == {"key1": "value1", "key2": "value2"}
 
-    def should_override_simple_values(self, document_service):
+    def should_override_simple_values(self):
         original = {"key": "old_value"}
         new = {"key": "new_value"}
 
-        result = document_service._merge_metadata(original, new)
+        result = merge_metadata(original, new)
 
         assert result == {"key": "new_value"}
 
-    def should_merge_lists_without_duplicates(self, document_service):
+    def should_merge_lists_without_duplicates(self):
         original = {"tags": ["a", "b"]}
         new = {"tags": ["b", "c"]}
 
-        result = document_service._merge_metadata(original, new)
+        result = merge_metadata(original, new)
 
         assert set(result["tags"]) == {"a", "b", "c"}
 
-    def should_merge_nested_dictionaries(self, document_service):
+    def should_merge_nested_dictionaries(self):
         original = {"nested": {"key1": "value1", "key2": "old"}}
         new = {"nested": {"key2": "new", "key3": "value3"}}
 
-        result = document_service._merge_metadata(original, new)
+        result = merge_metadata(original, new)
 
         assert result["nested"]["key1"] == "value1"
         assert result["nested"]["key2"] == "new"
         assert result["nested"]["key3"] == "value3"
 
-    def should_handle_none_values_in_original(self, document_service):
+    def should_handle_none_values_in_original(self):
         original = {"key": None}
         new = {"key": "value"}
 
-        result = document_service._merge_metadata(original, new)
+        result = merge_metadata(original, new)
 
         assert result["key"] == "value"
 
-    def should_preserve_original_when_new_is_none(self, document_service):
+    def should_preserve_original_when_new_is_none(self):
         original = {"key": "value"}
         new = {"key": None}
 
-        result = document_service._merge_metadata(original, new)
+        result = merge_metadata(original, new)
 
         assert result["key"] == "value"
 
-    def should_not_modify_original_metadata(self, document_service):
+    def should_not_modify_original_metadata(self):
         original = {"key": "value", "nested": {"inner": "data"}}
         new = {"key": "new_value", "extra": "field"}
         original_copy = {"key": "value", "nested": {"inner": "data"}}
 
-        document_service._merge_metadata(original, new)
+        merge_metadata(original, new)
 
         assert original == original_copy

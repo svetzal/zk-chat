@@ -40,6 +40,9 @@ class ServiceType(Enum):
     # Git services (when enabled)
     GIT_GATEWAY = "git_gateway"
 
+    # UI services
+    CONSOLE_SERVICE = "console_service"
+
     # Configuration
     CONFIG = "config"
     CONFIG_GATEWAY = "config_gateway"

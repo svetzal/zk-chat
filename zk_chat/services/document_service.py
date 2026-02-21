@@ -18,6 +18,51 @@ from zk_chat.models import ZkDocument
 logger = structlog.get_logger()
 
 
+def merge_metadata(original_metadata: dict[str, Any], new_metadata: dict[str, Any]) -> dict[str, Any]:
+    """
+    Merge two metadata dictionaries with special handling for nested structures and arrays.
+
+    Parameters
+    ----------
+    original_metadata : dict[str, Any]
+        The original metadata dictionary
+    new_metadata : dict[str, Any]
+        The new metadata to merge
+
+    Returns
+    -------
+    dict[str, Any]
+        The merged metadata
+    """
+    result = original_metadata.copy()
+
+    for key, new_value in new_metadata.items():
+        if key not in result:
+            result[key] = new_value
+            continue
+
+        original_value = result[key]
+
+        if original_value is None:
+            result[key] = new_value
+            continue
+
+        if new_value is None:
+            continue
+
+        if isinstance(original_value, list) and isinstance(new_value, list):
+            result[key] = list(set(original_value + new_value))
+            continue
+
+        if isinstance(original_value, dict) and isinstance(new_value, dict):
+            result[key] = merge_metadata(original_value, new_value)
+            continue
+
+        result[key] = new_value
+
+    return result
+
+
 class DocumentService:
     """
     Service for managing document lifecycle operations in a Zettelkasten.
@@ -168,7 +213,7 @@ class DocumentService:
         """
         original = self.read_document(document.relative_path)
         merged_content = original.content + f"\n\n---\n\n{document.content}"
-        merged_metadata = self._merge_metadata(original.metadata, document.metadata)
+        merged_metadata = merge_metadata(original.metadata, document.metadata)
         merged_document = ZkDocument(
             relative_path=original.relative_path, metadata=merged_metadata, content=merged_content
         )
@@ -266,54 +311,6 @@ class DocumentService:
             If the document does not exist
         """
         document = self.read_document(relative_path)
-        merged_metadata = self._merge_metadata(document.metadata, metadata)
+        merged_metadata = merge_metadata(document.metadata, metadata)
         updated_document = ZkDocument(relative_path=relative_path, metadata=merged_metadata, content=document.content)
         self.write_document(updated_document)
-
-    def _merge_metadata(self, original_metadata: dict[str, Any], new_metadata: dict[str, Any]) -> dict[str, Any]:
-        """
-        Merge two metadata dictionaries with special handling for nested structures and arrays.
-
-        Parameters
-        ----------
-        original_metadata : dict[str, Any]
-            The original metadata dictionary
-        new_metadata : dict[str, Any]
-            The new metadata to merge
-
-        Returns
-        -------
-        dict[str, Any]
-            The merged metadata
-        """
-        result = original_metadata.copy()
-
-        for key, new_value in new_metadata.items():
-            if key not in result:
-                result[key] = new_value
-                continue
-
-            original_value = result[key]
-
-            # Handle None values
-            if original_value is None:
-                result[key] = new_value
-                continue
-
-            if new_value is None:
-                continue
-
-            # Handle lists (arrays)
-            if isinstance(original_value, list) and isinstance(new_value, list):
-                result[key] = list(set(original_value + new_value))
-                continue
-
-            # Handle nested dictionaries
-            if isinstance(original_value, dict) and isinstance(new_value, dict):
-                result[key] = self._merge_metadata(original_value, new_value)
-                continue
-
-            # For different types or simple values, new value takes precedence
-            result[key] = new_value
-
-        return result
