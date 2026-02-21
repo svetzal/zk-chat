@@ -8,18 +8,20 @@ class RichConsoleService:
 
     def __init__(self):
         # Define a consistent theme for the application
-        self.theme = Theme({
-            "banner.title": "bold bright_cyan",
-            "banner.copyright": "bright_blue",
-            "banner.info.label": "white",
-            "banner.info.value": "green",
-            "banner.warning.unsafe": "bold bright_red",
-            "banner.warning.git": "yellow",
-            "chat.user": "bold blue",
-            "chat.assistant": "green",
-            "chat.system": "dim yellow",
-            "tool.info": "dim cyan",
-        })
+        self.theme = Theme(
+            {
+                "banner.title": "bold bright_cyan",
+                "banner.copyright": "bright_blue",
+                "banner.info.label": "white",
+                "banner.info.value": "green",
+                "banner.warning.unsafe": "bold bright_red",
+                "banner.warning.git": "yellow",
+                "chat.user": "bold blue",
+                "chat.assistant": "green",
+                "chat.system": "dim yellow",
+                "tool.info": "dim cyan",
+            }
+        )
 
         self.console = Console(theme=self.theme)
 

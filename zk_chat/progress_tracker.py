@@ -1,4 +1,5 @@
 """Progress tracking for long-running operations using Rich library."""
+
 from collections.abc import Callable
 
 import structlog
@@ -62,7 +63,7 @@ class ProgressTracker:
             TimeElapsedColumn(),
             TimeRemainingColumn(),
             console=self.console,
-            transient=False  # Keep progress visible after completion
+            transient=False,  # Keep progress visible after completion
         )
 
         self._progress.start()
@@ -71,11 +72,13 @@ class ProgressTracker:
         logger.info("Started progress tracking", description=description, total=total)
         return self._main_task
 
-    def update_progress(self,
-                        advance: int | None = None,
-                        completed: int | None = None,
-                        description: str | None = None,
-                        current_file: str | None = None) -> None:
+    def update_progress(
+        self,
+        advance: int | None = None,
+        completed: int | None = None,
+        description: str | None = None,
+        current_file: str | None = None,
+    ) -> None:
         """Update progress bar.
 
         Args:
@@ -109,10 +112,7 @@ class ProgressTracker:
             formatted_file = ""
 
         # Update with appropriate parameters
-        update_kwargs = {
-            "description": display_desc,
-            "current_file": formatted_file
-        }
+        update_kwargs = {"description": display_desc, "current_file": formatted_file}
         if advance is not None:
             update_kwargs["advance"] = advance
         elif completed is not None:
@@ -151,10 +151,7 @@ class ProgressTracker:
         def callback(current_file: str, processed: int, total: int) -> None:
             if processed == 1:  # First file, set total if not already set
                 self.set_total(total)
-            self.update_progress(
-                advance=1 if processed > 0 else 0,
-                current_file=current_file
-            )
+            self.update_progress(advance=1 if processed > 0 else 0, current_file=current_file)
 
         return callback
 
@@ -191,7 +188,7 @@ class IndexingProgressTracker(ProgressTracker):
                 description=f"Indexing {file_count} documents",
                 total=file_count,
                 completed=0,
-                current_file=""
+                current_file="",
             )
             self._last_processed_count = 0
 
@@ -203,13 +200,10 @@ class IndexingProgressTracker(ProgressTracker):
             processed_count: Number of files processed so far
         """
         # Extract just the filename from the path for cleaner display
-        display_name = filename.split('/')[-1] if '/' in filename else filename
+        display_name = filename.split("/")[-1] if "/" in filename else filename
 
         # Calculate how much to advance since last update
         advance_by = processed_count - self._last_processed_count
         self._last_processed_count = processed_count
 
-        self.update_progress(
-            advance=advance_by,
-            current_file=display_name
-        )
+        self.update_progress(advance=advance_by, current_file=display_name)

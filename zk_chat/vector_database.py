@@ -15,8 +15,9 @@ class VectorDatabase:
     gateway: OllamaGateway | OpenAIGateway
     collection_name: ZkCollectionName
 
-    def __init__(self, chroma_gateway: ChromaGateway, gateway: OllamaGateway | OpenAIGateway,
-                 collection_name: ZkCollectionName):
+    def __init__(
+        self, chroma_gateway: ChromaGateway, gateway: OllamaGateway | OpenAIGateway, collection_name: ZkCollectionName
+    ):
         """
         Initialize the VectorDatabase with a ChromaGateway and a gateway for embeddings.
 
@@ -46,7 +47,7 @@ class VectorDatabase:
             documents=[doc.content for doc in vector_docs],
             metadatas=[doc.metadata for doc in vector_docs],
             embeddings=[doc.embedding for doc in vector_docs],
-            collection_name=self.collection_name
+            collection_name=self.collection_name,
         )
 
     def reset(self) -> None:
@@ -69,19 +70,15 @@ class VectorDatabase:
         query_embedding = self.gateway.calculate_embeddings(query_text)
 
         results = self.chroma_gateway.query(
-            query_embeddings=query_embedding,
-            n_results=n_results,
-            collection_name=self.collection_name
+            query_embeddings=query_embedding, n_results=n_results, collection_name=self.collection_name
         )
 
         query_results = []
-        for i in range(len(results['ids'][0])):
+        for i in range(len(results["ids"][0])):
             doc = VectorDocumentForStorage(
-                id=results['ids'][0][i],
-                content=results['documents'][0][i],
-                metadata=results['metadatas'][0][i]
+                id=results["ids"][0][i], content=results["documents"][0][i], metadata=results["metadatas"][0][i]
             )
-            distance = results['distances'][0][i]
+            distance = results["distances"][0][i]
             query_results.append(QueryResult(document=doc, distance=distance))
 
         logger.info(
@@ -90,8 +87,8 @@ class VectorDatabase:
                 "query_text": query_text,
                 "num_results": len(query_results),
                 "min_distance": min(r.distance for r in query_results) if query_results else None,
-                "max_distance": max(r.distance for r in query_results) if query_results else None
-            }
+                "max_distance": max(r.distance for r in query_results) if query_results else None,
+            },
         )
 
         return query_results

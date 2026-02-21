@@ -1,6 +1,7 @@
 """
 Tests for the DocumentService which handles document lifecycle operations in a Zettelkasten.
 """
+
 from unittest.mock import Mock
 
 import pytest
@@ -26,7 +27,7 @@ class DescribeDocumentService:
         return ZkDocument(
             relative_path="test/document.md",
             metadata={"tags": ["test"], "author": "tester"},
-            content="# Test Document\n\nThis is test content."
+            content="# Test Document\n\nThis is test content.",
         )
 
     @pytest.fixture
@@ -43,8 +44,7 @@ class DescribeDocumentService:
         assert isinstance(service, DocumentService)
         assert service.filesystem_gateway == mock_filesystem
 
-    def should_read_document_from_filesystem(self, document_service, mock_filesystem,
-                                             sample_metadata, sample_content):
+    def should_read_document_from_filesystem(self, document_service, mock_filesystem, sample_metadata, sample_content):
         test_path = "test/document.md"
         mock_filesystem.read_markdown.return_value = (sample_metadata, sample_content)
 
@@ -55,22 +55,19 @@ class DescribeDocumentService:
         assert result.metadata == sample_metadata
         assert result.content == sample_content
 
-    def should_write_document_to_filesystem(self, document_service, mock_filesystem,
-                                            sample_document):
+    def should_write_document_to_filesystem(self, document_service, mock_filesystem, sample_document):
         mock_filesystem.get_directory_path.return_value = "test"
         mock_filesystem.path_exists.return_value = True
 
         document_service.write_document(sample_document)
 
         mock_filesystem.write_markdown.assert_called_once_with(
-            sample_document.relative_path,
-            sample_document.metadata,
-            sample_document.content
+            sample_document.relative_path, sample_document.metadata, sample_document.content
         )
 
-    def should_create_directory_when_writing_document_to_new_path(self, document_service,
-                                                                   mock_filesystem,
-                                                                   sample_document):
+    def should_create_directory_when_writing_document_to_new_path(
+        self, document_service, mock_filesystem, sample_document
+    ):
         mock_filesystem.get_directory_path.return_value = "new_folder"
         mock_filesystem.path_exists.return_value = False
 
@@ -87,8 +84,7 @@ class DescribeDocumentService:
 
         mock_filesystem.delete_file.assert_called_once_with(test_path)
 
-    def should_raise_error_when_deleting_nonexistent_document(self, document_service,
-                                                               mock_filesystem):
+    def should_raise_error_when_deleting_nonexistent_document(self, document_service, mock_filesystem):
         test_path = "nonexistent.md"
         mock_filesystem.path_exists.return_value = False
 
@@ -104,8 +100,7 @@ class DescribeDocumentService:
 
         mock_filesystem.rename_file.assert_called_once_with(source_path, target_path)
 
-    def should_raise_error_when_renaming_nonexistent_document(self, document_service,
-                                                               mock_filesystem):
+    def should_raise_error_when_renaming_nonexistent_document(self, document_service, mock_filesystem):
         source_path = "nonexistent.md"
         target_path = "new/path.md"
         mock_filesystem.path_exists.return_value = False
@@ -123,11 +118,7 @@ class DescribeDocumentService:
         mock_filesystem.get_directory_path.return_value = "test"
         mock_filesystem.path_exists.side_effect = [True]  # For directory check
 
-        append_document = ZkDocument(
-            relative_path="test/document.md",
-            metadata=append_metadata,
-            content=append_content
-        )
+        append_document = ZkDocument(relative_path="test/document.md", metadata=append_metadata, content=append_content)
 
         document_service.append_to_document(append_document)
 
@@ -137,8 +128,7 @@ class DescribeDocumentService:
         assert append_content in written_content
         assert "---" in written_content  # Separator
 
-    def should_create_document_when_append_and_not_exists(self, document_service, mock_filesystem,
-                                                           sample_document):
+    def should_create_document_when_append_and_not_exists(self, document_service, mock_filesystem, sample_document):
         mock_filesystem.path_exists.side_effect = [False, True]  # First doc check, then dir check
         mock_filesystem.get_directory_path.return_value = "test"
 
@@ -146,9 +136,9 @@ class DescribeDocumentService:
 
         mock_filesystem.write_markdown.assert_called_once()
 
-    def should_append_document_when_append_and_exists(self, document_service, mock_filesystem,
-                                                       sample_document, sample_metadata,
-                                                       sample_content):
+    def should_append_document_when_append_and_exists(
+        self, document_service, mock_filesystem, sample_document, sample_metadata, sample_content
+    ):
         mock_filesystem.path_exists.side_effect = [True, True]  # Doc exists, then dir check
         mock_filesystem.read_markdown.return_value = (sample_metadata, sample_content)
         mock_filesystem.get_directory_path.return_value = "test"
@@ -168,10 +158,7 @@ class DescribeDocumentService:
     def should_iterate_through_all_documents(self, document_service, mock_filesystem):
         paths = ["doc1.md", "doc2.md"]
         mock_filesystem.iterate_markdown_files.return_value = iter(paths)
-        mock_filesystem.read_markdown.side_effect = [
-            ({"key": "value1"}, "Content 1"),
-            ({"key": "value2"}, "Content 2")
-        ]
+        mock_filesystem.read_markdown.side_effect = [({"key": "value1"}, "Content 1"), ({"key": "value2"}, "Content 2")]
 
         results = list(document_service.iterate_documents())
 
@@ -203,8 +190,7 @@ class DescribeDocumentService:
         assert result == sample_metadata
         mock_filesystem.read_markdown.assert_called_once_with(test_path)
 
-    def should_update_document_metadata(self, document_service, mock_filesystem, sample_metadata,
-                                         sample_content):
+    def should_update_document_metadata(self, document_service, mock_filesystem, sample_metadata, sample_content):
         test_path = "test/document.md"
         new_metadata = {"status": "reviewed", "author": "new_author"}
         mock_filesystem.read_markdown.return_value = (sample_metadata, sample_content)

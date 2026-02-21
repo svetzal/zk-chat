@@ -4,6 +4,7 @@ Model Context Protocol (MCP) server for ZK Chat tools.
 This module provides an MCP implementation that directly bridges to the specific
 tools used in the ZK Chat application.
 """
+
 import json
 from typing import Any
 
@@ -26,17 +27,17 @@ logger = structlog.get_logger()
 class MCPServer:
     """
     Model Context Protocol server that wraps specific ZK Chat tools.
-    
+
     This server provides an MCP-compatible interface to the predefined tools
     used in the ZK Chat application.
     """
 
     def __init__(
-            self,
-            document_service: DocumentService,
-            index_service: IndexService,
-            smart_memory: SmartMemory,
-            enable_unsafe_operations: bool = False
+        self,
+        document_service: DocumentService,
+        index_service: IndexService,
+        smart_memory: SmartMemory,
+        enable_unsafe_operations: bool = False,
     ):
         """
         Initialize the MCP server with required dependencies.
@@ -78,7 +79,7 @@ class MCPServer:
     def _register_tool(self, tool_instance: Any) -> None:
         """
         Register a tool instance with the server.
-        
+
         Parameters
         ----------
         tool_instance : Any
@@ -93,7 +94,7 @@ class MCPServer:
     def get_available_tools(self) -> list[dict[str, Any]]:
         """
         Get a list of available tools and their metadata in MCP format.
-        
+
         Returns
         -------
         List[Dict[str, Any]]
@@ -104,14 +105,14 @@ class MCPServer:
     def execute_tool(self, tool_name: str, parameters: dict[str, Any]) -> dict[str, Any]:
         """
         Execute a tool with the given parameters.
-        
+
         Parameters
         ----------
         tool_name : str
             Name of the tool to execute
         parameters : Dict[str, Any]
             Parameters to pass to the tool
-            
+
         Returns
         -------
         Dict[str, Any]
@@ -128,20 +129,18 @@ class MCPServer:
             result = self.tools[tool_name].run(**parameters)
             return {"status": "success", "result": result}
         except Exception as e:
-            logger.error("Tool execution failed",
-                         tool_name=tool_name,
-                         error=str(e))
+            logger.error("Tool execution failed", tool_name=tool_name, error=str(e))
             return {"status": "error", "error": str(e)}
 
     def process_request(self, request: dict[str, Any]) -> dict[str, Any]:
         """
         Process an MCP request and return the response.
-        
+
         Parameters
         ----------
         request : Dict[str, Any]
             MCP request containing tool name and parameters
-            
+
         Returns
         -------
         Dict[str, Any]
@@ -152,8 +151,7 @@ class MCPServer:
 
         if request["type"] == "tool_call":
             if "tool" not in request or "parameters" not in request:
-                return {"status": "error",
-                        "error": "Invalid tool_call request: missing 'tool' or 'parameters'"}
+                return {"status": "error", "error": "Invalid tool_call request: missing 'tool' or 'parameters'"}
 
             tool_name = request["tool"]
             parameters = request["parameters"]
@@ -161,10 +159,7 @@ class MCPServer:
             return self.execute_tool(tool_name, parameters)
 
         elif request["type"] == "list_tools":
-            return {
-                "status": "success",
-                "tools": self.get_available_tools()
-            }
+            return {"status": "success", "tools": self.get_available_tools()}
 
         else:
             return {"status": "error", "error": f"Unsupported request type: {request['type']}"}
@@ -172,12 +167,12 @@ class MCPServer:
     def handle_mcp_request(self, request_json: str) -> str:
         """
         Handle an MCP request in JSON format and return the response.
-        
+
         Parameters
         ----------
         request_json : str
             JSON string containing the MCP request
-            
+
         Returns
         -------
         str
@@ -196,10 +191,10 @@ class MCPServer:
 
 
 def create_mcp_server(
-        document_service: DocumentService,
-        index_service: IndexService,
-        smart_memory: SmartMemory,
-        enable_unsafe_operations: bool = False
+    document_service: DocumentService,
+    index_service: IndexService,
+    smart_memory: SmartMemory,
+    enable_unsafe_operations: bool = False,
 ) -> MCPServer:
     """
     Helper function to create and configure an MCP server.
@@ -224,5 +219,5 @@ def create_mcp_server(
         document_service=document_service,
         index_service=index_service,
         smart_memory=smart_memory,
-        enable_unsafe_operations=enable_unsafe_operations
+        enable_unsafe_operations=enable_unsafe_operations,
     )

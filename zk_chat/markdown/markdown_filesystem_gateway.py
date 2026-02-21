@@ -15,7 +15,7 @@ class WikiLink(BaseModel):
     def parse(cls, value: str) -> "WikiLink":
         # parse incoming value according to [[title|caption]] where the caption is optional
         # Use a regex
-        pattern = r'\[\[(.*?)(?:\|(.*?))?\]\]'
+        pattern = r"\[\[(.*?)(?:\|(.*?))?\]\]"
         match = re.match(pattern, value)
 
         if not match:
@@ -29,7 +29,7 @@ class WikiLink(BaseModel):
     def __str__(self):
         result = self.title
         if self.caption:
-            result += f'|{self.caption}'
+            result += f"|{self.caption}"
         return f"[[{result}]]"
 
 
@@ -52,7 +52,7 @@ class MarkdownFilesystemGateway(FilesystemGateway):
         Yields:
             str: Relative path for each markdown file
         """
-        yield from self.iterate_files_by_extensions(['.md'])
+        yield from self.iterate_files_by_extensions([".md"])
 
     def read_markdown(self, relative_path: str) -> tuple[dict, str]:
         """Read a markdown file and split it into metadata and content.
@@ -75,6 +75,7 @@ class MarkdownFilesystemGateway(FilesystemGateway):
             content: Content to write to the file
         """
         import yaml
+
         metadata_yaml = yaml.dump(metadata, Dumper=yaml.SafeDumper)
         file_content = f"---\n{metadata_yaml}---\n{content}"
         self.write_file(relative_path, file_content)

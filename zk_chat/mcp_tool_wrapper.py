@@ -4,6 +4,7 @@ MCP Tool Wrapper that adapts MCP server tools to mojentic LLMTool interface.
 This module provides a wrapper that allows external MCP server tools to be used
 as mojentic-compatible tools within zk-chat.
 """
+
 import asyncio
 from typing import Any
 
@@ -11,7 +12,8 @@ import structlog
 from fastmcp import Client
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.global_config import GlobalConfig, MCPServerConfig, MCPServerType
+from zk_chat.global_config import MCPServerConfig, MCPServerType
+from zk_chat.global_config_gateway import GlobalConfigGateway
 
 logger = structlog.get_logger()
 
@@ -23,8 +25,14 @@ class MCPToolWrapper(LLMTool):
     This wrapper uses a shared Client connection managed by MCPClientManager.
     """
 
-    def __init__(self, client: Client, server_name: str, tool_name: str,
-                 tool_descriptor: dict[str, Any], loop: asyncio.AbstractEventLoop):
+    def __init__(
+        self,
+        client: Client,
+        server_name: str,
+        tool_name: str,
+        tool_descriptor: dict[str, Any],
+        loop: asyncio.AbstractEventLoop,
+    ):
         """
         Initialize the MCP tool wrapper.
 
@@ -107,10 +115,7 @@ class MCPToolWrapper(LLMTool):
         str
             Tool execution result as a string
         """
-        logger.info("Executing MCP tool",
-                    server_name=self.server_name,
-                    tool_name=self.tool_name,
-                    parameters=kwargs)
+        logger.info("Executing MCP tool", server_name=self.server_name, tool_name=self.tool_name, parameters=kwargs)
 
         try:
             # Coerce types to match schema
@@ -121,17 +126,18 @@ class MCPToolWrapper(LLMTool):
             # Wait for the result
             result = future.result(timeout=60)  # 60 second timeout for tool execution
             result_str = str(result)
-            logger.info("MCP tool execution completed",
-                        server_name=self.server_name,
-                        tool_name=self.tool_name,
-                        result=result_str)
+            logger.info(
+                "MCP tool execution completed",
+                server_name=self.server_name,
+                tool_name=self.tool_name,
+                result=result_str,
+            )
             return result_str
         except Exception as e:
             error_msg = f"Error executing MCP tool {self.tool_name}: {str(e)}"
-            logger.error("MCP tool execution failed",
-                         server_name=self.server_name,
-                         tool_name=self.tool_name,
-                         error=str(e))
+            logger.error(
+                "MCP tool execution failed", server_name=self.server_name, tool_name=self.tool_name, error=str(e)
+            )
             return error_msg
 
     async def _async_run(self, arguments: dict[str, Any]) -> Any:
@@ -167,10 +173,9 @@ class MCPToolWrapper(LLMTool):
             "type": "function",
             "function": {
                 "name": self.tool_name,
-                "description": self.tool_descriptor.get("description",
-                                                        f"Tool from {self.server_name}"),
-                "parameters": input_schema
-            }
+                "description": self.tool_descriptor.get("description", f"Tool from {self.server_name}"),
+                "parameters": input_schema,
+            },
         }
 
         return descriptor
@@ -280,7 +285,7 @@ class MCPClientManager:
             logger.warning("MCPClientManager already initialized")
             return
 
-        global_config = GlobalConfig.load()
+        global_config = GlobalConfigGateway().load()
         servers = global_config.list_mcp_servers()
 
         if not servers:
@@ -294,13 +299,11 @@ class MCPClientManager:
             try:
                 await self._connect_server(server_config)
             except Exception as e:
-                logger.error("Failed to connect to MCP server",
-                             server_name=server_config.name,
-                             error=str(e))
+                logger.error("Failed to connect to MCP server", server_name=server_config.name, error=str(e))
 
-        logger.info("MCP client initialization complete",
-                    connected_servers=len(self._clients),
-                    total_tools=len(self._tools))
+        logger.info(
+            "MCP client initialization complete", connected_servers=len(self._clients), total_tools=len(self._tools)
+        )
 
         self._initialized = True
 
@@ -319,12 +322,7 @@ class MCPClientManager:
         if server_config.server_type == MCPServerType.STDIO:
             # FastMCP Client expects config in mcpServers format for STDIO
             client_config = {
-                "mcpServers": {
-                    server_config.name: {
-                        "command": server_config.command,
-                        "args": server_config.args or []
-                    }
-                }
+                "mcpServers": {server_config.name: {"command": server_config.command, "args": server_config.args or []}}
             }
             client = Client(client_config)
         elif server_config.server_type == MCPServerType.HTTP:
@@ -359,34 +357,27 @@ class MCPClientManager:
             tools = await client.list_tools()
 
             for tool in tools:
-                tool_dict = {
-                    "name": tool.name,
-                    "description": tool.description,
-                    "inputSchema": tool.inputSchema
-                }
+                tool_dict = {"name": tool.name, "description": tool.description, "inputSchema": tool.inputSchema}
 
                 wrapper = MCPToolWrapper(
                     client=client,
                     server_name=server_config.name,
                     tool_name=tool.name,
                     tool_descriptor=tool_dict,
-                    loop=self._loop
+                    loop=self._loop,
                 )
                 self._tools.append(wrapper)
 
-                logger.info("Discovered MCP tool",
-                            server_name=server_config.name,
-                            tool_name=tool.name)
+                logger.info("Discovered MCP tool", server_name=server_config.name, tool_name=tool.name)
 
-            logger.info("Tool discovery complete",
-                        server_name=server_config.name,
-                        tool_count=len(
-                            [t for t in self._tools if t.server_name == server_config.name]))
+            logger.info(
+                "Tool discovery complete",
+                server_name=server_config.name,
+                tool_count=len([t for t in self._tools if t.server_name == server_config.name]),
+            )
 
         except Exception as e:
-            logger.error("Failed to discover tools from MCP server",
-                         server_name=server_config.name,
-                         error=str(e))
+            logger.error("Failed to discover tools from MCP server", server_name=server_config.name, error=str(e))
 
     async def cleanup(self):
         """Cleanup all client connections."""
@@ -400,9 +391,7 @@ class MCPClientManager:
                 await client.__aexit__(None, None, None)
                 logger.info("Disconnected from MCP server", server_name=server_name)
             except Exception as e:
-                logger.error("Error disconnecting from MCP server",
-                             server_name=server_name,
-                             error=str(e))
+                logger.error("Error disconnecting from MCP server", server_name=server_name, error=str(e))
 
         self._clients.clear()
         self._tools.clear()
@@ -432,6 +421,5 @@ def load_mcp_tools_from_registered_servers() -> list[LLMTool]:
     List[LLMTool]
         Empty list - this function is deprecated
     """
-    logger.warning(
-        "load_mcp_tools_from_registered_servers is deprecated. Use MCPClientManager instead.")
+    logger.warning("load_mcp_tools_from_registered_servers is deprecated. Use MCPClientManager instead.")
     return []

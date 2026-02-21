@@ -20,7 +20,7 @@ class ListZkImages(LLMTool):
             A simple list of all image file paths (jpg, jpeg, png).
         """
         self.console_service.print("[tool.info]Listing all available images[/]")
-        image_extensions = ['.jpg', '.jpeg', '.png']
+        image_extensions = [".jpg", ".jpeg", ".png"]
         paths = list(self.fs.iterate_files_by_extensions(image_extensions))
         logger.info("Listed all available images", paths=paths, count=len(paths))
         return "\n".join(paths) if paths else "No image files found in the vault."
@@ -32,13 +32,9 @@ class ListZkImages(LLMTool):
             "function": {
                 "name": "list_images",
                 "description": "List all image file paths in the Zettelkasten vault. Returns "
-                               "paths to JPG, JPEG, and PNG files that can be analyzed or "
-                               "referenced. Use this when you need to see what image files are available in the "
-                               "system.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {},
-                    "required": []
-                },
+                "paths to JPG, JPEG, and PNG files that can be analyzed or "
+                "referenced. Use this when you need to see what image files are available in the "
+                "system.",
+                "parameters": {"type": "object", "properties": {}, "required": []},
             },
         }

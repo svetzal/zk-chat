@@ -3,17 +3,14 @@ Bookmarks subcommand for zk-chat.
 
 Manages vault bookmarks for quick access to your Zettelkasten vaults.
 """
+
 import typer
 from rich.console import Console
 from rich.table import Table
 
-from zk_chat.global_config import GlobalConfig
+from zk_chat.global_config_gateway import GlobalConfigGateway
 
-bookmarks_app = typer.Typer(
-    name="bookmarks",
-    help="🔖 Manage vault bookmarks",
-    rich_markup_mode="rich"
-)
+bookmarks_app = typer.Typer(name="bookmarks", help="🔖 Manage vault bookmarks", rich_markup_mode="rich")
 
 console = Console()
 
@@ -27,7 +24,7 @@ def list():
 
     • [cyan]zk-chat bookmarks list[/] - Show all bookmarked vaults
     """
-    global_config = GlobalConfig.load()
+    global_config = GlobalConfigGateway().load()
 
     if not global_config.bookmarks:
         console.print("[yellow]No bookmarks found.[/]")
@@ -49,9 +46,7 @@ def list():
 
 
 @bookmarks_app.command()
-def remove(
-        path: str = typer.Argument(help="Path to the vault bookmark to remove (can be relative)")
-):
+def remove(path: str = typer.Argument(help="Path to the vault bookmark to remove (can be relative)")):
     """
     Remove a vault bookmark.
 
@@ -63,9 +58,11 @@ def remove(
     import os
 
     abs_path = os.path.abspath(path)
-    global_config = GlobalConfig.load()
+    gateway = GlobalConfigGateway()
+    global_config = gateway.load()
 
     if global_config.remove_bookmark(abs_path):
+        gateway.save(global_config)
         console.print(f"[green]✅ Bookmark removed:[/] {abs_path}")
     else:
         console.print(f"[red]❌ Error:[/] Bookmark not found for '{abs_path}'")
@@ -84,6 +81,4 @@ def bookmarks_default(ctx: typer.Context):
     if ctx.invoked_subcommand is None:
         # Show help by default
         console.print(ctx.get_help())
-        console.print(
-            "\n[yellow]💡 Tip:[/] Use [cyan]zk-chat bookmarks list[/] to see your bookmarked "
-            "vaults.")
+        console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat bookmarks list[/] to see your bookmarked vaults.")

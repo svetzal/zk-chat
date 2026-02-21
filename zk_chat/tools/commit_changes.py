@@ -14,8 +14,7 @@ class CommitChanges(LLMTool):
     llm: LLMBroker
     git: GitGateway
 
-    def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway,
-                 console_service: RichConsoleService = None):
+    def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway, console_service: RichConsoleService = None):
         self.base_path = base_path
         self.llm = llm
         self.git = git
@@ -70,8 +69,10 @@ class CommitChanges(LLMTool):
             A one-line commit message summarizing the changes
         """
 
-        message = self.llm.generate([
-            LLMMessage(content=f"""
+        message = self.llm.generate(
+            [
+                LLMMessage(
+                    content=f"""
 The user is committing changes to a content repository managed by git. The following is the
 output from git diff. Summarize a suitable git commit message about the content changes.
 Output only the commit message, no other text, do not put it in code fences.
@@ -79,8 +80,10 @@ Output only the commit message, no other text, do not put it in code fences.
 ```
 {diff_summary}
 ```
-""".strip())
-        ])
+""".strip()
+                )
+            ]
+        )
         if "</think>" in message:
             message = message.split("</think>")[-1]
         return message
@@ -92,13 +95,9 @@ Output only the commit message, no other text, do not put it in code fences.
             "function": {
                 "name": "commit_changes",
                 "description": "Save all changes made to the Zettelkasten knowledge base by "
-                               "creating a Git commit. Use this after making modifications to documents (creating, "
-                               "updating, or renaming) to permanently store those changes in the version control "
-                               "system. This ensures your changes are preserved and can be tracked over time.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {},
-                    "required": []
-                },
+                "creating a Git commit. Use this after making modifications to documents (creating, "
+                "updating, or renaming) to permanently store those changes in the version control "
+                "system. This ensures your changes are preserved and can be tracked over time.",
+                "parameters": {"type": "object", "properties": {}, "required": []},
             },
         }

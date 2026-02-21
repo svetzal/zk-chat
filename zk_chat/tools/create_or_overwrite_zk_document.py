@@ -22,8 +22,9 @@ class CreateOrOverwriteZkDocument(LLMTool):
         Replaces spaces with underscores and removes characters not allowed in filenames.
         """
         import re
+
         sanitized = filename.strip()
-        sanitized = re.sub(r'[\\/*?:"<>|]', '', sanitized)
+        sanitized = re.sub(r'[\\/*?:"<>|]', "", sanitized)
         return sanitized
 
     def run(self, title: str, content: str, metadata: dict[str, Any] | None = None) -> str:
@@ -36,21 +37,23 @@ class CreateOrOverwriteZkDocument(LLMTool):
             base_metadata = {} if metadata is None or not isinstance(metadata, dict) else metadata
             # Merge with {"reviewed": False}
             augmented_metadata = base_metadata | {"reviewed": False}
-            logger.info("writing file", relative_path=relative_path, metadata=augmented_metadata,
-                        content=content)
-            document = ZkDocument(relative_path=relative_path, metadata=augmented_metadata,
-                                  content=content)
+            logger.info("writing file", relative_path=relative_path, metadata=augmented_metadata, content=content)
+            document = ZkDocument(relative_path=relative_path, metadata=augmented_metadata, content=content)
             self.document_service.write_document(document)
             return f"Successfully wrote to {document.relative_path}\n{document.model_dump_json()}"
         except OSError as e:
-            error_message = (f"Failed to write document to {relative_path}: {str(e)}. This could "
-                             f"be due to insufficient permissions, disk space issues, "
-                             f"or the directory being read-only.")
+            error_message = (
+                f"Failed to write document to {relative_path}: {str(e)}. This could "
+                f"be due to insufficient permissions, disk space issues, "
+                f"or the directory being read-only."
+            )
             logger.error(error_message)
             return error_message
         except yaml.YAMLError as e:
-            error_message = (f"Failed to serialize metadata for document {relative_path}: {str(e)}. Please check if "
-                             f"the metadata contains valid YAML content.")
+            error_message = (
+                f"Failed to serialize metadata for document {relative_path}: {str(e)}. Please check if "
+                f"the metadata contains valid YAML content."
+            )
             logger.error(error_message)
             return error_message
 
@@ -61,33 +64,30 @@ class CreateOrOverwriteZkDocument(LLMTool):
             "function": {
                 "name": "create_or_overwrite_document",
                 "description": "Create a new document or update an existing document in the Zettelkasten knowledge "
-                               "base. Use this when you need to add new information to the knowledge base or update "
-                               "existing information. This tool will create a new document if the title doesn't "
-                               "exist, or completely replace the content of an existing document. Returns a success "
-                               "message with the document details if successful, or an error message if the operation "
-                               "fails.",
+                "base. Use this when you need to add new information to the knowledge base or update "
+                "existing information. This tool will create a new document if the title doesn't "
+                "exist, or completely replace the content of an existing document. Returns a success "
+                "message with the document details if successful, or an error message if the operation "
+                "fails.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "title": {
-                            "type": "string",
-                            "description": "The title of the document"
-                        },
+                        "title": {"type": "string", "description": "The title of the document"},
                         "content": {
                             "type": "string",
                             "description": "The body content for the document. DO NOT INCLUDE FRONT-MATTER OR TITLE. "
-                                           "Content should be in markdown format, with proper unescaped newline "
-                                           "characters"
+                            "Content should be in markdown format, with proper unescaped newline "
+                            "characters",
                         },
                         "metadata": {
                             "type": "object",
                             "description": "The metadata for the document in JSON format. If not provided, "
-                                           "the metadata will be empty.",
-                            "optional": True
-                        }
+                            "the metadata will be empty.",
+                            "optional": True,
+                        },
                     },
                     "additionalProperties": False,
-                    "required": ["title", "content"]
+                    "required": ["title", "content"],
                 },
             },
         }

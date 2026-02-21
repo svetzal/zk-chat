@@ -4,6 +4,7 @@ Diagnose subcommand for zk-chat.
 
 Provides diagnostic information about the index and search system.
 """
+
 import logging
 import os
 
@@ -11,7 +12,7 @@ import os
 logging.basicConfig(level=logging.WARN)
 
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
-os.environ['CHROMA_TELEMETRY'] = 'false'
+os.environ["CHROMA_TELEMETRY"] = "false"
 
 from pathlib import Path
 from typing import Annotated
@@ -24,15 +25,12 @@ from rich.table import Table
 from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config
-from zk_chat.global_config import GlobalConfig
+from zk_chat.config_gateway import ConfigGateway
+from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.service_factory import build_service_registry
 from zk_chat.services.service_provider import ServiceProvider
 
-diagnose_app = typer.Typer(
-    name="diagnose",
-    help="🔬 Diagnose index and search issues",
-    rich_markup_mode="rich"
-)
+diagnose_app = typer.Typer(name="diagnose", help="🔬 Diagnose index and search issues", rich_markup_mode="rich")
 
 console = Console()
 
@@ -40,7 +38,7 @@ console = Console()
 def _resolve_vault_path(vault: Path | None) -> str:
     if vault:
         return str(vault.resolve())
-    global_config = GlobalConfig.load()
+    global_config = GlobalConfigGateway().load()
     vault_path = global_config.get_last_opened_bookmark_path()
     if not vault_path:
         console.print("[red]❌ Error:[/] No vault specified and no bookmarks found.")
@@ -53,7 +51,7 @@ def _resolve_vault_path(vault: Path | None) -> str:
 
 
 def _load_config(vault_path: str) -> Config:
-    config = Config.load(vault_path)
+    config = ConfigGateway().load(vault_path)
     if not config:
         console.print("[yellow]⚠️  Warning:[/] No zk-chat configuration found in vault.")
         console.print(f"[dim]Run [cyan]zk-chat interactive --vault {vault_path}[/dim] to initialize.")
@@ -85,10 +83,10 @@ def _print_samples(chroma: ChromaGateway) -> None:
             collection = chroma.get_collection(collection_name)
             count = collection.count()
             if count > 0:
-                results = collection.get(limit=3, include=['metadatas', 'documents'])
+                results = collection.get(limit=3, include=["metadatas", "documents"])
                 console.print(f"\n[cyan]{collection_name.value}[/] (showing {min(3, count)} of {count}):")
                 for i, (doc_id, metadata, document) in enumerate(
-                    zip(results['ids'], results['metadatas'], results['documents'], strict=False)
+                    zip(results["ids"], results["metadatas"], results["documents"], strict=False)
                 ):
                     console.print(f"  [{i + 1}] ID: {doc_id[:50]}...")
                     console.print(f"      Title: {metadata.get('title', 'N/A')}")
@@ -134,6 +132,7 @@ def _run_test_query(query: str, provider: ServiceProvider) -> tuple[list, list]:
     except Exception as e:
         console.print(f"  [red]✗ Query failed:[/] {e}")
         import traceback
+
         console.print(f"  [dim]{traceback.format_exc()}[/]")
     return doc_results, excerpt_results
 
@@ -162,8 +161,8 @@ def _print_recommendations(chroma: ChromaGateway, query: str | None, doc_results
 
 @diagnose_app.command()
 def index(
-        vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
-        query: Annotated[str | None, typer.Option("--query", "-q", help="Test query to run")] = None,
+    vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
+    query: Annotated[str | None, typer.Option("--query", "-q", help="Test query to run")] = None,
 ):
     """Diagnose the search index to identify why queries aren't returning results."""
     vault_path = _resolve_vault_path(vault)

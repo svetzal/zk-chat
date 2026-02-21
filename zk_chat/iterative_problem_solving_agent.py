@@ -23,7 +23,7 @@ def strip_thinking(text: str) -> str:
     str
         The text with all <think>...</think> blocks removed
     """
-    return re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
+    return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
 
 class IterativeProblemSolvingAgent:
@@ -44,9 +44,13 @@ class IterativeProblemSolvingAgent:
     max_iterations: int
     chat: ChatSession
 
-    def __init__(self, llm: LLMBroker, available_tools: list[LLMTool] | None = None,
-                 max_iterations: int = 3,
-                 system_prompt: str | None = None):
+    def __init__(
+        self,
+        llm: LLMBroker,
+        available_tools: list[LLMTool] | None = None,
+        max_iterations: int = 3,
+        system_prompt: str | None = None,
+    ):
         """Initialize the IterativeProblemSolver.
 
         Parameters
@@ -62,12 +66,13 @@ class IterativeProblemSolvingAgent:
         self.available_tools = available_tools or []
         self.chat = ChatSession(
             llm=llm,
-            system_prompt=system_prompt or "You are a problem-solving assistant that can solve "
-                                           "complex problems step by step. "
-                                           "You analyze problems, break them down into smaller "
-                                           "parts, and solve them systematically. "
-                                           "If you cannot solve a problem completely in one step, you make progress "
-                                           "and identify what to do next.",
+            system_prompt=system_prompt
+            or "You are a problem-solving assistant that can solve "
+            "complex problems step by step. "
+            "You analyze problems, break them down into smaller "
+            "parts, and solve them systematically. "
+            "If you cannot solve a problem completely in one step, you make progress "
+            "and identify what to do next.",
             tools=self.available_tools,
         )
 
@@ -105,13 +110,15 @@ class IterativeProblemSolvingAgent:
 
             iterations_remaining -= 1
             if iterations_remaining == 0:
-                logger.info("Max iterations reached", max_iterations=self.max_iterations,
-                            user_request=problem, result=result)
+                logger.info(
+                    "Max iterations reached", max_iterations=self.max_iterations, user_request=problem, result=result
+                )
                 break
 
         result = self.chat.send(
             "Summarize the final result, and only the final result, without commenting on the process by which you "
-            "achieved it.")
+            "achieved it."
+        )
 
         return result
 

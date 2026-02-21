@@ -21,10 +21,12 @@ class FindZkDocumentsRelatedTo(LLMTool):
         self.console_service.print(f"[tool.info]Found {len(document_results)} documents related to the query:[/]")
         for result in document_results:
             self.console_service.print(f"  [tool.info]{result.document.title} (distance: {result.distance:.4f})[/]")
-        return json.dumps([
-            document.model_dump(mode='json')  # mode json to handle datetime serialization
-            for document in document_results
-        ])
+        return json.dumps(
+            [
+                document.model_dump(mode="json")  # mode json to handle datetime serialization
+                for document in document_results
+            ]
+        )
 
     @property
     def descriptor(self) -> dict:
@@ -33,18 +35,15 @@ class FindZkDocumentsRelatedTo(LLMTool):
             "function": {
                 "name": "find_documents",
                 "description": "Search for complete documents in the Zettelkasten knowledge base "
-                               "that are relevant to a query. This returns entire documents "
-                               "rather than specific excerpts, which is useful when you need comprehensive "
-                               "information on a topic rather than just specific passages.",
+                "that are relevant to a query. This returns entire documents "
+                "rather than specific excerpts, which is useful when you need comprehensive "
+                "information on a topic rather than just specific passages.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "query": {
-                            "type": "string",
-                            "description": "The search query to find relevant documents."
-                        }
+                        "query": {"type": "string", "description": "The search query to find relevant documents."}
                     },
-                    "required": ["query"]
+                    "required": ["query"],
                 },
             },
         }

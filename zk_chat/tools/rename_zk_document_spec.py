@@ -30,27 +30,27 @@ class DescribeRenameZkDocument:
         assert tool.document_service is document_service
 
     def should_sanitize_filename(self, tool: RenameZkDocument):
-        filename = 'test/file*name?.md'
+        filename = "test/file*name?.md"
 
         sanitized = tool._sanitize_filename(filename)
 
-        assert sanitized == 'testfilename.md'
+        assert sanitized == "testfilename.md"
 
     def should_ensure_md_extension(self, tool: RenameZkDocument):
-        filename_without_extension = 'test_file'
-        filename_with_extension = 'test_file.md'
+        filename_without_extension = "test_file"
+        filename_with_extension = "test_file.md"
 
         result_without_extension = tool._ensure_md_extension(filename_without_extension)
         result_with_extension = tool._ensure_md_extension(filename_with_extension)
 
-        assert result_without_extension == 'test_file.md'
-        assert result_with_extension == 'test_file.md'
+        assert result_without_extension == "test_file.md"
+        assert result_with_extension == "test_file.md"
 
     def should_rename_document_successfully(self, tool: RenameZkDocument, mock_filesystem):
-        source_title = 'source_document'
-        target_title = 'target_document'
-        source_path = 'source_document.md'
-        target_path = 'target_document.md'
+        source_title = "source_document"
+        target_title = "target_document"
+        source_path = "source_document.md"
+        target_path = "target_document.md"
 
         # Set up the mock filesystem
         mock_filesystem.path_exists.return_value = True
@@ -65,9 +65,9 @@ class DescribeRenameZkDocument:
         assert f"Successfully renamed document from '{source_path}' to '{target_path}'" in result
 
     def should_handle_file_not_found_error(self, tool: RenameZkDocument, mock_filesystem):
-        source_title = 'nonexistent_document'
-        target_title = 'target_document'
-        source_path = 'nonexistent_document.md'
+        source_title = "nonexistent_document"
+        target_title = "target_document"
+        source_path = "nonexistent_document.md"
 
         # Set up the mock to return False for document existence
         mock_filesystem.path_exists.return_value = False
@@ -80,10 +80,10 @@ class DescribeRenameZkDocument:
         assert source_path in result
 
     def should_handle_os_error(self, tool: RenameZkDocument, mock_filesystem):
-        source_title = 'source_document'
-        target_title = 'target_document'
-        source_path = 'source_document.md'
-        target_path = 'target_document.md'
+        source_title = "source_document"
+        target_title = "target_document"
+        source_path = "source_document.md"
+        target_path = "target_document.md"
 
         # Set up the mock to exist but raise OSError on rename
         mock_filesystem.path_exists.return_value = True

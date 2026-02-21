@@ -8,6 +8,7 @@ class ZkCollectionName(Enum):
     This enum automatically converts to string when used in string contexts,
     so there's no need to explicitly call .value
     """
+
     EXCERPTS = "excerpts"
     DOCUMENTS = "documents"
     ZETTELKASTEN = "zettelkasten"  # deprecated

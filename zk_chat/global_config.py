@@ -4,19 +4,16 @@ from enum import StrEnum
 from pydantic import BaseModel, Field
 
 
-def get_global_config_path() -> str:
-    """Get the path to the global config file in the user's home directory."""
-    return os.path.expanduser("~/.zk_chat")
-
-
 class MCPServerType(StrEnum):
     """Type of MCP server connection."""
+
     STDIO = "stdio"
     HTTP = "http"
 
 
 class MCPServerConfig(BaseModel):
     """Configuration for an MCP server."""
+
     name: str
     server_type: MCPServerType
     command: str | None = None
@@ -34,37 +31,18 @@ class GlobalConfig(BaseModel):
     """
     Global configuration for zk_chat that persists across sessions.
     Stores bookmarks, the last opened bookmark, and registered MCP servers.
+
+    This is a pure data model — all persistence is handled by GlobalConfigGateway.
     """
+
     bookmarks: set[str] = set()  # set of absolute vault paths
     last_opened_bookmark: str | None = None  # absolute path of the last opened bookmark
-    mcp_servers: dict[str, MCPServerConfig] = Field(
-        default_factory=dict)  # registered MCP servers by name
-
-    @classmethod
-    def load(cls) -> 'GlobalConfig':
-        """Load the global config from ~/.zk_chat or create a new one if it doesn't exist."""
-        config_path = get_global_config_path()
-        if os.path.exists(config_path):
-            try:
-                with open(config_path) as f:
-                    return cls.model_validate_json(f.read())
-            except Exception:
-                # If there's an error loading the config, create a new one
-                return cls()
-        else:
-            return cls()
-
-    def save(self) -> None:
-        """Save the global config to ~/.zk_chat."""
-        config_path = get_global_config_path()
-        with open(config_path, 'w') as f:
-            f.write(self.model_dump_json(indent=2))
+    mcp_servers: dict[str, MCPServerConfig] = Field(default_factory=dict)  # registered MCP servers by name
 
     def add_bookmark(self, vault_path: str) -> None:
         """Add a bookmark with the given vault path."""
         abs_path = os.path.abspath(vault_path)
         self.bookmarks.add(abs_path)
-        self.save()
 
     def remove_bookmark(self, vault_path: str) -> bool:
         """Remove a bookmark with the given vault path. Returns True if successful."""
@@ -74,7 +52,6 @@ class GlobalConfig(BaseModel):
             # If we're removing the last opened bookmark, clear it
             if self.last_opened_bookmark == abs_path:
                 self.last_opened_bookmark = None
-            self.save()
             return True
         return False
 
@@ -88,7 +65,6 @@ class GlobalConfig(BaseModel):
         abs_path = os.path.abspath(vault_path)
         if abs_path in self.bookmarks:
             self.last_opened_bookmark = abs_path
-            self.save()
             return True
         return False
 
@@ -101,13 +77,11 @@ class GlobalConfig(BaseModel):
     def add_mcp_server(self, server_config: MCPServerConfig) -> None:
         """Add or update an MCP server configuration."""
         self.mcp_servers[server_config.name] = server_config
-        self.save()
 
     def remove_mcp_server(self, server_name: str) -> bool:
         """Remove an MCP server configuration. Returns True if successful."""
         if server_name in self.mcp_servers:
             del self.mcp_servers[server_name]
-            self.save()
             return True
         return False
 

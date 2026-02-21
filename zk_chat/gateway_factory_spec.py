@@ -1,4 +1,5 @@
 """BDD-style tests for create_model_gateway factory."""
+
 from unittest.mock import Mock, patch
 
 import pytest

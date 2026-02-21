@@ -1,4 +1,5 @@
 """BDD-style tests for build_service_registry factory."""
+
 from unittest.mock import Mock, patch
 
 import pytest

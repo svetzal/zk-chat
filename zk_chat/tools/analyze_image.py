@@ -9,8 +9,9 @@ logger = structlog.get_logger()
 
 
 class AnalyzeImage(LLMTool):
-    def __init__(self, fs: MarkdownFilesystemGateway, llm: LLMBroker,
-                 console_service: RichConsoleService | None = None):
+    def __init__(
+        self, fs: MarkdownFilesystemGateway, llm: LLMBroker, console_service: RichConsoleService | None = None
+    ):
         self.fs = fs
         self.llm = llm
         self.console_service = console_service or RichConsoleService()
@@ -20,9 +21,11 @@ class AnalyzeImage(LLMTool):
         if not self.fs.path_exists(relative_path):
             return f"Image not found at {relative_path}"
 
-        message = MessageBuilder("Describe what you see in the image in plain text.") \
-            .add_image(self.fs.get_absolute_path_for_tool_access(relative_path)) \
+        message = (
+            MessageBuilder("Describe what you see in the image in plain text.")
+            .add_image(self.fs.get_absolute_path_for_tool_access(relative_path))
             .build()
+        )
         analysis = self.llm.generate([message])
 
         return analysis
@@ -43,7 +46,7 @@ class AnalyzeImage(LLMTool):
                             "description": "Relative path of the image to analyze",
                         }
                     },
-                    "required": ["relative_path"]
-                }
-            }
+                    "required": ["relative_path"],
+                },
+            },
         }

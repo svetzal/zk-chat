@@ -5,6 +5,7 @@ This service provides functionality for analyzing and traversing the wikilink gr
 structure of a Zettelkasten. It handles wikilink extraction, resolution, backlink
 discovery, and graph analysis operations.
 """
+
 import re
 from datetime import datetime
 from pathlib import Path
@@ -19,6 +20,7 @@ logger = structlog.get_logger()
 
 class WikiLinkReference(BaseModel):
     """A WikiLink with additional context about its location in the document."""
+
     wikilink: WikiLink
     line_number: int
     context_snippet: str
@@ -27,6 +29,7 @@ class WikiLinkReference(BaseModel):
 
 class BacklinkResult(BaseModel):
     """Result of a backlink search - a document that links to the target."""
+
     linking_document: str
     target_wikilink: str
     resolved_target: str | None
@@ -36,6 +39,7 @@ class BacklinkResult(BaseModel):
 
 class ForwardLinkResult(BaseModel):
     """Result of a forward link search - a document linked from the source."""
+
     source_document: str
     target_wikilink: str
     resolved_target: str | None
@@ -45,6 +49,7 @@ class ForwardLinkResult(BaseModel):
 
 class LinkPath(BaseModel):
     """A path through the link graph between two documents."""
+
     from_document: str
     to_document: str
     path: list[str]
@@ -53,6 +58,7 @@ class LinkPath(BaseModel):
 
 class LinkMetrics(BaseModel):
     """Metrics about the link graph structure."""
+
     total_documents: int
     total_links: int
     total_resolved_links: int
@@ -73,8 +79,9 @@ class LinkGraphIndex:
         self.wikilink_references: dict[str, list[WikiLinkReference]] = {}  # cached extractions
         self.last_updated: datetime | None = None
 
-    def add_document_links(self, document: str, wikilink_refs: list[WikiLinkReference],
-                           resolved_targets: dict[str, str | None]) -> None:
+    def add_document_links(
+        self, document: str, wikilink_refs: list[WikiLinkReference], resolved_targets: dict[str, str | None]
+    ) -> None:
         """Add or update links for a document."""
         # Clear existing links for this document
         if document in self.forward_links:
@@ -134,10 +141,7 @@ class LinkGraphIndex:
                     if next_doc == to_doc:
                         final_path = path + [next_doc]
                         return LinkPath(
-                            from_document=from_doc,
-                            to_document=to_doc,
-                            path=final_path,
-                            hops=len(final_path) - 1
+                            from_document=from_doc, to_document=to_doc, path=final_path, hops=len(final_path) - 1
                         )
 
                     if next_doc not in visited:
@@ -164,10 +168,9 @@ class LinkTraversalService:
     def __init__(self, filesystem_gateway: MarkdownFilesystemGateway):
         self.filesystem_gateway = filesystem_gateway
         self.link_index = LinkGraphIndex()
-        self._wikilink_pattern = re.compile(r'\[\[(.*?)(?:\|(.*?))?\]\]')
+        self._wikilink_pattern = re.compile(r"\[\[(.*?)(?:\|(.*?))?\]\]")
 
-    def extract_wikilinks_from_content(self, content: str, source_document: str = "") -> list[
-        WikiLinkReference]:
+    def extract_wikilinks_from_content(self, content: str, source_document: str = "") -> list[WikiLinkReference]:
         """
         Extract all wikilinks from document content with context information.
 
@@ -179,7 +182,7 @@ class LinkTraversalService:
             List of WikiLinkReference objects with line numbers and context
         """
         wikilink_references = []
-        lines = content.split('\n')
+        lines = content.split("\n")
 
         for line_num, line in enumerate(lines, 1):
             matches = self._wikilink_pattern.finditer(line)
@@ -195,16 +198,18 @@ class LinkTraversalService:
                         wikilink=wikilink,
                         line_number=line_num,
                         context_snippet=context_snippet,
-                        source_document=source_document
+                        source_document=source_document,
                     )
                     wikilink_references.append(wikilink_ref)
 
                 except ValueError as e:
-                    logger.warning("Failed to parse wikilink",
-                                   wikilink_text=match.group(0),
-                                   line_number=line_num,
-                                   source_document=source_document,
-                                   error=str(e))
+                    logger.warning(
+                        "Failed to parse wikilink",
+                        wikilink_text=match.group(0),
+                        line_number=line_num,
+                        source_document=source_document,
+                        error=str(e),
+                    )
                     continue
 
         return wikilink_references
@@ -227,8 +232,7 @@ class LinkTraversalService:
             metadata, content = self.filesystem_gateway.read_markdown(relative_path)
             return self.extract_wikilinks_from_content(content, relative_path)
         except Exception as e:
-            logger.error("Failed to extract wikilinks from document",
-                         path=relative_path, error=str(e))
+            logger.error("Failed to extract wikilinks from document", path=relative_path, error=str(e))
             return []
 
     def find_backlinks(self, target_document: str) -> list[BacklinkResult]:
@@ -251,13 +255,15 @@ class LinkTraversalService:
                 if linking_doc in self.link_index.wikilink_references:
                     for ref in self.link_index.wikilink_references[linking_doc]:
                         if ref.wikilink.title == target_title:
-                            backlinks.append(BacklinkResult(
-                                linking_document=linking_doc,
-                                target_wikilink=str(ref.wikilink),
-                                resolved_target=target_document,
-                                line_number=ref.line_number,
-                                context_snippet=ref.context_snippet
-                            ))
+                            backlinks.append(
+                                BacklinkResult(
+                                    linking_document=linking_doc,
+                                    target_wikilink=str(ref.wikilink),
+                                    resolved_target=target_document,
+                                    line_number=ref.line_number,
+                                    context_snippet=ref.context_snippet,
+                                )
+                            )
             return backlinks
 
         # Fall back to scanning all documents
@@ -268,13 +274,15 @@ class LinkTraversalService:
                 try:
                     resolved_path = self.filesystem_gateway.resolve_wikilink(str(ref.wikilink))
                     if resolved_path == target_document:
-                        backlinks.append(BacklinkResult(
-                            linking_document=relative_path,
-                            target_wikilink=str(ref.wikilink),
-                            resolved_target=target_document,
-                            line_number=ref.line_number,
-                            context_snippet=ref.context_snippet
-                        ))
+                        backlinks.append(
+                            BacklinkResult(
+                                linking_document=relative_path,
+                                target_wikilink=str(ref.wikilink),
+                                resolved_target=target_document,
+                                line_number=ref.line_number,
+                                context_snippet=ref.context_snippet,
+                            )
+                        )
                 except ValueError:
                     # Wikilink doesn't resolve, skip
                     continue
@@ -297,22 +305,26 @@ class LinkTraversalService:
         for ref in wikilink_refs:
             try:
                 resolved_path = self.filesystem_gateway.resolve_wikilink(str(ref.wikilink))
-                forward_links.append(ForwardLinkResult(
-                    source_document=source_document,
-                    target_wikilink=str(ref.wikilink),
-                    resolved_target=resolved_path,
-                    line_number=ref.line_number,
-                    context_snippet=ref.context_snippet
-                ))
+                forward_links.append(
+                    ForwardLinkResult(
+                        source_document=source_document,
+                        target_wikilink=str(ref.wikilink),
+                        resolved_target=resolved_path,
+                        line_number=ref.line_number,
+                        context_snippet=ref.context_snippet,
+                    )
+                )
             except ValueError:
                 # Broken link
-                forward_links.append(ForwardLinkResult(
-                    source_document=source_document,
-                    target_wikilink=str(ref.wikilink),
-                    resolved_target=None,
-                    line_number=ref.line_number,
-                    context_snippet=ref.context_snippet
-                ))
+                forward_links.append(
+                    ForwardLinkResult(
+                        source_document=source_document,
+                        target_wikilink=str(ref.wikilink),
+                        resolved_target=None,
+                        line_number=ref.line_number,
+                        context_snippet=ref.context_snippet,
+                    )
+                )
 
         return forward_links
 
@@ -336,12 +348,13 @@ class LinkTraversalService:
             self.link_index.add_document_links(relative_path, wikilink_refs, resolved_targets)
 
         self.link_index.last_updated = datetime.now()
-        logger.info("Link graph index built",
-                    documents=len(self.link_index.forward_links),
-                    total_links=sum(len(links) for links in self.link_index.forward_links.values()))
+        logger.info(
+            "Link graph index built",
+            documents=len(self.link_index.forward_links),
+            total_links=sum(len(links) for links in self.link_index.forward_links.values()),
+        )
 
-    def find_link_path(self, from_document: str, to_document: str,
-                       max_hops: int = 3) -> LinkPath | None:
+    def find_link_path(self, from_document: str, to_document: str, max_hops: int = 3) -> LinkPath | None:
         """
         Find a path between two documents through wikilinks.
 
@@ -387,7 +400,7 @@ class LinkTraversalService:
                 orphaned_documents=[document] if backward_links == 0 else [],
                 hub_documents=[(document, backward_links)],
                 average_links_per_document=float(forward_links),
-                link_density=0.0  # Not meaningful for single document
+                link_density=0.0,  # Not meaningful for single document
             )
 
         # Global metrics
@@ -402,8 +415,7 @@ class LinkTraversalService:
                 orphaned.append(doc)
 
         # Find hub documents (most incoming links)
-        hub_scores = [(doc, len(self.link_index.get_backward_links(doc)))
-                      for doc in self.link_index.forward_links]
+        hub_scores = [(doc, len(self.link_index.get_backward_links(doc))) for doc in self.link_index.forward_links]
         hub_documents = sorted(hub_scores, key=lambda x: x[1], reverse=True)[:10]
 
         # Calculate metrics
@@ -419,11 +431,10 @@ class LinkTraversalService:
             orphaned_documents=orphaned,
             hub_documents=hub_documents,
             average_links_per_document=avg_links,
-            link_density=link_density
+            link_density=link_density,
         )
 
-    def _create_context_snippet(self, line: str, start: int, end: int,
-                                context_chars: int = 50) -> str:
+    def _create_context_snippet(self, line: str, start: int, end: int, context_chars: int = 50) -> str:
         """Create a context snippet showing the wikilink within its surrounding text."""
         # Get context before and after the wikilink
         context_start = max(0, start - context_chars)

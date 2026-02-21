@@ -5,6 +5,7 @@ This service provides functionality for document lifecycle operations in a Zette
 It handles document CRUD operations without indexing concerns, delegating file system
 operations to the MarkdownFilesystemGateway.
 """
+
 from collections.abc import Iterator
 from typing import Any
 
@@ -62,11 +63,7 @@ class DocumentService:
             If the document does not exist
         """
         metadata, content = self.filesystem_gateway.read_markdown(relative_path)
-        return ZkDocument(
-            relative_path=relative_path,
-            metadata=metadata,
-            content=content
-        )
+        return ZkDocument(relative_path=relative_path, metadata=metadata, content=content)
 
     def write_document(self, document: ZkDocument) -> None:
         """
@@ -93,22 +90,14 @@ class DocumentService:
 
             logger.debug("Writing document", path=document.relative_path)
             try:
-                self.filesystem_gateway.write_markdown(
-                    document.relative_path,
-                    document.metadata,
-                    document.content
-                )
+                self.filesystem_gateway.write_markdown(document.relative_path, document.metadata, document.content)
                 logger.info("Document written successfully", path=document.relative_path)
             except yaml.YAMLError as e:
-                logger.error("Failed to serialize document metadata",
-                             path=document.relative_path,
-                             error=str(e))
+                logger.error("Failed to serialize document metadata", path=document.relative_path, error=str(e))
                 raise
 
         except OSError as e:
-            logger.error("Failed to write document",
-                         path=document.relative_path,
-                         error=str(e))
+            logger.error("Failed to write document", path=document.relative_path, error=str(e))
             raise
 
     def delete_document(self, relative_path: str) -> None:
@@ -181,9 +170,7 @@ class DocumentService:
         merged_content = original.content + f"\n\n---\n\n{document.content}"
         merged_metadata = self._merge_metadata(original.metadata, document.metadata)
         merged_document = ZkDocument(
-            relative_path=original.relative_path,
-            metadata=merged_metadata,
-            content=merged_content
+            relative_path=original.relative_path, metadata=merged_metadata, content=merged_content
         )
         self.write_document(merged_document)
 
@@ -280,15 +267,10 @@ class DocumentService:
         """
         document = self.read_document(relative_path)
         merged_metadata = self._merge_metadata(document.metadata, metadata)
-        updated_document = ZkDocument(
-            relative_path=relative_path,
-            metadata=merged_metadata,
-            content=document.content
-        )
+        updated_document = ZkDocument(relative_path=relative_path, metadata=merged_metadata, content=document.content)
         self.write_document(updated_document)
 
-    def _merge_metadata(self, original_metadata: dict[str, Any],
-                        new_metadata: dict[str, Any]) -> dict[str, Any]:
+    def _merge_metadata(self, original_metadata: dict[str, Any], new_metadata: dict[str, Any]) -> dict[str, Any]:
         """
         Merge two metadata dictionaries with special handling for nested structures and arrays.
 

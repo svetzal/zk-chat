@@ -36,7 +36,7 @@ class DescribeRichConsoleService:
         assert "banner.warning.unsafe" in theme_styles
         assert "banner.warning.git" in theme_styles
 
-    @patch('zk_chat.console_service.Prompt')
+    @patch("zk_chat.console_service.Prompt")
     def should_provide_input_method_with_prompt(self, mock_prompt):
         mock_prompt.ask.return_value = "test input"
         service = RichConsoleService()
@@ -46,7 +46,7 @@ class DescribeRichConsoleService:
         mock_prompt.ask.assert_called_once_with("Test prompt: ", console=service.console)
         assert result == "test input"
 
-    @patch('zk_chat.console_service.Prompt')
+    @patch("zk_chat.console_service.Prompt")
     def should_provide_input_method_without_prompt(self, mock_prompt):
         mock_prompt.ask.return_value = "test input"
         service = RichConsoleService()

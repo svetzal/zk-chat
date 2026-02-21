@@ -38,11 +38,7 @@ class DescribeMarkdownFilesystemGateway:
         assert gateway.root_path == root_path
 
     def should_iterate_markdown_files(self, gateway, temp_dir):
-        expected_files = {
-            "test1.md",
-            "test2.md",
-            str(Path("subdir") / "test3.md")
-        }
+        expected_files = {"test1.md", "test2.md", str(Path("subdir") / "test3.md")}
 
         found_files = set()
         for relative_path in gateway.iterate_markdown_files():

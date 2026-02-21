@@ -27,8 +27,7 @@ def test_read_document_when_exists(read_tool, mock_filesystem):
 
     mock_filesystem.path_exists.assert_called_once_with(relative_path)
     mock_filesystem.read_markdown.assert_called_once_with(relative_path)
-    expected_result = ZkDocument(relative_path=relative_path, metadata={"title": "Test"},
-                                 content="# Test Content")
+    expected_result = ZkDocument(relative_path=relative_path, metadata={"title": "Test"}, content="# Test Content")
     assert result == expected_result.model_dump_json()
 
 

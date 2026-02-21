@@ -14,7 +14,6 @@ class Upgrader:
 
 
 class GatewaySpecificIndexFolder(Upgrader):
-
     def __init__(self, config: Config):
         self.config = config
 

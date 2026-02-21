@@ -22,21 +22,13 @@ def test_find_excerpts_related_to(find_excerpts_tool, mock_index_service):
     query = "test query"
     mock_results = [
         ZkQueryExcerptResult(
-            excerpt=ZkDocumentExcerpt(
-                document_id="doc1",
-                document_title="Test Doc 1",
-                text="Sample text 1"
-            ),
-            distance=0.1
+            excerpt=ZkDocumentExcerpt(document_id="doc1", document_title="Test Doc 1", text="Sample text 1"),
+            distance=0.1,
         ),
         ZkQueryExcerptResult(
-            excerpt=ZkDocumentExcerpt(
-                document_id="doc2",
-                document_title="Test Doc 2",
-                text="Sample text 2"
-            ),
-            distance=0.2
-        )
+            excerpt=ZkDocumentExcerpt(document_id="doc2", document_title="Test Doc 2", text="Sample text 2"),
+            distance=0.2,
+        ),
     ]
     mock_index_service.query_excerpts.return_value = mock_results
 

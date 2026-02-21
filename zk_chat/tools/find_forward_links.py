@@ -9,8 +9,12 @@ logger = structlog.get_logger()
 
 
 class FindForwardLinks(LLMTool):
-    def __init__(self, document_service: DocumentService, link_service: LinkTraversalService,
-                 console_service: RichConsoleService | None = None):
+    def __init__(
+        self,
+        document_service: DocumentService,
+        link_service: LinkTraversalService,
+        console_service: RichConsoleService | None = None,
+    ):
         self.document_service = document_service
         self.link_service = link_service
         self.console_service = console_service or RichConsoleService()
@@ -33,8 +37,7 @@ class FindForwardLinks(LLMTool):
         # Use the link traversal service to find forward links
         forward_link_results = self.link_service.find_forward_links(source_document)
 
-        console_msg = (f"[tool.info]Found {len(forward_link_results)} forward links from "
-                       f"{source_document}[/]")
+        console_msg = f"[tool.info]Found {len(forward_link_results)} forward links from {source_document}[/]"
         self.console_service.print(console_msg)
 
         # Convert to JSON for return
@@ -54,7 +57,8 @@ class FindForwardLinks(LLMTool):
                     "knowledge graph. Returns target documents with context snippets "
                     "showing how they are referenced from the source document. Use this "
                     "to understand what content a particular document builds upon or "
-                    "references."),
+                    "references."
+                ),
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -64,10 +68,11 @@ class FindForwardLinks(LLMTool):
                                 "The relative path of the source document to find forward "
                                 "links from (e.g., 'concepts/systems-thinking.md'). The "
                                 "service will extract all wikilinks from this document and "
-                                "resolve them to their target documents.")
+                                "resolve them to their target documents."
+                            ),
                         }
                     },
-                    "required": ["source_document"]
+                    "required": ["source_document"],
                 },
             },
         }

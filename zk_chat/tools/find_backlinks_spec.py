@@ -32,19 +32,18 @@ class DescribeFindBacklinks:
                 target_wikilink="Systems Thinking",
                 resolved_target="concepts/systems-thinking.md",
                 line_number=5,
-                context_snippet="In this section we explore [[Systems Thinking]] as a core concept."
+                context_snippet="In this section we explore [[Systems Thinking]] as a core concept.",
             ),
             BacklinkResult(
                 linking_document="projects/analysis.md",
                 target_wikilink="Systems Thinking",
                 resolved_target="concepts/systems-thinking.md",
                 line_number=12,
-                context_snippet="The [[Systems Thinking|systems approach]] is fundamental here."
-            )
+                context_snippet="The [[Systems Thinking|systems approach]] is fundamental here.",
+            ),
         ]
 
-    def should_be_instantiated_with_link_service_and_console_service(self, mock_link_service,
-                                                                      mock_console_service):
+    def should_be_instantiated_with_link_service_and_console_service(self, mock_link_service, mock_console_service):
         tool = FindBacklinks(mock_link_service, mock_console_service)
 
         assert isinstance(tool, FindBacklinks)
@@ -107,9 +106,9 @@ class DescribeFindBacklinks:
         assert "line_number" in result
         assert "context_snippet" in result
 
-    def should_print_console_feedback_about_results_found(self, backlinks_tool,
-                                                          mock_console_service,
-                                                          mock_backlink_results):
+    def should_print_console_feedback_about_results_found(
+        self, backlinks_tool, mock_console_service, mock_backlink_results
+    ):
         target = "test-document.md"
 
         backlinks_tool.link_service.find_backlinks = Mock(return_value=mock_backlink_results)
@@ -130,7 +129,7 @@ class DescribeFindBacklinks:
                 target_wikilink="single-reference",
                 resolved_target="single-reference.md",
                 line_number=3,
-                context_snippet="See [[single-reference]] for details."
+                context_snippet="See [[single-reference]] for details.",
             )
         ]
 
@@ -149,8 +148,7 @@ class DescribeFindBacklinks:
                 target_wikilink="Important Concept",
                 resolved_target="important-concept.md",
                 line_number=8,
-                context_snippet="Before we proceed, we must understand [[Important Concept]] "
-                                "thoroughly."
+                context_snippet="Before we proceed, we must understand [[Important Concept]] thoroughly.",
             )
         ]
 
@@ -170,7 +168,7 @@ class DescribeFindBacklinks:
                 target_wikilink="technical-topic",
                 resolved_target="technical-topic.md",
                 line_number=15,
-                context_snippet="For more details see [[technical-topic|this comprehensive guide]]."
+                context_snippet="For more details see [[technical-topic|this comprehensive guide]].",
             )
         ]
 
@@ -187,8 +185,7 @@ class DescribeFindBacklinks:
         assert descriptor["type"] == "function"
         function_def = descriptor["function"]
         assert function_def["name"] == "find_backlinks"
-        assert "find all documents that contain wikilinks pointing to" in function_def[
-            "description"].lower()
+        assert "find all documents that contain wikilinks pointing to" in function_def["description"].lower()
 
         params = function_def["parameters"]
         assert params["type"] == "object"

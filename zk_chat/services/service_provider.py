@@ -4,6 +4,7 @@ Service provider for plugins to easily access services they need.
 This provides a clean interface for plugins to request services without
 needing to manage service discovery or handle service unavailability.
 """
+
 from typing import TypeVar
 
 import structlog
@@ -12,7 +13,7 @@ from .service_registry import ServiceRegistry, ServiceType
 
 logger = structlog.get_logger()
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class ServiceProvider:
@@ -36,21 +37,25 @@ class ServiceProvider:
     def get_filesystem_gateway(self):
         """Get the filesystem gateway service."""
         from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
+
         return self._registry.get_service(ServiceType.FILESYSTEM_GATEWAY, MarkdownFilesystemGateway)
 
     def get_llm_broker(self):
         """Get the LLM broker service."""
         from mojentic.llm import LLMBroker
+
         return self._registry.get_service(ServiceType.LLM_BROKER, LLMBroker)
 
     def get_smart_memory(self):
         """Get the Smart Memory service."""
         from zk_chat.memory.smart_memory import SmartMemory
+
         return self._registry.get_service(ServiceType.SMART_MEMORY, SmartMemory)
 
     def get_chroma_gateway(self):
         """Get the ChromaDB gateway service."""
         from zk_chat.chroma_gateway import ChromaGateway
+
         return self._registry.get_service(ServiceType.CHROMA_GATEWAY, ChromaGateway)
 
     def get_model_gateway(self):
@@ -60,35 +65,52 @@ class ServiceProvider:
     def get_tokenizer_gateway(self):
         """Get the tokenizer gateway service."""
         from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
+
         return self._registry.get_service(ServiceType.TOKENIZER_GATEWAY, TokenizerGateway)
 
     def get_git_gateway(self):
         """Get the Git gateway service (may not be available)."""
         from zk_chat.tools.git_gateway import GitGateway
+
         return self._registry.get_service(ServiceType.GIT_GATEWAY, GitGateway)
 
     def get_config(self):
         """Get the application configuration."""
         from zk_chat.config import Config
+
         return self._registry.get_service(ServiceType.CONFIG, Config)
+
+    def get_config_gateway(self):
+        """Get the config gateway for vault config persistence."""
+        from zk_chat.config_gateway import ConfigGateway
+
+        return self._registry.get_service(ServiceType.CONFIG_GATEWAY, ConfigGateway)
+
+    def get_global_config_gateway(self):
+        """Get the global config gateway for global config persistence."""
+        from zk_chat.global_config_gateway import GlobalConfigGateway
+
+        return self._registry.get_service(ServiceType.GLOBAL_CONFIG_GATEWAY, GlobalConfigGateway)
 
     def get_document_service(self):
         """Get the DocumentService for document CRUD operations."""
         from zk_chat.services.document_service import DocumentService
+
         return self._registry.get_service(ServiceType.DOCUMENT_SERVICE, DocumentService)
 
     def get_index_service(self):
         """Get the IndexService for vector indexing and search operations."""
         from zk_chat.services.index_service import IndexService
+
         return self._registry.get_service(ServiceType.INDEX_SERVICE, IndexService)
 
     def get_link_traversal_service(self):
         """Get the LinkTraversalService for wikilink analysis and graph traversal."""
         from zk_chat.services.link_traversal_service import LinkTraversalService
+
         return self._registry.get_service(ServiceType.LINK_TRAVERSAL_SERVICE, LinkTraversalService)
 
-    def get_service(self, service_type: ServiceType,
-                    expected_type: type[T] | None = None) -> T | None:
+    def get_service(self, service_type: ServiceType, expected_type: type[T] | None = None) -> T | None:
         """
         Generic method to get a service by type.
 

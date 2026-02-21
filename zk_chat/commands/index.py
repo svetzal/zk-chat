@@ -4,6 +4,7 @@ Index subcommand for zk-chat.
 
 Manages the search index for your Zettelkasten.
 """
+
 import logging
 import os
 
@@ -11,7 +12,7 @@ import os
 logging.basicConfig(level=logging.WARN)
 
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
-os.environ['CHROMA_TELEMETRY'] = 'false'
+os.environ["CHROMA_TELEMETRY"] = "false"
 
 from pathlib import Path
 from typing import Annotated
@@ -20,29 +21,20 @@ import typer
 from rich.console import Console
 
 from zk_chat.cli import common_init_typer
-from zk_chat.config import Config
-from zk_chat.global_config import GlobalConfig
+from zk_chat.config_gateway import ConfigGateway
+from zk_chat.global_config_gateway import GlobalConfigGateway
 
-index_app = typer.Typer(
-    name="index",
-    help="🔍 Manage your Zettelkasten search index",
-    rich_markup_mode="rich"
-)
+index_app = typer.Typer(name="index", help="🔍 Manage your Zettelkasten search index", rich_markup_mode="rich")
 
 console = Console()
 
 
 @index_app.command()
 def update(
-        vault: Annotated[Path | None, typer.Option("--vault", "-v",
-                                                   help="Path to your Zettelkasten vault")] = None,
-        full: Annotated[bool, typer.Option("--full",
-                                           help="Force full rebuild (slower but comprehensive)")]
-        = False,
-        gateway: Annotated[str | None, typer.Option("--gateway", "-g",
-                                                    help="Model gateway (ollama/openai)")] = None,
-        model: Annotated[str | None, typer.Option("--model", "-m",
-                                                  help="Model for generating embeddings")] = None,
+    vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
+    full: Annotated[bool, typer.Option("--full", help="Force full rebuild (slower but comprehensive)")] = False,
+    gateway: Annotated[str | None, typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
+    model: Annotated[str | None, typer.Option("--model", "-m", help="Model for generating embeddings")] = None,
 ):
     """
     Update the search index for your Zettelkasten.
@@ -89,14 +81,13 @@ def update(
     console.print("[dim]Your Zettelkasten is ready for fast searching.[/]")
 
 
-
-
 def _resolve_vault_status(vault: Path | None) -> str:
     import os as _os
+
     if vault:
         vault_path = str(vault.resolve())
     else:
-        global_config = GlobalConfig.load()
+        global_config = GlobalConfigGateway().load()
         vault_path = global_config.get_last_opened_bookmark_path()
         if not vault_path:
             console.print("[red]❌ Error:[/] No vault specified and no bookmarks found.")
@@ -109,7 +100,7 @@ def _resolve_vault_status(vault: Path | None) -> str:
 
 
 def _load_config_status(vault_path: str):
-    config = Config.load(vault_path)
+    config = ConfigGateway().load(vault_path)
     if not config:
         console.print("[yellow]⚠️  Warning:[/] No zk-chat configuration found in vault.")
         console.print("[dim]Run [cyan]zk-chat interactive --vault {vault_path}[/dim] to initialize.")
@@ -130,6 +121,7 @@ def _print_basic_config(config) -> None:
 
 def _print_last_indexed(config) -> None:
     from datetime import datetime as _dt
+
     last_indexed = config.get_last_indexed()
     if last_indexed:
         console.print(f"\n[bold]Last Indexed:[/] {last_indexed.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -147,6 +139,7 @@ def _print_last_indexed(config) -> None:
 
 def _print_db_info(vault_path: str) -> None:
     import os as _os
+
     db_dir = _os.path.join(vault_path, ".zk_chat_db")
     if _os.path.exists(db_dir):
         total_size = 0
@@ -172,12 +165,13 @@ def _print_db_info(vault_path: str) -> None:
 
 def _count_markdown_files(vault_path: str) -> int:
     import os as _os
+
     count = 0
     for root, _dirs, files in _os.walk(vault_path):
-        if '.zk_chat_db' in root:
+        if ".zk_chat_db" in root:
             continue
         for file in files:
-            if file.endswith('.md'):
+            if file.endswith(".md"):
                 count += 1
     return count
 
@@ -197,7 +191,7 @@ def _print_health(last_indexed, markdown_count: int, vault_path: str) -> None:
 
 @index_app.command()
 def status(
-        vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
+    vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
 ):
     """Show the current status of your Zettelkasten index."""
     vault_path = _resolve_vault_status(vault)
@@ -223,6 +217,5 @@ def index_default(ctx: typer.Context):
     if ctx.invoked_subcommand is None:
         # Show help by default
         console.print(ctx.get_help())
-        console.print(
-            "\n[yellow]💡 Tip:[/] Use [cyan]zk-chat index --help[/] to see available commands.")
+        console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat index --help[/] to see available commands.")
         console.print("Most common: [cyan]zk-chat index update[/] or [cyan]zk-chat index status[/]")
