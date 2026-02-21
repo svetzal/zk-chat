@@ -10,13 +10,14 @@ from typing import Any
 import structlog
 
 from zk_chat.memory.smart_memory import SmartMemory
+from zk_chat.services.document_service import DocumentService
+from zk_chat.services.index_service import IndexService
 from zk_chat.tools.create_or_overwrite_zk_document import CreateOrOverwriteZkDocument
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.read_zk_document import ReadZkDocument
 from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory
 from zk_chat.tools.store_in_smart_memory import StoreInSmartMemory
-from zk_chat.zettelkasten import Zettelkasten
 
 # Initialize logger
 logger = structlog.get_logger()
@@ -32,23 +33,27 @@ class MCPServer:
 
     def __init__(
             self,
-            zk: Zettelkasten,
+            document_service: DocumentService,
+            index_service: IndexService,
             smart_memory: SmartMemory,
             enable_unsafe_operations: bool = False
     ):
         """
         Initialize the MCP server with required dependencies.
-        
+
         Parameters
         ----------
-        zk : Zettelkasten
-            Zettelkasten instance needed for document-related tools
+        document_service : DocumentService
+            DocumentService instance needed for document-related tools
+        index_service : IndexService
+            IndexService instance needed for search-related tools
         smart_memory : SmartMemory
             SmartMemory instance needed for memory-related tools
         enable_unsafe_operations : bool, optional
             Flag to enable potentially unsafe operations like document creation, by default False
         """
-        self.zk = zk
+        self.document_service = document_service
+        self.index_service = index_service
         self.smart_memory = smart_memory
         self.enable_unsafe_operations = enable_unsafe_operations
         self.tools = {}
@@ -60,15 +65,15 @@ class MCPServer:
         Register the specific tools with appropriate dependencies.
         """
         # Register read-only tools
-        self._register_tool(ReadZkDocument(self.zk))
-        self._register_tool(FindExcerptsRelatedTo(self.zk))
-        self._register_tool(FindZkDocumentsRelatedTo(self.zk))
+        self._register_tool(ReadZkDocument(self.document_service))
+        self._register_tool(FindExcerptsRelatedTo(self.index_service))
+        self._register_tool(FindZkDocumentsRelatedTo(self.index_service))
         self._register_tool(RetrieveFromSmartMemory(self.smart_memory))
         self._register_tool(StoreInSmartMemory(self.smart_memory))
 
         # Register potentially unsafe tools if enabled
         if self.enable_unsafe_operations:
-            self._register_tool(CreateOrOverwriteZkDocument(self.zk))
+            self._register_tool(CreateOrOverwriteZkDocument(self.document_service))
 
     def _register_tool(self, tool_instance: Any) -> None:
         """
@@ -191,26 +196,33 @@ class MCPServer:
 
 
 def create_mcp_server(
-        zk: Zettelkasten,
+        document_service: DocumentService,
+        index_service: IndexService,
         smart_memory: SmartMemory,
         enable_unsafe_operations: bool = False
 ) -> MCPServer:
     """
     Helper function to create and configure an MCP server.
-    
+
     Parameters
     ----------
-    zk : Zettelkasten
-        Zettelkasten instance for document-related tools
+    document_service : DocumentService
+        DocumentService instance for document-related tools
+    index_service : IndexService
+        IndexService instance for search-related tools
     smart_memory : SmartMemory
         SmartMemory instance for memory-related tools
     enable_unsafe_operations : bool, optional
         Flag to enable potentially unsafe operations like document creation, by default False
-        
+
     Returns
     -------
     MCPServer
         Configured MCP server instance
     """
-    return MCPServer(zk=zk, smart_memory=smart_memory,
-                     enable_unsafe_operations=enable_unsafe_operations)
+    return MCPServer(
+        document_service=document_service,
+        index_service=index_service,
+        smart_memory=smart_memory,
+        enable_unsafe_operations=enable_unsafe_operations
+    )

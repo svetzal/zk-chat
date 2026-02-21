@@ -2,14 +2,14 @@ import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
-from zk_chat.zettelkasten import Zettelkasten
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 
 logger = structlog.get_logger()
 
 
 class ListZkImages(LLMTool):
-    def __init__(self, zk: Zettelkasten, console_service: RichConsoleService | None = None):
-        self.zk = zk
+    def __init__(self, fs: MarkdownFilesystemGateway, console_service: RichConsoleService | None = None):
+        self.fs = fs
         self.console_service = console_service or RichConsoleService()
 
     def run(self, **kwargs) -> str:
@@ -21,7 +21,7 @@ class ListZkImages(LLMTool):
         """
         self.console_service.print("[tool.info]Listing all available images[/]")
         image_extensions = ['.jpg', '.jpeg', '.png']
-        paths = list(self.zk.filesystem_gateway.iterate_files_by_extensions(image_extensions))
+        paths = list(self.fs.iterate_files_by_extensions(image_extensions))
         logger.info("Listed all available images", paths=paths, count=len(paths))
         return "\n".join(paths) if paths else "No image files found in the vault."
 

@@ -36,6 +36,8 @@ from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway, get_available_models
 from zk_chat.global_config import GlobalConfig
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
+from zk_chat.services.document_service import DocumentService
+from zk_chat.services.index_service import IndexService
 from zk_chat.tools.analyze_image import AnalyzeImage
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
@@ -43,7 +45,6 @@ from zk_chat.tools.list_zk_images import ListZkImages
 from zk_chat.tools.read_zk_document import ReadZkDocument
 from zk_chat.tools.resolve_wikilink import ResolveWikiLink
 from zk_chat.vector_database import VectorDatabase
-from zk_chat.zettelkasten import Zettelkasten
 
 
 class LoadingSpinnerWidget(QWidget):
@@ -406,36 +407,37 @@ class MainWindow(QMainWindow):
             # Default to Ollama if not specified
             gateway = OllamaGateway()
 
-        zk = Zettelkasten(
+        filesystem_gateway = MarkdownFilesystemGateway(self.config.vault)
+        excerpts_db = VectorDatabase(chroma_gateway=chroma, gateway=gateway,
+                                     collection_name=ZkCollectionName.EXCERPTS)
+        documents_db = VectorDatabase(chroma_gateway=chroma, gateway=gateway,
+                                      collection_name=ZkCollectionName.DOCUMENTS)
+
+        document_service = DocumentService(filesystem_gateway)
+        index_service = IndexService(
             tokenizer_gateway=TokenizerGateway(),
-            excerpts_db=VectorDatabase(
-                chroma_gateway=chroma,
-                gateway=gateway,
-                collection_name=ZkCollectionName.EXCERPTS
-            ),
-            documents_db=VectorDatabase(
-                chroma_gateway=chroma,
-                gateway=gateway,
-                collection_name=ZkCollectionName.DOCUMENTS
-            ),
-            filesystem_gateway=MarkdownFilesystemGateway(self.config.vault))
+            excerpts_db=excerpts_db,
+            documents_db=documents_db,
+            filesystem_gateway=filesystem_gateway
+        )
+
         # Create LLM broker for chat
         chat_llm = LLMBroker(self.config.model, gateway=gateway)
 
         # Initialize tools list with basic tools
         tools = [
             ResolveDateTool(),
-            ReadZkDocument(zk),
-            ListZkImages(zk),
-            FindExcerptsRelatedTo(zk),
-            FindZkDocumentsRelatedTo(zk),
-            ResolveWikiLink(zk.filesystem_gateway),
+            ReadZkDocument(document_service),
+            ListZkImages(filesystem_gateway),
+            FindExcerptsRelatedTo(index_service),
+            FindZkDocumentsRelatedTo(index_service),
+            ResolveWikiLink(filesystem_gateway),
         ]
 
         # Add AnalyzeImage tool only if a visual model is selected
         if self.config.visual_model:
             visual_llm = LLMBroker(self.config.visual_model, gateway=gateway)
-            tools.append(AnalyzeImage(zk, visual_llm))
+            tools.append(AnalyzeImage(filesystem_gateway, visual_llm))
 
         self.chat_session = ChatSession(
             chat_llm,

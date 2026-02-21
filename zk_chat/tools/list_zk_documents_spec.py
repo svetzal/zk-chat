@@ -2,11 +2,10 @@ from unittest.mock import Mock
 
 import pytest
 from mojentic.llm.tools.llm_tool import LLMTool
-from pytest_mock import MockerFixture
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
+from zk_chat.services.document_service import DocumentService
 from zk_chat.tools.list_zk_documents import ListZkDocuments
-from zk_chat.zettelkasten import Zettelkasten
 
 
 @pytest.fixture
@@ -15,20 +14,12 @@ def mock_filesystem():
 
 
 @pytest.fixture
-def mock_zk(mocker: MockerFixture, mock_filesystem) -> Zettelkasten:
-    mock = mocker.Mock(spec=Zettelkasten)
-    mock.filesystem_gateway = mock_filesystem
-    return mock
-
-
-@pytest.fixture
-def tool(mock_zk: Zettelkasten) -> LLMTool:
-    return ListZkDocuments(mock_zk)
+def tool(mock_filesystem) -> LLMTool:
+    return ListZkDocuments(DocumentService(mock_filesystem))
 
 
 def test_run_returns_list_of_document_titles(
         tool: ListZkDocuments,
-        mock_zk: Zettelkasten,
         mock_filesystem,
 ):
     # Set up the mock filesystem to return document paths and metadata/content

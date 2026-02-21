@@ -21,7 +21,6 @@ class ServiceType(Enum):
     # Core services
     FILESYSTEM_GATEWAY = "filesystem_gateway"
     LLM_BROKER = "llm_broker"
-    ZETTELKASTEN = "zettelkasten"
     SMART_MEMORY = "smart_memory"
 
     # Compositional services (new architecture)

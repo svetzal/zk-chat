@@ -2,18 +2,18 @@ import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
+from zk_chat.services.document_service import DocumentService
 from zk_chat.services.link_traversal_service import LinkTraversalService
-from zk_chat.zettelkasten import Zettelkasten
 
 logger = structlog.get_logger()
 
 
 class FindForwardLinks(LLMTool):
-    def __init__(self, zk: Zettelkasten, console_service: RichConsoleService | None = None):
-        self.zk = zk
+    def __init__(self, document_service: DocumentService, link_service: LinkTraversalService,
+                 console_service: RichConsoleService | None = None):
+        self.document_service = document_service
+        self.link_service = link_service
         self.console_service = console_service or RichConsoleService()
-        # Create link traversal service using the zettelkasten's filesystem gateway
-        self.link_service = LinkTraversalService(zk.filesystem_gateway)
 
     def run(self, source_document: str) -> str:
         """
@@ -27,7 +27,7 @@ class FindForwardLinks(LLMTool):
         """
         logger.info("Finding forward links from document", source_document=source_document)
 
-        if not self.zk.document_exists(source_document):
+        if not self.document_service.document_exists(source_document):
             return f"Document not found at {source_document}"
 
         # Use the link traversal service to find forward links

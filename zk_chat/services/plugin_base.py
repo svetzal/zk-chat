@@ -25,13 +25,13 @@ class ZkChatPlugin(LLMTool):
         class MyPlugin(ZkChatPlugin):
             def __init__(self, service_provider: ServiceProvider):
                 super().__init__(service_provider)
-            
+
             def run(self, input_text: str) -> str:
                 # Access services easily
                 fs = self.filesystem_gateway
                 llm = self.llm_broker
-                zk = self.zettelkasten
-                
+                docs = self.document_service
+
                 # Your plugin logic here
                 return "result"
     """
@@ -65,9 +65,19 @@ class ZkChatPlugin(LLMTool):
         return self._service_provider.get_llm_broker()
 
     @property
-    def zettelkasten(self):
-        """Get the Zettelkasten service for document operations."""
-        return self._service_provider.get_zettelkasten()
+    def document_service(self):
+        """Get the DocumentService for document CRUD operations."""
+        return self._service_provider.get_document_service()
+
+    @property
+    def index_service(self):
+        """Get the IndexService for vector indexing and search operations."""
+        return self._service_provider.get_index_service()
+
+    @property
+    def link_traversal_service(self):
+        """Get the LinkTraversalService for wikilink analysis and graph traversal."""
+        return self._service_provider.get_link_traversal_service()
 
     @property
     def smart_memory(self):

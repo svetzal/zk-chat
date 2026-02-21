@@ -3,17 +3,14 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
 from zk_chat.services.link_traversal_service import LinkTraversalService
-from zk_chat.zettelkasten import Zettelkasten
 
 logger = structlog.get_logger()
 
 
 class FindBacklinks(LLMTool):
-    def __init__(self, zk: Zettelkasten, console_service: RichConsoleService | None = None):
-        self.zk = zk
+    def __init__(self, link_service: LinkTraversalService, console_service: RichConsoleService | None = None):
+        self.link_service = link_service
         self.console_service = console_service or RichConsoleService()
-        # Create link traversal service using the zettelkasten's filesystem gateway
-        self.link_service = LinkTraversalService(zk.filesystem_gateway)
 
     def run(self, target_document: str) -> str:
         """

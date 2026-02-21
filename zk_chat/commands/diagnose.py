@@ -28,8 +28,8 @@ from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
 from zk_chat.global_config import GlobalConfig
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
+from zk_chat.services.index_service import IndexService
 from zk_chat.vector_database import VectorDatabase
-from zk_chat.zettelkasten import Zettelkasten
 
 diagnose_app = typer.Typer(
     name="diagnose",
@@ -125,7 +125,7 @@ def _run_test_query(query: str, config: Config, chroma: ChromaGateway, gateway) 
     doc_results: list = []
     excerpt_results: list = []
     try:
-        zk = Zettelkasten(
+        index_service = IndexService(
             tokenizer_gateway=TokenizerGateway(),
             excerpts_db=VectorDatabase(
                 chroma_gateway=chroma,
@@ -140,7 +140,7 @@ def _run_test_query(query: str, config: Config, chroma: ChromaGateway, gateway) 
             filesystem_gateway=MarkdownFilesystemGateway(config.vault),
         )
         console.print("\n  [cyan]Documents query:[/]")
-        doc_results = zk.query_documents(query, n_results=3)
+        doc_results = index_service.query_documents(query, n_results=3)
         if doc_results:
             for i, result in enumerate(doc_results):
                 console.print(f"    [{i + 1}] {result.document.title} (distance: {result.distance:.4f})")
@@ -148,7 +148,7 @@ def _run_test_query(query: str, config: Config, chroma: ChromaGateway, gateway) 
         else:
             console.print("    [yellow]No results[/]")
         console.print("\n  [cyan]Excerpts query:[/]")
-        excerpt_results = zk.query_excerpts(query, n_results=5, max_distance=1.0)
+        excerpt_results = index_service.query_excerpts(query, n_results=5, max_distance=1.0)
         if excerpt_results:
             for i, result in enumerate(excerpt_results):
                 console.print(f"    [{i + 1}] {result.excerpt.document_title} (distance: {result.distance:.4f})")

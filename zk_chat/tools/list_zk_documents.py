@@ -3,16 +3,14 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
 from zk_chat.services.document_service import DocumentService
-from zk_chat.zettelkasten import Zettelkasten
 
 logger = structlog.get_logger()
 
 
 class ListZkDocuments(LLMTool):
-    def __init__(self, zk: Zettelkasten, console_service: RichConsoleService = None):
-        self.zk = zk
+    def __init__(self, document_service: DocumentService, console_service: RichConsoleService = None):
+        self.document_service = document_service
         self.console_service = console_service or RichConsoleService()
-        self.document_service = DocumentService(zk.filesystem_gateway)
 
     def run(self) -> str:
         """
