@@ -27,6 +27,9 @@ from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.mcp_client import verify_all_mcp_servers
 from zk_chat.memory.smart_memory import SmartMemory
+from zk_chat.services.document_service import DocumentService
+from zk_chat.services.index_service import IndexService
+from zk_chat.services.link_traversal_service import LinkTraversalService
 from zk_chat.tools.analyze_image import AnalyzeImage
 from zk_chat.tools.commit_changes import CommitChanges
 from zk_chat.tools.create_or_overwrite_zk_document import CreateOrOverwriteZkDocument
@@ -45,7 +48,51 @@ from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory
 from zk_chat.tools.store_in_smart_memory import StoreInSmartMemory
 from zk_chat.tools.uncommitted_changes import UncommittedChanges
 from zk_chat.vector_database import VectorDatabase
-from zk_chat.zettelkasten import Zettelkasten
+
+
+def _build_tools(
+        config: Config,
+        filesystem_gateway: MarkdownFilesystemGateway,
+        document_service: DocumentService,
+        index_service: IndexService,
+        link_traversal_service: LinkTraversalService,
+        llm,
+        smart_memory: SmartMemory,
+        git_gateway: GitGateway,
+        gateway
+) -> list[LLMTool]:
+    tools: list[LLMTool] = [
+        # Real world context
+        CurrentDateTimeTool(),
+        ResolveDateTool(),
+
+        # Document tools
+        ReadZkDocument(document_service),
+        ListZkDocuments(document_service),
+        ListZkImages(filesystem_gateway),
+        ResolveWikiLink(filesystem_gateway),
+        FindExcerptsRelatedTo(index_service),
+        FindZkDocumentsRelatedTo(index_service),
+        CreateOrOverwriteZkDocument(document_service),
+        RenameZkDocument(document_service),
+        DeleteZkDocument(document_service),
+
+        # Graph traversal tools
+        FindBacklinks(link_traversal_service),
+        FindForwardLinks(document_service, link_traversal_service),
+
+        # Memory tools
+        StoreInSmartMemory(smart_memory),
+        RetrieveFromSmartMemory(smart_memory),
+
+        # Visual tools
+        AnalyzeImage(filesystem_gateway, LLMBroker(model=config.visual_model, gateway=gateway)),
+
+        # Git tools
+        UncommittedChanges(config.vault, git_gateway),
+        CommitChanges(config.vault, llm, git_gateway)
+    ]
+    return tools
 
 
 def agent(config: Config):
@@ -76,20 +123,19 @@ def agent(config: Config):
         raise ValueError(f"Invalid gateway: {config.gateway}")
 
     filesystem_gateway = MarkdownFilesystemGateway(config.vault)
-    zk = Zettelkasten(
+    excerpts_db = VectorDatabase(chroma_gateway=chroma_gateway, gateway=gateway,
+                                 collection_name=ZkCollectionName.EXCERPTS)
+    documents_db = VectorDatabase(chroma_gateway=chroma_gateway, gateway=gateway,
+                                  collection_name=ZkCollectionName.DOCUMENTS)
+
+    document_service = DocumentService(filesystem_gateway)
+    index_service = IndexService(
         tokenizer_gateway=TokenizerGateway(),
-        excerpts_db=VectorDatabase(
-            chroma_gateway=chroma_gateway,
-            gateway=gateway,
-            collection_name=ZkCollectionName.EXCERPTS
-        ),
-        documents_db=VectorDatabase(
-            chroma_gateway=chroma_gateway,
-            gateway=gateway,
-            collection_name=ZkCollectionName.DOCUMENTS
-        ),
+        excerpts_db=excerpts_db,
+        documents_db=documents_db,
         filesystem_gateway=filesystem_gateway
     )
+    link_traversal_service = LinkTraversalService(filesystem_gateway)
 
     llm = LLMBroker(config.model, gateway=gateway)
 
@@ -100,37 +146,17 @@ def agent(config: Config):
 
     git_gateway = GitGateway(config.vault)
 
-    tools: list[LLMTool] = [
-        # Real world context
-        CurrentDateTimeTool(),
-        ResolveDateTool(),
-
-        # Document tools
-        ReadZkDocument(zk),
-        ListZkDocuments(zk),
-        ListZkImages(zk),
-        ResolveWikiLink(filesystem_gateway),
-        FindExcerptsRelatedTo(zk),
-        FindZkDocumentsRelatedTo(zk),
-        CreateOrOverwriteZkDocument(zk),
-        RenameZkDocument(zk),
-        DeleteZkDocument(zk),
-
-        # Graph traversal tools
-        FindBacklinks(zk),
-        FindForwardLinks(zk),
-
-        # Memory tools
-        StoreInSmartMemory(smart_memory),
-        RetrieveFromSmartMemory(smart_memory),
-
-        # Visual tools
-        AnalyzeImage(zk, LLMBroker(model=config.visual_model, gateway=gateway)),
-
-        # Git tools
-        UncommittedChanges(config.vault, git_gateway),
-        CommitChanges(config.vault, llm, git_gateway)
-    ]
+    tools = _build_tools(
+        config=config,
+        filesystem_gateway=filesystem_gateway,
+        document_service=document_service,
+        index_service=index_service,
+        link_traversal_service=link_traversal_service,
+        llm=llm,
+        smart_memory=smart_memory,
+        git_gateway=git_gateway,
+        gateway=gateway
+    )
 
     # Initialize MCP client manager and load tools
     with MCPClientManager() as mcp_manager:
@@ -174,56 +200,35 @@ def agent_single_query(config: Config, query: str) -> str:
         raise ValueError(f"Invalid gateway: {config.gateway}")
 
     filesystem_gateway = MarkdownFilesystemGateway(config.vault)
-    zk = Zettelkasten(
+    excerpts_db = VectorDatabase(chroma_gateway=chroma_gateway, gateway=gateway,
+                                 collection_name=ZkCollectionName.EXCERPTS)
+    documents_db = VectorDatabase(chroma_gateway=chroma_gateway, gateway=gateway,
+                                  collection_name=ZkCollectionName.DOCUMENTS)
+
+    document_service = DocumentService(filesystem_gateway)
+    index_service = IndexService(
         tokenizer_gateway=TokenizerGateway(),
-        excerpts_db=VectorDatabase(
-            chroma_gateway=chroma_gateway,
-            gateway=gateway,
-            collection_name=ZkCollectionName.EXCERPTS
-        ),
-        documents_db=VectorDatabase(
-            chroma_gateway=chroma_gateway,
-            gateway=gateway,
-            collection_name=ZkCollectionName.DOCUMENTS
-        ),
+        excerpts_db=excerpts_db,
+        documents_db=documents_db,
         filesystem_gateway=filesystem_gateway
     )
+    link_traversal_service = LinkTraversalService(filesystem_gateway)
 
     llm = LLMBroker(config.model, gateway=gateway)
     smart_memory = SmartMemory(chroma_gateway=chroma_gateway, gateway=gateway)
     git_gateway = GitGateway(config.vault)
 
-    tools: list[LLMTool] = [
-        # Real world context
-        CurrentDateTimeTool(),
-        ResolveDateTool(),
-
-        # Document tools
-        ReadZkDocument(zk),
-        ListZkDocuments(zk),
-        ListZkImages(zk),
-        ResolveWikiLink(filesystem_gateway),
-        FindExcerptsRelatedTo(zk),
-        FindZkDocumentsRelatedTo(zk),
-        CreateOrOverwriteZkDocument(zk),
-        RenameZkDocument(zk),
-        DeleteZkDocument(zk),
-
-        # Graph traversal tools
-        FindBacklinks(zk),
-        FindForwardLinks(zk),
-
-        # Memory tools
-        StoreInSmartMemory(smart_memory),
-        RetrieveFromSmartMemory(smart_memory),
-
-        # Visual tools
-        AnalyzeImage(zk, LLMBroker(model=config.visual_model, gateway=gateway)),
-
-        # Git tools
-        UncommittedChanges(config.vault, git_gateway),
-        CommitChanges(config.vault, llm, git_gateway)
-    ]
+    tools = _build_tools(
+        config=config,
+        filesystem_gateway=filesystem_gateway,
+        document_service=document_service,
+        index_service=index_service,
+        link_traversal_service=link_traversal_service,
+        llm=llm,
+        smart_memory=smart_memory,
+        git_gateway=git_gateway,
+        gateway=gateway
+    )
 
     # Initialize MCP client manager and load tools
     with MCPClientManager() as mcp_manager:

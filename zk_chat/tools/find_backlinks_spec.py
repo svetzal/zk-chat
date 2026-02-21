@@ -3,9 +3,8 @@ from unittest.mock import Mock
 import pytest
 
 from zk_chat.console_service import RichConsoleService
-from zk_chat.services.link_traversal_service import BacklinkResult
+from zk_chat.services.link_traversal_service import BacklinkResult, LinkTraversalService
 from zk_chat.tools.find_backlinks import FindBacklinks
-from zk_chat.zettelkasten import Zettelkasten
 
 
 class DescribeFindBacklinks:
@@ -14,18 +13,16 @@ class DescribeFindBacklinks:
     """
 
     @pytest.fixture
-    def mock_zk(self):
-        mock = Mock(spec=Zettelkasten)
-        mock.filesystem_gateway = Mock()
-        return mock
+    def mock_link_service(self):
+        return Mock(spec=LinkTraversalService)
 
     @pytest.fixture
     def mock_console_service(self):
         return Mock(spec=RichConsoleService)
 
     @pytest.fixture
-    def backlinks_tool(self, mock_zk, mock_console_service):
-        return FindBacklinks(mock_zk, mock_console_service)
+    def backlinks_tool(self, mock_link_service, mock_console_service):
+        return FindBacklinks(mock_link_service, mock_console_service)
 
     @pytest.fixture
     def mock_backlink_results(self):
@@ -46,19 +43,19 @@ class DescribeFindBacklinks:
             )
         ]
 
-    def should_be_instantiated_with_zettelkasten_and_console_service(self, mock_zk,
-                                                                     mock_console_service):
-        tool = FindBacklinks(mock_zk, mock_console_service)
+    def should_be_instantiated_with_link_service_and_console_service(self, mock_link_service,
+                                                                      mock_console_service):
+        tool = FindBacklinks(mock_link_service, mock_console_service)
 
         assert isinstance(tool, FindBacklinks)
-        assert tool.zk == mock_zk
+        assert tool.link_service == mock_link_service
         assert tool.console_service == mock_console_service
 
-    def should_use_default_console_service_when_none_provided(self, mock_zk):
-        tool = FindBacklinks(mock_zk)
+    def should_use_default_console_service_when_none_provided(self, mock_link_service):
+        tool = FindBacklinks(mock_link_service)
 
         assert isinstance(tool, FindBacklinks)
-        assert tool.zk == mock_zk
+        assert tool.link_service == mock_link_service
         assert isinstance(tool.console_service, RichConsoleService)
 
     def should_find_backlinks_to_target_document(self, backlinks_tool, mock_backlink_results):

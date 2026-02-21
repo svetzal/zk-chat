@@ -6,21 +6,14 @@ from mojentic.llm.tools.llm_tool import LLMTool
 from zk_chat.console_service import RichConsoleService
 from zk_chat.models import ZkQueryExcerptResult
 from zk_chat.services.index_service import IndexService
-from zk_chat.zettelkasten import Zettelkasten
 
 logger = structlog.get_logger()
 
 
 class FindExcerptsRelatedTo(LLMTool):
-    def __init__(self, zk: Zettelkasten, console_service: RichConsoleService = None):
-        self.zk = zk
+    def __init__(self, index_service: IndexService, console_service: RichConsoleService = None):
+        self.index_service = index_service
         self.console_service = console_service or RichConsoleService()
-        self.index_service = IndexService(
-            tokenizer_gateway=zk.tokenizer_gateway,
-            excerpts_db=zk.excerpts_db,
-            documents_db=zk.documents_db,
-            filesystem_gateway=zk.filesystem_gateway
-        )
 
     def run(self, query: str) -> str:
         self.console_service.print(f"[tool.info]Querying excerpts related to {query}[/]")

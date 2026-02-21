@@ -3,29 +3,25 @@ from mojentic.llm import LLMBroker, MessageBuilder
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
-from zk_chat.zettelkasten import Zettelkasten
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 
 logger = structlog.get_logger()
 
 
 class AnalyzeImage(LLMTool):
-    zk: Zettelkasten
-    llm: LLMBroker
-
-    def __init__(self, zk: Zettelkasten, llm: LLMBroker,
+    def __init__(self, fs: MarkdownFilesystemGateway, llm: LLMBroker,
                  console_service: RichConsoleService | None = None):
-        self.zk = zk
+        self.fs = fs
         self.llm = llm
         self.console_service = console_service or RichConsoleService()
 
     def run(self, relative_path: str) -> str:
         logger.info("Analyzing image", relative_path=relative_path)
-        if not self.zk.file_exists(relative_path):
+        if not self.fs.path_exists(relative_path):
             return f"Image not found at {relative_path}"
 
         message = MessageBuilder("Describe what you see in the image in plain text.") \
-            .add_image(self.zk.filesystem_gateway.get_absolute_path_for_tool_access(
-            relative_path)) \
+            .add_image(self.fs.get_absolute_path_for_tool_access(relative_path)) \
             .build()
         analysis = self.llm.generate([message])
 

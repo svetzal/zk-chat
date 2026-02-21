@@ -13,8 +13,8 @@ from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.progress_tracker import IndexingProgressTracker
+from zk_chat.services.index_service import IndexService
 from zk_chat.vector_database import VectorDatabase
-from zk_chat.zettelkasten import Zettelkasten
 
 
 def _make_gateway(config: Config):
@@ -25,8 +25,8 @@ def _make_gateway(config: Config):
     return OllamaGateway()
 
 
-def _build_zk(config: Config, chroma: ChromaGateway, gateway) -> Zettelkasten:
-    return Zettelkasten(
+def _build_index_service(config: Config, chroma: ChromaGateway, gateway) -> IndexService:
+    return IndexService(
         tokenizer_gateway=TokenizerGateway(),
         excerpts_db=VectorDatabase(
             chroma_gateway=chroma,
@@ -42,7 +42,7 @@ def _build_zk(config: Config, chroma: ChromaGateway, gateway) -> Zettelkasten:
     )
 
 
-def _full_reindex(config: Config, zk: Zettelkasten, progress: IndexingProgressTracker) -> tuple[int, int]:
+def _full_reindex(config: Config, index_service: IndexService, progress: IndexingProgressTracker) -> tuple[int, int]:
     progress.start_scanning()
     print("Performing full reindex...")
     files_processed = 0
@@ -56,7 +56,7 @@ def _full_reindex(config: Config, zk: Zettelkasten, progress: IndexingProgressTr
         files_processed = processed_count
         progress.update_file_processing(filename, processed_count)
 
-    zk.reindex(
+    index_service.reindex_all(
         excerpt_size=config.chunk_size,
         excerpt_overlap=config.chunk_overlap,
         progress_callback=progress_callback,
@@ -64,7 +64,7 @@ def _full_reindex(config: Config, zk: Zettelkasten, progress: IndexingProgressTr
     return files_processed, total_files or 0
 
 
-def _incremental_reindex(config: Config, zk: Zettelkasten, progress: IndexingProgressTracker,
+def _incremental_reindex(config: Config, index_service: IndexService, progress: IndexingProgressTracker,
                           last_indexed: datetime) -> tuple[int, int]:
     progress.start_scanning("Scanning for modified documents...")
     print(f"Performing incremental reindex since {last_indexed}...")
@@ -83,7 +83,7 @@ def _incremental_reindex(config: Config, zk: Zettelkasten, progress: IndexingPro
         if total_count > 0:
             progress.update_file_processing(filename, processed_count)
 
-    zk.update_index(
+    index_service.update_index(
         since=last_indexed,
         excerpt_size=config.chunk_size,
         excerpt_overlap=config.chunk_overlap,
@@ -97,15 +97,15 @@ def reindex(config: Config, force_full: bool = False):
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     chroma = ChromaGateway(config.gateway, db_dir=db_dir)
     gateway = _make_gateway(config)
-    zk = _build_zk(config, chroma, gateway)
+    index_service = _build_index_service(config, chroma, gateway)
 
     # Initialize progress tracker
     with IndexingProgressTracker() as progress:
         last_indexed = config.get_last_indexed()
         if force_full or last_indexed is None:
-            files_processed, total_files = _full_reindex(config, zk, progress)
+            files_processed, total_files = _full_reindex(config, index_service, progress)
         else:
-            files_processed, total_files = _incremental_reindex(config, zk, progress, last_indexed)
+            files_processed, total_files = _incremental_reindex(config, index_service, progress, last_indexed)
 
         # Show completion message
         if total_files == 0:

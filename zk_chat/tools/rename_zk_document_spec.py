@@ -1,11 +1,10 @@
 from unittest.mock import Mock
 
 import pytest
-from pytest_mock import MockerFixture
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
+from zk_chat.services.document_service import DocumentService
 from zk_chat.tools.rename_zk_document import RenameZkDocument
-from zk_chat.zettelkasten import Zettelkasten
 
 
 @pytest.fixture
@@ -14,15 +13,8 @@ def mock_filesystem():
 
 
 @pytest.fixture
-def mock_zk(mocker: MockerFixture, mock_filesystem) -> Zettelkasten:
-    mock = mocker.Mock(spec=Zettelkasten)
-    mock.filesystem_gateway = mock_filesystem
-    return mock
-
-
-@pytest.fixture
-def tool(mock_zk: Zettelkasten) -> RenameZkDocument:
-    return RenameZkDocument(mock_zk)
+def tool(mock_filesystem) -> RenameZkDocument:
+    return RenameZkDocument(DocumentService(mock_filesystem))
 
 
 class DescribeRenameZkDocument:
@@ -30,11 +22,12 @@ class DescribeRenameZkDocument:
     Tests for the RenameZkDocument tool which handles renaming Zettelkasten documents
     """
 
-    def should_be_instantiated_with_zettelkasten(self, mock_zk: Zettelkasten):
-        tool = RenameZkDocument(mock_zk)
+    def should_be_instantiated_with_document_service(self, mock_filesystem):
+        document_service = DocumentService(mock_filesystem)
+        tool = RenameZkDocument(document_service)
 
         assert isinstance(tool, RenameZkDocument)
-        assert tool.zk == mock_zk
+        assert tool.document_service is document_service
 
     def should_sanitize_filename(self, tool: RenameZkDocument):
         filename = 'test/file*name?.md'

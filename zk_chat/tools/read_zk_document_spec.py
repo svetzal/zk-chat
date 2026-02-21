@@ -1,10 +1,10 @@
 from unittest.mock import Mock
 
 import pytest
-from pytest_mock import MockerFixture
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.models import ZkDocument
+from zk_chat.services.document_service import DocumentService
 from zk_chat.tools.read_zk_document import ReadZkDocument
 
 
@@ -14,18 +14,11 @@ def mock_filesystem():
 
 
 @pytest.fixture
-def mock_zk(mocker: MockerFixture, mock_filesystem):
-    mock = mocker.Mock()
-    mock.filesystem_gateway = mock_filesystem
-    return mock
+def read_tool(mock_filesystem):
+    return ReadZkDocument(DocumentService(mock_filesystem))
 
 
-@pytest.fixture
-def read_tool(mock_zk):
-    return ReadZkDocument(mock_zk)
-
-
-def test_read_document_when_exists(read_tool, mock_zk, mock_filesystem):
+def test_read_document_when_exists(read_tool, mock_filesystem):
     relative_path = "test/path.md"
     mock_filesystem.path_exists.return_value = True
     mock_filesystem.read_markdown.return_value = ({"title": "Test"}, "# Test Content")
@@ -39,7 +32,7 @@ def test_read_document_when_exists(read_tool, mock_zk, mock_filesystem):
     assert result == expected_result.model_dump_json()
 
 
-def test_read_document_when_not_exists(read_tool, mock_zk, mock_filesystem):
+def test_read_document_when_not_exists(read_tool, mock_filesystem):
     relative_path = "test/nonexistent.md"
     mock_filesystem.path_exists.return_value = False
 

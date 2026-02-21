@@ -43,11 +43,6 @@ class ServiceProvider:
         from mojentic.llm import LLMBroker
         return self._registry.get_service(ServiceType.LLM_BROKER, LLMBroker)
 
-    def get_zettelkasten(self):
-        """Get the Zettelkasten service."""
-        from zk_chat.zettelkasten import Zettelkasten
-        return self._registry.get_service(ServiceType.ZETTELKASTEN, Zettelkasten)
-
     def get_smart_memory(self):
         """Get the Smart Memory service."""
         from zk_chat.memory.smart_memory import SmartMemory

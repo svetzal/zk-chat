@@ -1,9 +1,9 @@
 from unittest.mock import Mock
 
 import pytest
-from pytest_mock import MockerFixture
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
+from zk_chat.services.document_service import DocumentService
 from zk_chat.tools.create_or_overwrite_zk_document import CreateOrOverwriteZkDocument
 
 
@@ -13,21 +13,14 @@ def mock_filesystem():
 
 
 @pytest.fixture
-def mock_zk(mocker: MockerFixture, mock_filesystem):
-    mock = mocker.Mock()
-    mock.filesystem_gateway = mock_filesystem
-    return mock
-
-
-@pytest.fixture
-def write_tool(mock_zk, mock_filesystem):
+def write_tool(mock_filesystem):
     # Set up the filesystem mock defaults
     mock_filesystem.get_directory_path.return_value = ""
     mock_filesystem.path_exists.return_value = True
-    return CreateOrOverwriteZkDocument(mock_zk)
+    return CreateOrOverwriteZkDocument(DocumentService(mock_filesystem))
 
 
-def test_write_document_happy_path(write_tool, mock_zk, mock_filesystem):
+def test_write_document_happy_path(write_tool, mock_filesystem):
     title = "Path"
     metadata = {"title": "Test Document"}
     content = "# Test Content"
@@ -44,7 +37,7 @@ def test_write_document_happy_path(write_tool, mock_zk, mock_filesystem):
     assert call_args[2] == content  # content
 
 
-def test_write_document_with_none_metadata(write_tool, mock_zk, mock_filesystem):
+def test_write_document_with_none_metadata(write_tool, mock_filesystem):
     title = "Path"
     metadata = None
     content = "# Test Content"
@@ -60,7 +53,7 @@ def test_write_document_with_none_metadata(write_tool, mock_zk, mock_filesystem)
     assert call_args[2] == content  # content
 
 
-def test_write_document_with_non_dict_metadata(write_tool, mock_zk, mock_filesystem):
+def test_write_document_with_non_dict_metadata(write_tool, mock_filesystem):
     title = "Path"
     metadata = "This is not a dictionary"
     content = "# Test Content"
