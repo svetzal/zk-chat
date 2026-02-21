@@ -5,41 +5,12 @@ from datetime import datetime
 
 # Disable ChromaDB telemetry to avoid PostHog compatibility issues
 os.environ['CHROMA_TELEMETRY'] = 'false'
-from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
-from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
-from zk_chat.chroma_collections import ZkCollectionName
-from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.progress_tracker import IndexingProgressTracker
+from zk_chat.service_factory import build_service_registry
 from zk_chat.services.index_service import IndexService
-from zk_chat.vector_database import VectorDatabase
-
-
-def _make_gateway(config: Config):
-    if config.gateway == ModelGateway.OLLAMA:
-        return OllamaGateway()
-    if config.gateway == ModelGateway.OPENAI:
-        return OpenAIGateway(os.environ.get("OPENAI_API_KEY"))
-    return OllamaGateway()
-
-
-def _build_index_service(config: Config, chroma: ChromaGateway, gateway) -> IndexService:
-    return IndexService(
-        tokenizer_gateway=TokenizerGateway(),
-        excerpts_db=VectorDatabase(
-            chroma_gateway=chroma,
-            gateway=gateway,
-            collection_name=ZkCollectionName.EXCERPTS,
-        ),
-        documents_db=VectorDatabase(
-            chroma_gateway=chroma,
-            gateway=gateway,
-            collection_name=ZkCollectionName.DOCUMENTS,
-        ),
-        filesystem_gateway=MarkdownFilesystemGateway(config.vault),
-    )
+from zk_chat.services.service_provider import ServiceProvider
 
 
 def _full_reindex(config: Config, index_service: IndexService, progress: IndexingProgressTracker) -> tuple[int, int]:
@@ -94,10 +65,9 @@ def _incremental_reindex(config: Config, index_service: IndexService, progress: 
 
 def reindex(config: Config, force_full: bool = False):
     """Reindex the Zettelkasten vault with progress tracking."""
-    db_dir = os.path.join(config.vault, ".zk_chat_db")
-    chroma = ChromaGateway(config.gateway, db_dir=db_dir)
-    gateway = _make_gateway(config)
-    index_service = _build_index_service(config, chroma, gateway)
+    registry = build_service_registry(config)
+    provider = ServiceProvider(registry)
+    index_service = provider.get_index_service()
 
     # Initialize progress tracker
     with IndexingProgressTracker() as progress:

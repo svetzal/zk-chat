@@ -13,14 +13,12 @@ logging.basicConfig(level=logging.WARN)
 
 from importlib.metadata import version
 
-from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
-
-from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
 from zk_chat.console_service import RichConsoleService
 from zk_chat.global_config import GlobalConfig
 from zk_chat.index import reindex
-from zk_chat.memory.smart_memory import SmartMemory
+from zk_chat.service_factory import build_service_registry
+from zk_chat.services.service_provider import ServiceProvider
 
 
 def get_version():
@@ -210,15 +208,9 @@ def _maybe_update_models(args, config: Config, gateway: ModelGateway) -> None:
 
 def _reset_smart_memory(vault_path: str, config: Config) -> None:
     """Reset SmartMemory for the vault."""
-    db_dir = os.path.join(vault_path, ".zk_chat_db")
-    chroma_gateway = ChromaGateway(config.gateway, db_dir=db_dir)
-    if config.gateway == ModelGateway.OLLAMA:
-        gateway = OllamaGateway()
-    elif config.gateway == ModelGateway.OPENAI:
-        gateway = OpenAIGateway(os.environ.get("OPENAI_API_KEY"))
-    else:
-        gateway = OllamaGateway()
-    memory = SmartMemory(chroma_gateway, gateway)
+    registry = build_service_registry(config)
+    provider = ServiceProvider(registry)
+    memory = provider.get_smart_memory()
     memory.reset()
     print("Smart memory has been reset.")
 

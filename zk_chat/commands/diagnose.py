@@ -17,19 +17,16 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
-from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
-from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
 from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
-from zk_chat.config import Config, ModelGateway
+from zk_chat.config import Config
 from zk_chat.global_config import GlobalConfig
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
-from zk_chat.services.index_service import IndexService
-from zk_chat.vector_database import VectorDatabase
+from zk_chat.service_factory import build_service_registry
+from zk_chat.services.service_provider import ServiceProvider
 
 diagnose_app = typer.Typer(
     name="diagnose",
@@ -62,14 +59,6 @@ def _load_config(vault_path: str) -> Config:
         console.print(f"[dim]Run [cyan]zk-chat interactive --vault {vault_path}[/dim] to initialize.")
         raise typer.Exit(1)
     return config
-
-
-def _make_gateway(config: Config):
-    if config.gateway == ModelGateway.OLLAMA:
-        return OllamaGateway()
-    if config.gateway == ModelGateway.OPENAI:
-        return OpenAIGateway(os.environ.get("OPENAI_API_KEY"))
-    return OllamaGateway()
 
 
 def _print_collection_status(chroma: ChromaGateway) -> None:
@@ -120,25 +109,12 @@ def _test_embedding(gateway, test_text: str = "This is a test document") -> None
         console.print(f"  [red]✗ Failed to generate embedding:[/] {e}")
 
 
-def _run_test_query(query: str, config: Config, chroma: ChromaGateway, gateway) -> tuple[list, list]:
+def _run_test_query(query: str, provider: ServiceProvider) -> tuple[list, list]:
     console.print(f"\n[bold]4. Test Query:[/] '{query}'")
     doc_results: list = []
     excerpt_results: list = []
     try:
-        index_service = IndexService(
-            tokenizer_gateway=TokenizerGateway(),
-            excerpts_db=VectorDatabase(
-                chroma_gateway=chroma,
-                gateway=gateway,
-                collection_name=ZkCollectionName.EXCERPTS,
-            ),
-            documents_db=VectorDatabase(
-                chroma_gateway=chroma,
-                gateway=gateway,
-                collection_name=ZkCollectionName.DOCUMENTS,
-            ),
-            filesystem_gateway=MarkdownFilesystemGateway(config.vault),
-        )
+        index_service = provider.get_index_service()
         console.print("\n  [cyan]Documents query:[/]")
         doc_results = index_service.query_documents(query, n_results=3)
         if doc_results:
@@ -199,13 +175,15 @@ def index(
         console.print(f"[dim]Expected: {db_dir}[/]")
         console.print("\n[yellow]Run:[/] [cyan]zk-chat index update[/] to create the index")
         raise typer.Exit(1)
-    chroma = ChromaGateway(config.gateway, db_dir=db_dir)
-    gateway = _make_gateway(config)
+    registry = build_service_registry(config)
+    provider = ServiceProvider(registry)
+    chroma = provider.get_chroma_gateway()
+    gateway = provider.get_model_gateway()
     _print_collection_status(chroma)
     _print_samples(chroma)
     _test_embedding(gateway)
     doc_results: list = []
     excerpt_results: list = []
     if query:
-        doc_results, excerpt_results = _run_test_query(query, config, chroma, gateway)
+        doc_results, excerpt_results = _run_test_query(query, provider)
     _print_recommendations(chroma, query, doc_results, excerpt_results)

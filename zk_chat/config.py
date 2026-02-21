@@ -3,7 +3,6 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Optional
 
-from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 from pydantic import BaseModel, Field
 
 
@@ -13,14 +12,16 @@ class ModelGateway(StrEnum):
 
 
 def get_available_models(gateway: ModelGateway = ModelGateway.OLLAMA) -> list[str]:
-    if gateway == ModelGateway.OLLAMA:
-        g = OllamaGateway()
-    elif gateway == ModelGateway.OPENAI:
-        openai_key = os.environ.get("OPENAI_API_KEY")
-        if not openai_key:
-            print("Error: OPENAI_API_KEY environment variable is not set.")
-            return []
-        g = OpenAIGateway(openai_key)
+    from zk_chat.gateway_factory import create_model_gateway
+
+    if gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
+        print("Error: OPENAI_API_KEY environment variable is not set.")
+        return []
+    try:
+        g = create_model_gateway(gateway)
+    except ValueError as e:
+        print(f"Error: {e}")
+        return []
     return g.get_available_models()
 
 

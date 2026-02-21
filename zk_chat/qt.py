@@ -6,8 +6,6 @@ import sys
 os.environ['CHROMA_TELEMETRY'] = 'false'
 
 from mojentic.llm import ChatSession, LLMBroker
-from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
-from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 from mojentic.llm.tools.date_resolver import ResolveDateTool
 from PySide6.QtCore import Qt, QThread, QTimer, Signal, Slot
 from PySide6.QtWidgets import (
@@ -31,20 +29,16 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from zk_chat.chroma_collections import ZkCollectionName
-from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway, get_available_models
 from zk_chat.global_config import GlobalConfig
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
-from zk_chat.services.document_service import DocumentService
-from zk_chat.services.index_service import IndexService
+from zk_chat.service_factory import build_service_registry
+from zk_chat.services.service_provider import ServiceProvider
 from zk_chat.tools.analyze_image import AnalyzeImage
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.list_zk_images import ListZkImages
 from zk_chat.tools.read_zk_document import ReadZkDocument
 from zk_chat.tools.resolve_wikilink import ResolveWikiLink
-from zk_chat.vector_database import VectorDatabase
 
 
 class LoadingSpinnerWidget(QWidget):
@@ -395,34 +389,14 @@ class MainWindow(QMainWindow):
         splitter.setSizes([400, 200])
 
     def initialize_chat_session(self):
-        db_dir = os.path.join(self.config.vault, ".zk_chat_db")
-        chroma = ChromaGateway(self.config.gateway, db_dir=db_dir)
+        registry = build_service_registry(self.config)
+        provider = ServiceProvider(registry)
 
-        # Create the appropriate gateway based on configuration
-        if self.config.gateway == ModelGateway.OLLAMA:
-            gateway = OllamaGateway()
-        elif self.config.gateway == ModelGateway.OPENAI:
-            gateway = OpenAIGateway(os.environ.get("OPENAI_API_KEY"))
-        else:
-            # Default to Ollama if not specified
-            gateway = OllamaGateway()
-
-        filesystem_gateway = MarkdownFilesystemGateway(self.config.vault)
-        excerpts_db = VectorDatabase(chroma_gateway=chroma, gateway=gateway,
-                                     collection_name=ZkCollectionName.EXCERPTS)
-        documents_db = VectorDatabase(chroma_gateway=chroma, gateway=gateway,
-                                      collection_name=ZkCollectionName.DOCUMENTS)
-
-        document_service = DocumentService(filesystem_gateway)
-        index_service = IndexService(
-            tokenizer_gateway=TokenizerGateway(),
-            excerpts_db=excerpts_db,
-            documents_db=documents_db,
-            filesystem_gateway=filesystem_gateway
-        )
-
-        # Create LLM broker for chat
-        chat_llm = LLMBroker(self.config.model, gateway=gateway)
+        gateway = provider.get_model_gateway()
+        filesystem_gateway = provider.get_filesystem_gateway()
+        document_service = provider.get_document_service()
+        index_service = provider.get_index_service()
+        chat_llm = provider.get_llm_broker()
 
         # Initialize tools list with basic tools
         tools = [
