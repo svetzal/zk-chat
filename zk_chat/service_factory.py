@@ -9,6 +9,7 @@ from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway
+from zk_chat.console_service import RichConsoleService
 from zk_chat.gateway_factory import create_model_gateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
@@ -94,5 +95,8 @@ def build_service_registry(config: Config) -> ServiceRegistry:
 
     git_gateway = GitGateway(config.vault)
     registry.register_service(ServiceType.GIT_GATEWAY, git_gateway)
+
+    console_service = RichConsoleService()
+    registry.register_service(ServiceType.CONSOLE_SERVICE, console_service)
 
     return registry

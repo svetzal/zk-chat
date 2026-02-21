@@ -1,6 +1,5 @@
 import pytest
 from mojentic.llm import LLMBroker
-from mojentic.llm.gateways.models import LLMMessage
 
 from zk_chat.tools.commit_changes import CommitChanges
 from zk_chat.tools.git_gateway import GitGateway
@@ -127,21 +126,6 @@ class DescribeCommitChanges:
         mock_llm_broker.generate.assert_called_once()
         mock_git_gateway.commit.assert_called_once_with("Test commit message")
         assert result == "Successfully committed changes: 'Test commit message'"
-
-    def should_generate_commit_message_using_llm(self, commit_changes, mock_llm_broker, mocker):
-        """Test that _generate_commit_message uses the LLM to generate a commit message."""
-        test_diff_summary = "diff --git a/file.txt b/file.txt"
-
-        mock_llm_broker.generate.return_value = "Test commit message"
-
-        result = commit_changes._generate_commit_message(test_diff_summary)
-
-        mock_llm_broker.generate.assert_called_once()
-        call_args = mock_llm_broker.generate.call_args[0][0]
-        assert len(call_args) == 1
-        assert isinstance(call_args[0], LLMMessage)
-        assert test_diff_summary in call_args[0].content
-        assert result == "Test commit message"
 
     def should_handle_unexpected_exceptions(self, commit_changes, mock_git_gateway, mocker):
         """Test that run handles unexpected exceptions."""

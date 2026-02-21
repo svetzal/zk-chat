@@ -1,4 +1,3 @@
-import os
 from enum import StrEnum
 
 from pydantic import BaseModel, Field
@@ -33,6 +32,7 @@ class GlobalConfig(BaseModel):
     Stores bookmarks, the last opened bookmark, and registered MCP servers.
 
     This is a pure data model — all persistence is handled by GlobalConfigGateway.
+    Path resolution (e.g. os.path.abspath) is the caller's responsibility.
     """
 
     bookmarks: set[str] = set()  # set of absolute vault paths
@@ -41,30 +41,26 @@ class GlobalConfig(BaseModel):
 
     def add_bookmark(self, vault_path: str) -> None:
         """Add a bookmark with the given vault path."""
-        abs_path = os.path.abspath(vault_path)
-        self.bookmarks.add(abs_path)
+        self.bookmarks.add(vault_path)
 
     def remove_bookmark(self, vault_path: str) -> bool:
         """Remove a bookmark with the given vault path. Returns True if successful."""
-        abs_path = os.path.abspath(vault_path)
-        if abs_path in self.bookmarks:
-            self.bookmarks.remove(abs_path)
+        if vault_path in self.bookmarks:
+            self.bookmarks.remove(vault_path)
             # If we're removing the last opened bookmark, clear it
-            if self.last_opened_bookmark == abs_path:
+            if self.last_opened_bookmark == vault_path:
                 self.last_opened_bookmark = None
             return True
         return False
 
     def get_bookmark(self, vault_path: str) -> str | None:
-        """Get the absolute path for a bookmark with the given path."""
-        abs_path = os.path.abspath(vault_path)
-        return abs_path if abs_path in self.bookmarks else None
+        """Get the bookmark path if it exists."""
+        return vault_path if vault_path in self.bookmarks else None
 
     def set_last_opened_bookmark(self, vault_path: str) -> bool:
         """Set the last opened bookmark. Returns True if successful."""
-        abs_path = os.path.abspath(vault_path)
-        if abs_path in self.bookmarks:
-            self.last_opened_bookmark = abs_path
+        if vault_path in self.bookmarks:
+            self.last_opened_bookmark = vault_path
             return True
         return False
 

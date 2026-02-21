@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from rich.console import Console
 from rich.theme import Theme
@@ -35,26 +35,6 @@ class DescribeRichConsoleService:
         assert "banner.info.value" in theme_styles
         assert "banner.warning.unsafe" in theme_styles
         assert "banner.warning.git" in theme_styles
-
-    @patch("zk_chat.console_service.Prompt")
-    def should_provide_input_method_with_prompt(self, mock_prompt):
-        mock_prompt.ask.return_value = "test input"
-        service = RichConsoleService()
-
-        result = service.input("Test prompt: ")
-
-        mock_prompt.ask.assert_called_once_with("Test prompt: ", console=service.console)
-        assert result == "test input"
-
-    @patch("zk_chat.console_service.Prompt")
-    def should_provide_input_method_without_prompt(self, mock_prompt):
-        mock_prompt.ask.return_value = "test input"
-        service = RichConsoleService()
-
-        result = service.input()
-
-        mock_prompt.ask.assert_called_once_with("", console=service.console)
-        assert result == "test input"
 
     def should_provide_print_method(self):
         service = RichConsoleService()

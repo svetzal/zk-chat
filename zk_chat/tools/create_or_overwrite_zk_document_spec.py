@@ -14,56 +14,52 @@ def mock_filesystem():
 
 @pytest.fixture
 def write_tool(mock_filesystem):
-    # Set up the filesystem mock defaults
     mock_filesystem.get_directory_path.return_value = ""
     mock_filesystem.path_exists.return_value = True
     return CreateOrOverwriteZkDocument(DocumentService(mock_filesystem))
 
 
-def test_write_document_happy_path(write_tool, mock_filesystem):
-    title = "Path"
-    metadata = {"title": "Test Document"}
-    content = "# Test Content"
+class DescribeCreateOrOverwriteZkDocument:
+    """Tests for the CreateOrOverwriteZkDocument tool."""
 
-    result = write_tool.run(title=title, metadata=metadata, content=content)
+    def should_write_document_with_dict_metadata(self, write_tool, mock_filesystem):
+        title = "Path"
+        metadata = {"title": "Test Document"}
+        content = "# Test Content"
 
-    assert f"Successfully wrote to {title}.md" in result
-    mock_filesystem.write_markdown.assert_called_once()
-    call_args = mock_filesystem.write_markdown.call_args[0]
-    assert call_args[0] == f"{title}.md"  # relative_path
-    expected_metadata = metadata.copy()
-    expected_metadata["reviewed"] = False
-    assert call_args[1] == expected_metadata  # metadata
-    assert call_args[2] == content  # content
+        result = write_tool.run(title=title, metadata=metadata, content=content)
 
+        assert f"Successfully wrote to {title}.md" in result
+        mock_filesystem.write_markdown.assert_called_once()
+        call_args = mock_filesystem.write_markdown.call_args[0]
+        assert call_args[0] == f"{title}.md"
+        expected_metadata = metadata.copy()
+        expected_metadata["reviewed"] = False
+        assert call_args[1] == expected_metadata
+        assert call_args[2] == content
 
-def test_write_document_with_none_metadata(write_tool, mock_filesystem):
-    title = "Path"
-    metadata = None
-    content = "# Test Content"
+    def should_write_document_with_default_metadata_when_none_provided(self, write_tool, mock_filesystem):
+        title = "Path"
+        content = "# Test Content"
 
-    result = write_tool.run(title=title, metadata=metadata, content=content)
+        result = write_tool.run(title=title, metadata=None, content=content)
 
-    assert f"Successfully wrote to {title}.md" in result
-    mock_filesystem.write_markdown.assert_called_once()
-    call_args = mock_filesystem.write_markdown.call_args[0]
-    assert call_args[0] == f"{title}.md"  # relative_path
-    expected_metadata = {"reviewed": False}
-    assert call_args[1] == expected_metadata  # metadata
-    assert call_args[2] == content  # content
+        assert f"Successfully wrote to {title}.md" in result
+        mock_filesystem.write_markdown.assert_called_once()
+        call_args = mock_filesystem.write_markdown.call_args[0]
+        assert call_args[0] == f"{title}.md"
+        assert call_args[1] == {"reviewed": False}
+        assert call_args[2] == content
 
+    def should_write_document_with_default_metadata_when_non_dict_provided(self, write_tool, mock_filesystem):
+        title = "Path"
+        content = "# Test Content"
 
-def test_write_document_with_non_dict_metadata(write_tool, mock_filesystem):
-    title = "Path"
-    metadata = "This is not a dictionary"
-    content = "# Test Content"
+        result = write_tool.run(title=title, metadata="This is not a dictionary", content=content)
 
-    result = write_tool.run(title=title, metadata=metadata, content=content)
-
-    assert f"Successfully wrote to {title}.md" in result
-    mock_filesystem.write_markdown.assert_called_once()
-    call_args = mock_filesystem.write_markdown.call_args[0]
-    assert call_args[0] == f"{title}.md"  # relative_path
-    expected_metadata = {"reviewed": False}
-    assert call_args[1] == expected_metadata  # metadata
-    assert call_args[2] == content  # content
+        assert f"Successfully wrote to {title}.md" in result
+        mock_filesystem.write_markdown.assert_called_once()
+        call_args = mock_filesystem.write_markdown.call_args[0]
+        assert call_args[0] == f"{title}.md"
+        assert call_args[1] == {"reviewed": False}
+        assert call_args[2] == content

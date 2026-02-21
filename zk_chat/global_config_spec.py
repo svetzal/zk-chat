@@ -28,14 +28,12 @@ class DescribeGlobalConfig:
 
             assert "/my/vault" in config.bookmarks
 
-        def should_resolve_relative_paths_to_absolute(self):
-            import os
-
+        def should_store_path_as_given(self):
             config = GlobalConfig()
 
-            config.add_bookmark(".")
+            config.add_bookmark("/absolute/vault")
 
-            assert os.path.abspath(".") in config.bookmarks
+            assert "/absolute/vault" in config.bookmarks
 
         def should_add_multiple_bookmarks(self):
             config = GlobalConfig()

@@ -110,6 +110,12 @@ class ServiceProvider:
 
         return self._registry.get_service(ServiceType.LINK_TRAVERSAL_SERVICE, LinkTraversalService)
 
+    def get_console_service(self):
+        """Get the console service for user-facing output."""
+        from zk_chat.console_service import RichConsoleService
+
+        return self._registry.get_service(ServiceType.CONSOLE_SERVICE, RichConsoleService)
+
     def get_service(self, service_type: ServiceType, expected_type: type[T] | None = None) -> T | None:
         """
         Generic method to get a service by type.
