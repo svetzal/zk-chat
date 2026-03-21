@@ -117,3 +117,6 @@ default_section = "THIRDPARTY"
 force_alphabetical_sort_within_sections = true
 # Keep as/from imports grouped consistently
 combine_as_imports = true
+
+[dependency-groups]
+dev = []
