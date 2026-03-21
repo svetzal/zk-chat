@@ -58,3 +58,44 @@ class DescribeServiceProvider:
             raise AssertionError("Should have raised RuntimeError")
         except RuntimeError as e:
             assert "Required service llm_broker is not available" in str(e)
+
+    class DescribeTypedGetters:
+        """Tests verifying the typed convenience getter methods delegate to the registry correctly."""
+
+        def should_get_filesystem_gateway_by_type(self):
+            registry = ServiceRegistry()
+            mock_service = Mock()
+            registry.register_service(ServiceType.FILESYSTEM_GATEWAY, mock_service)
+            provider = ServiceProvider(registry)
+
+            result = provider.get_filesystem_gateway()
+
+            assert result is mock_service
+
+        def should_get_llm_broker_by_type(self):
+            registry = ServiceRegistry()
+            mock_service = Mock()
+            registry.register_service(ServiceType.LLM_BROKER, mock_service)
+            provider = ServiceProvider(registry)
+
+            result = provider.get_llm_broker()
+
+            assert result is mock_service
+
+        def should_get_config_by_type(self):
+            registry = ServiceRegistry()
+            mock_service = Mock()
+            registry.register_service(ServiceType.CONFIG, mock_service)
+            provider = ServiceProvider(registry)
+
+            result = provider.get_config()
+
+            assert result is mock_service
+
+        def should_return_none_when_typed_service_not_registered(self):
+            registry = ServiceRegistry()
+            provider = ServiceProvider(registry)
+
+            result = provider.get_git_gateway()
+
+            assert result is None

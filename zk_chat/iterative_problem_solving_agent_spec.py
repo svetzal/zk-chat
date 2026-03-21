@@ -1,0 +1,135 @@
+"""
+Tests for the iterative problem solving agent and the strip_thinking utility.
+"""
+
+from unittest.mock import Mock, patch
+
+import pytest
+from mojentic.llm import LLMBroker
+
+from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent, strip_thinking
+
+
+class DescribeStripThinking:
+    """Tests for the strip_thinking pure function."""
+
+    def should_return_empty_string_for_empty_input(self):
+        result = strip_thinking("")
+
+        assert result == ""
+
+    def should_return_text_unchanged_when_no_think_blocks(self):
+        result = strip_thinking("Hello world")
+
+        assert result == "Hello world"
+
+    def should_remove_single_think_block(self):
+        result = strip_thinking("<think>internal reasoning</think>result")
+
+        assert result == "result"
+
+    def should_remove_multiple_think_blocks(self):
+        result = strip_thinking("<think>a</think>text<think>b</think>more")
+
+        assert result == "textmore"
+
+    def should_remove_multiline_think_blocks(self):
+        result = strip_thinking("<think>\nreasoning\nacross lines\n</think>actual result")
+
+        assert result == "actual result"
+
+    def should_strip_leading_and_trailing_whitespace(self):
+        result = strip_thinking("  <think>x</think>  result  ")
+
+        assert result == "result"
+
+    def should_preserve_text_before_and_after_think_blocks(self):
+        result = strip_thinking("before<think>x</think>after")
+
+        assert result == "beforeafter"
+
+    def should_handle_text_that_is_only_a_think_block(self):
+        result = strip_thinking("<think>everything</think>")
+
+        assert result == ""
+
+
+class DescribeIterativeProblemSolvingAgent:
+    """Tests for the IterativeProblemSolvingAgent class."""
+
+    @pytest.fixture
+    def mock_llm(self):
+        return Mock(spec=LLMBroker)
+
+    @pytest.fixture
+    def mock_chat_instance(self):
+        return Mock()
+
+    @pytest.fixture
+    def agent(self, mock_llm, mock_chat_instance):
+        with patch("zk_chat.iterative_problem_solving_agent.ChatSession") as mock_class:
+            mock_class.return_value = mock_chat_instance
+            yield IterativeProblemSolvingAgent(mock_llm)
+
+    def should_use_default_max_iterations_of_three(self, agent):
+        assert agent.max_iterations == 3
+
+    def should_stop_when_response_contains_done(self, agent, mock_chat_instance):
+        mock_chat_instance.send.side_effect = ["Task is DONE", "Summary result"]
+
+        result = agent.solve("solve this problem")
+
+        assert result == "Summary result"
+        assert mock_chat_instance.send.call_count == 2
+
+    def should_stop_when_response_contains_fail(self, agent, mock_chat_instance):
+        mock_chat_instance.send.side_effect = ["FAIL: cannot proceed", "Summary after failure"]
+
+        result = agent.solve("solve this problem")
+
+        assert result == "Summary after failure"
+        assert mock_chat_instance.send.call_count == 2
+
+    def should_stop_after_max_iterations_when_no_done_or_fail(self, mock_llm, mock_chat_instance):
+        with patch("zk_chat.iterative_problem_solving_agent.ChatSession") as mock_class:
+            mock_class.return_value = mock_chat_instance
+            agent = IterativeProblemSolvingAgent(mock_llm, max_iterations=2)
+
+        mock_chat_instance.send.side_effect = ["Still working...", "Still working...", "Summary after max"]
+
+        result = agent.solve("solve this problem")
+
+        assert result == "Summary after max"
+        assert mock_chat_instance.send.call_count == 3
+
+    def should_strip_thinking_blocks_before_evaluating_done(self, agent, mock_chat_instance):
+        mock_chat_instance.send.side_effect = ["<think>reasoning</think>DONE", "Summary"]
+
+        result = agent.solve("solve this problem")
+
+        assert result == "Summary"
+        assert mock_chat_instance.send.call_count == 2
+
+    def should_strip_thinking_blocks_before_evaluating_fail(self, agent, mock_chat_instance):
+        mock_chat_instance.send.side_effect = ["<think>reasoning</think>FAIL", "Summary"]
+
+        result = agent.solve("solve this problem")
+
+        assert result == "Summary"
+        assert mock_chat_instance.send.call_count == 2
+
+    def should_evaluate_done_case_insensitively(self, agent, mock_chat_instance):
+        mock_chat_instance.send.side_effect = ["done", "Summary"]
+
+        result = agent.solve("solve this problem")
+
+        assert result == "Summary"
+        assert mock_chat_instance.send.call_count == 2
+
+    def should_request_summary_after_solving(self, agent, mock_chat_instance):
+        mock_chat_instance.send.side_effect = ["DONE", "Final summary"]
+
+        agent.solve("solve this problem")
+
+        last_call_arg = mock_chat_instance.send.call_args_list[-1][0][0]
+        assert "Summarize" in last_call_arg

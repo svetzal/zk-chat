@@ -18,6 +18,53 @@ from zk_chat.global_config_gateway import GlobalConfigGateway
 logger = structlog.get_logger()
 
 
+def coerce_types(arguments: dict[str, Any], input_schema: dict[str, Any]) -> dict[str, Any]:
+    """
+    Coerce argument types to match the input schema.
+
+    LLMs sometimes return strings for numeric or boolean fields, so we need to convert them.
+
+    Parameters
+    ----------
+    arguments : Dict[str, Any]
+        Raw arguments from the LLM
+    input_schema : Dict[str, Any]
+        The tool's input schema (from the MCP tool descriptor's ``inputSchema`` field)
+
+    Returns
+    -------
+    Dict[str, Any]
+        Arguments with types coerced to match schema
+    """
+    properties = input_schema.get("properties", {})
+
+    coerced = {}
+    for key, value in arguments.items():
+        if key in properties:
+            prop_schema = properties[key]
+            prop_type = prop_schema.get("type")
+
+            if prop_type == "number" or prop_type == "integer":
+                if isinstance(value, str):
+                    try:
+                        coerced[key] = int(value) if prop_type == "integer" else float(value)
+                    except (ValueError, TypeError):
+                        coerced[key] = value
+                else:
+                    coerced[key] = value
+            elif prop_type == "boolean":
+                if isinstance(value, str):
+                    coerced[key] = value.lower() in ("true", "1", "yes")
+                else:
+                    coerced[key] = bool(value)
+            else:
+                coerced[key] = value
+        else:
+            coerced[key] = value
+
+    return coerced
+
+
 class MCPToolWrapper(LLMTool):
     """
     Wraps an MCP server tool to make it compatible with mojentic's LLMTool interface.
@@ -59,7 +106,7 @@ class MCPToolWrapper(LLMTool):
         """
         Coerce argument types to match the input schema.
 
-        LLMs sometimes return strings for numeric fields, so we need to convert them.
+        Delegates to the module-level :func:`coerce_types` function.
 
         Parameters
         ----------
@@ -72,34 +119,7 @@ class MCPToolWrapper(LLMTool):
             Arguments with types coerced to match schema
         """
         input_schema = self.tool_descriptor.get("inputSchema", {})
-        properties = input_schema.get("properties", {})
-
-        coerced = {}
-        for key, value in arguments.items():
-            if key in properties:
-                prop_schema = properties[key]
-                prop_type = prop_schema.get("type")
-
-                # Coerce based on schema type
-                if prop_type == "number" or prop_type == "integer":
-                    if isinstance(value, str):
-                        try:
-                            coerced[key] = int(value) if prop_type == "integer" else float(value)
-                        except (ValueError, TypeError):
-                            coerced[key] = value
-                    else:
-                        coerced[key] = value
-                elif prop_type == "boolean":
-                    if isinstance(value, str):
-                        coerced[key] = value.lower() in ("true", "1", "yes")
-                    else:
-                        coerced[key] = bool(value)
-                else:
-                    coerced[key] = value
-            else:
-                coerced[key] = value
-
-        return coerced
+        return coerce_types(arguments, input_schema)
 
     def run(self, **kwargs) -> str:
         """
