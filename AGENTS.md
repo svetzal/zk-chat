@@ -1,5 +1,7 @@
 # Project Guidance
 
+Why this project exists and what problem does it solve: @CHARTER.md
+
 ## Project Overview
 
 zk-chat is a Python-based command-line and GUI tool for chatting with an AI that has access to your Zettelkasten (knowledge base). The project implements a RAG (Retrieval Augmented Generation) system that can search, read, and optionally modify markdown documents in a vault.
