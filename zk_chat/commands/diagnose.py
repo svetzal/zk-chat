@@ -138,23 +138,21 @@ def _run_test_query(query: str, provider: ServiceProvider) -> tuple[list, list]:
 
 
 def _print_recommendations(chroma: ChromaGateway, query: str | None, doc_results: list, excerpt_results: list) -> None:
+    from zk_chat.diagnostics import generate_recommendations
+
+    _SEVERITY_COLOR = {"error": "red", "warning": "yellow", "ok": "green"}
+
     console.print("\n[bold]Recommendations:[/]")
     try:
         doc_collection = chroma.get_collection(ZkCollectionName.DOCUMENTS)
         excerpt_collection = chroma.get_collection(ZkCollectionName.EXCERPTS)
         doc_count = doc_collection.count()
         excerpt_count = excerpt_collection.count()
-        if doc_count == 0 and excerpt_count == 0:
-            console.print("  [red]•[/] Both collections are empty - run [cyan]zk-chat index update --full[/]")
-        elif doc_count == 0:
-            console.print("  [yellow]•[/] Documents collection is empty - run [cyan]zk-chat index update --full[/]")
-        elif excerpt_count == 0:
-            console.print("  [yellow]•[/] Excerpts collection is empty - run [cyan]zk-chat index update --full[/]")
-        else:
-            console.print("  [green]•[/] Collections have data")
-            if query and not doc_results and not excerpt_results:
-                console.print("  [yellow]•[/] Query returned no results - this may be a distance threshold issue")
-                console.print("    Try a different query or check if your model is working correctly")
+        for rec in generate_recommendations(doc_count, excerpt_count, query, doc_results, excerpt_results):
+            color = _SEVERITY_COLOR.get(rec.severity, "white")
+            console.print(f"  [{color}]•[/] {rec.message}")
+            if rec.detail:
+                console.print(f"    {rec.detail}")
     except Exception as e:
         console.print(f"  [red]•[/] Error checking collections: {e}")
 

@@ -122,17 +122,16 @@ def _print_basic_config(config) -> None:
 def _print_last_indexed(config) -> None:
     from datetime import datetime as _dt
 
+    from zk_chat.formatting import categorize_index_age
+
     last_indexed = config.get_last_indexed()
     if last_indexed:
         console.print(f"\n[bold]Last Indexed:[/] {last_indexed.strftime('%Y-%m-%d %H:%M:%S')}")
-        time_diff = _dt.now() - last_indexed
-        if time_diff.days > 0:
-            console.print(f"[yellow]⚠️  {time_diff.days} day(s) ago - consider updating[/]")
-        elif time_diff.seconds > 3600:
-            hours = time_diff.seconds // 3600
-            console.print(f"[green]✅ {hours} hour(s) ago - up to date[/]")
+        age = categorize_index_age(last_indexed, _dt.now())
+        if age.category == "stale":
+            console.print(f"[yellow]⚠️  {age.description}[/]")
         else:
-            console.print("[green]✅ Recently updated[/]")
+            console.print(f"[green]✅ {age.description}[/]")
     else:
         console.print("\n[red]❌ Never indexed[/]")
 
@@ -149,15 +148,11 @@ def _print_db_info(vault_path: str) -> None:
                 filepath = _os.path.join(dirpath, filename)
                 total_size += _os.path.getsize(filepath)
                 file_count += 1
-        if total_size < 1024 * 1024:
-            size_str = f"{total_size / 1024:.1f} KB"
-        elif total_size < 1024 * 1024 * 1024:
-            size_str = f"{total_size / (1024 * 1024):.1f} MB"
-        else:
-            size_str = f"{total_size / (1024 * 1024 * 1024):.1f} GB"
+        from zk_chat.formatting import format_file_size
+
         console.print("\n[bold]Index Database:[/]")
         console.print(f"  • Location: {db_dir}")
-        console.print(f"  • Size: {size_str}")
+        console.print(f"  • Size: {format_file_size(total_size)}")
         console.print(f"  • Files: {file_count}")
     else:
         console.print("\n[yellow]⚠️  No index database found[/]")
@@ -177,11 +172,14 @@ def _count_markdown_files(vault_path: str) -> int:
 
 
 def _print_health(last_indexed, markdown_count: int, vault_path: str) -> None:
+    from zk_chat.formatting import assess_vault_health
+
     console.print("\n[bold]Vault Statistics:[/]")
     console.print(f"  • Markdown files: {markdown_count}")
-    if last_indexed and markdown_count > 0:
+    health = assess_vault_health(last_indexed, markdown_count)
+    if health.status == "healthy":
         console.print("\n[green]✅ Index appears healthy[/]")
-    elif markdown_count == 0:
+    elif health.status == "no_files":
         console.print("\n[yellow]⚠️  No markdown files found in vault[/]")
     else:
         console.print("\n[red]❌ Index needs updating[/]")

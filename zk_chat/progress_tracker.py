@@ -91,25 +91,15 @@ class ProgressTracker:
             logger.warning("Progress not started, cannot update")
             return
 
-        # Validate that only one of advance or completed is provided
-        if advance is not None and completed is not None:
-            raise ValueError("Cannot specify both 'advance' and 'completed' parameters")
+        from zk_chat.formatting import truncate_for_display, validate_progress_params
 
-        # Default to advance=1 if neither is provided
-        if advance is None and completed is None:
-            advance = 1
+        advance, completed = validate_progress_params(advance, completed)
 
         # Build description without filename (filename goes in separate column)
         display_desc = description
 
-        # Prepare filename for fixed-width column (truncate if too long, pad if too short)
-        if current_file:
-            if len(current_file) > 30:
-                formatted_file = current_file[:27] + "..."
-            else:
-                formatted_file = current_file
-        else:
-            formatted_file = ""
+        # Prepare filename for fixed-width column
+        formatted_file = truncate_for_display(current_file) if current_file else ""
 
         # Update with appropriate parameters
         update_kwargs = {"description": display_desc, "current_file": formatted_file}
@@ -199,11 +189,10 @@ class IndexingProgressTracker(ProgressTracker):
             filename: Current file being processed
             processed_count: Number of files processed so far
         """
-        # Extract just the filename from the path for cleaner display
-        display_name = filename.split("/")[-1] if "/" in filename else filename
+        from zk_chat.formatting import calculate_advance, extract_display_name
 
-        # Calculate how much to advance since last update
-        advance_by = processed_count - self._last_processed_count
+        display_name = extract_display_name(filename)
+        advance_by = calculate_advance(processed_count, self._last_processed_count)
         self._last_processed_count = processed_count
 
         self.update_progress(advance=advance_by, current_file=display_name)
