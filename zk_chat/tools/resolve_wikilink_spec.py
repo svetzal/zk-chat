@@ -6,6 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.resolve_wikilink import ResolveWikiLink
 
@@ -18,8 +19,12 @@ class DescribeResolveWikiLink:
         return Mock(spec=MarkdownFilesystemGateway)
 
     @pytest.fixture
-    def resolve_tool(self, mock_filesystem):
-        return ResolveWikiLink(mock_filesystem)
+    def mock_console_service(self):
+        return Mock(spec=RichConsoleService)
+
+    @pytest.fixture
+    def resolve_tool(self, mock_filesystem, mock_console_service):
+        return ResolveWikiLink(mock_filesystem, mock_console_service)
 
     def should_return_relative_path_when_wikilink_resolves(self, resolve_tool, mock_filesystem):
         mock_filesystem.resolve_wikilink.return_value = "notes/test-note.md"

@@ -8,9 +8,9 @@ logger = structlog.get_logger()
 
 
 class RenameZkDocument(LLMTool):
-    def __init__(self, document_service: DocumentService, console_service: RichConsoleService = None):
+    def __init__(self, document_service: DocumentService, console_service: RichConsoleService):
         self.document_service = document_service
-        self.console_service = console_service or RichConsoleService()
+        self.console_service = console_service
 
     def _sanitize_filename(self, filename: str) -> str:
         """

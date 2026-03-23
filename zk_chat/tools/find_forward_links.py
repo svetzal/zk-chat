@@ -13,11 +13,11 @@ class FindForwardLinks(LLMTool):
         self,
         document_service: DocumentService,
         link_service: LinkTraversalService,
-        console_service: RichConsoleService | None = None,
+        console_service: RichConsoleService,
     ):
         self.document_service = document_service
         self.link_service = link_service
-        self.console_service = console_service or RichConsoleService()
+        self.console_service = console_service
 
     def run(self, source_document: str) -> str:
         """

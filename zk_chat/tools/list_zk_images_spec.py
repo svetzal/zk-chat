@@ -3,6 +3,7 @@ from unittest.mock import Mock
 import pytest
 from mojentic.llm.tools.llm_tool import LLMTool
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.list_zk_images import ListZkImages
 
@@ -13,15 +14,20 @@ def mock_filesystem():
 
 
 @pytest.fixture
-def tool(mock_filesystem) -> LLMTool:
-    return ListZkImages(mock_filesystem)
+def mock_console_service():
+    return Mock(spec=RichConsoleService)
+
+
+@pytest.fixture
+def tool(mock_filesystem, mock_console_service) -> LLMTool:
+    return ListZkImages(mock_filesystem, mock_console_service)
 
 
 class DescribeListZkImages:
     """Tests for the ListZkImages tool which finds image files in the vault."""
 
-    def should_be_instantiated_with_filesystem_gateway(self, mock_filesystem):
-        tool = ListZkImages(mock_filesystem)
+    def should_be_instantiated_with_filesystem_gateway(self, mock_filesystem, mock_console_service):
+        tool = ListZkImages(mock_filesystem, mock_console_service)
 
         assert isinstance(tool, ListZkImages)
         assert tool.fs is mock_filesystem

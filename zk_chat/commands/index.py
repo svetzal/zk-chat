@@ -81,13 +81,14 @@ def update(
     console.print("[dim]Your Zettelkasten is ready for fast searching.[/]")
 
 
-def _resolve_vault_status(vault: Path | None) -> str:
+def _resolve_vault_status(vault: Path | None, global_config_gateway: GlobalConfigGateway | None = None) -> str:
     import os as _os
 
     if vault:
         vault_path = str(vault.resolve())
     else:
-        global_config = GlobalConfigGateway().load()
+        gateway = global_config_gateway or GlobalConfigGateway()
+        global_config = gateway.load()
         vault_path = global_config.get_last_opened_bookmark_path()
         if not vault_path:
             console.print("[red]❌ Error:[/] No vault specified and no bookmarks found.")

@@ -8,10 +8,10 @@ logger = structlog.get_logger()
 
 
 class UncommittedChanges(LLMTool):
-    def __init__(self, base_path: str, git: GitGateway, console_service: RichConsoleService = None):
+    def __init__(self, base_path: str, git: GitGateway, console_service: RichConsoleService):
         self.base_path = base_path
         self.git = git
-        self.console_service = console_service or RichConsoleService()
+        self.console_service = console_service
 
     def run(self) -> str:
         self.console_service.print("[tool.info]Getting uncommitted changes in vault folder[/]")

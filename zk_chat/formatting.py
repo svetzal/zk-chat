@@ -158,9 +158,7 @@ def calculate_advance(current_count: int, last_count: int) -> int:
     return current_count - last_count
 
 
-def validate_progress_params(
-    advance: int | None, completed: int | None
-) -> tuple[int | None, int | None]:
+def validate_progress_params(advance: int | None, completed: int | None) -> tuple[int | None, int | None]:
     """Validate and resolve progress update parameters.
 
     Advance and completed are mutually exclusive. When neither is provided,

@@ -124,10 +124,11 @@ def _create_agent(config: Config):
 def agent(config: Config):
     from zk_chat.global_config_gateway import GlobalConfigGateway
 
-    global_config = GlobalConfigGateway().load()
+    global_config_gateway = GlobalConfigGateway()
+    global_config = global_config_gateway.load()
     if global_config.list_mcp_servers():
         print("Verifying MCP server availability...")
-        unavailable = verify_all_mcp_servers()
+        unavailable = verify_all_mcp_servers(global_config_gateway)
         if unavailable:
             print("\nWarning: The following MCP servers are unavailable:")
             for name in unavailable:

@@ -11,9 +11,9 @@ logger = structlog.get_logger()
 
 
 class FindExcerptsRelatedTo(LLMTool):
-    def __init__(self, index_service: IndexService, console_service: RichConsoleService = None):
+    def __init__(self, index_service: IndexService, console_service: RichConsoleService):
         self.index_service = index_service
-        self.console_service = console_service or RichConsoleService()
+        self.console_service = console_service
 
     def run(self, query: str) -> str:
         self.console_service.print(f"[tool.info]Querying excerpts related to {query}[/]")

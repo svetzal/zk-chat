@@ -2,6 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.tools.create_or_overwrite_zk_document import CreateOrOverwriteZkDocument
@@ -13,10 +14,15 @@ def mock_filesystem():
 
 
 @pytest.fixture
-def write_tool(mock_filesystem):
+def mock_console_service():
+    return Mock(spec=RichConsoleService)
+
+
+@pytest.fixture
+def write_tool(mock_filesystem, mock_console_service):
     mock_filesystem.get_directory_path.return_value = ""
     mock_filesystem.path_exists.return_value = True
-    return CreateOrOverwriteZkDocument(DocumentService(mock_filesystem))
+    return CreateOrOverwriteZkDocument(DocumentService(mock_filesystem), mock_console_service)
 
 
 class DescribeCreateOrOverwriteZkDocument:

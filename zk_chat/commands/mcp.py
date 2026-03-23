@@ -58,7 +58,7 @@ def add(
     if not no_verify:
         _verify_server(name, server_config)
 
-    _register_server(server_config)
+    _register_server(server_config, GlobalConfigGateway())
     _display_registration_success(name, srv_type, command, url, args_list)
 
 
@@ -104,12 +104,20 @@ def _verify_server(name: str, server_config: MCPServerConfig) -> None:
         raise typer.Exit(1)
 
 
-def _register_server(server_config: MCPServerConfig) -> None:
+def _register_server(server_config: MCPServerConfig, global_config_gateway: GlobalConfigGateway) -> None:
     """Register server in global config."""
-    gateway = GlobalConfigGateway()
-    global_config = gateway.load()
+    global_config = global_config_gateway.load()
     global_config.add_mcp_server(server_config)
-    gateway.save(global_config)
+    global_config_gateway.save(global_config)
+
+
+def _remove_server(name: str, global_config_gateway: GlobalConfigGateway) -> bool:
+    """Remove server from global config. Returns True if removed, False if not found."""
+    global_config = global_config_gateway.load()
+    if global_config.remove_mcp_server(name):
+        global_config_gateway.save(global_config)
+        return True
+    return False
 
 
 def _display_registration_success(
@@ -142,11 +150,7 @@ def remove(
     • [cyan]zk-chat mcp remove figma[/]
     • [cyan]zk-chat mcp remove chrome[/]
     """
-    gateway = GlobalConfigGateway()
-    global_config = gateway.load()
-
-    if global_config.remove_mcp_server(name):
-        gateway.save(global_config)
+    if _remove_server(name, GlobalConfigGateway()):
         console.print(f"[green]✅ MCP server '{name}' removed successfully![/]")
     else:
         console.print(f"[red]❌ Error:[/] MCP server '{name}' not found.")

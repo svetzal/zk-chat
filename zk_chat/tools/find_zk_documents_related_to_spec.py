@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.models import ZkDocument, ZkQueryDocumentResult
 from zk_chat.services.index_service import IndexService
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
@@ -14,8 +15,13 @@ def mock_index_service():
 
 
 @pytest.fixture
-def tool(mock_index_service):
-    return FindZkDocumentsRelatedTo(mock_index_service)
+def mock_console_service():
+    return Mock(spec=RichConsoleService)
+
+
+@pytest.fixture
+def tool(mock_index_service, mock_console_service):
+    return FindZkDocumentsRelatedTo(mock_index_service, mock_console_service)
 
 
 class DescribeFindZkDocumentsRelatedTo:

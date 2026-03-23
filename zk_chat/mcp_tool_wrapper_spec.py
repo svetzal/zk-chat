@@ -4,7 +4,9 @@ Tests for MCP tool wrapper functionality.
 
 from unittest.mock import Mock
 
-from zk_chat.mcp_tool_wrapper import MCPToolWrapper, coerce_types
+from zk_chat.global_config import GlobalConfig
+from zk_chat.global_config_gateway import GlobalConfigGateway
+from zk_chat.mcp_tool_wrapper import MCPClientManager, MCPToolWrapper, coerce_types
 
 
 class DescribeCoerceTypes:
@@ -116,3 +118,34 @@ class DescribeMCPToolWrapper:
         descriptor = wrapper.descriptor
 
         assert "Tool from test-server" in descriptor["function"]["description"]
+
+
+class DescribeMCPClientManager:
+    """Tests for MCPClientManager initialization and dependency injection."""
+
+    def should_accept_injected_global_config_gateway(self):
+        mock_gateway = Mock(spec=GlobalConfigGateway)
+        mock_gateway.load.return_value = GlobalConfig()
+
+        manager = MCPClientManager(mock_gateway)
+
+        assert manager._global_config_gateway is mock_gateway
+
+    def should_use_default_global_config_gateway_when_none_provided(self):
+        manager = MCPClientManager()
+
+        assert isinstance(manager._global_config_gateway, GlobalConfigGateway)
+
+    def should_use_injected_gateway_when_loading_servers(self):
+        mock_gateway = Mock(spec=GlobalConfigGateway)
+        mock_config = GlobalConfig()
+        mock_gateway.load.return_value = mock_config
+
+        manager = MCPClientManager(mock_gateway)
+        manager._initialized = False
+
+        import asyncio
+
+        asyncio.run(manager.initialize())
+
+        mock_gateway.load.assert_called_once()

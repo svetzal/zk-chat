@@ -50,13 +50,6 @@ class DescribeFindBacklinks:
         assert tool.link_service == mock_link_service
         assert tool.console_service == mock_console_service
 
-    def should_use_default_console_service_when_none_provided(self, mock_link_service):
-        tool = FindBacklinks(mock_link_service)
-
-        assert isinstance(tool, FindBacklinks)
-        assert tool.link_service == mock_link_service
-        assert isinstance(tool.console_service, RichConsoleService)
-
     def should_find_backlinks_to_target_document(self, backlinks_tool, mock_backlink_results):
         target = "concepts/systems-thinking.md"
 

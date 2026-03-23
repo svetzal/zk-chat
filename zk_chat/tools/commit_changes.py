@@ -14,11 +14,11 @@ class CommitChanges(LLMTool):
     llm: LLMBroker
     git: GitGateway
 
-    def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway, console_service: RichConsoleService = None):
+    def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway, console_service: RichConsoleService):
         self.base_path = base_path
         self.llm = llm
         self.git = git
-        self.console_service = console_service or RichConsoleService()
+        self.console_service = console_service
 
     def run(self) -> str:
         self.console_service.print("[tool.info]Committing changes in vault folder[/]")

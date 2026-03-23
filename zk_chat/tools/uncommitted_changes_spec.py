@@ -1,5 +1,6 @@
 import pytest
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.tools.git_gateway import GitGateway
 from zk_chat.tools.uncommitted_changes import UncommittedChanges
 
@@ -12,9 +13,15 @@ def mock_git_gateway(mocker):
 
 
 @pytest.fixture
-def uncommitted_changes(mock_git_gateway):
+def mock_console_service(mocker):
+    """Fixture for mocked RichConsoleService."""
+    return mocker.Mock(spec=RichConsoleService)
+
+
+@pytest.fixture
+def uncommitted_changes(mock_git_gateway, mock_console_service):
     """Fixture for UncommittedChanges instance with mocked dependencies."""
-    return UncommittedChanges("/mock/path", mock_git_gateway)
+    return UncommittedChanges("/mock/path", mock_git_gateway, mock_console_service)
 
 
 class DescribeUncommittedChanges:
@@ -22,12 +29,12 @@ class DescribeUncommittedChanges:
     Tests for the UncommittedChanges tool which retrieves uncommitted changes from a git repository.
     """
 
-    def should_be_instantiated_with_base_path_and_git(self, mocker):
+    def should_be_instantiated_with_base_path_and_git(self, mocker, mock_console_service):
         """Test that UncommittedChanges can be instantiated with a base path and GitGateway."""
         base_path = "/test/path"
         mock_git = mocker.Mock(spec=GitGateway)
 
-        tool = UncommittedChanges(base_path, mock_git)
+        tool = UncommittedChanges(base_path, mock_git, mock_console_service)
 
         assert isinstance(tool, UncommittedChanges)
         assert tool.base_path == base_path

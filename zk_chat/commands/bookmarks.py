@@ -15,16 +15,8 @@ bookmarks_app = typer.Typer(name="bookmarks", help="🔖 Manage vault bookmarks"
 console = Console()
 
 
-@bookmarks_app.command()
-def list():
-    """
-    List all vault bookmarks.
-
-    [bold]Examples:[/]
-
-    • [cyan]zk-chat bookmarks list[/] - Show all bookmarked vaults
-    """
-    global_config = GlobalConfigGateway().load()
+def _list_bookmarks(global_config_gateway: GlobalConfigGateway) -> None:
+    global_config = global_config_gateway.load()
 
     if not global_config.bookmarks:
         console.print("[yellow]No bookmarks found.[/]")
@@ -32,7 +24,6 @@ def list():
         console.print("  [cyan]zk-chat interactive --vault /path/to/vault --save[/]")
         return
 
-    # Create a table for better formatting
     table = Table(title="Vault Bookmarks", show_header=True, header_style="bold cyan")
     table.add_column("Path", style="green")
     table.add_column("Status", style="dim")
@@ -45,6 +36,34 @@ def list():
     console.print(f"\n[dim]Total: {len(global_config.bookmarks)} bookmark(s)[/]")
 
 
+def _remove_bookmark(path: str, global_config_gateway: GlobalConfigGateway) -> bool:
+    import os
+
+    abs_path = os.path.abspath(path)
+    global_config = global_config_gateway.load()
+
+    if global_config.remove_bookmark(abs_path):
+        global_config_gateway.save(global_config)
+        console.print(f"[green]✅ Bookmark removed:[/] {abs_path}")
+        return True
+    else:
+        console.print(f"[red]❌ Error:[/] Bookmark not found for '{abs_path}'")
+        console.print("\n[dim]Use [cyan]zk-chat bookmarks list[/dim] to see available bookmarks.")
+        return False
+
+
+@bookmarks_app.command()
+def list():
+    """
+    List all vault bookmarks.
+
+    [bold]Examples:[/]
+
+    • [cyan]zk-chat bookmarks list[/] - Show all bookmarked vaults
+    """
+    _list_bookmarks(GlobalConfigGateway())
+
+
 @bookmarks_app.command()
 def remove(path: str = typer.Argument(help="Path to the vault bookmark to remove (can be relative)")):
     """
@@ -55,18 +74,7 @@ def remove(path: str = typer.Argument(help="Path to the vault bookmark to remove
     • [cyan]zk-chat bookmarks remove ~/notes[/] - Remove bookmark for ~/notes
     • [cyan]zk-chat bookmarks remove /absolute/path/to/vault[/] - Remove by absolute path
     """
-    import os
-
-    abs_path = os.path.abspath(path)
-    gateway = GlobalConfigGateway()
-    global_config = gateway.load()
-
-    if global_config.remove_bookmark(abs_path):
-        gateway.save(global_config)
-        console.print(f"[green]✅ Bookmark removed:[/] {abs_path}")
-    else:
-        console.print(f"[red]❌ Error:[/] Bookmark not found for '{abs_path}'")
-        console.print("\n[dim]Use [cyan]zk-chat bookmarks list[/dim] to see available bookmarks.")
+    if not _remove_bookmark(path, GlobalConfigGateway()):
         raise typer.Exit(1)
 
 

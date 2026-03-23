@@ -88,6 +88,10 @@ Within each group, sort imports alphabetically.
   - ERROR for critical issues
 - Use print statements only for direct user feedback
 
+### Gateway Injection Rule
+
+Gateway classes (`GlobalConfigGateway`, `ConfigGateway`, `ChromaGateway`, etc.) must never be constructed inline in business logic or command handlers. Create them once in the composition root (CLI command function, `service_factory.py`, or `qt.main()`) and inject into all downstream functions and classes. This ensures testability and eliminates knowledge duplication about gateway construction.
+
 ### General Rules
 - Do not write comments that just restate what the code does
 - Use pydantic BaseModel classes, not `@dataclass`
