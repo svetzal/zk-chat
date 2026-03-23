@@ -35,10 +35,11 @@ diagnose_app = typer.Typer(name="diagnose", help="🔬 Diagnose index and search
 console = Console()
 
 
-def _resolve_vault_path(vault: Path | None) -> str:
+def _resolve_vault_path(vault: Path | None, global_config_gateway: GlobalConfigGateway | None = None) -> str:
     if vault:
         return str(vault.resolve())
-    global_config = GlobalConfigGateway().load()
+    gateway = global_config_gateway or GlobalConfigGateway()
+    global_config = gateway.load()
     vault_path = global_config.get_last_opened_bookmark_path()
     if not vault_path:
         console.print("[red]❌ Error:[/] No vault specified and no bookmarks found.")

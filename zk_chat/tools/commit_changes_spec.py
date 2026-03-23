@@ -1,6 +1,7 @@
 import pytest
 from mojentic.llm import LLMBroker
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.tools.commit_changes import CommitChanges
 from zk_chat.tools.git_gateway import GitGateway
 
@@ -20,9 +21,15 @@ def mock_llm_broker(mocker):
 
 
 @pytest.fixture
-def commit_changes(mock_git_gateway, mock_llm_broker):
+def mock_console_service(mocker):
+    """Fixture for mocked RichConsoleService."""
+    return mocker.Mock(spec=RichConsoleService)
+
+
+@pytest.fixture
+def commit_changes(mock_git_gateway, mock_llm_broker, mock_console_service):
     """Fixture for CommitChanges instance with mocked dependencies."""
-    return CommitChanges("/mock/path", mock_llm_broker, mock_git_gateway)
+    return CommitChanges("/mock/path", mock_llm_broker, mock_git_gateway, mock_console_service)
 
 
 class DescribeCommitChanges:
@@ -30,13 +37,13 @@ class DescribeCommitChanges:
     Tests for the CommitChanges tool which commits changes in a git repository.
     """
 
-    def should_be_instantiated_with_base_path_llm_and_git(self, mock_llm_broker, mocker):
+    def should_be_instantiated_with_base_path_llm_and_git(self, mock_llm_broker, mock_console_service, mocker):
         """Test that CommitChanges can be instantiated with a base path, LLM broker,
         and GitGateway."""
         base_path = "/test/path"
         mock_git = mocker.Mock(spec=GitGateway)
 
-        tool = CommitChanges(base_path, mock_llm_broker, mock_git)
+        tool = CommitChanges(base_path, mock_llm_broker, mock_git, mock_console_service)
 
         assert isinstance(tool, CommitChanges)
         assert tool.base_path == base_path

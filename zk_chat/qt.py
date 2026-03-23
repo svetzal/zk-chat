@@ -31,6 +31,7 @@ from PySide6.QtWidgets import (
 
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
+from zk_chat.console_service import RichConsoleService
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.model_selection import get_available_models
 from zk_chat.service_factory import build_service_registry
@@ -410,21 +411,22 @@ class MainWindow(QMainWindow):
         document_service = provider.get_document_service()
         index_service = provider.get_index_service()
         chat_llm = provider.get_llm_broker()
+        console_service = RichConsoleService()
 
         # Initialize tools list with basic tools
         tools = [
             ResolveDateTool(),
-            ReadZkDocument(document_service),
-            ListZkImages(filesystem_gateway),
-            FindExcerptsRelatedTo(index_service),
-            FindZkDocumentsRelatedTo(index_service),
-            ResolveWikiLink(filesystem_gateway),
+            ReadZkDocument(document_service, console_service),
+            ListZkImages(filesystem_gateway, console_service),
+            FindExcerptsRelatedTo(index_service, console_service),
+            FindZkDocumentsRelatedTo(index_service, console_service),
+            ResolveWikiLink(filesystem_gateway, console_service),
         ]
 
         # Add AnalyzeImage tool only if a visual model is selected
         if self.config.visual_model:
             visual_llm = LLMBroker(self.config.visual_model, gateway=gateway)
-            tools.append(AnalyzeImage(filesystem_gateway, visual_llm))
+            tools.append(AnalyzeImage(filesystem_gateway, visual_llm, console_service))
 
         self.chat_session = ChatSession(chat_llm, system_prompt="You are a helpful research assistant.", tools=tools)
 

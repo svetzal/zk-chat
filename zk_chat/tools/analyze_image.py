@@ -9,12 +9,10 @@ logger = structlog.get_logger()
 
 
 class AnalyzeImage(LLMTool):
-    def __init__(
-        self, fs: MarkdownFilesystemGateway, llm: LLMBroker, console_service: RichConsoleService | None = None
-    ):
+    def __init__(self, fs: MarkdownFilesystemGateway, llm: LLMBroker, console_service: RichConsoleService):
         self.fs = fs
         self.llm = llm
-        self.console_service = console_service or RichConsoleService()
+        self.console_service = console_service
 
     def run(self, relative_path: str) -> str:
         logger.info("Analyzing image", relative_path=relative_path)

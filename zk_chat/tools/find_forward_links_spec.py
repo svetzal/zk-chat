@@ -60,12 +60,6 @@ class DescribeFindForwardLinks:
         assert tool.link_service == mock_link_service
         assert tool.console_service == mock_console_service
 
-    def should_use_default_console_service_when_none_provided(self, mock_filesystem, mock_link_service):
-        tool = FindForwardLinks(DocumentService(mock_filesystem), mock_link_service)
-
-        assert isinstance(tool, FindForwardLinks)
-        assert isinstance(tool.console_service, RichConsoleService)
-
     def should_return_error_message_when_document_does_not_exist(self, forward_links_tool, mock_filesystem):
         test_path = "nonexistent/document.md"
         mock_filesystem.path_exists.return_value = False

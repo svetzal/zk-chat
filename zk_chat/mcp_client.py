@@ -117,16 +117,22 @@ def verify_mcp_server(server_config: MCPServerConfig) -> bool:
         return False
 
 
-def verify_all_mcp_servers() -> list[str]:
+def verify_all_mcp_servers(global_config_gateway: GlobalConfigGateway | None = None) -> list[str]:
     """
     Verify all registered MCP servers and return list of unavailable servers.
+
+    Parameters
+    ----------
+    global_config_gateway : GlobalConfigGateway | None
+        Gateway to load global config from. Defaults to a new instance.
 
     Returns
     -------
     List[str]
         List of names of unavailable servers (empty if all are available)
     """
-    global_config = GlobalConfigGateway().load()
+    gateway = global_config_gateway or GlobalConfigGateway()
+    global_config = gateway.load()
     servers = global_config.list_mcp_servers()
 
     unavailable = []

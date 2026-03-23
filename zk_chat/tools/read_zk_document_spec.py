@@ -2,6 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.models import ZkDocument
 from zk_chat.services.document_service import DocumentService
@@ -14,8 +15,13 @@ def mock_filesystem():
 
 
 @pytest.fixture
-def read_tool(mock_filesystem):
-    return ReadZkDocument(DocumentService(mock_filesystem))
+def mock_console_service():
+    return Mock(spec=RichConsoleService)
+
+
+@pytest.fixture
+def read_tool(mock_filesystem, mock_console_service):
+    return ReadZkDocument(DocumentService(mock_filesystem), mock_console_service)
 
 
 class DescribeReadZkDocument:

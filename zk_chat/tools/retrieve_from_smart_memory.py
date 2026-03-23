@@ -8,9 +8,9 @@ logger = structlog.get_logger()
 
 
 class RetrieveFromSmartMemory(LLMTool):
-    def __init__(self, smart_memory: SmartMemory, console_service: RichConsoleService = None):
+    def __init__(self, smart_memory: SmartMemory, console_service: RichConsoleService):
         self.memory = smart_memory
-        self.console_service = console_service or RichConsoleService()
+        self.console_service = console_service
 
     def run(self, query: str) -> str:
         self.console_service.print(f"[tool.info]Checking memory for anything about {query}[/]")

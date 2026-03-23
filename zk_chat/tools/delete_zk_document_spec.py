@@ -2,6 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.tools.delete_zk_document import DeleteZkDocument
@@ -13,17 +14,22 @@ def mock_filesystem():
 
 
 @pytest.fixture
-def delete_tool(mock_filesystem):
-    return DeleteZkDocument(DocumentService(mock_filesystem))
+def mock_console_service():
+    return Mock(spec=RichConsoleService)
+
+
+@pytest.fixture
+def delete_tool(mock_filesystem, mock_console_service):
+    return DeleteZkDocument(DocumentService(mock_filesystem), mock_console_service)
 
 
 class DescribeDeleteZkDocument:
     """Tests for the DeleteZkDocument tool."""
 
-    def should_be_instantiated_with_document_service(self, mock_filesystem):
+    def should_be_instantiated_with_document_service(self, mock_filesystem, mock_console_service):
         document_service = DocumentService(mock_filesystem)
 
-        tool = DeleteZkDocument(document_service)
+        tool = DeleteZkDocument(document_service, mock_console_service)
 
         assert isinstance(tool, DeleteZkDocument)
         assert tool.document_service is document_service

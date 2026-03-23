@@ -10,9 +10,9 @@ logger = structlog.get_logger()
 class ResolveWikiLink(LLMTool):
     fs: MarkdownFilesystemGateway
 
-    def __init__(self, fs: MarkdownFilesystemGateway, console_service: RichConsoleService = None):
+    def __init__(self, fs: MarkdownFilesystemGateway, console_service: RichConsoleService):
         self.fs = fs
-        self.console_service = console_service or RichConsoleService()
+        self.console_service = console_service
 
     def run(self, wikilink: str):
         logger.info("Resolving wikilink", wikilink=wikilink)

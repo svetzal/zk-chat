@@ -2,6 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.tools.rename_zk_document import RenameZkDocument
@@ -13,8 +14,13 @@ def mock_filesystem():
 
 
 @pytest.fixture
-def tool(mock_filesystem) -> RenameZkDocument:
-    return RenameZkDocument(DocumentService(mock_filesystem))
+def mock_console_service():
+    return Mock(spec=RichConsoleService)
+
+
+@pytest.fixture
+def tool(mock_filesystem, mock_console_service) -> RenameZkDocument:
+    return RenameZkDocument(DocumentService(mock_filesystem), mock_console_service)
 
 
 class DescribeRenameZkDocument:
@@ -22,9 +28,9 @@ class DescribeRenameZkDocument:
     Tests for the RenameZkDocument tool which handles renaming Zettelkasten documents
     """
 
-    def should_be_instantiated_with_document_service(self, mock_filesystem):
+    def should_be_instantiated_with_document_service(self, mock_filesystem, mock_console_service):
         document_service = DocumentService(mock_filesystem)
-        tool = RenameZkDocument(document_service)
+        tool = RenameZkDocument(document_service, mock_console_service)
 
         assert isinstance(tool, RenameZkDocument)
         assert tool.document_service is document_service
