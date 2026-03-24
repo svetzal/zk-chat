@@ -131,11 +131,6 @@ class DescribeMCPClientManager:
 
         assert manager._global_config_gateway is mock_gateway
 
-    def should_use_default_global_config_gateway_when_none_provided(self):
-        manager = MCPClientManager()
-
-        assert isinstance(manager._global_config_gateway, GlobalConfigGateway)
-
     def should_use_injected_gateway_when_loading_servers(self):
         mock_gateway = Mock(spec=GlobalConfigGateway)
         mock_config = GlobalConfig()

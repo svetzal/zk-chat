@@ -20,8 +20,8 @@ def mock_gateway():
 class DescribeResolveVaultPath:
     """Tests for the _resolve_vault_path helper function."""
 
-    def should_return_resolved_path_when_vault_provided(self, tmp_path):
-        result = _resolve_vault_path(tmp_path)
+    def should_return_resolved_path_when_vault_provided(self, tmp_path, mock_gateway):
+        result = _resolve_vault_path(tmp_path, mock_gateway)
 
         assert result == str(tmp_path.resolve())
 

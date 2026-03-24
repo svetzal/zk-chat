@@ -15,6 +15,7 @@ from importlib.metadata import version
 
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
+from zk_chat.config_resolution import determine_model_action, resolve_vault_from_args, validate_gateway_selection
 from zk_chat.console_service import RichConsoleService
 from zk_chat.global_config import GlobalConfig
 from zk_chat.global_config_gateway import GlobalConfigGateway
@@ -158,17 +159,20 @@ def _handle_admin_commands(args, global_config: GlobalConfig, global_config_gate
 
 def _resolve_vault_path(args, global_config: GlobalConfig, global_config_gateway: GlobalConfigGateway) -> str | None:
     """Resolve the vault path from args or bookmarks and ensure it exists."""
-    if args.vault:
-        vault_path = os.path.abspath(args.vault)
-        if vault_path in global_config.bookmarks:
-            global_config.set_last_opened_bookmark(vault_path)
-            global_config_gateway.save(global_config)
-            print(f"Using bookmarked vault: {vault_path}")
-    else:
-        vault_path = global_config.get_last_opened_bookmark_path()
-        if not vault_path:
-            print("Error: No vault specified. Use --vault or set a bookmark first.")
-            return None
+    arg_vault = os.path.abspath(args.vault) if args.vault else None
+    result = resolve_vault_from_args(
+        arg_vault=arg_vault,
+        bookmarks=global_config.bookmarks,
+        last_opened=global_config.get_last_opened_bookmark_path(),
+    )
+    if result.error:
+        print(f"Error: {result.error}")
+        return None
+    vault_path = result.vault_path
+    if result.source == "argument" and vault_path in global_config.bookmarks:
+        global_config.set_last_opened_bookmark(vault_path)
+        global_config_gateway.save(global_config)
+        print(f"Using bookmarked vault: {vault_path}")
     if not os.path.exists(vault_path):
         print(f"Error: Vault path '{vault_path}' does not exist.")
         return None
@@ -188,41 +192,30 @@ def _run_upgraders(config: Config, config_gateway: ConfigGateway) -> None:
 
 def _maybe_select_gateway(args, current_gateway: ModelGateway) -> tuple[ModelGateway, bool]:
     """Return (gateway, changed) based on args.gateway with validation."""
-    gateway = current_gateway
-    changed = False
-    if args.gateway:
-        new_gateway = ModelGateway(args.gateway)
-        if new_gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
-            print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
-            return gateway, changed
-        if new_gateway != current_gateway:
-            changed = True
-        gateway = new_gateway
-    return gateway, changed
+    result = validate_gateway_selection(
+        requested=args.gateway,
+        current_gateway=current_gateway,
+        openai_key_present=bool(os.environ.get("OPENAI_API_KEY")),
+    )
+    if result.error:
+        print(f"Error: {result.error}")
+    return result.gateway, result.changed
 
 
 def _update_model_in_config(config: Config, model_name: str | None, gateway: ModelGateway, is_visual: bool) -> None:
     """Update a single model field on config using interactive selection if needed."""
-    if model_name:
-        available_models = get_available_models(gateway)
-        if model_name in available_models:
-            if is_visual:
-                config.visual_model = model_name
-            else:
-                config.model = model_name
-        else:
-            print(f"Model '{model_name}' not found in available models.")
-            selected = select_model(gateway, is_visual=is_visual)
-            if is_visual:
-                config.visual_model = selected
-            else:
-                config.model = selected
-    else:
+    available_models = get_available_models(gateway)
+    action = determine_model_action(model_name, available_models)
+    if action.error:
+        print(action.error)
+    if action.needs_interactive_selection:
         selected = select_model(gateway, is_visual=is_visual)
-        if is_visual:
-            config.visual_model = selected
-        else:
-            config.model = selected
+    else:
+        selected = action.model_name
+    if is_visual:
+        config.visual_model = selected
+    else:
+        config.model = selected
 
     model_type = "Visual model" if is_visual else "Chat model"
     current_name = config.visual_model if is_visual else config.model

@@ -15,6 +15,10 @@ bookmarks_app = typer.Typer(name="bookmarks", help="🔖 Manage vault bookmarks"
 console = Console()
 
 
+def _get_global_config_gateway() -> GlobalConfigGateway:
+    return GlobalConfigGateway()
+
+
 def _list_bookmarks(global_config_gateway: GlobalConfigGateway) -> None:
     global_config = global_config_gateway.load()
 
@@ -61,7 +65,7 @@ def list():
 
     • [cyan]zk-chat bookmarks list[/] - Show all bookmarked vaults
     """
-    _list_bookmarks(GlobalConfigGateway())
+    _list_bookmarks(_get_global_config_gateway())
 
 
 @bookmarks_app.command()
@@ -74,7 +78,7 @@ def remove(path: str = typer.Argument(help="Path to the vault bookmark to remove
     • [cyan]zk-chat bookmarks remove ~/notes[/] - Remove bookmark for ~/notes
     • [cyan]zk-chat bookmarks remove /absolute/path/to/vault[/] - Remove by absolute path
     """
-    if not _remove_bookmark(path, GlobalConfigGateway()):
+    if not _remove_bookmark(path, _get_global_config_gateway()):
         raise typer.Exit(1)
 
 

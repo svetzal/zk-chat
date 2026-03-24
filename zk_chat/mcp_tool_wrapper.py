@@ -213,9 +213,9 @@ class MCPClientManager:
     - Runs a persistent event loop in a background thread
     """
 
-    def __init__(self, global_config_gateway: GlobalConfigGateway | None = None):
+    def __init__(self, global_config_gateway: GlobalConfigGateway):
         """Initialize the MCP client manager."""
-        self._global_config_gateway = global_config_gateway or GlobalConfigGateway()
+        self._global_config_gateway = global_config_gateway
         self._clients: dict[str, Client] = {}
         self._tools: list[MCPToolWrapper] = []
         self._initialized = False

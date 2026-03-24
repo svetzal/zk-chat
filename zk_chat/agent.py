@@ -19,6 +19,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.config import Config
 from zk_chat.console_service import RichConsoleService
+from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.mcp_client import verify_all_mcp_servers
@@ -45,6 +46,10 @@ from zk_chat.tools.resolve_wikilink import ResolveWikiLink
 from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory
 from zk_chat.tools.store_in_smart_memory import StoreInSmartMemory
 from zk_chat.tools.uncommitted_changes import UncommittedChanges
+
+
+def _get_global_config_gateway() -> GlobalConfigGateway:
+    return GlobalConfigGateway()
 
 
 def _build_tools(
@@ -107,7 +112,7 @@ def _create_agent(config: Config):
         console_service=provider.get_console_service(),
     )
 
-    with MCPClientManager() as mcp_manager:
+    with MCPClientManager(_get_global_config_gateway()) as mcp_manager:
         tools.extend(mcp_manager.get_tools())
 
         agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
@@ -122,9 +127,7 @@ def _create_agent(config: Config):
 
 
 def agent(config: Config):
-    from zk_chat.global_config_gateway import GlobalConfigGateway
-
-    global_config_gateway = GlobalConfigGateway()
+    global_config_gateway = _get_global_config_gateway()
     global_config = global_config_gateway.load()
     if global_config.list_mcp_servers():
         print("Verifying MCP server availability...")
