@@ -21,6 +21,10 @@ mcp_app = typer.Typer(
 console = Console()
 
 
+def _get_global_config_gateway() -> GlobalConfigGateway:
+    return GlobalConfigGateway()
+
+
 @mcp_app.command()
 def add(
     name: Annotated[str, typer.Argument(help="Name for this MCP server")],
@@ -58,7 +62,7 @@ def add(
     if not no_verify:
         _verify_server(name, server_config)
 
-    _register_server(server_config, GlobalConfigGateway())
+    _register_server(server_config, _get_global_config_gateway())
     _display_registration_success(name, srv_type, command, url, args_list)
 
 
@@ -150,7 +154,7 @@ def remove(
     • [cyan]zk-chat mcp remove figma[/]
     • [cyan]zk-chat mcp remove chrome[/]
     """
-    if _remove_server(name, GlobalConfigGateway()):
+    if _remove_server(name, _get_global_config_gateway()):
         console.print(f"[green]✅ MCP server '{name}' removed successfully![/]")
     else:
         console.print(f"[red]❌ Error:[/] MCP server '{name}' not found.")
@@ -167,7 +171,7 @@ def list():
 
     • [cyan]zk-chat mcp list[/]
     """
-    global_config = GlobalConfigGateway().load()
+    global_config = _get_global_config_gateway().load()
     servers = global_config.list_mcp_servers()
 
     if not servers:
@@ -221,7 +225,7 @@ def verify(
     • [cyan]zk-chat mcp verify[/] - Verify all servers
     • [cyan]zk-chat mcp verify figma[/] - Verify specific server
     """
-    global_config = GlobalConfigGateway().load()
+    global_config = _get_global_config_gateway().load()
 
     if name:
         # Verify specific server

@@ -29,6 +29,14 @@ index_app = typer.Typer(name="index", help="🔍 Manage your Zettelkasten search
 console = Console()
 
 
+def _get_global_config_gateway() -> GlobalConfigGateway:
+    return GlobalConfigGateway()
+
+
+def _get_config_gateway() -> ConfigGateway:
+    return ConfigGateway()
+
+
 @index_app.command()
 def update(
     vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
@@ -81,14 +89,13 @@ def update(
     console.print("[dim]Your Zettelkasten is ready for fast searching.[/]")
 
 
-def _resolve_vault_status(vault: Path | None, global_config_gateway: GlobalConfigGateway | None = None) -> str:
+def _resolve_vault_status(vault: Path | None, global_config_gateway: GlobalConfigGateway) -> str:
     import os as _os
 
     if vault:
         vault_path = str(vault.resolve())
     else:
-        gateway = global_config_gateway or GlobalConfigGateway()
-        global_config = gateway.load()
+        global_config = global_config_gateway.load()
         vault_path = global_config.get_last_opened_bookmark_path()
         if not vault_path:
             console.print("[red]❌ Error:[/] No vault specified and no bookmarks found.")
@@ -100,8 +107,8 @@ def _resolve_vault_status(vault: Path | None, global_config_gateway: GlobalConfi
     return vault_path
 
 
-def _load_config_status(vault_path: str):
-    config = ConfigGateway().load(vault_path)
+def _load_config_status(vault_path: str, config_gateway: ConfigGateway):
+    config = config_gateway.load(vault_path)
     if not config:
         console.print("[yellow]⚠️  Warning:[/] No zk-chat configuration found in vault.")
         console.print("[dim]Run [cyan]zk-chat interactive --vault {vault_path}[/dim] to initialize.")
@@ -193,8 +200,8 @@ def status(
     vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
 ):
     """Show the current status of your Zettelkasten index."""
-    vault_path = _resolve_vault_status(vault)
-    config = _load_config_status(vault_path)
+    vault_path = _resolve_vault_status(vault, _get_global_config_gateway())
+    config = _load_config_status(vault_path, _get_config_gateway())
     console.print(f"[bold cyan]Index Status[/] - {vault_path}")
     _print_basic_config(config)
     _print_last_indexed(config)

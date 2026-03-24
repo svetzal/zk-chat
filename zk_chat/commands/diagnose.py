@@ -35,11 +35,18 @@ diagnose_app = typer.Typer(name="diagnose", help="🔬 Diagnose index and search
 console = Console()
 
 
-def _resolve_vault_path(vault: Path | None, global_config_gateway: GlobalConfigGateway | None = None) -> str:
+def _get_global_config_gateway() -> GlobalConfigGateway:
+    return GlobalConfigGateway()
+
+
+def _get_config_gateway() -> ConfigGateway:
+    return ConfigGateway()
+
+
+def _resolve_vault_path(vault: Path | None, global_config_gateway: GlobalConfigGateway) -> str:
     if vault:
         return str(vault.resolve())
-    gateway = global_config_gateway or GlobalConfigGateway()
-    global_config = gateway.load()
+    global_config = global_config_gateway.load()
     vault_path = global_config.get_last_opened_bookmark_path()
     if not vault_path:
         console.print("[red]❌ Error:[/] No vault specified and no bookmarks found.")
@@ -51,8 +58,8 @@ def _resolve_vault_path(vault: Path | None, global_config_gateway: GlobalConfigG
     return vault_path
 
 
-def _load_config(vault_path: str) -> Config:
-    config = ConfigGateway().load(vault_path)
+def _load_config(vault_path: str, config_gateway: ConfigGateway) -> Config:
+    config = config_gateway.load(vault_path)
     if not config:
         console.print("[yellow]⚠️  Warning:[/] No zk-chat configuration found in vault.")
         console.print(f"[dim]Run [cyan]zk-chat interactive --vault {vault_path}[/dim] to initialize.")
@@ -164,8 +171,8 @@ def index(
     query: Annotated[str | None, typer.Option("--query", "-q", help="Test query to run")] = None,
 ):
     """Diagnose the search index to identify why queries aren't returning results."""
-    vault_path = _resolve_vault_path(vault)
-    config = _load_config(vault_path)
+    vault_path = _resolve_vault_path(vault, _get_global_config_gateway())
+    config = _load_config(vault_path, _get_config_gateway())
     console.print(Panel(f"[bold cyan]Index Diagnostics[/] - {vault_path}", expand=False))
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     if not os.path.exists(db_dir):
