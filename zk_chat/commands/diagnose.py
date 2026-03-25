@@ -1,19 +1,10 @@
-# ruff: noqa: E402  # Configure logging/env before imports to reduce noisy logs and disable telemetry
 """
 Diagnose subcommand for zk-chat.
 
 Provides diagnostic information about the index and search system.
 """
 
-import logging
 import os
-
-# Set log levels early to prevent chatty output
-logging.basicConfig(level=logging.WARN)
-
-# Disable ChromaDB telemetry to avoid PostHog compatibility issues
-os.environ["CHROMA_TELEMETRY"] = "false"
-
 from pathlib import Path
 from typing import Annotated
 
@@ -22,6 +13,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config

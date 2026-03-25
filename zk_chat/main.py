@@ -1,4 +1,3 @@
-# ruff: noqa: E402  # Configure logging/env before imports to reduce noisy logs and disable telemetry
 """
 Main CLI interface for zk-chat using Typer.
 
@@ -9,15 +8,6 @@ This provides a modern, discoverable CLI with commands:
 - zk-chat index       # Index management operations
 """
 
-import logging
-import os
-
-# Set logging levels early to prevent chatty output
-logging.basicConfig(level=logging.WARN)
-
-# Disable ChromaDB telemetry to avoid PostHog compatibility issues
-os.environ["CHROMA_TELEMETRY"] = "false"
-
 import sys
 from pathlib import Path
 from typing import Annotated
@@ -26,14 +16,11 @@ import typer
 from rich.console import Console
 from rich.panel import Panel
 
+import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.agent import agent as run_agent
-
-# Import functions for interactive and query commands
 from zk_chat.cli import common_init_typer, display_banner
 from zk_chat.commands.bookmarks import bookmarks_app
 from zk_chat.commands.diagnose import diagnose_app
-
-# Import subcommands
 from zk_chat.commands.gui import gui_app
 from zk_chat.commands.index import index_app
 from zk_chat.commands.mcp import mcp_app

@@ -11,6 +11,43 @@ from pydantic import BaseModel, ConfigDict
 from zk_chat.config import ModelGateway
 
 
+class InitConfigAction(BaseModel):
+    """
+    Describes all decisions needed to initialize a new vault configuration.
+
+    Produced by determine_init_config_action; consumed by _initialize_config shell.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    gateway: ModelGateway
+    error: str | None = None
+
+    needs_chat_model_selection: bool = False
+    chat_model_name: str | None = None
+
+    needs_visual_model_selection: bool = False
+    use_chat_model_for_visual: bool = False
+    needs_visual_model_prompt: bool = False
+    visual_model_name: str | None = None
+
+
+class ModelUpdateAction(BaseModel):
+    """
+    Describes what model updates to perform when a vault config already exists.
+
+    Produced by determine_model_update_action; consumed by _maybe_update_models shell.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    update_chat_model: bool
+    chat_model_name: str | None
+    prompt_for_visual_model: bool
+    update_visual_model: bool
+    visual_model_name: str | None
+
+
 class GatewayValidationResult(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -171,3 +208,115 @@ def resolve_visual_model_selection(
     if selected_text == none_sentinel:
         return None
     return selected_text
+
+
+def determine_init_config_action(
+    gateway_arg: str | None,
+    model_arg: str | None,
+    visual_model_arg: str | None,
+    openai_key_present: bool,
+) -> InitConfigAction:
+    """
+    Determine all decisions needed to initialize a new vault configuration.
+
+    Encodes the branching logic for gateway selection, chat model selection,
+    and visual model selection without performing any I/O.
+
+    Parameters
+    ----------
+    gateway_arg : str | None
+        The requested gateway name ("ollama", "openai"), or None to default to OLLAMA.
+    model_arg : str | None
+        The model name from CLI args. None or "choose" triggers interactive selection.
+    visual_model_arg : str | None
+        The visual model arg from CLI. "choose" triggers selection, specific name uses it,
+        None applies default rules.
+    openai_key_present : bool
+        Whether the OPENAI_API_KEY environment variable is set.
+
+    Returns
+    -------
+    InitConfigAction
+        Fully describes what the shell function should do for gateway, chat model, and visual model.
+    """
+    # Resolve gateway
+    gateway = ModelGateway(gateway_arg) if gateway_arg else ModelGateway.OLLAMA
+    if gateway == ModelGateway.OPENAI and not openai_key_present:
+        return InitConfigAction(
+            gateway=ModelGateway.OLLAMA,
+            error="Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.",
+        )
+
+    # Chat model decisions
+    needs_chat_model_selection = model_arg is None or model_arg == "choose"
+    chat_model_name = None if needs_chat_model_selection else model_arg
+
+    # Visual model decisions
+    if visual_model_arg == "choose":
+        return InitConfigAction(
+            gateway=gateway,
+            needs_chat_model_selection=needs_chat_model_selection,
+            chat_model_name=chat_model_name,
+            needs_visual_model_selection=True,
+        )
+    if visual_model_arg is not None:
+        return InitConfigAction(
+            gateway=gateway,
+            needs_chat_model_selection=needs_chat_model_selection,
+            chat_model_name=chat_model_name,
+            visual_model_name=visual_model_arg,
+        )
+    if not needs_chat_model_selection:
+        # Model was explicitly specified — use it as visual model too
+        return InitConfigAction(
+            gateway=gateway,
+            needs_chat_model_selection=False,
+            chat_model_name=chat_model_name,
+            use_chat_model_for_visual=True,
+        )
+    # Model was interactive — ask user whether they want a visual model
+    return InitConfigAction(
+        gateway=gateway,
+        needs_chat_model_selection=True,
+        needs_visual_model_prompt=True,
+    )
+
+
+def determine_model_update_action(
+    model_arg: str | None,
+    visual_model_arg: str | None,
+    has_existing_visual_model: bool,
+) -> ModelUpdateAction:
+    """
+    Determine what model updates to perform when a vault config already exists.
+
+    Parameters
+    ----------
+    model_arg : str | None
+        The model arg from CLI. None means no update; "choose" means interactive selection.
+    visual_model_arg : str | None
+        The visual model arg from CLI. None means no update; "choose" means interactive selection.
+    has_existing_visual_model : bool
+        Whether the config already has a visual model configured.
+
+    Returns
+    -------
+    ModelUpdateAction
+        Describes whether to update chat model, visual model, and whether to prompt.
+    """
+    update_chat_model = model_arg is not None
+    chat_model_name = None if model_arg in (None, "choose") else model_arg
+
+    # Only prompt for visual model when choosing chat model interactively and no visual is set
+    prompt_for_visual_model = model_arg == "choose" and not visual_model_arg and not has_existing_visual_model
+
+    update_visual_model = bool(visual_model_arg)
+    visual_model_name = None if visual_model_arg == "choose" else visual_model_arg
+
+    return ModelUpdateAction(
+        update_chat_model=update_chat_model,
+        chat_model_name=chat_model_name,
+        prompt_for_visual_model=prompt_for_visual_model,
+        update_visual_model=update_visual_model,
+        visual_model_name=visual_model_name,
+    )

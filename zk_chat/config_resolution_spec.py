@@ -5,9 +5,13 @@ Tests for config_resolution pure functions.
 from zk_chat.config import ModelGateway
 from zk_chat.config_resolution import (
     GatewayValidationResult,
+    InitConfigAction,
     ModelActionResult,
+    ModelUpdateAction,
     VaultResolutionResult,
+    determine_init_config_action,
     determine_model_action,
+    determine_model_update_action,
     resolve_vault_from_args,
     resolve_visual_model_selection,
     validate_gateway_selection,
@@ -204,3 +208,228 @@ class DescribeResolveVisualModelSelection:
         result = resolve_visual_model_selection("")
 
         assert result == ""
+
+
+class DescribeDetermineInitConfigAction:
+    """Tests for the determine_init_config_action pure function."""
+
+    def should_default_to_ollama_when_no_gateway_arg(self):
+        result = determine_init_config_action(
+            gateway_arg=None,
+            model_arg="my-model",
+            visual_model_arg=None,
+            openai_key_present=False,
+        )
+
+        assert result.gateway == ModelGateway.OLLAMA
+        assert result.error is None
+
+    def should_use_specified_gateway_when_provided(self):
+        result = determine_init_config_action(
+            gateway_arg="openai",
+            model_arg="gpt-4",
+            visual_model_arg=None,
+            openai_key_present=True,
+        )
+
+        assert result.gateway == ModelGateway.OPENAI
+        assert result.error is None
+
+    def should_return_error_when_openai_requested_without_api_key(self):
+        result = determine_init_config_action(
+            gateway_arg="openai",
+            model_arg=None,
+            visual_model_arg=None,
+            openai_key_present=False,
+        )
+
+        assert result.error is not None
+        assert "OPENAI_API_KEY" in result.error
+
+    def should_require_chat_model_selection_when_model_arg_is_none(self):
+        result = determine_init_config_action(
+            gateway_arg=None,
+            model_arg=None,
+            visual_model_arg=None,
+            openai_key_present=False,
+        )
+
+        assert result.needs_chat_model_selection is True
+        assert result.chat_model_name is None
+
+    def should_require_chat_model_selection_when_model_arg_is_choose(self):
+        result = determine_init_config_action(
+            gateway_arg=None,
+            model_arg="choose",
+            visual_model_arg=None,
+            openai_key_present=False,
+        )
+
+        assert result.needs_chat_model_selection is True
+        assert result.chat_model_name is None
+
+    def should_use_specific_model_when_model_arg_is_a_name(self):
+        result = determine_init_config_action(
+            gateway_arg=None,
+            model_arg="llama3.2",
+            visual_model_arg=None,
+            openai_key_present=False,
+        )
+
+        assert result.needs_chat_model_selection is False
+        assert result.chat_model_name == "llama3.2"
+
+    def should_require_visual_model_selection_when_visual_model_arg_is_choose(self):
+        result = determine_init_config_action(
+            gateway_arg=None,
+            model_arg="llama3.2",
+            visual_model_arg="choose",
+            openai_key_present=False,
+        )
+
+        assert result.needs_visual_model_selection is True
+        assert result.visual_model_name is None
+
+    def should_use_specific_visual_model_when_visual_model_arg_is_a_name(self):
+        result = determine_init_config_action(
+            gateway_arg=None,
+            model_arg="llama3.2",
+            visual_model_arg="llava",
+            openai_key_present=False,
+        )
+
+        assert result.visual_model_name == "llava"
+        assert result.needs_visual_model_selection is False
+        assert result.use_chat_model_for_visual is False
+
+    def should_default_visual_to_chat_model_when_specific_model_without_visual(self):
+        result = determine_init_config_action(
+            gateway_arg=None,
+            model_arg="llama3.2",
+            visual_model_arg=None,
+            openai_key_present=False,
+        )
+
+        assert result.use_chat_model_for_visual is True
+        assert result.needs_visual_model_prompt is False
+        assert result.needs_visual_model_selection is False
+
+    def should_prompt_for_visual_model_when_model_is_interactive(self):
+        result = determine_init_config_action(
+            gateway_arg=None,
+            model_arg=None,
+            visual_model_arg=None,
+            openai_key_present=False,
+        )
+
+        assert result.needs_visual_model_prompt is True
+        assert result.use_chat_model_for_visual is False
+        assert result.needs_visual_model_selection is False
+
+    def should_return_correct_type(self):
+        result = determine_init_config_action(
+            gateway_arg=None,
+            model_arg=None,
+            visual_model_arg=None,
+            openai_key_present=False,
+        )
+
+        assert isinstance(result, InitConfigAction)
+
+
+class DescribeDetermineModelUpdateAction:
+    """Tests for the determine_model_update_action pure function."""
+
+    def should_not_update_chat_model_when_model_arg_is_none(self):
+        result = determine_model_update_action(
+            model_arg=None,
+            visual_model_arg=None,
+            has_existing_visual_model=False,
+        )
+
+        assert result.update_chat_model is False
+
+    def should_update_chat_model_interactively_when_model_arg_is_choose(self):
+        result = determine_model_update_action(
+            model_arg="choose",
+            visual_model_arg=None,
+            has_existing_visual_model=False,
+        )
+
+        assert result.update_chat_model is True
+        assert result.chat_model_name is None
+
+    def should_update_chat_model_to_specific_name_when_model_arg_is_a_name(self):
+        result = determine_model_update_action(
+            model_arg="llama3.2",
+            visual_model_arg=None,
+            has_existing_visual_model=True,
+        )
+
+        assert result.update_chat_model is True
+        assert result.chat_model_name == "llama3.2"
+
+    def should_prompt_for_visual_when_choosing_chat_model_and_no_existing_visual(self):
+        result = determine_model_update_action(
+            model_arg="choose",
+            visual_model_arg=None,
+            has_existing_visual_model=False,
+        )
+
+        assert result.prompt_for_visual_model is True
+
+    def should_not_prompt_for_visual_when_choosing_chat_model_and_visual_arg_present(self):
+        result = determine_model_update_action(
+            model_arg="choose",
+            visual_model_arg="llava",
+            has_existing_visual_model=False,
+        )
+
+        assert result.prompt_for_visual_model is False
+
+    def should_not_prompt_for_visual_when_choosing_chat_model_and_existing_visual_present(self):
+        result = determine_model_update_action(
+            model_arg="choose",
+            visual_model_arg=None,
+            has_existing_visual_model=True,
+        )
+
+        assert result.prompt_for_visual_model is False
+
+    def should_update_visual_model_interactively_when_visual_model_arg_is_choose(self):
+        result = determine_model_update_action(
+            model_arg=None,
+            visual_model_arg="choose",
+            has_existing_visual_model=False,
+        )
+
+        assert result.update_visual_model is True
+        assert result.visual_model_name is None
+
+    def should_update_visual_model_to_specific_name_when_visual_model_arg_is_a_name(self):
+        result = determine_model_update_action(
+            model_arg=None,
+            visual_model_arg="llava",
+            has_existing_visual_model=False,
+        )
+
+        assert result.update_visual_model is True
+        assert result.visual_model_name == "llava"
+
+    def should_not_update_visual_model_when_visual_model_arg_is_none(self):
+        result = determine_model_update_action(
+            model_arg=None,
+            visual_model_arg=None,
+            has_existing_visual_model=False,
+        )
+
+        assert result.update_visual_model is False
+
+    def should_return_correct_type(self):
+        result = determine_model_update_action(
+            model_arg=None,
+            visual_model_arg=None,
+            has_existing_visual_model=False,
+        )
+
+        assert isinstance(result, ModelUpdateAction)

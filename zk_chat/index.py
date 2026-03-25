@@ -1,13 +1,11 @@
-# ruff: noqa: E402  # Set telemetry env var before imports to avoid side effects
 import argparse
 import os
 from datetime import datetime
 
-# Disable ChromaDB telemetry to avoid PostHog compatibility issues
-os.environ["CHROMA_TELEMETRY"] = "false"
-
+import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
+from zk_chat.index_resolution import determine_reindex_strategy
 from zk_chat.model_selection import select_model
 from zk_chat.progress_tracker import IndexingProgressTracker
 from zk_chat.service_factory import build_service_registry
@@ -66,19 +64,19 @@ def _incremental_reindex(
     return files_processed, total_files or 0
 
 
-def reindex(config: Config, force_full: bool = False, config_gateway: ConfigGateway | None = None):
+def reindex(config: Config, config_gateway: ConfigGateway, force_full: bool = False):
     """Reindex the Zettelkasten vault with progress tracking."""
     registry = build_service_registry(config)
     provider = ServiceProvider(registry)
     index_service = provider.get_index_service()
 
-    # Initialize progress tracker
+    decision = determine_reindex_strategy(force_full=force_full, last_indexed=config.get_last_indexed())
+
     with IndexingProgressTracker() as progress:
-        last_indexed = config.get_last_indexed()
-        if force_full or last_indexed is None:
+        if decision.strategy == "full":
             files_processed, total_files = _full_reindex(config, index_service, progress)
         else:
-            files_processed, total_files = _incremental_reindex(config, index_service, progress, last_indexed)
+            files_processed, total_files = _incremental_reindex(config, index_service, progress, decision.last_indexed)
 
         # Show completion message
         if total_files == 0:
@@ -87,8 +85,7 @@ def reindex(config: Config, force_full: bool = False, config_gateway: ConfigGate
             print(f"\n✓ Successfully processed {files_processed} document{'s' if files_processed != 1 else ''}")
 
     config.set_last_indexed(datetime.now())
-    gateway = config_gateway or ConfigGateway()
-    gateway.save(config)
+    config_gateway.save(config)
 
 
 def main():
@@ -133,7 +130,7 @@ def main():
         config = Config(vault=vault_path, model=model, gateway=gateway)
         config_gateway.save(config)
 
-    reindex(config, force_full=args.full, config_gateway=config_gateway)
+    reindex(config, config_gateway, force_full=args.full)
 
 
 if __name__ == "__main__":

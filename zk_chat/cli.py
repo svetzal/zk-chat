@@ -1,21 +1,17 @@
-# ruff: noqa: E402  # Configure logging/env before imports to reduce noisy logs and disable telemetry
 import argparse
-import logging
 import os
-
-# Disable ChromaDB telemetry to avoid PostHog compatibility issues
-os.environ["CHROMA_TELEMETRY"] = "false"
-
-from zk_chat.upgraders.gateway_specific_index_folder import GatewaySpecificIndexFolder
-from zk_chat.upgraders.gateway_specific_last_indexed import GatewaySpecificLastIndexed
-
-logging.basicConfig(level=logging.WARN)
-
 from importlib.metadata import version
 
+import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
-from zk_chat.config_resolution import determine_model_action, resolve_vault_from_args, validate_gateway_selection
+from zk_chat.config_resolution import (
+    determine_init_config_action,
+    determine_model_action,
+    determine_model_update_action,
+    resolve_vault_from_args,
+    validate_gateway_selection,
+)
 from zk_chat.console_service import RichConsoleService
 from zk_chat.global_config import GlobalConfig
 from zk_chat.global_config_gateway import GlobalConfigGateway
@@ -23,6 +19,8 @@ from zk_chat.index import reindex
 from zk_chat.model_selection import get_available_models, select_model
 from zk_chat.service_factory import build_service_registry
 from zk_chat.services.service_provider import ServiceProvider
+from zk_chat.upgraders.gateway_specific_index_folder import GatewaySpecificIndexFolder
+from zk_chat.upgraders.gateway_specific_last_indexed import GatewaySpecificLastIndexed
 
 
 def get_version():
@@ -224,22 +222,23 @@ def _update_model_in_config(config: Config, model_name: str | None, gateway: Mod
 
 def _maybe_update_models(args, config: Config, gateway: ModelGateway, config_gateway: ConfigGateway) -> None:
     """Update chat and visual models based on args."""
-    if args.model is not None:
-        if args.model == "choose":
-            _update_model_in_config(config, None, gateway, is_visual=False)
-            if not args.visual_model and not getattr(config, "visual_model", None):
-                print("Would you like to select a visual model? (y/n): ")
-                choice = input().strip().lower()
-                if choice == "y":
-                    _update_model_in_config(config, None, gateway, is_visual=True)
-        else:
-            _update_model_in_config(config, args.model, gateway, is_visual=False)
+    action = determine_model_update_action(
+        model_arg=args.model,
+        visual_model_arg=args.visual_model,
+        has_existing_visual_model=bool(getattr(config, "visual_model", None)),
+    )
 
-    if args.visual_model:
-        if args.visual_model == "choose":
+    if action.update_chat_model:
+        _update_model_in_config(config, action.chat_model_name, gateway, is_visual=False)
+
+    if action.prompt_for_visual_model:
+        print("Would you like to select a visual model? (y/n): ")
+        choice = input().strip().lower()
+        if choice == "y":
             _update_model_in_config(config, None, gateway, is_visual=True)
-        else:
-            _update_model_in_config(config, args.visual_model, gateway, is_visual=True)
+
+    if action.update_visual_model:
+        _update_model_in_config(config, action.visual_model_name, gateway, is_visual=True)
 
     config_gateway.save(config)
 
@@ -255,41 +254,43 @@ def _reset_smart_memory(vault_path: str, config: Config) -> None:
 
 def _initialize_config(vault_path: str, args, config_gateway: ConfigGateway) -> Config | None:
     """Initialize config for a new vault based on CLI args without prompting unnecessarily."""
-    gateway = ModelGateway.OLLAMA
-    if args.gateway:
-        gateway = ModelGateway(args.gateway)
-        if gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
-            print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
-            return None
+    action = determine_init_config_action(
+        gateway_arg=args.gateway,
+        model_arg=args.model,
+        visual_model_arg=args.visual_model if hasattr(args, "visual_model") else None,
+        openai_key_present=bool(os.environ.get("OPENAI_API_KEY")),
+    )
 
-    # Determine the chat model
-    if args.model is None or args.model == "choose":
+    if action.error:
+        print(action.error)
+        return None
+
+    if action.needs_chat_model_selection:
         print("Please select a model for chat:")
-        model = select_model(gateway)
+        model = select_model(action.gateway)
     else:
-        model = args.model
+        model = action.chat_model_name
 
-    # Determine the visual model
-    raw_visual = args.visual_model if hasattr(args, "visual_model") else None
-    if raw_visual == "choose":
+    if action.needs_visual_model_selection:
         print("Please select a model for visual analysis:")
-        visual_model = select_model(gateway, is_visual=True)
-    elif raw_visual is not None:
-        visual_model = raw_visual
-    elif args.model not in (None, "choose"):
-        # Default: reuse chat model as visual model when model was specified
+        visual_model = select_model(action.gateway, is_visual=True)
+    elif action.use_chat_model_for_visual:
         visual_model = model
-    else:
+    elif action.visual_model_name is not None:
+        visual_model = action.visual_model_name
+    elif action.needs_visual_model_prompt:
         print("Would you like to select a model for visual analysis? (y/n): ")
         choice = input().strip().lower()
         if choice == "y":
             print("Please select a model for visual analysis:")
-            visual_model = select_model(gateway, is_visual=True)
+            visual_model = select_model(action.gateway, is_visual=True)
         else:
             visual_model = None
             print("Visual analysis will be disabled.")
+    else:
+        visual_model = None
 
-    config = Config(vault=vault_path, model=model, visual_model=visual_model, gateway=gateway)
+    config = Config(vault=vault_path, model=model, visual_model=visual_model, gateway=action.gateway)
     config_gateway.save(config)
     return config
 
@@ -304,7 +305,7 @@ def _handle_existing_config(args, vault_path: str, config: Config, config_gatewa
         _reset_smart_memory(vault_path, config)
         return None
     if args.reindex:
-        reindex(config, force_full=args.full)
+        reindex(config, config_gateway, force_full=args.full)
     return config
 
 
@@ -313,7 +314,7 @@ def _handle_new_config(args, vault_path: str, config_gateway: ConfigGateway) -> 
     config = _initialize_config(vault_path, args, config_gateway)
     if not config:
         return None
-    reindex(config, force_full=True)
+    reindex(config, config_gateway, force_full=True)
     return config
 
 
