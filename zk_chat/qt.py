@@ -1,9 +1,5 @@
-# ruff: noqa: E402  # Set telemetry env var before imports to avoid side effects
 import os
 import sys
-
-# Disable ChromaDB telemetry to avoid PostHog compatibility issues
-os.environ["CHROMA_TELEMETRY"] = "false"
 
 from mojentic.llm import ChatSession, LLMBroker
 from mojentic.llm.tools.date_resolver import ResolveDateTool
@@ -29,6 +25,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
 from zk_chat.config_resolution import resolve_visual_model_selection

@@ -1,18 +1,8 @@
-# ruff: noqa: E402  # Configure logging/env before imports to reduce noisy logs and disable telemetry
 """
 Index subcommand for zk-chat.
 
 Manages the search index for your Zettelkasten.
 """
-
-import logging
-import os
-
-# Set log levels early to prevent chatty output
-logging.basicConfig(level=logging.WARN)
-
-# Disable ChromaDB telemetry to avoid PostHog compatibility issues
-os.environ["CHROMA_TELEMETRY"] = "false"
 
 from pathlib import Path
 from typing import Annotated
@@ -20,6 +10,7 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
+import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.cli import common_init_typer
 from zk_chat.config_gateway import ConfigGateway
 from zk_chat.global_config_gateway import GlobalConfigGateway

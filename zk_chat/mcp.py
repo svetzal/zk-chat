@@ -10,6 +10,7 @@ from typing import Any
 
 import structlog
 
+from zk_chat.console_service import RichConsoleService
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
@@ -38,6 +39,7 @@ class MCPServer:
         index_service: IndexService,
         smart_memory: SmartMemory,
         enable_unsafe_operations: bool = False,
+        console_service: RichConsoleService | None = None,
     ):
         """
         Initialize the MCP server with required dependencies.
@@ -52,11 +54,14 @@ class MCPServer:
             SmartMemory instance needed for memory-related tools
         enable_unsafe_operations : bool, optional
             Flag to enable potentially unsafe operations like document creation, by default False
+        console_service : RichConsoleService | None, optional
+            Console service for tool output; defaults to a new RichConsoleService instance
         """
         self.document_service = document_service
         self.index_service = index_service
         self.smart_memory = smart_memory
         self.enable_unsafe_operations = enable_unsafe_operations
+        self.console_service = console_service or RichConsoleService()
         self.tools = {}
 
         self._register_tools()
@@ -66,15 +71,15 @@ class MCPServer:
         Register the specific tools with appropriate dependencies.
         """
         # Register read-only tools
-        self._register_tool(ReadZkDocument(self.document_service))
-        self._register_tool(FindExcerptsRelatedTo(self.index_service))
-        self._register_tool(FindZkDocumentsRelatedTo(self.index_service))
-        self._register_tool(RetrieveFromSmartMemory(self.smart_memory))
-        self._register_tool(StoreInSmartMemory(self.smart_memory))
+        self._register_tool(ReadZkDocument(self.document_service, self.console_service))
+        self._register_tool(FindExcerptsRelatedTo(self.index_service, self.console_service))
+        self._register_tool(FindZkDocumentsRelatedTo(self.index_service, self.console_service))
+        self._register_tool(RetrieveFromSmartMemory(self.smart_memory, self.console_service))
+        self._register_tool(StoreInSmartMemory(self.smart_memory, self.console_service))
 
         # Register potentially unsafe tools if enabled
         if self.enable_unsafe_operations:
-            self._register_tool(CreateOrOverwriteZkDocument(self.document_service))
+            self._register_tool(CreateOrOverwriteZkDocument(self.document_service, self.console_service))
 
     def _register_tool(self, tool_instance: Any) -> None:
         """
