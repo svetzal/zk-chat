@@ -5,6 +5,7 @@ Tests for VectorDatabase — the ChromaDB-backed vector store.
 from unittest.mock import Mock
 
 import pytest
+from mojentic.llm.gateways import OllamaGateway
 
 from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
@@ -21,7 +22,7 @@ class DescribeVectorDatabase:
 
     @pytest.fixture
     def mock_gateway(self):
-        return Mock()
+        return Mock(spec=OllamaGateway)
 
     @pytest.fixture
     def vector_db(self, mock_chroma_gateway, mock_gateway):
@@ -36,7 +37,7 @@ class DescribeVectorDatabase:
 
         @pytest.fixture
         def mock_gateway(self):
-            return Mock()
+            return Mock(spec=OllamaGateway)
 
         @pytest.fixture
         def vector_db(self, mock_chroma_gateway, mock_gateway):
@@ -117,7 +118,7 @@ class DescribeVectorDatabase:
 
         @pytest.fixture
         def mock_gateway(self):
-            return Mock()
+            return Mock(spec=OllamaGateway)
 
         @pytest.fixture
         def vector_db(self, mock_chroma_gateway, mock_gateway):
@@ -158,7 +159,7 @@ class DescribeVectorDatabase:
 
         @pytest.fixture
         def mock_gateway(self):
-            return Mock()
+            return Mock(spec=OllamaGateway)
 
         @pytest.fixture
         def vector_db(self, mock_chroma_gateway, mock_gateway):

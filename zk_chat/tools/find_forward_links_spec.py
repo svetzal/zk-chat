@@ -76,7 +76,7 @@ class DescribeFindForwardLinks:
         mock_filesystem.path_exists.return_value = True
 
         # Mock the LinkTraversalService's find_forward_links method
-        forward_links_tool.link_service.find_forward_links = Mock(return_value=mock_forward_link_results)
+        forward_links_tool.link_service.find_forward_links.return_value = mock_forward_link_results
 
         result = forward_links_tool.run(source)
 
@@ -91,7 +91,7 @@ class DescribeFindForwardLinks:
         empty_results = []
         mock_filesystem.path_exists.return_value = True
 
-        forward_links_tool.link_service.find_forward_links = Mock(return_value=empty_results)
+        forward_links_tool.link_service.find_forward_links.return_value = empty_results
 
         result = forward_links_tool.run(source)
 
@@ -104,7 +104,7 @@ class DescribeFindForwardLinks:
         source = "test-document.md"
         mock_filesystem.path_exists.return_value = True
 
-        forward_links_tool.link_service.find_forward_links = Mock(return_value=mock_forward_link_results)
+        forward_links_tool.link_service.find_forward_links.return_value = mock_forward_link_results
 
         result = forward_links_tool.run(source)
 
@@ -121,7 +121,7 @@ class DescribeFindForwardLinks:
         source = "test-document.md"
         mock_filesystem.path_exists.return_value = True
 
-        forward_links_tool.link_service.find_forward_links = Mock(return_value=mock_forward_link_results)
+        forward_links_tool.link_service.find_forward_links.return_value = mock_forward_link_results
 
         forward_links_tool.run(source)
 
@@ -144,7 +144,7 @@ class DescribeFindForwardLinks:
         ]
         mock_filesystem.path_exists.return_value = True
 
-        forward_links_tool.link_service.find_forward_links = Mock(return_value=single_result)
+        forward_links_tool.link_service.find_forward_links.return_value = single_result
 
         result = forward_links_tool.run(source)
 
@@ -164,7 +164,7 @@ class DescribeFindForwardLinks:
         ]
         mock_filesystem.path_exists.return_value = True
 
-        forward_links_tool.link_service.find_forward_links = Mock(return_value=contextual_results)
+        forward_links_tool.link_service.find_forward_links.return_value = contextual_results
 
         result = forward_links_tool.run(source)
 
@@ -185,7 +185,7 @@ class DescribeFindForwardLinks:
         ]
         mock_filesystem.path_exists.return_value = True
 
-        forward_links_tool.link_service.find_forward_links = Mock(return_value=caption_results)
+        forward_links_tool.link_service.find_forward_links.return_value = caption_results
 
         result = forward_links_tool.run(source)
 

@@ -4,6 +4,8 @@ Tests for MCP client server verification functionality.
 
 from unittest.mock import Mock, patch
 
+import requests
+
 from zk_chat.global_config import GlobalConfig, MCPServerConfig, MCPServerType
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.mcp_client import verify_all_mcp_servers, verify_http_server, verify_mcp_server, verify_stdio_server
@@ -51,7 +53,7 @@ class DescribeVerifyHttpServer:
 
     def should_return_true_when_server_reachable(self):
         server_config = MCPServerConfig(name="test-server", server_type=MCPServerType.HTTP, url="http://localhost:8080")
-        mock_response = Mock()
+        mock_response = Mock(spec=requests.Response)
         mock_response.status_code = 200
 
         with patch("requests.get", return_value=mock_response):
@@ -61,7 +63,7 @@ class DescribeVerifyHttpServer:
 
     def should_return_false_when_non_200_status(self):
         server_config = MCPServerConfig(name="test-server", server_type=MCPServerType.HTTP, url="http://localhost:8080")
-        mock_response = Mock()
+        mock_response = Mock(spec=requests.Response)
         mock_response.status_code = 404
 
         with patch("requests.get", return_value=mock_response):
@@ -98,7 +100,7 @@ class DescribeVerifyMcpServer:
 
     def should_verify_http_server(self):
         server_config = MCPServerConfig(name="test-server", server_type=MCPServerType.HTTP, url="http://localhost:8080")
-        mock_response = Mock()
+        mock_response = Mock(spec=requests.Response)
         mock_response.status_code = 200
 
         with patch("requests.get", return_value=mock_response):

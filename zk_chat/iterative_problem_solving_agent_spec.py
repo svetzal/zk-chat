@@ -5,7 +5,7 @@ Tests for the iterative problem solving agent and the strip_thinking utility.
 from unittest.mock import Mock, patch
 
 import pytest
-from mojentic.llm import LLMBroker
+from mojentic.llm import ChatSession, LLMBroker
 
 from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent, strip_thinking
 
@@ -63,7 +63,7 @@ class DescribeIterativeProblemSolvingAgent:
 
     @pytest.fixture
     def mock_chat_instance(self):
-        return Mock()
+        return Mock(spec=ChatSession)
 
     @pytest.fixture
     def agent(self, mock_llm, mock_chat_instance):

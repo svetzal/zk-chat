@@ -4,6 +4,10 @@ Tests for the service provider system.
 
 from unittest.mock import Mock
 
+from mojentic.llm import LLMBroker
+
+from zk_chat.config import Config
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.service_provider import ServiceProvider
 from zk_chat.services.service_registry import ServiceRegistry, ServiceType
 
@@ -20,7 +24,7 @@ class DescribeServiceProvider:
 
     def should_get_service_from_registry(self):
         registry = ServiceRegistry()
-        mock_service = Mock()
+        mock_service = Mock()  # Intentionally unspec'd: testing generic registry contract
         registry.register_service(ServiceType.LLM_BROKER, mock_service)
         provider = ServiceProvider(registry)
 
@@ -30,7 +34,7 @@ class DescribeServiceProvider:
 
     def should_check_service_availability(self):
         registry = ServiceRegistry()
-        mock_service = Mock()
+        mock_service = Mock()  # Intentionally unspec'd: testing generic registry contract
         provider = ServiceProvider(registry)
 
         assert not provider.has_service(ServiceType.LLM_BROKER)
@@ -41,7 +45,7 @@ class DescribeServiceProvider:
 
     def should_require_service_successfully(self):
         registry = ServiceRegistry()
-        mock_service = Mock()
+        mock_service = Mock()  # Intentionally unspec'd: testing generic registry contract
         registry.register_service(ServiceType.LLM_BROKER, mock_service)
         provider = ServiceProvider(registry)
 
@@ -64,7 +68,7 @@ class DescribeServiceProvider:
 
         def should_get_filesystem_gateway_by_type(self):
             registry = ServiceRegistry()
-            mock_service = Mock()
+            mock_service = Mock(spec=MarkdownFilesystemGateway)
             registry.register_service(ServiceType.FILESYSTEM_GATEWAY, mock_service)
             provider = ServiceProvider(registry)
 
@@ -74,7 +78,7 @@ class DescribeServiceProvider:
 
         def should_get_llm_broker_by_type(self):
             registry = ServiceRegistry()
-            mock_service = Mock()
+            mock_service = Mock(spec=LLMBroker)
             registry.register_service(ServiceType.LLM_BROKER, mock_service)
             provider = ServiceProvider(registry)
 
@@ -84,7 +88,7 @@ class DescribeServiceProvider:
 
         def should_get_config_by_type(self):
             registry = ServiceRegistry()
-            mock_service = Mock()
+            mock_service = Mock(spec=Config)
             registry.register_service(ServiceType.CONFIG, mock_service)
             provider = ServiceProvider(registry)
 

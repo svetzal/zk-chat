@@ -2,7 +2,12 @@
 Tests for MCP tool wrapper functionality.
 """
 
-from unittest.mock import Mock
+import asyncio
+import concurrent.futures
+from unittest.mock import Mock, patch
+
+import pytest
+from fastmcp import Client
 
 from zk_chat.global_config import GlobalConfig
 from zk_chat.global_config_gateway import GlobalConfigGateway
@@ -73,8 +78,8 @@ class DescribeMCPToolWrapper:
     """Tests for MCPToolWrapper class."""
 
     def should_create_wrapper_with_client(self):
-        mock_client = Mock()
-        mock_loop = Mock()
+        mock_client = Mock(spec=Client)
+        mock_loop = Mock(spec=asyncio.AbstractEventLoop)
         tool_descriptor = {
             "name": "test_tool",
             "description": "A test tool",
@@ -89,8 +94,8 @@ class DescribeMCPToolWrapper:
         assert wrapper._loop == mock_loop
 
     def should_generate_mojentic_compatible_descriptor(self):
-        mock_client = Mock()
-        mock_loop = Mock()
+        mock_client = Mock(spec=Client)
+        mock_loop = Mock(spec=asyncio.AbstractEventLoop)
         tool_descriptor = {
             "name": "test_tool",
             "description": "A test tool that does something",
@@ -110,8 +115,8 @@ class DescribeMCPToolWrapper:
         assert "param1" in descriptor["function"]["parameters"]["properties"]
 
     def should_handle_missing_description(self):
-        mock_client = Mock()
-        mock_loop = Mock()
+        mock_client = Mock(spec=Client)
+        mock_loop = Mock(spec=asyncio.AbstractEventLoop)
         tool_descriptor = {"name": "test_tool", "inputSchema": {}}
 
         wrapper = MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
@@ -139,8 +144,90 @@ class DescribeMCPClientManager:
         manager = MCPClientManager(mock_gateway)
         manager._initialized = False
 
-        import asyncio
-
         asyncio.run(manager.initialize())
 
         mock_gateway.load.assert_called_once()
+
+
+class DescribeMCPToolWrapperRun:
+    """Tests for MCPToolWrapper.run() execution, type coercion, and error handling."""
+
+    @pytest.fixture
+    def wrapper(self):
+        mock_client = Mock(spec=Client)
+        mock_loop = Mock()  # Unspec'd: loop is only passed to the patched run_coroutine_threadsafe
+        tool_descriptor = {
+            "name": "test_tool",
+            "description": "A test tool",
+            "inputSchema": {"type": "object", "properties": {"param1": {"type": "string"}}},
+        }
+        return MCPToolWrapper(mock_client, "test-server", "test_tool", tool_descriptor, mock_loop)
+
+    @pytest.fixture
+    def mock_future(self):
+        future = Mock(spec=concurrent.futures.Future)
+        future.result.return_value = "success"
+        return future
+
+    def should_execute_tool_and_return_result(self, wrapper, mock_future):
+        mock_future.result.return_value = "tool output"
+
+        with (
+            patch("asyncio.run_coroutine_threadsafe", return_value=mock_future),
+            patch.object(wrapper, "_async_run", new=Mock()),
+        ):
+            result = wrapper.run(param="value")
+
+        assert result == "tool output"
+
+    def should_use_60_second_timeout(self, wrapper, mock_future):
+        with (
+            patch("asyncio.run_coroutine_threadsafe", return_value=mock_future),
+            patch.object(wrapper, "_async_run", new=Mock()),
+        ):
+            wrapper.run(param="value")
+
+        mock_future.result.assert_called_once_with(timeout=60)
+
+    def should_return_error_message_on_timeout(self, wrapper, mock_future):
+        mock_future.result.side_effect = TimeoutError("timed out after 60s")
+
+        with (
+            patch("asyncio.run_coroutine_threadsafe", return_value=mock_future),
+            patch.object(wrapper, "_async_run", new=Mock()),
+        ):
+            result = wrapper.run(param="value")
+
+        assert "Error executing MCP tool" in result
+        assert "test_tool" in result
+
+    def should_return_error_message_on_general_exception(self, wrapper, mock_future):
+        mock_future.result.side_effect = RuntimeError("connection lost")
+
+        with (
+            patch("asyncio.run_coroutine_threadsafe", return_value=mock_future),
+            patch.object(wrapper, "_async_run", new=Mock()),
+        ):
+            result = wrapper.run(param="value")
+
+        assert "Error executing MCP tool" in result
+        assert "connection lost" in result
+
+    def should_coerce_integer_types_before_execution(self, mock_future):
+        mock_client = Mock(spec=Client)
+        mock_loop = Mock()
+        tool_descriptor = {
+            "name": "counter_tool",
+            "description": "A counting tool",
+            "inputSchema": {"type": "object", "properties": {"count": {"type": "integer"}}},
+        }
+        wrapper = MCPToolWrapper(mock_client, "test-server", "counter_tool", tool_descriptor, mock_loop)
+        mock_async_run = Mock()
+
+        with (
+            patch("asyncio.run_coroutine_threadsafe", return_value=mock_future),
+            patch.object(wrapper, "_async_run", new=mock_async_run),
+        ):
+            wrapper.run(count="42")
+
+        mock_async_run.assert_called_once_with({"count": 42})
