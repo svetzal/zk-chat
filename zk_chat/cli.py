@@ -1,4 +1,3 @@
-import argparse
 import os
 from importlib.metadata import version
 
@@ -16,6 +15,7 @@ from zk_chat.console_service import RichConsoleService
 from zk_chat.global_config import GlobalConfig
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.index import reindex
+from zk_chat.init_options import InitOptions
 from zk_chat.model_selection import get_available_models, select_model
 from zk_chat.service_factory import build_service_registry
 from zk_chat.services.service_provider import ServiceProvider
@@ -28,7 +28,6 @@ def get_version():
     try:
         return version("zk-chat")
     except Exception:
-        # Fallback version if package metadata is not available
         return "0.0.0"
 
 
@@ -37,11 +36,9 @@ def display_banner(config, title: str, unsafe=False, use_git=False, store_prompt
     console_service = RichConsoleService()
     console = console_service.get_console()
 
-    # Display the banner
     console.print(f"\n[banner.title]{title} v{get_version()}[/]")
     console.print("[banner.copyright]Copyright (C) 2024-2025 Stacey Vetzal[/]\n")
 
-    # Display configuration information
     console.print(f"[banner.info.label]Using gateway:[/] [banner.info.value]{config.gateway.value}[/]")
     console.print(f"[banner.info.label]Chat model:[/] [banner.info.value]{config.model}[/]")
 
@@ -50,7 +47,6 @@ def display_banner(config, title: str, unsafe=False, use_git=False, store_prompt
 
     console.print(f"[banner.info.label]Using vault:[/] [banner.info.value]{config.vault}[/]\n")
 
-    # Display warnings based on unsafe and git parameters
     if unsafe:
         if not use_git:
             console.print(
@@ -63,7 +59,6 @@ def display_banner(config, title: str, unsafe=False, use_git=False, store_prompt
                 "provide a full change history and rollback functions.[/]\n"
             )
 
-    # Display information about store_prompt
     if store_prompt:
         console.print(
             "[banner.info.label]System prompt will be stored as 'ZkSystemPrompt.md' in the vault. "
@@ -71,42 +66,14 @@ def display_banner(config, title: str, unsafe=False, use_git=False, store_prompt
         )
 
 
-def add_common_args(parser: argparse.ArgumentParser):
-    parser.add_argument("--vault", required=False, help="Path to your Zettelkasten vault (can be relative)")
-    parser.add_argument("--save", action="store_true", help="Save the provided vault path as a bookmark")
-    parser.add_argument("--remove-bookmark", metavar="PATH", help="Remove a bookmark for PATH (can be relative)")
-    parser.add_argument("--list-bookmarks", action="store_true", help="List all bookmarks")
-    parser.add_argument("--reindex", action="store_true", help="Reindex the Zettelkasten vault")
-    parser.add_argument("--full", action="store_true", help="Force full reindex (only with --reindex)")
-    parser.add_argument(
-        "--gateway",
-        choices=["ollama", "openai"],
-        default=None,
-        help="Set the model gateway to use (ollama or openai). OpenAI requires OPENAI_API_KEY environment variable",
-    )
-    parser.add_argument(
-        "--model",
-        nargs="?",
-        const="choose",
-        help="Set the model to use for chat. Use without a value to select from available models",
-    )
-    parser.add_argument(
-        "--visual-model",
-        nargs="?",
-        const="choose",
-        help="Set the model to use for visual analysis. Use without a value to select from available models",
-    )
-    parser.add_argument("--reset-memory", action="store_true", help="Reset the smart memory")
-
-
-def _handle_save(args, global_config: GlobalConfig, global_config_gateway: GlobalConfigGateway) -> bool:
-    """Handle --save option. Returns True if the command should exit early."""
-    if not args.save:
+def _handle_save(options: InitOptions, global_config: GlobalConfig, global_config_gateway: GlobalConfigGateway) -> bool:
+    """Handle save option. Returns True if the command should exit early."""
+    if not options.save:
         return False
-    if not args.vault:
+    if not options.vault:
         print("Error: --save requires --vault to be specified.")
         return True
-    path = args.vault
+    path = options.vault
     if not os.path.exists(path):
         print(f"Error: Path '{path}' does not exist.")
         return True
@@ -118,46 +85,11 @@ def _handle_save(args, global_config: GlobalConfig, global_config_gateway: Globa
     return True
 
 
-def _handle_remove_bookmark(args, global_config: GlobalConfig, global_config_gateway: GlobalConfigGateway) -> bool:
-    """Handle --remove-bookmark. Returns True if handled and should exit."""
-    if not args.remove_bookmark:
-        return False
-    path = args.remove_bookmark
-    abs_path = os.path.abspath(path)
-    if global_config.remove_bookmark(abs_path):
-        global_config_gateway.save(global_config)
-        print(f"Bookmark for '{abs_path}' removed.")
-    else:
-        print(f"Error: Bookmark for '{abs_path}' not found.")
-    return True
-
-
-def _handle_list_bookmarks(global_config: GlobalConfig, should_list: bool) -> bool:
-    """Handle --list-bookmarks. Returns True if listed and should exit."""
-    if not should_list:
-        return False
-    if not global_config.bookmarks:
-        print("No bookmarks found.")
-    else:
-        print("Bookmarks:")
-        for path in global_config.bookmarks:
-            last_opened = " (last opened)" if path == global_config.last_opened_bookmark else ""
-            print(f"  {path}{last_opened}")
-    return True
-
-
-def _handle_admin_commands(args, global_config: GlobalConfig, global_config_gateway: GlobalConfigGateway) -> bool:
-    """Process save/remove/list commands. Returns True if handled and should exit."""
-    return (
-        _handle_save(args, global_config, global_config_gateway)
-        or _handle_remove_bookmark(args, global_config, global_config_gateway)
-        or _handle_list_bookmarks(global_config, getattr(args, "list_bookmarks", False))
-    )
-
-
-def _resolve_vault_path(args, global_config: GlobalConfig, global_config_gateway: GlobalConfigGateway) -> str | None:
-    """Resolve the vault path from args or bookmarks and ensure it exists."""
-    arg_vault = os.path.abspath(args.vault) if args.vault else None
+def _resolve_vault_path(
+    options: InitOptions, global_config: GlobalConfig, global_config_gateway: GlobalConfigGateway
+) -> str | None:
+    """Resolve the vault path from options or bookmarks and ensure it exists."""
+    arg_vault = os.path.abspath(options.vault) if options.vault else None
     result = resolve_vault_from_args(
         arg_vault=arg_vault,
         bookmarks=global_config.bookmarks,
@@ -188,10 +120,10 @@ def _run_upgraders(config: Config, config_gateway: ConfigGateway) -> None:
             upgrader.run()
 
 
-def _maybe_select_gateway(args, current_gateway: ModelGateway) -> tuple[ModelGateway, bool]:
-    """Return (gateway, changed) based on args.gateway with validation."""
+def _maybe_select_gateway(options: InitOptions, current_gateway: ModelGateway) -> tuple[ModelGateway, bool]:
+    """Return (gateway, changed) based on options.gateway with validation."""
     result = validate_gateway_selection(
-        requested=args.gateway,
+        requested=options.gateway,
         current_gateway=current_gateway,
         openai_key_present=bool(os.environ.get("OPENAI_API_KEY")),
     )
@@ -220,11 +152,13 @@ def _update_model_in_config(config: Config, model_name: str | None, gateway: Mod
     print(f"{model_type} selected: {current_name} (using {gateway.value} gateway)")
 
 
-def _maybe_update_models(args, config: Config, gateway: ModelGateway, config_gateway: ConfigGateway) -> None:
-    """Update chat and visual models based on args."""
+def _maybe_update_models(
+    options: InitOptions, config: Config, gateway: ModelGateway, config_gateway: ConfigGateway
+) -> None:
+    """Update chat and visual models based on options."""
     action = determine_model_update_action(
-        model_arg=args.model,
-        visual_model_arg=args.visual_model,
+        model_arg=options.model,
+        visual_model_arg=options.visual_model,
         has_existing_visual_model=bool(getattr(config, "visual_model", None)),
     )
 
@@ -252,12 +186,12 @@ def _reset_smart_memory(vault_path: str, config: Config) -> None:
     print("Smart memory has been reset.")
 
 
-def _initialize_config(vault_path: str, args, config_gateway: ConfigGateway) -> Config | None:
-    """Initialize config for a new vault based on CLI args without prompting unnecessarily."""
+def _initialize_config(vault_path: str, options: InitOptions, config_gateway: ConfigGateway) -> Config | None:
+    """Initialize config for a new vault based on options without prompting unnecessarily."""
     action = determine_init_config_action(
-        gateway_arg=args.gateway,
-        model_arg=args.model,
-        visual_model_arg=args.visual_model if hasattr(args, "visual_model") else None,
+        gateway_arg=options.gateway,
+        model_arg=options.model,
+        visual_model_arg=options.visual_model,
         openai_key_present=bool(os.environ.get("OPENAI_API_KEY")),
     )
 
@@ -295,61 +229,52 @@ def _initialize_config(vault_path: str, args, config_gateway: ConfigGateway) -> 
     return config
 
 
-def _handle_existing_config(args, vault_path: str, config: Config, config_gateway: ConfigGateway) -> Config | None:
+def _handle_existing_config(
+    options: InitOptions, vault_path: str, config: Config, config_gateway: ConfigGateway
+) -> Config | None:
     """Handle flows when a config already exists for the vault."""
     _run_upgraders(config, config_gateway)
-    gateway, changed = _maybe_select_gateway(args, config.gateway)
-    if changed or args.model is not None:
-        _maybe_update_models(args, config, gateway, config_gateway)
-    if args.reset_memory:
+    gateway, changed = _maybe_select_gateway(options, config.gateway)
+    if changed or options.model is not None:
+        _maybe_update_models(options, config, gateway, config_gateway)
+    if options.reset_memory:
         _reset_smart_memory(vault_path, config)
         return None
-    if args.reindex:
-        reindex(config, config_gateway, force_full=args.full)
+    if options.reindex:
+        reindex(config, config_gateway, force_full=options.full)
     return config
 
 
-def _handle_new_config(args, vault_path: str, config_gateway: ConfigGateway) -> Config | None:
+def _handle_new_config(options: InitOptions, vault_path: str, config_gateway: ConfigGateway) -> Config | None:
     """Initialize a new config and trigger initial reindex."""
-    config = _initialize_config(vault_path, args, config_gateway)
+    config = _initialize_config(vault_path, options, config_gateway)
     if not config:
         return None
     reindex(config, config_gateway, force_full=True)
     return config
 
 
-def common_init(args):
-    global_config_gateway = GlobalConfigGateway()
+def common_init(
+    options: InitOptions,
+    global_config_gateway: GlobalConfigGateway | None = None,
+    config_gateway: ConfigGateway | None = None,
+) -> Config | None:
+    if global_config_gateway is None:
+        global_config_gateway = GlobalConfigGateway()
+    if config_gateway is None:
+        config_gateway = ConfigGateway()
+
     global_config = global_config_gateway.load()
-    config_gateway = ConfigGateway()
 
-    if _handle_save(args, global_config, global_config_gateway):
-        return
+    if _handle_save(options, global_config, global_config_gateway):
+        return None
 
-    if _handle_remove_bookmark(args, global_config, global_config_gateway):
-        return
-
-    if _handle_list_bookmarks(global_config, args.list_bookmarks):
-        return
-
-    vault_path = _resolve_vault_path(args, global_config, global_config_gateway)
+    vault_path = _resolve_vault_path(options, global_config, global_config_gateway)
     if not vault_path:
-        return
+        return None
 
     config = config_gateway.load(vault_path)
     if config:
-        return _handle_existing_config(args, vault_path, config, config_gateway)
+        return _handle_existing_config(options, vault_path, config, config_gateway)
     else:
-        return _handle_new_config(args, vault_path, config_gateway)
-
-
-def common_init_typer(args):
-    """
-    Typer-compatible version of common_init.
-
-    This function provides the same initialization logic but works with
-    the new Typer CLI structure instead of argparse.
-    """
-    # For now, delegate to the existing common_init function
-    # In the future, this could be refactored to be more Typer-native
-    return common_init(args)
+        return _handle_new_config(options, vault_path, config_gateway)

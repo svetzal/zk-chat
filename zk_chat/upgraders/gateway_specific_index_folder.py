@@ -1,6 +1,11 @@
 import shutil
+import sys
 from pathlib import Path
-from typing import override
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override
 
 from zk_chat.config import Config, ModelGateway
 

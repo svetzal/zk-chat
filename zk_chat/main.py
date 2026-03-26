@@ -18,12 +18,13 @@ from rich.panel import Panel
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.agent import agent as run_agent
-from zk_chat.cli import common_init_typer, display_banner
+from zk_chat.cli import common_init, display_banner
 from zk_chat.commands.bookmarks import bookmarks_app
 from zk_chat.commands.diagnose import diagnose_app
 from zk_chat.commands.gui import gui_app
 from zk_chat.commands.index import index_app
 from zk_chat.commands.mcp import mcp_app
+from zk_chat.init_options import InitOptions
 
 # Create the main app
 app = typer.Typer(
@@ -43,39 +44,6 @@ app.add_typer(bookmarks_app, name="bookmarks")
 
 # Global options that apply to all commands
 console = Console()
-
-
-def create_args_namespace(
-    vault: Path | None = None,
-    save: bool = False,
-    gateway: str | None = None,
-    model: str | None = None,
-    visual_model: str | None = None,
-    no_index: bool = False,
-    unsafe: bool = False,
-    git: bool = False,
-    store_prompt: bool = True,
-    reset_memory: bool = False,
-):
-    """Create a namespace object similar to argparse for common_init_typer."""
-
-    class Args:
-        def __init__(self):
-            self.vault = str(vault) if vault else None
-            self.save = save
-            self.gateway = gateway
-            self.model = model
-            self.visual_model = visual_model
-            self.reindex = not no_index  # Index by default unless --no-index is set
-            self.full = False  # Never do full reindex on startup
-            self.unsafe = unsafe
-            self.git = git
-            self.store_prompt = store_prompt
-            self.reset_memory = reset_memory
-            self.remove_bookmark = None
-            self.list_bookmarks = False
-
-    return Args()
 
 
 @app.command()
@@ -110,22 +78,19 @@ def interactive(
     • [cyan]zk-chat interactive --unsafe --git[/] - Allow AI to edit files with git tracking
     • [cyan]zk-chat interactive --no-index[/] - Skip indexing new documents on startup
     """
-    # Create args namespace using shared function
-    args = create_args_namespace(
-        vault=vault,
+    options = InitOptions(
+        vault=str(vault) if vault else None,
         save=save,
         gateway=gateway,
         model=model,
         visual_model=visual_model,
-        no_index=no_index,
+        reindex=not no_index,
         unsafe=unsafe,
         git=git,
         store_prompt=store_prompt,
         reset_memory=reset_memory,
     )
-
-    # Use common initialization logic
-    config = common_init_typer(args)
+    config = common_init(options)
     if not config:
         return
 
@@ -191,20 +156,19 @@ def query(
                 console.print("[red]Error:[/] No input received from STDIN.")
                 raise typer.Exit(1)
 
-    # Create args namespace using shared function
-    args = create_args_namespace(
-        vault=vault,
+    options = InitOptions(
+        vault=str(vault) if vault else None,
         save=save,
         gateway=gateway,
         model=model,
         visual_model=visual_model,
-        no_index=no_index,
+        reindex=not no_index,
         unsafe=unsafe,
         git=git,
         store_prompt=store_prompt,
         reset_memory=reset_memory,
     )
-    config = common_init_typer(args)
+    config = common_init(options)
     if not config:
         return
 
