@@ -1,4 +1,9 @@
-from typing import override
+import sys
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override
 
 from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway

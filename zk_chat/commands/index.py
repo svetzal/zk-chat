@@ -11,9 +11,10 @@ import typer
 from rich.console import Console
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
-from zk_chat.cli import common_init_typer
+from zk_chat.cli import common_init
 from zk_chat.config_gateway import ConfigGateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
+from zk_chat.init_options import InitOptions
 
 index_app = typer.Typer(name="index", help="🔍 Manage your Zettelkasten search index", rich_markup_mode="rich")
 
@@ -53,29 +54,19 @@ def update(
     Use --full after major changes or for troubleshooting.
     """
 
-    class Args:
-        def __init__(self):
-            self.vault = str(vault) if vault else None
-            self.save = False
-            self.gateway = gateway
-            self.model = model
-            self.visual_model = None
-            self.reindex = True  # This is an index command, always reindex
-            self.full = full
-            self.unsafe = False
-            self.git = False
-            self.store_prompt = True
-            self.reset_memory = False
-            self.remove_bookmark = None
-            self.list_bookmarks = False
-
-    args = Args()
-    config = common_init_typer(args)
+    options = InitOptions(
+        vault=str(vault) if vault else None,
+        gateway=gateway,
+        model=model,
+        reindex=True,
+        full=full,
+    )
+    config = common_init(options)
 
     if not config:
         return
 
-    # The reindexing will happen in common_init_typer since args.reindex = True
+    # The reindexing happens in common_init since options.reindex = True
     console.print("\n[green]✅ Index update completed![/]")
     console.print("[dim]Your Zettelkasten is ready for fast searching.[/]")
 
