@@ -17,7 +17,7 @@ class DescribeServiceRegistry:
 
     def should_register_and_retrieve_service(self):
         registry = ServiceRegistry()
-        mock_service = Mock()
+        mock_service = Mock()  # Intentionally unspec'd: testing generic registry contract
 
         registry.register_service(ServiceType.LLM_BROKER, mock_service)
         retrieved_service = registry.get_service(ServiceType.LLM_BROKER)
@@ -33,7 +33,7 @@ class DescribeServiceRegistry:
 
     def should_check_service_availability(self):
         registry = ServiceRegistry()
-        mock_service = Mock()
+        mock_service = Mock()  # Intentionally unspec'd: testing generic registry contract
 
         assert not registry.has_service(ServiceType.LLM_BROKER)
 
@@ -43,8 +43,8 @@ class DescribeServiceRegistry:
 
     def should_list_available_services(self):
         registry = ServiceRegistry()
-        mock_service1 = Mock()
-        mock_service2 = Mock()
+        mock_service1 = Mock()  # Intentionally unspec'd: testing generic registry contract
+        mock_service2 = Mock()  # Intentionally unspec'd: testing generic registry contract
 
         registry.register_service(ServiceType.LLM_BROKER, mock_service1)
         registry.register_service(ServiceType.FILESYSTEM_GATEWAY, mock_service2)

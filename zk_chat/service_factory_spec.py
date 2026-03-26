@@ -3,10 +3,13 @@
 from unittest.mock import Mock, patch
 
 import pytest
+from mojentic.llm.gateways import OllamaGateway
 
+from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
 from zk_chat.service_factory import build_service_registry
 from zk_chat.services.service_registry import ServiceType
+from zk_chat.vector_database import VectorDatabase
 
 
 @pytest.fixture
@@ -21,9 +24,9 @@ def registry(config):
         patch("zk_chat.service_factory.ChromaGateway") as mock_chroma,
         patch("zk_chat.service_factory.VectorDatabase") as mock_vdb,
     ):
-        mock_create_gateway.return_value = Mock()
-        mock_chroma.return_value = Mock()
-        mock_vdb.return_value = Mock()
+        mock_create_gateway.return_value = Mock(spec=OllamaGateway)
+        mock_chroma.return_value = Mock(spec=ChromaGateway)
+        mock_vdb.return_value = Mock(spec=VectorDatabase)
         return build_service_registry(config)
 
 
@@ -68,7 +71,7 @@ class DescribeBuildServiceRegistry:
             patch("zk_chat.service_factory.ChromaGateway"),
             patch("zk_chat.service_factory.VectorDatabase"),
         ):
-            mock_create_gateway.return_value = Mock()
+            mock_create_gateway.return_value = Mock(spec=OllamaGateway)
 
             build_service_registry(config)
 

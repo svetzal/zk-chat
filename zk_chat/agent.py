@@ -3,17 +3,13 @@ from pathlib import Path
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config
-from zk_chat.global_config_gateway import GlobalConfigGateway
+from zk_chat.gateway_defaults import create_default_global_config_gateway
 from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
 from zk_chat.mcp_client import verify_all_mcp_servers
 from zk_chat.mcp_tool_wrapper import MCPClientManager
 from zk_chat.service_factory import build_service_registry
 from zk_chat.services.service_provider import ServiceProvider
 from zk_chat.tool_assembly import build_agent_tools
-
-
-def _get_global_config_gateway() -> GlobalConfigGateway:
-    return GlobalConfigGateway()
 
 
 @contextmanager
@@ -35,7 +31,7 @@ def _create_agent(config: Config):
         console_service=provider.get_console_service(),
     )
 
-    with MCPClientManager(_get_global_config_gateway()) as mcp_manager:
+    with MCPClientManager(create_default_global_config_gateway()) as mcp_manager:
         tools.extend(mcp_manager.get_tools())
 
         agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
@@ -50,7 +46,7 @@ def _create_agent(config: Config):
 
 
 def agent(config: Config):
-    global_config_gateway = _get_global_config_gateway()
+    global_config_gateway = create_default_global_config_gateway()
     global_config = global_config_gateway.load()
     if global_config.list_mcp_servers():
         print("Verifying MCP server availability...")

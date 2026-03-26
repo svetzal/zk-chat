@@ -18,6 +18,7 @@ from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway
+from zk_chat.gateway_defaults import create_default_config_gateway, create_default_global_config_gateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.service_factory import build_service_registry
 from zk_chat.services.service_provider import ServiceProvider
@@ -25,14 +26,6 @@ from zk_chat.services.service_provider import ServiceProvider
 diagnose_app = typer.Typer(name="diagnose", help="🔬 Diagnose index and search issues", rich_markup_mode="rich")
 
 console = Console()
-
-
-def _get_global_config_gateway() -> GlobalConfigGateway:
-    return GlobalConfigGateway()
-
-
-def _get_config_gateway() -> ConfigGateway:
-    return ConfigGateway()
 
 
 def _resolve_vault_path(vault: Path | None, global_config_gateway: GlobalConfigGateway) -> str:
@@ -163,8 +156,8 @@ def index(
     query: Annotated[str | None, typer.Option("--query", "-q", help="Test query to run")] = None,
 ):
     """Diagnose the search index to identify why queries aren't returning results."""
-    vault_path = _resolve_vault_path(vault, _get_global_config_gateway())
-    config = _load_config(vault_path, _get_config_gateway())
+    vault_path = _resolve_vault_path(vault, create_default_global_config_gateway())
+    config = _load_config(vault_path, create_default_config_gateway())
     console.print(Panel(f"[bold cyan]Index Diagnostics[/] - {vault_path}", expand=False))
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     if not os.path.exists(db_dir):

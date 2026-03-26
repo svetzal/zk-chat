@@ -54,7 +54,7 @@ class DescribeFindBacklinks:
         target = "concepts/systems-thinking.md"
 
         # Mock the LinkTraversalService's find_backlinks method
-        backlinks_tool.link_service.find_backlinks = Mock(return_value=mock_backlink_results)
+        backlinks_tool.link_service.find_backlinks.return_value = mock_backlink_results
 
         result = backlinks_tool.run(target)
 
@@ -66,7 +66,7 @@ class DescribeFindBacklinks:
     def should_find_backlinks_using_wikilink_text(self, backlinks_tool, mock_backlink_results):
         target = "Systems Thinking"
 
-        backlinks_tool.link_service.find_backlinks = Mock(return_value=mock_backlink_results)
+        backlinks_tool.link_service.find_backlinks.return_value = mock_backlink_results
 
         result = backlinks_tool.run(target)
 
@@ -78,7 +78,7 @@ class DescribeFindBacklinks:
         target = "orphaned/document.md"
         empty_results = []
 
-        backlinks_tool.link_service.find_backlinks = Mock(return_value=empty_results)
+        backlinks_tool.link_service.find_backlinks.return_value = empty_results
 
         result = backlinks_tool.run(target)
 
@@ -88,7 +88,7 @@ class DescribeFindBacklinks:
     def should_return_json_formatted_backlink_results(self, backlinks_tool, mock_backlink_results):
         target = "test-document.md"
 
-        backlinks_tool.link_service.find_backlinks = Mock(return_value=mock_backlink_results)
+        backlinks_tool.link_service.find_backlinks.return_value = mock_backlink_results
 
         result = backlinks_tool.run(target)
 
@@ -104,7 +104,7 @@ class DescribeFindBacklinks:
     ):
         target = "test-document.md"
 
-        backlinks_tool.link_service.find_backlinks = Mock(return_value=mock_backlink_results)
+        backlinks_tool.link_service.find_backlinks.return_value = mock_backlink_results
 
         backlinks_tool.run(target)
 
@@ -126,7 +126,7 @@ class DescribeFindBacklinks:
             )
         ]
 
-        backlinks_tool.link_service.find_backlinks = Mock(return_value=single_result)
+        backlinks_tool.link_service.find_backlinks.return_value = single_result
 
         result = backlinks_tool.run(target)
 
@@ -145,7 +145,7 @@ class DescribeFindBacklinks:
             )
         ]
 
-        backlinks_tool.link_service.find_backlinks = Mock(return_value=contextual_results)
+        backlinks_tool.link_service.find_backlinks.return_value = contextual_results
 
         result = backlinks_tool.run(target)
 
@@ -165,7 +165,7 @@ class DescribeFindBacklinks:
             )
         ]
 
-        backlinks_tool.link_service.find_backlinks = Mock(return_value=caption_results)
+        backlinks_tool.link_service.find_backlinks.return_value = caption_results
 
         result = backlinks_tool.run(target)
 

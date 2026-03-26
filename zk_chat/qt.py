@@ -27,10 +27,9 @@ from PySide6.QtWidgets import (
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config, ModelGateway
-from zk_chat.config_gateway import ConfigGateway
 from zk_chat.config_resolution import resolve_visual_model_selection
 from zk_chat.console_service import RichConsoleService
-from zk_chat.global_config_gateway import GlobalConfigGateway
+from zk_chat.gateway_defaults import create_default_config_gateway, create_default_global_config_gateway
 from zk_chat.model_selection import get_available_models
 from zk_chat.service_factory import build_service_registry
 from zk_chat.services.service_provider import ServiceProvider
@@ -40,14 +39,6 @@ from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.list_zk_images import ListZkImages
 from zk_chat.tools.read_zk_document import ReadZkDocument
 from zk_chat.tools.resolve_wikilink import ResolveWikiLink
-
-
-def _get_global_config_gateway() -> GlobalConfigGateway:
-    return GlobalConfigGateway()
-
-
-def _get_config_gateway() -> ConfigGateway:
-    return ConfigGateway()
 
 
 class LoadingSpinnerWidget(QWidget):
@@ -278,11 +269,11 @@ class SettingsDialog(QDialog):
 
     def save_settings(self):
         new_vault_path = self.folder_edit.text()
-        config_gateway = _get_config_gateway()
+        config_gateway = create_default_config_gateway()
 
         # If vault path changed, update global config bookmarks
         if new_vault_path != self.config.vault:
-            global_config_gateway = _get_global_config_gateway()
+            global_config_gateway = create_default_global_config_gateway()
             global_config = global_config_gateway.load()
             abs_vault_path = os.path.abspath(new_vault_path)
             global_config.add_bookmark(abs_vault_path)
@@ -313,7 +304,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         # Load global config to get the last opened bookmark
-        global_config_gateway = _get_global_config_gateway()
+        global_config_gateway = create_default_global_config_gateway()
         global_config = global_config_gateway.load()
         vault_path = global_config.get_last_opened_bookmark_path()
 
@@ -331,7 +322,7 @@ class MainWindow(QMainWindow):
             global_config.set_last_opened_bookmark(vault_path)
             global_config_gateway.save(global_config)
 
-        config_gateway = _get_config_gateway()
+        config_gateway = create_default_config_gateway()
         self.config = config_gateway.load(vault_path)
         if not self.config:
             # Config doesn't exist — create a default config for the GUI context

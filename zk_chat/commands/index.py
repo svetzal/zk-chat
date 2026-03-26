@@ -13,20 +13,13 @@ from rich.console import Console
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.cli import common_init
 from zk_chat.config_gateway import ConfigGateway
+from zk_chat.gateway_defaults import create_default_config_gateway, create_default_global_config_gateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.init_options import InitOptions
 
 index_app = typer.Typer(name="index", help="🔍 Manage your Zettelkasten search index", rich_markup_mode="rich")
 
 console = Console()
-
-
-def _get_global_config_gateway() -> GlobalConfigGateway:
-    return GlobalConfigGateway()
-
-
-def _get_config_gateway() -> ConfigGateway:
-    return ConfigGateway()
 
 
 @index_app.command()
@@ -182,8 +175,8 @@ def status(
     vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
 ):
     """Show the current status of your Zettelkasten index."""
-    vault_path = _resolve_vault_status(vault, _get_global_config_gateway())
-    config = _load_config_status(vault_path, _get_config_gateway())
+    vault_path = _resolve_vault_status(vault, create_default_global_config_gateway())
+    config = _load_config_status(vault_path, create_default_config_gateway())
     console.print(f"[bold cyan]Index Status[/] - {vault_path}")
     _print_basic_config(config)
     _print_last_indexed(config)

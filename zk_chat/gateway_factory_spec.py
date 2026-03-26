@@ -3,6 +3,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
+from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 
 from zk_chat.config import ModelGateway
 from zk_chat.gateway_factory import create_model_gateway
@@ -11,7 +12,7 @@ from zk_chat.gateway_factory import create_model_gateway
 class DescribeCreateModelGateway:
     def should_create_ollama_gateway_when_gateway_is_ollama(self):
         with patch("zk_chat.gateway_factory.OllamaGateway") as mock_ollama:
-            mock_instance = Mock()
+            mock_instance = Mock(spec=OllamaGateway)
             mock_ollama.return_value = mock_instance
 
             result = create_model_gateway(ModelGateway.OLLAMA)
@@ -24,7 +25,7 @@ class DescribeCreateModelGateway:
             patch("zk_chat.gateway_factory.OpenAIGateway") as mock_openai,
             patch.dict("os.environ", {"OPENAI_API_KEY": "test-key"}),
         ):
-            mock_instance = Mock()
+            mock_instance = Mock(spec=OpenAIGateway)
             mock_openai.return_value = mock_instance
 
             result = create_model_gateway(ModelGateway.OPENAI)
