@@ -14,6 +14,36 @@ from zk_chat.services.index_service import IndexService, IndexStats
 from zk_chat.vector_database import VectorDatabase
 
 
+@pytest.fixture
+def mock_tokenizer():
+    return Mock(spec=TokenizerGateway)
+
+
+@pytest.fixture
+def mock_excerpts_db():
+    return Mock(spec=VectorDatabase)
+
+
+@pytest.fixture
+def mock_documents_db():
+    return Mock(spec=VectorDatabase)
+
+
+@pytest.fixture
+def mock_filesystem():
+    return Mock(spec=MarkdownFilesystemGateway)
+
+
+@pytest.fixture
+def index_service(mock_tokenizer, mock_excerpts_db, mock_documents_db, mock_filesystem):
+    return IndexService(
+        tokenizer_gateway=mock_tokenizer,
+        excerpts_db=mock_excerpts_db,
+        documents_db=mock_documents_db,
+        filesystem_gateway=mock_filesystem,
+    )
+
+
 class DescribeIndexService:
     """Tests for the IndexService component which handles vector indexing and search."""
 
@@ -23,27 +53,6 @@ class DescribeIndexService:
         tokenizer.encode.return_value = [1, 2, 3, 4, 5] * 100  # 500 tokens
         tokenizer.decode.return_value = "decoded text"
         return tokenizer
-
-    @pytest.fixture
-    def mock_excerpts_db(self):
-        return Mock(spec=VectorDatabase)
-
-    @pytest.fixture
-    def mock_documents_db(self):
-        return Mock(spec=VectorDatabase)
-
-    @pytest.fixture
-    def mock_filesystem(self):
-        return Mock(spec=MarkdownFilesystemGateway)
-
-    @pytest.fixture
-    def index_service(self, mock_tokenizer, mock_excerpts_db, mock_documents_db, mock_filesystem):
-        return IndexService(
-            tokenizer_gateway=mock_tokenizer,
-            excerpts_db=mock_excerpts_db,
-            documents_db=mock_documents_db,
-            filesystem_gateway=mock_filesystem,
-        )
 
     @pytest.fixture
     def sample_document_data(self):
@@ -121,31 +130,6 @@ class DescribeIndexService:
 
 class DescribeIndexServiceQueries:
     """Tests for query functionality in IndexService."""
-
-    @pytest.fixture
-    def mock_tokenizer(self):
-        return Mock(spec=TokenizerGateway)
-
-    @pytest.fixture
-    def mock_excerpts_db(self):
-        return Mock(spec=VectorDatabase)
-
-    @pytest.fixture
-    def mock_documents_db(self):
-        return Mock(spec=VectorDatabase)
-
-    @pytest.fixture
-    def mock_filesystem(self):
-        return Mock(spec=MarkdownFilesystemGateway)
-
-    @pytest.fixture
-    def index_service(self, mock_tokenizer, mock_excerpts_db, mock_documents_db, mock_filesystem):
-        return IndexService(
-            tokenizer_gateway=mock_tokenizer,
-            excerpts_db=mock_excerpts_db,
-            documents_db=mock_documents_db,
-            filesystem_gateway=mock_filesystem,
-        )
 
     @pytest.fixture
     def sample_excerpt_result(self):
@@ -227,31 +211,6 @@ class DescribeIndexServiceQueries:
 class DescribeIndexServiceStats:
     """Tests for index statistics in IndexService."""
 
-    @pytest.fixture
-    def mock_tokenizer(self):
-        return Mock(spec=TokenizerGateway)
-
-    @pytest.fixture
-    def mock_excerpts_db(self):
-        return Mock(spec=VectorDatabase)
-
-    @pytest.fixture
-    def mock_documents_db(self):
-        return Mock(spec=VectorDatabase)
-
-    @pytest.fixture
-    def mock_filesystem(self):
-        return Mock(spec=MarkdownFilesystemGateway)
-
-    @pytest.fixture
-    def index_service(self, mock_tokenizer, mock_excerpts_db, mock_documents_db, mock_filesystem):
-        return IndexService(
-            tokenizer_gateway=mock_tokenizer,
-            excerpts_db=mock_excerpts_db,
-            documents_db=mock_documents_db,
-            filesystem_gateway=mock_filesystem,
-        )
-
     def should_return_index_stats(self, index_service, mock_filesystem):
         mock_filesystem.iterate_markdown_files.return_value = ["doc1.md", "doc2.md", "doc3.md"]
 
@@ -276,36 +235,9 @@ class DescribeIndexServiceStats:
 class DescribeIndexServiceDocumentSplitting:
     """Tests for document splitting functionality in IndexService."""
 
-    @pytest.fixture
-    def mock_tokenizer(self):
-        tokenizer = Mock(spec=TokenizerGateway)
-        return tokenizer
-
-    @pytest.fixture
-    def mock_excerpts_db(self):
-        return Mock(spec=VectorDatabase)
-
-    @pytest.fixture
-    def mock_documents_db(self):
-        return Mock(spec=VectorDatabase)
-
-    @pytest.fixture
-    def mock_filesystem(self):
-        return Mock(spec=MarkdownFilesystemGateway)
-
-    @pytest.fixture
-    def index_service(self, mock_tokenizer, mock_excerpts_db, mock_documents_db, mock_filesystem):
-        return IndexService(
-            tokenizer_gateway=mock_tokenizer,
-            excerpts_db=mock_excerpts_db,
-            documents_db=mock_documents_db,
-            filesystem_gateway=mock_filesystem,
-        )
-
     def should_split_large_documents_into_excerpts(
         self, index_service, mock_tokenizer, mock_excerpts_db, mock_filesystem
     ):
-        # Create 1000 tokens that will be split into multiple excerpts
         mock_tokenizer.encode.return_value = list(range(1000))
         mock_tokenizer.decode.return_value = "decoded excerpt text"
         mock_filesystem.read_markdown.return_value = (
