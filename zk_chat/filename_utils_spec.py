@@ -64,7 +64,7 @@ class DescribeSanitizeFilename:
         assert result == "filename"
 
     def should_remove_multiple_illegal_characters(self):
-        result = sanitize_filename('test/file*name?.md')
+        result = sanitize_filename("test/file*name?.md")
 
         assert result == "testfilename.md"
 
