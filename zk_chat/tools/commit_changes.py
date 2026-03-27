@@ -4,6 +4,7 @@ from mojentic.llm.gateways.models import LLMMessage
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
+from zk_chat.text_processing import strip_thinking
 from zk_chat.tools.git_gateway import GitGateway
 
 logger = structlog.get_logger()
@@ -84,9 +85,7 @@ Output only the commit message, no other text, do not put it in code fences.
                 )
             ]
         )
-        if "</think>" in message:
-            message = message.split("</think>")[-1]
-        return message
+        return strip_thinking(message)
 
     @property
     def descriptor(self) -> dict:

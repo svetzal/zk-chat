@@ -71,7 +71,7 @@ class MCPServer:
         Register the specific tools with appropriate dependencies.
         """
         # Register read-only tools
-        self._register_tool(ReadZkDocument(self.document_service, self.console_service))
+        self._register_tool(ReadZkDocument(self.document_service))
         self._register_tool(FindExcerptsRelatedTo(self.index_service, self.console_service))
         self._register_tool(FindZkDocumentsRelatedTo(self.index_service, self.console_service))
         self._register_tool(RetrieveFromSmartMemory(self.smart_memory, self.console_service))

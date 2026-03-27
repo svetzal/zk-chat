@@ -86,14 +86,14 @@ def build_agent_tools(
         CurrentDateTimeTool(),
         ResolveDateTool(),
         # Document tools
-        ReadZkDocument(document_service, console_service),
+        ReadZkDocument(document_service),
         ListZkDocuments(document_service, console_service),
         ListZkImages(filesystem_gateway, console_service),
-        ResolveWikiLink(filesystem_gateway, console_service),
+        ResolveWikiLink(filesystem_gateway),
         FindExcerptsRelatedTo(index_service, console_service),
         FindZkDocumentsRelatedTo(index_service, console_service),
         CreateOrOverwriteZkDocument(document_service, console_service),
-        RenameZkDocument(document_service, console_service),
+        RenameZkDocument(document_service),
         DeleteZkDocument(document_service, console_service),
         # Graph traversal tools
         FindBacklinks(link_traversal_service, console_service),
@@ -102,7 +102,7 @@ def build_agent_tools(
         StoreInSmartMemory(smart_memory, console_service),
         RetrieveFromSmartMemory(smart_memory, console_service),
         # Visual tools
-        AnalyzeImage(filesystem_gateway, visual_llm, console_service),
+        AnalyzeImage(filesystem_gateway, visual_llm),
         # Git tools
         UncommittedChanges(config.vault, git_gateway, console_service),
         CommitChanges(config.vault, llm, git_gateway, console_service),

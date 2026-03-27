@@ -1,5 +1,7 @@
 """
-Tests for the iterative problem solving agent and the strip_thinking utility.
+Tests for the iterative problem solving agent.
+
+Tests for the strip_thinking utility function live in text_processing_spec.py.
 """
 
 from unittest.mock import Mock, patch
@@ -7,51 +9,7 @@ from unittest.mock import Mock, patch
 import pytest
 from mojentic.llm import ChatSession, LLMBroker
 
-from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent, strip_thinking
-
-
-class DescribeStripThinking:
-    """Tests for the strip_thinking pure function."""
-
-    def should_return_empty_string_for_empty_input(self):
-        result = strip_thinking("")
-
-        assert result == ""
-
-    def should_return_text_unchanged_when_no_think_blocks(self):
-        result = strip_thinking("Hello world")
-
-        assert result == "Hello world"
-
-    def should_remove_single_think_block(self):
-        result = strip_thinking("<think>internal reasoning</think>result")
-
-        assert result == "result"
-
-    def should_remove_multiple_think_blocks(self):
-        result = strip_thinking("<think>a</think>text<think>b</think>more")
-
-        assert result == "textmore"
-
-    def should_remove_multiline_think_blocks(self):
-        result = strip_thinking("<think>\nreasoning\nacross lines\n</think>actual result")
-
-        assert result == "actual result"
-
-    def should_strip_leading_and_trailing_whitespace(self):
-        result = strip_thinking("  <think>x</think>  result  ")
-
-        assert result == "result"
-
-    def should_preserve_text_before_and_after_think_blocks(self):
-        result = strip_thinking("before<think>x</think>after")
-
-        assert result == "beforeafter"
-
-    def should_handle_text_that_is_only_a_think_block(self):
-        result = strip_thinking("<think>everything</think>")
-
-        assert result == ""
+from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
 
 
 class DescribeIterativeProblemSolvingAgent:

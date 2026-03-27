@@ -6,7 +6,7 @@ import pytest
 from zk_chat.console_service import RichConsoleService
 from zk_chat.models import ZkDocument, ZkQueryDocumentResult
 from zk_chat.services.index_service import IndexService
-from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
+from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo, format_document_results
 
 
 @pytest.fixture
@@ -22,6 +22,50 @@ def mock_console_service():
 @pytest.fixture
 def tool(mock_index_service, mock_console_service):
     return FindZkDocumentsRelatedTo(mock_index_service, mock_console_service)
+
+
+class DescribeFormatDocumentResults:
+    """Tests for the format_document_results pure function."""
+
+    def should_return_empty_json_array_for_no_results(self):
+        result = format_document_results([])
+
+        parsed = json.loads(result)
+        assert parsed == []
+
+    def should_serialize_single_result_to_json(self):
+        results = [
+            ZkQueryDocumentResult(
+                document=ZkDocument(relative_path="notes/doc.md", metadata={}, content="Content"),
+                distance=0.5,
+            )
+        ]
+
+        result = format_document_results(results)
+
+        parsed = json.loads(result)
+        assert len(parsed) == 1
+        assert parsed[0]["document"]["relative_path"] == "notes/doc.md"
+        assert parsed[0]["distance"] == 0.5
+
+    def should_serialize_multiple_results_preserving_order(self):
+        results = [
+            ZkQueryDocumentResult(
+                document=ZkDocument(relative_path="doc1", metadata={}, content="First"),
+                distance=0.8,
+            ),
+            ZkQueryDocumentResult(
+                document=ZkDocument(relative_path="doc2", metadata={}, content="Second"),
+                distance=0.7,
+            ),
+        ]
+
+        result = format_document_results(results)
+
+        parsed = json.loads(result)
+        assert len(parsed) == 2
+        assert parsed[0]["document"]["relative_path"] == "doc1"
+        assert parsed[1]["document"]["relative_path"] == "doc2"
 
 
 class DescribeFindZkDocumentsRelatedTo:
