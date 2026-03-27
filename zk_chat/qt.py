@@ -408,17 +408,17 @@ class MainWindow(QMainWindow):
         # Initialize tools list with basic tools
         tools = [
             ResolveDateTool(),
-            ReadZkDocument(document_service, console_service),
+            ReadZkDocument(document_service),
             ListZkImages(filesystem_gateway, console_service),
             FindExcerptsRelatedTo(index_service, console_service),
             FindZkDocumentsRelatedTo(index_service, console_service),
-            ResolveWikiLink(filesystem_gateway, console_service),
+            ResolveWikiLink(filesystem_gateway),
         ]
 
         # Add AnalyzeImage tool only if a visual model is selected
         if self.config.visual_model:
             visual_llm = LLMBroker(self.config.visual_model, gateway=gateway)
-            tools.append(AnalyzeImage(filesystem_gateway, visual_llm, console_service))
+            tools.append(AnalyzeImage(filesystem_gateway, visual_llm))
 
         self.chat_session = ChatSession(chat_llm, system_prompt="You are a helpful research assistant.", tools=tools)
 

@@ -4,7 +4,56 @@ import pytest
 
 from zk_chat.console_service import RichConsoleService
 from zk_chat.services.link_traversal_service import BacklinkResult, LinkTraversalService
-from zk_chat.tools.find_backlinks import FindBacklinks
+from zk_chat.tools.find_backlinks import FindBacklinks, format_backlink_results
+
+
+class DescribeFormatBacklinkResults:
+    """Tests for the format_backlink_results pure function."""
+
+    def should_return_empty_list_string_for_no_results(self):
+        result = format_backlink_results([])
+
+        assert result == "[]"
+
+    def should_serialize_single_backlink_result(self):
+        results = [
+            BacklinkResult(
+                linking_document="notes/intro.md",
+                target_wikilink="Main Topic",
+                resolved_target="concepts/main.md",
+                line_number=3,
+                context_snippet="See [[Main Topic]] for details.",
+            )
+        ]
+
+        result = format_backlink_results(results)
+
+        assert "notes/intro.md" in result
+        assert "Main Topic" in result
+        assert "concepts/main.md" in result
+
+    def should_serialize_multiple_backlink_results(self):
+        results = [
+            BacklinkResult(
+                linking_document="doc1.md",
+                target_wikilink="Topic",
+                resolved_target="topic.md",
+                line_number=1,
+                context_snippet="[[Topic]] mentioned here.",
+            ),
+            BacklinkResult(
+                linking_document="doc2.md",
+                target_wikilink="Topic",
+                resolved_target="topic.md",
+                line_number=2,
+                context_snippet="Also [[Topic]] here.",
+            ),
+        ]
+
+        result = format_backlink_results(results)
+
+        assert "doc1.md" in result
+        assert "doc2.md" in result
 
 
 class DescribeFindBacklinks:

@@ -6,7 +6,56 @@ from zk_chat.console_service import RichConsoleService
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.link_traversal_service import ForwardLinkResult, LinkTraversalService
-from zk_chat.tools.find_forward_links import FindForwardLinks
+from zk_chat.tools.find_forward_links import FindForwardLinks, format_forward_link_results
+
+
+class DescribeFormatForwardLinkResults:
+    """Tests for the format_forward_link_results pure function."""
+
+    def should_return_empty_list_string_for_no_results(self):
+        result = format_forward_link_results([])
+
+        assert result == "[]"
+
+    def should_serialize_single_forward_link_result(self):
+        results = [
+            ForwardLinkResult(
+                source_document="notes/intro.md",
+                target_wikilink="Main Topic",
+                resolved_target="concepts/main.md",
+                line_number=5,
+                context_snippet="See [[Main Topic]] for more.",
+            )
+        ]
+
+        result = format_forward_link_results(results)
+
+        assert "notes/intro.md" in result
+        assert "Main Topic" in result
+        assert "concepts/main.md" in result
+
+    def should_serialize_multiple_forward_link_results(self):
+        results = [
+            ForwardLinkResult(
+                source_document="doc.md",
+                target_wikilink="TopicA",
+                resolved_target="a.md",
+                line_number=1,
+                context_snippet="[[TopicA]] first.",
+            ),
+            ForwardLinkResult(
+                source_document="doc.md",
+                target_wikilink="TopicB",
+                resolved_target="b.md",
+                line_number=2,
+                context_snippet="[[TopicB]] second.",
+            ),
+        ]
+
+        result = format_forward_link_results(results)
+
+        assert "a.md" in result
+        assert "b.md" in result
 
 
 class DescribeFindForwardLinks:

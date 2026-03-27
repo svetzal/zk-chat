@@ -3,9 +3,25 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
 from zk_chat.services.document_service import DocumentService
-from zk_chat.services.link_traversal_service import LinkTraversalService
+from zk_chat.services.link_traversal_service import ForwardLinkResult, LinkTraversalService
 
 logger = structlog.get_logger()
+
+
+def format_forward_link_results(results: list[ForwardLinkResult]) -> str:
+    """Serialize forward link results to a string representation.
+
+    Parameters
+    ----------
+    results : list[ForwardLinkResult]
+        Forward link results to serialize.
+
+    Returns
+    -------
+    str
+        String representation of serialized ForwardLinkResult dictionaries.
+    """
+    return str([forward_link.model_dump() for forward_link in results])
 
 
 class FindForwardLinks(LLMTool):
@@ -40,9 +56,7 @@ class FindForwardLinks(LLMTool):
         console_msg = f"[tool.info]Found {len(forward_link_results)} forward links from {source_document}[/]"
         self.console_service.print(console_msg)
 
-        # Convert to JSON for return
-        result = [forward_link.model_dump() for forward_link in forward_link_results]
-        return str(result)
+        return format_forward_link_results(forward_link_results)
 
     @property
     def descriptor(self) -> dict:

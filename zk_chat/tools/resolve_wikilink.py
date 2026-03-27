@@ -1,7 +1,6 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 
 logger = structlog.get_logger()
@@ -10,9 +9,8 @@ logger = structlog.get_logger()
 class ResolveWikiLink(LLMTool):
     fs: MarkdownFilesystemGateway
 
-    def __init__(self, fs: MarkdownFilesystemGateway, console_service: RichConsoleService):
+    def __init__(self, fs: MarkdownFilesystemGateway):
         self.fs = fs
-        self.console_service = console_service
 
     def run(self, wikilink: str):
         logger.info("Resolving wikilink", wikilink=wikilink)

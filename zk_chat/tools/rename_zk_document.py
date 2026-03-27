@@ -1,45 +1,23 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.filename_utils import ensure_md_extension, sanitize_filename
 from zk_chat.services.document_service import DocumentService
 
 logger = structlog.get_logger()
 
 
 class RenameZkDocument(LLMTool):
-    def __init__(self, document_service: DocumentService, console_service: RichConsoleService):
+    def __init__(self, document_service: DocumentService):
         self.document_service = document_service
-        self.console_service = console_service
-
-    def _sanitize_filename(self, filename: str) -> str:
-        """
-        Sanitize a string to be used as a relative path across operating systems.
-        Replaces spaces with underscores and removes characters not allowed in relative paths.
-        """
-        import re
-
-        sanitized = filename.strip()
-        sanitized = re.sub(r'[\\/*?:"<>|]', "", sanitized)
-        return sanitized
-
-    def _ensure_md_extension(self, path: str) -> str:
-        """
-        Ensure the path has a .md extension.
-        """
-        if not path.endswith(".md"):
-            path += ".md"
-        return path
 
     def run(self, source_title: str, target_title: str) -> str:
-        # Sanitize and ensure .md extension for source and target
-        source_path = self._ensure_md_extension(self._sanitize_filename(source_title))
-        target_path = self._ensure_md_extension(self._sanitize_filename(target_title))
+        source_path = ensure_md_extension(sanitize_filename(source_title))
+        target_path = ensure_md_extension(sanitize_filename(target_title))
 
         try:
             logger.info("renaming document", source_path=source_path, target_path=target_path)
 
-            # Rename the document
             self.document_service.rename_document(source_path, target_path)
 
             return f"Successfully renamed document from '{source_path}' to '{target_path}'"

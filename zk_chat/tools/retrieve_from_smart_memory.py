@@ -7,6 +7,36 @@ from zk_chat.memory.smart_memory import SmartMemory
 logger = structlog.get_logger()
 
 
+def format_memory_results(documents: list, distances: list) -> str:
+    """Format ChromaDB memory retrieval results into a human-readable string.
+
+    Converts distance scores to relevance percentages (``1 - distance``) and
+    formats results as a numbered list.
+
+    Parameters
+    ----------
+    documents : list
+        Document lists from ChromaDB query results (list of lists).
+    distances : list
+        Distance lists from ChromaDB query results (list of lists).
+
+    Returns
+    -------
+    str
+        Formatted results string, or a message indicating no results were found.
+    """
+    formatted_results = []
+    for i, (doc, distance) in enumerate(zip(documents, distances, strict=False), 1):
+        if len(distance) > 0:
+            relevance = 1 - distance[0]
+            formatted_results.append(f"{i}. [Relevance: {relevance:.2%}] {doc[0]}")
+
+    if len(formatted_results) == 0:
+        return "No relevant information found in memory."
+
+    return "Found relevant information:\n" + "\n\n".join(formatted_results)
+
+
 class RetrieveFromSmartMemory(LLMTool):
     def __init__(self, smart_memory: SmartMemory, console_service: RichConsoleService):
         self.memory = smart_memory
@@ -15,19 +45,7 @@ class RetrieveFromSmartMemory(LLMTool):
     def run(self, query: str) -> str:
         self.console_service.print(f"[tool.info]Checking memory for anything about {query}[/]")
         results = self.memory.retrieve(query, 10)
-
-        formatted_results = []
-        for i, (doc, distance) in enumerate(zip(results["documents"], results["distances"], strict=False), 1):
-            if len(distance) > 0:
-                relevance = 1 - distance[0]  # Convert distance to similarity score (0-1)
-                formatted_results.append(f"{i}. [Relevance: {relevance:.2%}] {doc[0]}")
-
-        if len(formatted_results) == 0:
-            message = "No relevant information found in memory."
-            self.console_service.print(f"[tool.info]{message}[/]")
-            return message
-
-        information = "Found relevant information:\n" + "\n\n".join(formatted_results)
+        information = format_memory_results(results["documents"], results["distances"])
         self.console_service.print(f"[tool.info]{information}[/]")
         return information
 

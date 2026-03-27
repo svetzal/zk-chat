@@ -1,16 +1,14 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
 from zk_chat.services.document_service import DocumentService
 
 logger = structlog.get_logger()
 
 
 class ReadZkDocument(LLMTool):
-    def __init__(self, document_service: DocumentService, console_service: RichConsoleService):
+    def __init__(self, document_service: DocumentService):
         self.document_service = document_service
-        self.console_service = console_service
 
     def run(self, relative_path: str) -> str:
         logger.info("Reading document", relative_path=relative_path)

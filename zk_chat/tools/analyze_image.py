@@ -2,17 +2,15 @@ import structlog
 from mojentic.llm import LLMBroker, MessageBuilder
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 
 logger = structlog.get_logger()
 
 
 class AnalyzeImage(LLMTool):
-    def __init__(self, fs: MarkdownFilesystemGateway, llm: LLMBroker, console_service: RichConsoleService):
+    def __init__(self, fs: MarkdownFilesystemGateway, llm: LLMBroker):
         self.fs = fs
         self.llm = llm
-        self.console_service = console_service
 
     def run(self, relative_path: str) -> str:
         logger.info("Analyzing image", relative_path=relative_path)

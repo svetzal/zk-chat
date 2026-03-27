@@ -7,7 +7,6 @@ from unittest.mock import Mock, patch
 import pytest
 from mojentic.llm import LLMBroker
 
-from zk_chat.console_service import RichConsoleService
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.analyze_image import AnalyzeImage
 
@@ -24,12 +23,8 @@ class DescribeAnalyzeImage:
         return Mock(spec=LLMBroker)
 
     @pytest.fixture
-    def mock_console_service(self):
-        return Mock(spec=RichConsoleService)
-
-    @pytest.fixture
-    def analyze_tool(self, mock_filesystem, mock_llm, mock_console_service):
-        return AnalyzeImage(mock_filesystem, mock_llm, mock_console_service)
+    def analyze_tool(self, mock_filesystem, mock_llm):
+        return AnalyzeImage(mock_filesystem, mock_llm)
 
     def should_return_not_found_message_when_image_missing(self, analyze_tool, mock_filesystem):
         mock_filesystem.path_exists.return_value = False

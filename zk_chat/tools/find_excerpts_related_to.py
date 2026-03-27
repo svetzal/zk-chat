@@ -10,6 +10,22 @@ from zk_chat.services.index_service import IndexService
 logger = structlog.get_logger()
 
 
+def format_excerpt_results(results: list[ZkQueryExcerptResult]) -> str:
+    """Serialize excerpt query results to JSON.
+
+    Parameters
+    ----------
+    results : list[ZkQueryExcerptResult]
+        Query results to serialize.
+
+    Returns
+    -------
+    str
+        JSON string of serialized results.
+    """
+    return json.dumps([result.model_dump(mode="json") for result in results])
+
+
 class FindExcerptsRelatedTo(LLMTool):
     def __init__(self, index_service: IndexService, console_service: RichConsoleService):
         self.index_service = index_service
@@ -25,12 +41,7 @@ class FindExcerptsRelatedTo(LLMTool):
             self.console_service.print(f"  [tool.info]{title} (distance: {distance:.4f})[/]")
             preview = result.excerpt.text[:100].replace("\n", " ")
             self.console_service.print(f"    [tool.info]{preview}...[/]")
-        return json.dumps(
-            [
-                result.model_dump(mode="json")  # mode json to handle datetime serialization
-                for result in results
-            ]
-        )
+        return format_excerpt_results(results)
 
     @property
     def descriptor(self) -> dict:
