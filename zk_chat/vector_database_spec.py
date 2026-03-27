@@ -13,35 +13,26 @@ from zk_chat.models import VectorDocumentForStorage
 from zk_chat.vector_database import VectorDatabase
 
 
+@pytest.fixture
+def mock_chroma_gateway():
+    return Mock(spec=ChromaGateway)
+
+
+@pytest.fixture
+def mock_gateway():
+    return Mock(spec=OllamaGateway)
+
+
+@pytest.fixture
+def vector_db(mock_chroma_gateway, mock_gateway):
+    return VectorDatabase(mock_chroma_gateway, mock_gateway, ZkCollectionName.DOCUMENTS)
+
+
 class DescribeVectorDatabase:
     """Tests for the VectorDatabase class."""
 
-    @pytest.fixture
-    def mock_chroma_gateway(self):
-        return Mock(spec=ChromaGateway)
-
-    @pytest.fixture
-    def mock_gateway(self):
-        return Mock(spec=OllamaGateway)
-
-    @pytest.fixture
-    def vector_db(self, mock_chroma_gateway, mock_gateway):
-        return VectorDatabase(mock_chroma_gateway, mock_gateway, ZkCollectionName.DOCUMENTS)
-
     class DescribeQuery:
         """Tests for the query method."""
-
-        @pytest.fixture
-        def mock_chroma_gateway(self):
-            return Mock(spec=ChromaGateway)
-
-        @pytest.fixture
-        def mock_gateway(self):
-            return Mock(spec=OllamaGateway)
-
-        @pytest.fixture
-        def vector_db(self, mock_chroma_gateway, mock_gateway):
-            return VectorDatabase(mock_chroma_gateway, mock_gateway, ZkCollectionName.DOCUMENTS)
 
         def should_build_query_results_from_chroma_response(self, vector_db, mock_chroma_gateway, mock_gateway):
             mock_gateway.calculate_embeddings.return_value = [0.1, 0.2, 0.3]
@@ -112,18 +103,6 @@ class DescribeVectorDatabase:
     class DescribeAddDocuments:
         """Tests for the add_documents method."""
 
-        @pytest.fixture
-        def mock_chroma_gateway(self):
-            return Mock(spec=ChromaGateway)
-
-        @pytest.fixture
-        def mock_gateway(self):
-            return Mock(spec=OllamaGateway)
-
-        @pytest.fixture
-        def vector_db(self, mock_chroma_gateway, mock_gateway):
-            return VectorDatabase(mock_chroma_gateway, mock_gateway, ZkCollectionName.DOCUMENTS)
-
         def should_calculate_embeddings_for_each_document(self, vector_db, mock_chroma_gateway, mock_gateway):
             mock_gateway.calculate_embeddings.return_value = [0.1, 0.2]
             documents = [
@@ -152,18 +131,6 @@ class DescribeVectorDatabase:
 
     class DescribeReset:
         """Tests for the reset method."""
-
-        @pytest.fixture
-        def mock_chroma_gateway(self):
-            return Mock(spec=ChromaGateway)
-
-        @pytest.fixture
-        def mock_gateway(self):
-            return Mock(spec=OllamaGateway)
-
-        @pytest.fixture
-        def vector_db(self, mock_chroma_gateway, mock_gateway):
-            return VectorDatabase(mock_chroma_gateway, mock_gateway, ZkCollectionName.DOCUMENTS)
 
         def should_delegate_reset_to_chroma_gateway(self, vector_db, mock_chroma_gateway):
             vector_db.reset()
