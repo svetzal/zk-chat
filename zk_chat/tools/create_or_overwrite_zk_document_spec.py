@@ -30,7 +30,7 @@ class DescribePrepareDocument:
     """Tests for the prepare_document pure function."""
 
     def should_sanitize_title_for_filename(self):
-        document = prepare_document('title<with>illegal*chars', "content")
+        document = prepare_document("title<with>illegal*chars", "content")
 
         assert document.relative_path == "titlewithillegalchars.md"
 

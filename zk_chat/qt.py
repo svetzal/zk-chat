@@ -27,10 +27,12 @@ from PySide6.QtWidgets import (
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config, ModelGateway
-from zk_chat.config_resolution import resolve_visual_model_selection
+from zk_chat.config_gateway import ConfigGateway
 from zk_chat.console_service import RichConsoleService
 from zk_chat.gateway_defaults import create_default_config_gateway, create_default_global_config_gateway
+from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.model_selection import get_available_models
+from zk_chat.qt_config_resolution import resolve_config_for_vault, resolve_gui_vault_init, resolve_settings_change
 from zk_chat.service_factory import build_service_registry
 from zk_chat.services.service_provider import ServiceProvider
 from zk_chat.tools.analyze_image import AnalyzeImage
@@ -155,9 +157,13 @@ class ChatWorker(QThread):
 
 
 class SettingsDialog(QDialog):
-    def __init__(self, config: Config, parent=None):
+    def __init__(
+        self, config: Config, config_gateway: ConfigGateway, global_config_gateway: GlobalConfigGateway, parent=None
+    ):
         super().__init__(parent)
         self.config = config
+        self.config_gateway = config_gateway
+        self.global_config_gateway = global_config_gateway
         self.setWindowTitle("Settings")
         self.setModal(True)
 
@@ -269,66 +275,63 @@ class SettingsDialog(QDialog):
 
     def save_settings(self):
         new_vault_path = self.folder_edit.text()
-        config_gateway = create_default_config_gateway()
+        new_gateway = ModelGateway(self.gateway_combo.currentText())
+        new_chat_model = self.chat_model_combo.currentText()
+        visual_model_text = self.visual_model_combo.currentText()
 
-        # If vault path changed, update global config bookmarks
+        loaded_config = None
         if new_vault_path != self.config.vault:
-            global_config_gateway = create_default_global_config_gateway()
-            global_config = global_config_gateway.load()
+            loaded_config = self.config_gateway.load(new_vault_path)
+
+        result = resolve_settings_change(
+            current_config=self.config,
+            new_vault_path=new_vault_path,
+            new_gateway=new_gateway,
+            new_chat_model=new_chat_model,
+            visual_model_text=visual_model_text,
+            loaded_config_for_new_vault=loaded_config,
+        )
+
+        if result.updated_global_config_needed:
+            global_config = self.global_config_gateway.load()
             abs_vault_path = os.path.abspath(new_vault_path)
             global_config.add_bookmark(abs_vault_path)
             global_config.set_last_opened_bookmark(abs_vault_path)
-            global_config_gateway.save(global_config)
+            self.global_config_gateway.save(global_config)
 
-            # Load or create config for the new vault
-            self.config = config_gateway.load(new_vault_path)
-            if not self.config:
-                self.config = Config(
-                    vault=new_vault_path,
-                    model=self.chat_model_combo.currentText(),
-                    gateway=ModelGateway(self.gateway_combo.currentText()),
-                )
-        else:
-            self.config.vault = new_vault_path
-
-        self.config.gateway = ModelGateway(self.gateway_combo.currentText())
-        self.config.model = self.chat_model_combo.currentText()
-
-        self.config.visual_model = resolve_visual_model_selection(self.visual_model_combo.currentText())
-
-        config_gateway.save(self.config)
+        self.config = result.updated_config
+        self.config_gateway.save(self.config)
         self.accept()
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, config_gateway: ConfigGateway, global_config_gateway: GlobalConfigGateway):
         super().__init__()
-        # Load global config to get the last opened bookmark
-        global_config_gateway = create_default_global_config_gateway()
-        global_config = global_config_gateway.load()
-        vault_path = global_config.get_last_opened_bookmark_path()
+        self.config_gateway = config_gateway
+        self.global_config_gateway = global_config_gateway
 
-        if not vault_path:
-            # No bookmark found, ask user to select a vault
-            vault_path = QFileDialog.getExistingDirectory(
+        global_config = self.global_config_gateway.load()
+        last_opened = global_config.get_last_opened_bookmark_path()
+
+        user_selected = None
+        if not last_opened:
+            user_selected = QFileDialog.getExistingDirectory(
                 self, "Select Your Zettelkasten Vault Directory", os.path.expanduser("~")
             )
-            if not vault_path:
-                # User cancelled, exit
+            if not user_selected:
                 sys.exit(0)
 
-            # Add as bookmark and save
-            global_config.add_bookmark(vault_path)
-            global_config.set_last_opened_bookmark(vault_path)
-            global_config_gateway.save(global_config)
+        vault_init = resolve_gui_vault_init(last_opened, user_selected)
 
-        config_gateway = create_default_config_gateway()
-        self.config = config_gateway.load(vault_path)
-        if not self.config:
-            # Config doesn't exist — create a default config for the GUI context
-            # (GUI will prompt for model selection via the settings dialog)
-            self.config = Config(vault=vault_path, model="")
-            config_gateway.save(self.config)
+        if vault_init.needs_bookmark_update:
+            global_config.add_bookmark(vault_init.vault_path)
+            global_config.set_last_opened_bookmark(vault_init.vault_path)
+            self.global_config_gateway.save(global_config)
+
+        loaded_config = self.config_gateway.load(vault_init.vault_path)
+        self.config, was_created = resolve_config_for_vault(loaded_config, vault_init.vault_path)
+        if was_created:
+            self.config_gateway.save(self.config)
 
         self.chat_session = None
         self.initialize_chat_session()
@@ -423,8 +426,9 @@ class MainWindow(QMainWindow):
         self.chat_session = ChatSession(chat_llm, system_prompt="You are a helpful research assistant.", tools=tools)
 
     def show_settings(self):
-        dialog = SettingsDialog(self.config, self)
+        dialog = SettingsDialog(self.config, self.config_gateway, self.global_config_gateway, self)
         if dialog.exec():
+            self.config = dialog.config
             self.initialize_chat_session()
 
     def append_message(self, role: str, content: str = "", loading: bool = False) -> ChatMessageWidget:
@@ -476,7 +480,9 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    window = MainWindow()
+    config_gateway = create_default_config_gateway()
+    global_config_gateway = create_default_global_config_gateway()
+    window = MainWindow(config_gateway, global_config_gateway)
     window.show()
     sys.exit(app.exec())
 
