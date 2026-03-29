@@ -1,29 +1,12 @@
-import json
-
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
 from zk_chat.models import ZkQueryDocumentResult
 from zk_chat.services.index_service import IndexService
+from zk_chat.tools.tool_helpers import format_model_results
 
 logger = structlog.get_logger()
-
-
-def format_document_results(results: list[ZkQueryDocumentResult]) -> str:
-    """Serialize document query results to JSON.
-
-    Parameters
-    ----------
-    results : list[ZkQueryDocumentResult]
-        Query results to serialize.
-
-    Returns
-    -------
-    str
-        JSON string of serialized results.
-    """
-    return json.dumps([document.model_dump(mode="json") for document in results])
 
 
 class FindZkDocumentsRelatedTo(LLMTool):
@@ -37,7 +20,7 @@ class FindZkDocumentsRelatedTo(LLMTool):
         self.console_service.print(f"[tool.info]Found {len(document_results)} documents related to the query:[/]")
         for result in document_results:
             self.console_service.print(f"  [tool.info]{result.document.title} (distance: {result.distance:.4f})[/]")
-        return format_document_results(document_results)
+        return format_model_results(document_results)
 
     @property
     def descriptor(self) -> dict:

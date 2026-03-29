@@ -2,6 +2,7 @@ import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.services.document_service import DocumentService
+from zk_chat.tools.tool_helpers import check_document_exists
 
 logger = structlog.get_logger()
 
@@ -12,8 +13,9 @@ class ReadZkDocument(LLMTool):
 
     def run(self, relative_path: str) -> str:
         logger.info("Reading document", relative_path=relative_path)
-        if not self.document_service.document_exists(relative_path):
-            return f"Document not found at {relative_path}"
+        error = check_document_exists(self.document_service, relative_path)
+        if error:
+            return error
 
         document = self.document_service.read_document(relative_path)
         return document.model_dump_json()

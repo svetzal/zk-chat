@@ -1,29 +1,12 @@
-import json
-
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
 from zk_chat.models import ZkQueryExcerptResult
 from zk_chat.services.index_service import IndexService
+from zk_chat.tools.tool_helpers import format_model_results
 
 logger = structlog.get_logger()
-
-
-def format_excerpt_results(results: list[ZkQueryExcerptResult]) -> str:
-    """Serialize excerpt query results to JSON.
-
-    Parameters
-    ----------
-    results : list[ZkQueryExcerptResult]
-        Query results to serialize.
-
-    Returns
-    -------
-    str
-        JSON string of serialized results.
-    """
-    return json.dumps([result.model_dump(mode="json") for result in results])
 
 
 class FindExcerptsRelatedTo(LLMTool):
@@ -41,7 +24,7 @@ class FindExcerptsRelatedTo(LLMTool):
             self.console_service.print(f"  [tool.info]{title} (distance: {distance:.4f})[/]")
             preview = result.excerpt.text[:100].replace("\n", " ")
             self.console_service.print(f"    [tool.info]{preview}...[/]")
-        return format_excerpt_results(results)
+        return format_model_results(results)
 
     @property
     def descriptor(self) -> dict:

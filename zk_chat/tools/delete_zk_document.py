@@ -3,6 +3,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
 from zk_chat.services.document_service import DocumentService
+from zk_chat.tools.tool_helpers import check_document_exists
 
 logger = structlog.get_logger()
 
@@ -14,8 +15,9 @@ class DeleteZkDocument(LLMTool):
 
     def run(self, relative_path: str) -> str:
         self.console_service.print(f"[tool.info]Deleting document at {relative_path}[/]")
-        if not self.document_service.document_exists(relative_path):
-            return f"Document not found at {relative_path}"
+        error = check_document_exists(self.document_service, relative_path)
+        if error:
+            return error
 
         try:
             self.document_service.delete_document(relative_path)

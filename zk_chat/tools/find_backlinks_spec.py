@@ -4,14 +4,15 @@ import pytest
 
 from zk_chat.console_service import RichConsoleService
 from zk_chat.services.link_traversal_service import BacklinkResult, LinkTraversalService
-from zk_chat.tools.find_backlinks import FindBacklinks, format_backlink_results
+from zk_chat.tools.find_backlinks import FindBacklinks
+from zk_chat.tools.tool_helpers import format_model_results
 
 
 class DescribeFormatBacklinkResults:
-    """Tests for the format_backlink_results pure function."""
+    """Tests for the format_model_results function with BacklinkResult objects."""
 
     def should_return_empty_list_string_for_no_results(self):
-        result = format_backlink_results([])
+        result = format_model_results([])
 
         assert result == "[]"
 
@@ -26,7 +27,7 @@ class DescribeFormatBacklinkResults:
             )
         ]
 
-        result = format_backlink_results(results)
+        result = format_model_results(results)
 
         assert "notes/intro.md" in result
         assert "Main Topic" in result
@@ -50,7 +51,7 @@ class DescribeFormatBacklinkResults:
             ),
         ]
 
-        result = format_backlink_results(results)
+        result = format_model_results(results)
 
         assert "doc1.md" in result
         assert "doc2.md" in result
