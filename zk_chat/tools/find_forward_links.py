@@ -3,25 +3,10 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
 from zk_chat.services.document_service import DocumentService
-from zk_chat.services.link_traversal_service import ForwardLinkResult, LinkTraversalService
+from zk_chat.services.link_traversal_service import LinkTraversalService
+from zk_chat.tools.tool_helpers import check_document_exists, format_model_results
 
 logger = structlog.get_logger()
-
-
-def format_forward_link_results(results: list[ForwardLinkResult]) -> str:
-    """Serialize forward link results to a string representation.
-
-    Parameters
-    ----------
-    results : list[ForwardLinkResult]
-        Forward link results to serialize.
-
-    Returns
-    -------
-    str
-        String representation of serialized ForwardLinkResult dictionaries.
-    """
-    return str([forward_link.model_dump() for forward_link in results])
 
 
 class FindForwardLinks(LLMTool):
@@ -47,16 +32,16 @@ class FindForwardLinks(LLMTool):
         """
         logger.info("Finding forward links from document", source_document=source_document)
 
-        if not self.document_service.document_exists(source_document):
-            return f"Document not found at {source_document}"
+        error = check_document_exists(self.document_service, source_document)
+        if error:
+            return error
 
-        # Use the link traversal service to find forward links
         forward_link_results = self.link_service.find_forward_links(source_document)
 
         console_msg = f"[tool.info]Found {len(forward_link_results)} forward links from {source_document}[/]"
         self.console_service.print(console_msg)
 
-        return format_forward_link_results(forward_link_results)
+        return format_model_results(forward_link_results)
 
     @property
     def descriptor(self) -> dict:

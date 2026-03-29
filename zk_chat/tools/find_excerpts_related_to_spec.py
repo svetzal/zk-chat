@@ -6,7 +6,8 @@ import pytest
 from zk_chat.console_service import RichConsoleService
 from zk_chat.models import ZkDocumentExcerpt, ZkQueryExcerptResult
 from zk_chat.services.index_service import IndexService
-from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo, format_excerpt_results
+from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
+from zk_chat.tools.tool_helpers import format_model_results
 
 
 @pytest.fixture
@@ -25,10 +26,10 @@ def find_excerpts_tool(mock_index_service, mock_console_service):
 
 
 class DescribeFormatExcerptResults:
-    """Tests for the format_excerpt_results pure function."""
+    """Tests for the format_model_results function with ZkQueryExcerptResult objects."""
 
     def should_return_empty_json_array_for_no_results(self):
-        result = format_excerpt_results([])
+        result = format_model_results([])
 
         parsed = json.loads(result)
         assert parsed == []
@@ -41,7 +42,7 @@ class DescribeFormatExcerptResults:
             )
         ]
 
-        result = format_excerpt_results(results)
+        result = format_model_results(results)
 
         parsed = json.loads(result)
         assert len(parsed) == 1
@@ -60,7 +61,7 @@ class DescribeFormatExcerptResults:
             ),
         ]
 
-        result = format_excerpt_results(results)
+        result = format_model_results(results)
 
         parsed = json.loads(result)
         assert len(parsed) == 2

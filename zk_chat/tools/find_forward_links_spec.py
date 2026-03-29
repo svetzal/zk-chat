@@ -6,14 +6,15 @@ from zk_chat.console_service import RichConsoleService
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.link_traversal_service import ForwardLinkResult, LinkTraversalService
-from zk_chat.tools.find_forward_links import FindForwardLinks, format_forward_link_results
+from zk_chat.tools.find_forward_links import FindForwardLinks
+from zk_chat.tools.tool_helpers import format_model_results
 
 
 class DescribeFormatForwardLinkResults:
-    """Tests for the format_forward_link_results pure function."""
+    """Tests for the format_model_results function with ForwardLinkResult objects."""
 
     def should_return_empty_list_string_for_no_results(self):
-        result = format_forward_link_results([])
+        result = format_model_results([])
 
         assert result == "[]"
 
@@ -28,7 +29,7 @@ class DescribeFormatForwardLinkResults:
             )
         ]
 
-        result = format_forward_link_results(results)
+        result = format_model_results(results)
 
         assert "notes/intro.md" in result
         assert "Main Topic" in result
@@ -52,7 +53,7 @@ class DescribeFormatForwardLinkResults:
             ),
         ]
 
-        result = format_forward_link_results(results)
+        result = format_model_results(results)
 
         assert "a.md" in result
         assert "b.md" in result

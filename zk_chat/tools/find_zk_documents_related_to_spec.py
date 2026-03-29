@@ -6,7 +6,8 @@ import pytest
 from zk_chat.console_service import RichConsoleService
 from zk_chat.models import ZkDocument, ZkQueryDocumentResult
 from zk_chat.services.index_service import IndexService
-from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo, format_document_results
+from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
+from zk_chat.tools.tool_helpers import format_model_results
 
 
 @pytest.fixture
@@ -25,10 +26,10 @@ def tool(mock_index_service, mock_console_service):
 
 
 class DescribeFormatDocumentResults:
-    """Tests for the format_document_results pure function."""
+    """Tests for the format_model_results function with ZkQueryDocumentResult objects."""
 
     def should_return_empty_json_array_for_no_results(self):
-        result = format_document_results([])
+        result = format_model_results([])
 
         parsed = json.loads(result)
         assert parsed == []
@@ -41,7 +42,7 @@ class DescribeFormatDocumentResults:
             )
         ]
 
-        result = format_document_results(results)
+        result = format_model_results(results)
 
         parsed = json.loads(result)
         assert len(parsed) == 1
@@ -60,7 +61,7 @@ class DescribeFormatDocumentResults:
             ),
         ]
 
-        result = format_document_results(results)
+        result = format_model_results(results)
 
         parsed = json.loads(result)
         assert len(parsed) == 2

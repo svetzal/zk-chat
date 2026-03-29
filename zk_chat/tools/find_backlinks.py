@@ -2,25 +2,10 @@ import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
-from zk_chat.services.link_traversal_service import BacklinkResult, LinkTraversalService
+from zk_chat.services.link_traversal_service import LinkTraversalService
+from zk_chat.tools.tool_helpers import format_model_results
 
 logger = structlog.get_logger()
-
-
-def format_backlink_results(results: list[BacklinkResult]) -> str:
-    """Serialize backlink results to a string representation.
-
-    Parameters
-    ----------
-    results : list[BacklinkResult]
-        Backlink results to serialize.
-
-    Returns
-    -------
-    str
-        String representation of serialized BacklinkResult dictionaries.
-    """
-    return str([backlink.model_dump() for backlink in results])
 
 
 class FindBacklinks(LLMTool):
@@ -47,7 +32,7 @@ class FindBacklinks(LLMTool):
         console_msg = f"[tool.info]Found {len(backlink_results)} backlinks to {target_document}[/]"
         self.console_service.print(console_msg)
 
-        return format_backlink_results(backlink_results)
+        return format_model_results(backlink_results)
 
     @property
     def descriptor(self) -> dict:
