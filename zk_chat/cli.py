@@ -1,5 +1,5 @@
 import os
-from importlib.metadata import version
+from importlib.metadata import PackageNotFoundError, version
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config, ModelGateway
@@ -27,7 +27,7 @@ def get_version():
     """Get the package version from metadata."""
     try:
         return version("zk-chat")
-    except Exception:
+    except PackageNotFoundError:
         return "0.0.0"
 
 

@@ -55,10 +55,10 @@ class DescribeDeleteZkDocument:
         mock_filesystem.delete_file.assert_not_called()
         assert result == f"Document not found at {relative_path}"
 
-    def should_return_error_message_when_deletion_raises_exception(self, delete_tool, mock_filesystem):
+    def should_return_error_message_when_deletion_raises_os_error(self, delete_tool, mock_filesystem):
         relative_path = "test/error.md"
         mock_filesystem.path_exists.return_value = True
-        mock_filesystem.delete_file.side_effect = Exception("Test error")
+        mock_filesystem.delete_file.side_effect = OSError("Test error")
 
         result = delete_tool.run(relative_path=relative_path)
 

@@ -9,6 +9,7 @@ import json
 from typing import Any
 
 import structlog
+import yaml
 
 from zk_chat.console_service import RichConsoleService
 from zk_chat.memory.smart_memory import SmartMemory
@@ -133,7 +134,7 @@ class MCPServer:
             # Call the tool's run method with the parameters
             result = self.tools[tool_name].run(**parameters)
             return {"status": "success", "result": result}
-        except Exception as e:
+        except (OSError, ValueError, yaml.YAMLError) as e:
             logger.error("Tool execution failed", tool_name=tool_name, error=str(e))
             return {"status": "error", "error": str(e)}
 
@@ -190,7 +191,7 @@ class MCPServer:
         except json.JSONDecodeError:
             logger.error("Invalid JSON in request")
             return json.dumps({"status": "error", "error": "Invalid JSON"})
-        except Exception as e:
+        except (OSError, ValueError, yaml.YAMLError, TypeError, KeyError) as e:
             logger.error("Error handling MCP request", error=str(e))
             return json.dumps({"status": "error", "error": str(e)})
 

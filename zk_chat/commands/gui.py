@@ -62,7 +62,7 @@ def launch(
         console.print("[cyan]pip install 'zk-chat[gui]'[/]")
         raise typer.Exit(1) from e
 
-    except Exception as e:
+    except (OSError, RuntimeError) as e:
         console.print(f"[red]❌ Error launching GUI:[/] {e}")
         raise typer.Exit(1) from e
 

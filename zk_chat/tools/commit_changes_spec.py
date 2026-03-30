@@ -134,9 +134,9 @@ class DescribeCommitChanges:
         mock_git_gateway.commit.assert_called_once_with("Test commit message")
         assert result == "Successfully committed changes: 'Test commit message'"
 
-    def should_handle_unexpected_exceptions(self, commit_changes, mock_git_gateway, mocker):
-        """Test that run handles unexpected exceptions."""
-        mock_git_gateway.add_all_files.side_effect = Exception("Unexpected error")
+    def should_handle_os_errors(self, commit_changes, mock_git_gateway, mocker):
+        """Test that run handles OSError exceptions from git operations."""
+        mock_git_gateway.add_all_files.side_effect = OSError("Unexpected error")
         mock_logger = mocker.patch("zk_chat.tools.commit_changes.logger")
 
         result = commit_changes.run()

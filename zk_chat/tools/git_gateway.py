@@ -43,7 +43,7 @@ class GitGateway:
         except subprocess.CalledProcessError as e:
             logger.error(f"Error executing git command: {command[0]}", error=str(e), stderr=e.stderr)
             return False, e.stderr
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Unexpected error in git command: {command[0]}", error=str(e))
             return False, str(e)
 

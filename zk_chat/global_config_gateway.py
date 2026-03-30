@@ -6,9 +6,15 @@ configuration file. Follows the gateway pattern used throughout zk-chat
 to isolate file I/O from the pure GlobalConfig data model.
 """
 
+import json
 import os
 
+import structlog
+from pydantic import ValidationError
+
 from zk_chat.global_config import GlobalConfig
+
+logger = structlog.get_logger()
 
 
 class GlobalConfigGateway:
@@ -44,7 +50,8 @@ class GlobalConfigGateway:
             try:
                 with open(self._config_path) as f:
                     return GlobalConfig.model_validate_json(f.read())
-            except Exception:
+            except (json.JSONDecodeError, ValidationError) as e:
+                logger.warning("Corrupt global config file, returning defaults", path=self._config_path, error=str(e))
                 return GlobalConfig()
         return GlobalConfig()
 

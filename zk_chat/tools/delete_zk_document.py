@@ -22,7 +22,7 @@ class DeleteZkDocument(LLMTool):
         try:
             self.document_service.delete_document(relative_path)
             return f"Document successfully deleted at {relative_path}"
-        except Exception as e:
+        except (FileNotFoundError, OSError) as e:
             logger.error("Error deleting document", path=relative_path, error=str(e))
             return f"Error deleting document at {relative_path}: {str(e)}"
 

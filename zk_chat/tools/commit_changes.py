@@ -51,7 +51,7 @@ class CommitChanges(LLMTool):
                 return f"Error committing changes: {commit_output}"
 
             return f"Successfully committed changes: '{commit_message}'"
-        except Exception as e:
+        except (OSError, ConnectionError) as e:
             logger.error("Unexpected error", error=str(e))
             return f"Unexpected error committing changes: {str(e)}"
 
