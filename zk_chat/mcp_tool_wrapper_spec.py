@@ -201,8 +201,8 @@ class DescribeMCPToolWrapperRun:
         assert "Error executing MCP tool" in result
         assert "test_tool" in result
 
-    def should_return_error_message_on_general_exception(self, wrapper, mock_future):
-        mock_future.result.side_effect = RuntimeError("connection lost")
+    def should_return_error_message_on_connection_error(self, wrapper, mock_future):
+        mock_future.result.side_effect = ConnectionError("connection lost")
 
         with (
             patch("asyncio.run_coroutine_threadsafe", return_value=mock_future),

@@ -153,7 +153,7 @@ class MCPToolWrapper(LLMTool):
                 result=result_str,
             )
             return result_str
-        except Exception as e:
+        except (TimeoutError, asyncio.CancelledError, ConnectionError, OSError) as e:
             error_msg = f"Error executing MCP tool {self.tool_name}: {str(e)}"
             logger.error(
                 "MCP tool execution failed", server_name=self.server_name, tool_name=self.tool_name, error=str(e)
@@ -319,7 +319,7 @@ class MCPClientManager:
         for server_config in servers:
             try:
                 await self._connect_server(server_config)
-            except Exception as e:
+            except (ValueError, ConnectionError, OSError) as e:
                 logger.error("Failed to connect to MCP server", server_name=server_config.name, error=str(e))
 
         logger.info(
@@ -397,7 +397,7 @@ class MCPClientManager:
                 tool_count=len([t for t in self._tools if t.server_name == server_config.name]),
             )
 
-        except Exception as e:
+        except (ConnectionError, OSError, TimeoutError) as e:
             logger.error("Failed to discover tools from MCP server", server_name=server_config.name, error=str(e))
 
     async def cleanup(self):
@@ -411,7 +411,7 @@ class MCPClientManager:
             try:
                 await client.__aexit__(None, None, None)
                 logger.info("Disconnected from MCP server", server_name=server_name)
-            except Exception as e:
+            except (ConnectionError, OSError, TimeoutError) as e:
                 logger.error("Error disconnecting from MCP server", server_name=server_name, error=str(e))
 
         self._clients.clear()

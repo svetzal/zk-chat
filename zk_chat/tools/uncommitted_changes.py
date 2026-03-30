@@ -33,7 +33,7 @@ class UncommittedChanges(LLMTool):
                 return "No uncommitted changes in the vault folder."
 
             return f"Uncommitted changes in the vault folder:\n{diff_output}"
-        except Exception as e:
+        except OSError as e:
             logger.error("Unexpected error", error=str(e))
             return f"Unexpected error getting uncommitted changes: {str(e)}"
 

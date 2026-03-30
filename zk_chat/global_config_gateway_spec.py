@@ -5,6 +5,8 @@ These tests exercise real file I/O using a temporary file — this is correct
 for gateway tests, which should verify actual I/O behaviour rather than mocking it.
 """
 
+from unittest.mock import patch
+
 import pytest
 
 from zk_chat.global_config import GlobalConfig, MCPServerConfig, MCPServerType
@@ -62,6 +64,27 @@ class DescribeGlobalConfigGateway:
 
         assert isinstance(result, GlobalConfig)
         assert result.bookmarks == set()
+
+    def should_log_warning_when_file_contains_malformed_json(self, gateway, tmp_config_path):
+        with open(tmp_config_path, "w") as f:
+            f.write("not valid json {{{")
+
+        with patch("zk_chat.global_config_gateway.logger") as mock_logger:
+            gateway.load()
+
+        mock_logger.warning.assert_called_once()
+        call_kwargs = mock_logger.warning.call_args
+        assert "Corrupt" in call_kwargs.args[0]
+
+    def should_log_warning_when_file_has_wrong_types(self, gateway, tmp_config_path):
+        with open(tmp_config_path, "w") as f:
+            f.write('{"bookmarks": "not-a-set", "last_opened_bookmark": 12345}')
+
+        with patch("zk_chat.global_config_gateway.logger") as mock_logger:
+            result = gateway.load()
+
+        assert isinstance(result, GlobalConfig)
+        mock_logger.warning.assert_called_once()
 
     def should_round_trip_config_through_save_and_load(self, gateway):
         server = MCPServerConfig(

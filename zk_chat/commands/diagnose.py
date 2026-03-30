@@ -64,7 +64,7 @@ def _print_collection_status(chroma: ChromaGateway) -> None:
             count = collection.count()
             status = "✓ OK" if count > 0 else "⚠ Empty"
             table.add_row(collection_name.value, str(count), status)
-        except Exception as e:
+        except (ValueError, OSError) as e:
             table.add_row(collection_name.value, "N/A", f"✗ Error: {e}")
     console.print(table)
 
@@ -86,7 +86,7 @@ def _print_samples(chroma: ChromaGateway) -> None:
                     console.print(f"      Content: {document[:100]}...")
             else:
                 console.print(f"\n[yellow]{collection_name.value}:[/] No documents")
-        except Exception as e:
+        except (ValueError, OSError) as e:
             console.print(f"\n[red]{collection_name.value}:[/] Error: {e}")
 
 
@@ -96,7 +96,7 @@ def _test_embedding(gateway, test_text: str = "This is a test document") -> None
         embedding = gateway.calculate_embeddings(test_text)
         console.print(f"  ✓ Generated embedding with {len(embedding)} dimensions")
         console.print(f"  Sample values: [{embedding[0]:.4f}, {embedding[1]:.4f}, {embedding[2]:.4f}, ...]")
-    except Exception as e:
+    except (ConnectionError, OSError, ValueError) as e:
         console.print(f"  [red]✗ Failed to generate embedding:[/] {e}")
 
 
@@ -122,7 +122,7 @@ def _run_test_query(query: str, provider: ServiceProvider) -> tuple[list, list]:
                 console.print(f"        {result.excerpt.text[:100]}...")
         else:
             console.print("    [yellow]No results[/]")
-    except Exception as e:
+    except (ConnectionError, OSError, ValueError) as e:
         console.print(f"  [red]✗ Query failed:[/] {e}")
         import traceback
 
@@ -146,7 +146,7 @@ def _print_recommendations(chroma: ChromaGateway, query: str | None, doc_results
             console.print(f"  [{color}]•[/] {rec.message}")
             if rec.detail:
                 console.print(f"    {rec.detail}")
-    except Exception as e:
+    except (ValueError, OSError) as e:
         console.print(f"  [red]•[/] Error checking collections: {e}")
 
 

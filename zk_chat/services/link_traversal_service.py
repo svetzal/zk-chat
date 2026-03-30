@@ -11,6 +11,7 @@ from datetime import datetime
 from pathlib import Path
 
 import structlog
+import yaml
 from pydantic import BaseModel
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway, WikiLink
@@ -231,7 +232,7 @@ class LinkTraversalService:
         try:
             metadata, content = self.filesystem_gateway.read_markdown(relative_path)
             return self.extract_wikilinks_from_content(content, relative_path)
-        except Exception as e:
+        except (OSError, yaml.YAMLError) as e:
             logger.error("Failed to extract wikilinks from document", path=relative_path, error=str(e))
             return []
 

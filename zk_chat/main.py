@@ -213,11 +213,12 @@ def main(
     3. For visual interface: [cyan]zk-chat gui[/]
     """
     if version:
+        from importlib.metadata import PackageNotFoundError
         from importlib.metadata import version as get_version
 
         try:
             pkg_version = get_version("zk-chat")
-        except Exception:
+        except PackageNotFoundError:
             pkg_version = "unknown"
 
         console.print(

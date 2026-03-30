@@ -39,10 +39,10 @@ class DescribeVerifyStdioServer:
 
         assert result is False
 
-    def should_handle_exceptions_gracefully(self):
+    def should_handle_os_errors_gracefully(self):
         server_config = MCPServerConfig(name="test-server", server_type=MCPServerType.STDIO, command="test-command")
 
-        with patch("shutil.which", side_effect=Exception("Test error")):
+        with patch("shutil.which", side_effect=OSError("Test error")):
             result = verify_stdio_server(server_config)
 
         assert result is False
@@ -71,10 +71,20 @@ class DescribeVerifyHttpServer:
 
         assert result is False
 
-    def should_return_false_when_request_fails(self):
+    def should_return_false_when_request_exception_raised(self):
+        import requests as req
+
         server_config = MCPServerConfig(name="test-server", server_type=MCPServerType.HTTP, url="http://localhost:8080")
 
-        with patch("requests.get", side_effect=Exception("Connection error")):
+        with patch("requests.get", side_effect=req.exceptions.ConnectionError("Connection error")):
+            result = verify_http_server(server_config)
+
+        assert result is False
+
+    def should_return_false_when_os_error_raised(self):
+        server_config = MCPServerConfig(name="test-server", server_type=MCPServerType.HTTP, url="http://localhost:8080")
+
+        with patch("requests.get", side_effect=OSError("socket error")):
             result = verify_http_server(server_config)
 
         assert result is False

@@ -82,9 +82,9 @@ class DescribeUncommittedChanges:
         mock_git_gateway.get_diff.assert_called_once()
         assert result == ("Uncommitted changes in the vault folder:\ndiff --git a/file.txt b/file.txt")
 
-    def should_handle_unexpected_exceptions(self, uncommitted_changes, mock_git_gateway, mocker):
-        """Test that run handles unexpected exceptions."""
-        mock_git_gateway.add_all_files.side_effect = Exception("Unexpected error")
+    def should_handle_os_errors(self, uncommitted_changes, mock_git_gateway, mocker):
+        """Test that run handles OSError exceptions from git operations."""
+        mock_git_gateway.add_all_files.side_effect = OSError("Unexpected error")
         mock_logger = mocker.patch("zk_chat.tools.uncommitted_changes.logger")
 
         result = uncommitted_changes.run()

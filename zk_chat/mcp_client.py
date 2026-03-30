@@ -47,7 +47,7 @@ def verify_stdio_server(server_config: MCPServerConfig) -> bool:
                 "STDIO server command not found", server_name=server_config.name, command=server_config.command
             )
             return False
-    except Exception as e:
+    except OSError as e:
         logger.error("Error verifying STDIO server", server_name=server_config.name, error=str(e))
         return False
 
@@ -89,7 +89,7 @@ def verify_http_server(server_config: MCPServerConfig) -> bool:
             "HTTP server is not reachable", server_name=server_config.name, url=server_config.url, error=str(e)
         )
         return False
-    except Exception as e:
+    except OSError as e:
         logger.error("Error verifying HTTP server", server_name=server_config.name, error=str(e))
         return False
 
