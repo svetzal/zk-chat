@@ -5,6 +5,7 @@ import pytest
 from zk_chat.cli import common_init
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
+from zk_chat.config_resolution import GatewayValidationResult
 from zk_chat.global_config import GlobalConfig
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.init_options import InitOptions
@@ -77,7 +78,9 @@ class DescribeCommonInit:
             options = InitOptions(reindex=False)
 
             with patch("zk_chat.cli._run_upgraders"), patch("zk_chat.cli.validate_gateway_selection") as mock_validate:
-                mock_validate.return_value = Mock(gateway=ModelGateway.OLLAMA, changed=False, error=None)
+                mock_validate.return_value = Mock(
+                    spec=GatewayValidationResult, gateway=ModelGateway.OLLAMA, changed=False, error=None
+                )
 
                 result = common_init(options, mock_global_config_gateway, mock_config_gateway)
 
@@ -96,7 +99,9 @@ class DescribeCommonInit:
                 patch("zk_chat.cli.validate_gateway_selection") as mock_validate,
                 patch("zk_chat.cli._reset_smart_memory") as mock_reset,
             ):
-                mock_validate.return_value = Mock(gateway=ModelGateway.OLLAMA, changed=False, error=None)
+                mock_validate.return_value = Mock(
+                    spec=GatewayValidationResult, gateway=ModelGateway.OLLAMA, changed=False, error=None
+                )
 
                 result = common_init(options, mock_global_config_gateway, mock_config_gateway)
 
@@ -116,7 +121,9 @@ class DescribeCommonInit:
                 patch("zk_chat.cli.validate_gateway_selection") as mock_validate,
                 patch("zk_chat.cli.reindex") as mock_reindex,
             ):
-                mock_validate.return_value = Mock(gateway=ModelGateway.OLLAMA, changed=False, error=None)
+                mock_validate.return_value = Mock(
+                    spec=GatewayValidationResult, gateway=ModelGateway.OLLAMA, changed=False, error=None
+                )
 
                 common_init(options, mock_global_config_gateway, mock_config_gateway)
 

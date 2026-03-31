@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 from mojentic.llm import LLMBroker
+from mojentic.llm.gateways.models import LLMMessage
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.analyze_image import AnalyzeImage
@@ -48,7 +49,7 @@ class DescribeAnalyzeImage:
         # MessageBuilder reads the image from disk, so we patch it at the module boundary
         # to avoid depending on a real image file in unit tests.
         with patch("zk_chat.tools.analyze_image.MessageBuilder") as mock_builder_class:
-            mock_message = Mock()
+            mock_message = Mock(spec=LLMMessage)
             mock_builder_class.return_value.add_image.return_value.build.return_value = mock_message
 
             result = analyze_tool.run("img/photo.png")

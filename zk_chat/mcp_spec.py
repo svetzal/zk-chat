@@ -6,6 +6,7 @@ import json
 from unittest.mock import Mock
 
 import pytest
+from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import RichConsoleService
 from zk_chat.mcp import MCPServer, create_mcp_server
@@ -124,7 +125,7 @@ class DescribeMCPServer:
             assert "nonexistent_tool" in result["error"]
 
         def should_return_success_when_tool_executes(self, server):
-            mock_tool = Mock()
+            mock_tool = Mock(spec=LLMTool)
             mock_tool.run.return_value = "tool result"
             server.tools["test_tool"] = mock_tool
 
@@ -135,7 +136,7 @@ class DescribeMCPServer:
             mock_tool.run.assert_called_once_with(key="value")
 
         def should_return_error_when_tool_raises_exception(self, server):
-            mock_tool = Mock()
+            mock_tool = Mock(spec=LLMTool)
             mock_tool.run.side_effect = ValueError("something broke")
             server.tools["failing_tool"] = mock_tool
 
@@ -176,7 +177,7 @@ class DescribeMCPServer:
             assert result["status"] == "error"
 
         def should_execute_tool_for_valid_tool_call_request(self, server):
-            mock_tool = Mock()
+            mock_tool = Mock(spec=LLMTool)
             mock_tool.run.return_value = "result data"
             server.tools["my_tool"] = mock_tool
 

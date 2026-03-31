@@ -215,14 +215,14 @@ class DescribeMCPToolWrapperRun:
 
     def should_coerce_integer_types_before_execution(self, mock_future):
         mock_client = Mock(spec=Client)
-        mock_loop = Mock()
+        mock_loop = Mock()  # Intentionally unspec'd: loop is only passed to the patched run_coroutine_threadsafe
         tool_descriptor = {
             "name": "counter_tool",
             "description": "A counting tool",
             "inputSchema": {"type": "object", "properties": {"count": {"type": "integer"}}},
         }
         wrapper = MCPToolWrapper(mock_client, "test-server", "counter_tool", tool_descriptor, mock_loop)
-        mock_async_run = Mock()
+        mock_async_run = Mock()  # Intentionally unspec'd: replaces a bound method, not a class instance
 
         with (
             patch("asyncio.run_coroutine_threadsafe", return_value=mock_future),
