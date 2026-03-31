@@ -90,7 +90,7 @@ class DescribeIndexService:
     def should_call_progress_callback_during_reindex(self, index_service, mock_filesystem, sample_document_data):
         mock_filesystem.iterate_markdown_files.return_value = ["doc1.md", "doc2.md"]
         mock_filesystem.read_markdown.return_value = sample_document_data
-        mock_callback = Mock()
+        mock_callback = Mock()  # Intentionally unspec'd: bare callable, not a class instance
 
         index_service.reindex_all(progress_callback=mock_callback)
 

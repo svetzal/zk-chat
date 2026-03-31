@@ -38,7 +38,7 @@ class DescribeRichConsoleService:
 
     def should_provide_print_method(self):
         service = RichConsoleService()
-        service.console = Mock()
+        service.console = Mock(spec=Console)
 
         service.print("test message", style="bold")
 
