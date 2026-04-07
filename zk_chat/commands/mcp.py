@@ -30,7 +30,7 @@ def add(
     url: Annotated[str | None, typer.Option("--url", "-u", help="URL for HTTP server")] = None,
     args: Annotated[str | None, typer.Option("--args", "-a", help="Command line arguments (comma-separated)")] = None,
     no_verify: Annotated[bool, typer.Option("--no-verify", help="Skip server availability verification")] = False,
-):
+) -> None:
     """
     Add a new MCP server connection.
 
@@ -142,7 +142,7 @@ def _display_registration_success(
 @mcp_app.command()
 def remove(
     name: Annotated[str, typer.Argument(help="Name of the MCP server to remove")],
-):
+) -> None:
     """
     Remove a registered MCP server.
 
@@ -160,7 +160,7 @@ def remove(
 
 
 @mcp_app.command()
-def list():
+def list() -> None:
     """
     List all registered MCP servers.
 
@@ -213,7 +213,7 @@ def verify(
     name: Annotated[
         str | None, typer.Argument(help="Name of the MCP server to verify (or all if not specified)")
     ] = None,
-):
+) -> None:
     """
     Verify the availability of MCP servers.
 
@@ -262,7 +262,7 @@ def verify(
 
 
 @mcp_app.callback()
-def mcp_default(ctx: typer.Context):
+def mcp_default(ctx: typer.Context) -> None:
     """
     Manage MCP (Model Context Protocol) server connections.
 

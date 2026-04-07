@@ -23,7 +23,7 @@ from zk_chat.upgraders.gateway_specific_index_folder import GatewaySpecificIndex
 from zk_chat.upgraders.gateway_specific_last_indexed import GatewaySpecificLastIndexed
 
 
-def get_version():
+def get_version() -> str:
     """Get the package version from metadata."""
     try:
         return version("zk-chat")
@@ -31,7 +31,7 @@ def get_version():
         return "0.0.0"
 
 
-def display_banner(config, title: str, unsafe=False, use_git=False, store_prompt=True):
+def display_banner(config, title: str, unsafe=False, use_git=False, store_prompt=True) -> None:
     """Display a colorful banner with application information."""
     console_service = RichConsoleService()
     console = console_service.get_console()

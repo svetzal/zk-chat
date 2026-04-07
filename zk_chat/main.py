@@ -65,7 +65,7 @@ def interactive(
     ] = True,
     # Memory options
     reset_memory: Annotated[bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
-):
+) -> None:
     """
     Start an interactive agent session with your Zettelkasten.
 
@@ -121,7 +121,7 @@ def query(
     ] = True,
     # Memory options
     reset_memory: Annotated[bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
-):
+) -> None:
     """
     Ask a single question to your Zettelkasten and exit.
 
@@ -191,7 +191,7 @@ def query(
 def main(
     ctx: typer.Context,
     version: Annotated[bool, typer.Option("--version", help="Show version information")] = False,
-):
+) -> None:
     """
     💬 ZkChat - AI Agent for your Zettelkasten
 

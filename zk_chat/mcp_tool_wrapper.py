@@ -244,7 +244,7 @@ class MCPClientManager:
         """Start a background event loop in a separate thread."""
         import threading
 
-        def run_loop(loop):
+        def run_loop(loop) -> None:
             asyncio.set_event_loop(loop)
             loop.run_forever()
 
@@ -263,7 +263,7 @@ class MCPClientManager:
             self._loop.close()
             logger.info("Stopped background event loop")
 
-    def initialize_sync(self):
+    def initialize_sync(self) -> None:
         """Initialize connections synchronously by running async code in background loop."""
 
         # Start the background event loop
@@ -275,7 +275,7 @@ class MCPClientManager:
         # Wait for initialization to complete
         future.result()
 
-    def cleanup_sync(self):
+    def cleanup_sync(self) -> None:
         """Cleanup connections synchronously by running async code in background loop."""
         import concurrent.futures
 

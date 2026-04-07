@@ -154,7 +154,7 @@ def _print_recommendations(chroma: ChromaGateway, query: str | None, doc_results
 def index(
     vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
     query: Annotated[str | None, typer.Option("--query", "-q", help="Test query to run")] = None,
-):
+) -> None:
     """Diagnose the search index to identify why queries aren't returning results."""
     vault_path = _resolve_vault_path(vault, create_default_global_config_gateway())
     config = _load_config(vault_path, create_default_config_gateway())

@@ -1,4 +1,4 @@
-def split_tokens(tokens, excerpt_size=500, excerpt_overlap=100):
+def split_tokens(tokens, excerpt_size=500, excerpt_overlap=100) -> list[str]:
     start_index = 0
     chunks = []
     while start_index < len(tokens):

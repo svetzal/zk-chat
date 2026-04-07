@@ -125,7 +125,7 @@ class ChatMessageWidget(QWidget):
         if not loading:
             self.set_content(content)
 
-    def set_loading(self, loading: bool):
+    def set_loading(self, loading: bool) -> None:
         self.spinner.setVisible(loading)
         self.content_browser.setVisible(not loading)
         if loading:
@@ -133,7 +133,7 @@ class ChatMessageWidget(QWidget):
             self.frame.setMinimumHeight(50)
             self.frame.setMaximumHeight(50)
 
-    def set_content(self, content: str):
+    def set_content(self, content: str) -> None:
         self.content_browser.setMarkdown(content)
         self.content_browser.document().adjustSize()
         self.content_browser.document().setTextWidth(self.content_browser.viewport().width())
@@ -151,7 +151,7 @@ class ChatWorker(QThread):
         self.chat_session = chat_session
         self.query = query
 
-    def run(self):
+    def run(self) -> None:
         response = self.chat_session.send(self.query)
         self.response_ready.emit(response)
 
@@ -221,12 +221,12 @@ class SettingsDialog(QDialog):
 
         self.setLayout(layout)
 
-    def browse_folder(self):
+    def browse_folder(self) -> None:
         folder = QFileDialog.getExistingDirectory(self, "Select Zettelkasten Folder")
         if folder:
             self.folder_edit.setText(folder)
 
-    def update_model_list(self):
+    def update_model_list(self) -> None:
         # Get the selected gateway
         gateway_text = self.gateway_combo.currentText()
         gateway = ModelGateway(gateway_text)
@@ -273,7 +273,7 @@ class SettingsDialog(QDialog):
             # If no visual model is set, select "None"
             self.visual_model_combo.setCurrentIndex(0)
 
-    def save_settings(self):
+    def save_settings(self) -> None:
         new_vault_path = self.folder_edit.text()
         new_gateway = ModelGateway(self.gateway_combo.currentText())
         new_chat_model = self.chat_model_combo.currentText()
@@ -397,7 +397,7 @@ class MainWindow(QMainWindow):
         # Set initial sizes
         splitter.setSizes([400, 200])
 
-    def initialize_chat_session(self):
+    def initialize_chat_session(self) -> None:
         registry = build_service_registry(self.config)
         provider = ServiceProvider(registry)
 
@@ -425,7 +425,7 @@ class MainWindow(QMainWindow):
 
         self.chat_session = ChatSession(chat_llm, system_prompt="You are a helpful research assistant.", tools=tools)
 
-    def show_settings(self):
+    def show_settings(self) -> None:
         dialog = SettingsDialog(self.config, self.config_gateway, self.global_config_gateway, self)
         if dialog.exec():
             self.config = dialog.config
@@ -453,7 +453,7 @@ class MainWindow(QMainWindow):
         return message_widget
 
     @Slot()
-    def send_message(self):
+    def send_message(self) -> None:
         message = self.chat_input.toPlainText().strip()
         if not message:
             return
@@ -469,7 +469,7 @@ class MainWindow(QMainWindow):
         self.worker.response_ready.connect(lambda response: self.update_assistant_response(assistant_widget, response))
         self.worker.start()
 
-    def update_assistant_response(self, widget: ChatMessageWidget, response: str):
+    def update_assistant_response(self, widget: ChatMessageWidget, response: str) -> None:
         widget.set_loading(False)
         widget.set_content(response)
         # Ensure we scroll to see the complete response
@@ -478,7 +478,7 @@ class MainWindow(QMainWindow):
         )
 
 
-def main():
+def main() -> None:
     app = QApplication(sys.argv)
     config_gateway = create_default_config_gateway()
     global_config_gateway = create_default_global_config_gateway()

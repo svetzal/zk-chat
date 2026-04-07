@@ -57,7 +57,7 @@ class IterativeProblemSolvingAgent:
             tools=self.available_tools,
         )
 
-    def solve(self, problem: str):
+    def solve(self, problem: str) -> str:
         """Execute the problem-solving process.
 
         This method runs the iterative problem-solving process, continuing until one of

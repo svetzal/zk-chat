@@ -26,7 +26,7 @@ class SmartMemory:
         self.gateway = gateway
         self.collection_name = ZkCollectionName.SMART_MEMORY
 
-    def store(self, information: str):
+    def store(self, information: str) -> None:
         """
         Store information in smart memory.
 
@@ -45,7 +45,7 @@ class SmartMemory:
             collection_name=self.collection_name,
         )
 
-    def retrieve(self, query: str, n_results: int = 5):
+    def retrieve(self, query: str, n_results: int = 5) -> dict:
         """
         Retrieve information from smart memory based on a query.
 
@@ -63,7 +63,7 @@ class SmartMemory:
         logger.info("Retrieved information from smart memory", query=query, n_results=n_results, results=results)
         return results
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the smart memory by clearing all stored information.
         """

@@ -18,7 +18,7 @@ class StoreInSmartMemory(LLMTool):
         return "Information stored in long term memory."
 
     @property
-    def descriptor(self):
+    def descriptor(self) -> dict:
         return {
             "type": "function",
             "function": {

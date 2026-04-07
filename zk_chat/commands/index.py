@@ -28,7 +28,7 @@ def update(
     full: Annotated[bool, typer.Option("--full", help="Force full rebuild (slower but comprehensive)")] = False,
     gateway: Annotated[str | None, typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
     model: Annotated[str | None, typer.Option("--model", "-m", help="Model for generating embeddings")] = None,
-):
+) -> None:
     """
     Update the search index for your Zettelkasten.
 
@@ -173,7 +173,7 @@ def _print_health(last_indexed, markdown_count: int, vault_path: str) -> None:
 @index_app.command()
 def status(
     vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
-):
+) -> None:
     """Show the current status of your Zettelkasten index."""
     vault_path = _resolve_vault_status(vault, create_default_global_config_gateway())
     config = _load_config_status(vault_path, create_default_config_gateway())
@@ -188,7 +188,7 @@ def status(
 
 # Default command
 @index_app.callback()
-def index_default(ctx: typer.Context):
+def index_default(ctx: typer.Context) -> None:
     """
     Manage your Zettelkasten search index.
 

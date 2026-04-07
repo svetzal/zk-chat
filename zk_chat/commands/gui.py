@@ -20,7 +20,7 @@ console = Console()
 @gui_app.command()
 def launch(
     vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
-):
+) -> None:
     """
     Launch the graphical user interface for zk-chat.
 
@@ -69,7 +69,7 @@ def launch(
 
 # Default command (launch)
 @gui_app.callback()
-def gui_default(ctx: typer.Context):
+def gui_default(ctx: typer.Context) -> None:
     """
     Launch the graphical user interface.
 

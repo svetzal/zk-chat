@@ -27,7 +27,7 @@ class AnalyzeImage(LLMTool):
         return analysis
 
     @property
-    def descriptor(self):
+    def descriptor(self) -> dict:
         return {
             "type": "function",
             "function": {

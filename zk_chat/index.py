@@ -64,7 +64,7 @@ def _incremental_reindex(
     return files_processed, total_files or 0
 
 
-def reindex(config: Config, config_gateway: ConfigGateway, force_full: bool = False):
+def reindex(config: Config, config_gateway: ConfigGateway, force_full: bool = False) -> None:
     """Reindex the Zettelkasten vault with progress tracking."""
     registry = build_service_registry(config)
     provider = ServiceProvider(registry)
@@ -88,7 +88,7 @@ def reindex(config: Config, config_gateway: ConfigGateway, force_full: bool = Fa
     config_gateway.save(config)
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Index the Zettelkasten vault")
     parser.add_argument("--vault", required=True, help="Path to your Zettelkasten vault")
     parser.add_argument("--full", action="store_true", default=False, help="Force full reindex")

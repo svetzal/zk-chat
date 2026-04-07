@@ -5,11 +5,27 @@ This provides a clean interface for plugins to request services without
 needing to manage service discovery or handle service unavailability.
 """
 
-from typing import TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import structlog
 
 from .service_registry import ServiceRegistry, ServiceType
+
+if TYPE_CHECKING:
+    from mojentic.llm import LLMBroker
+    from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
+
+    from zk_chat.chroma_gateway import ChromaGateway
+    from zk_chat.config import Config
+    from zk_chat.config_gateway import ConfigGateway
+    from zk_chat.console_service import RichConsoleService
+    from zk_chat.global_config_gateway import GlobalConfigGateway
+    from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
+    from zk_chat.memory.smart_memory import SmartMemory
+    from zk_chat.services.document_service import DocumentService
+    from zk_chat.services.index_service import IndexService
+    from zk_chat.services.link_traversal_service import LinkTraversalService
+    from zk_chat.tools.git_gateway import GitGateway
 
 logger = structlog.get_logger()
 
@@ -34,83 +50,83 @@ class ServiceProvider:
         self._registry = registry
         self._logger = logger
 
-    def get_filesystem_gateway(self):
+    def get_filesystem_gateway(self) -> "MarkdownFilesystemGateway | None":
         """Get the filesystem gateway service."""
         from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 
         return self._registry.get_service(ServiceType.FILESYSTEM_GATEWAY, MarkdownFilesystemGateway)
 
-    def get_llm_broker(self):
+    def get_llm_broker(self) -> "LLMBroker | None":
         """Get the LLM broker service."""
         from mojentic.llm import LLMBroker
 
         return self._registry.get_service(ServiceType.LLM_BROKER, LLMBroker)
 
-    def get_smart_memory(self):
+    def get_smart_memory(self) -> "SmartMemory | None":
         """Get the Smart Memory service."""
         from zk_chat.memory.smart_memory import SmartMemory
 
         return self._registry.get_service(ServiceType.SMART_MEMORY, SmartMemory)
 
-    def get_chroma_gateway(self):
+    def get_chroma_gateway(self) -> "ChromaGateway | None":
         """Get the ChromaDB gateway service."""
         from zk_chat.chroma_gateway import ChromaGateway
 
         return self._registry.get_service(ServiceType.CHROMA_GATEWAY, ChromaGateway)
 
-    def get_model_gateway(self):
+    def get_model_gateway(self) -> Any | None:
         """Get the underlying model gateway (Ollama/OpenAI)."""
         return self._registry.get_service(ServiceType.MODEL_GATEWAY)
 
-    def get_tokenizer_gateway(self):
+    def get_tokenizer_gateway(self) -> "TokenizerGateway | None":
         """Get the tokenizer gateway service."""
         from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
         return self._registry.get_service(ServiceType.TOKENIZER_GATEWAY, TokenizerGateway)
 
-    def get_git_gateway(self):
+    def get_git_gateway(self) -> "GitGateway | None":
         """Get the Git gateway service (may not be available)."""
         from zk_chat.tools.git_gateway import GitGateway
 
         return self._registry.get_service(ServiceType.GIT_GATEWAY, GitGateway)
 
-    def get_config(self):
+    def get_config(self) -> "Config | None":
         """Get the application configuration."""
         from zk_chat.config import Config
 
         return self._registry.get_service(ServiceType.CONFIG, Config)
 
-    def get_config_gateway(self):
+    def get_config_gateway(self) -> "ConfigGateway | None":
         """Get the config gateway for vault config persistence."""
         from zk_chat.config_gateway import ConfigGateway
 
         return self._registry.get_service(ServiceType.CONFIG_GATEWAY, ConfigGateway)
 
-    def get_global_config_gateway(self):
+    def get_global_config_gateway(self) -> "GlobalConfigGateway | None":
         """Get the global config gateway for global config persistence."""
         from zk_chat.global_config_gateway import GlobalConfigGateway
 
         return self._registry.get_service(ServiceType.GLOBAL_CONFIG_GATEWAY, GlobalConfigGateway)
 
-    def get_document_service(self):
+    def get_document_service(self) -> "DocumentService | None":
         """Get the DocumentService for document CRUD operations."""
         from zk_chat.services.document_service import DocumentService
 
         return self._registry.get_service(ServiceType.DOCUMENT_SERVICE, DocumentService)
 
-    def get_index_service(self):
+    def get_index_service(self) -> "IndexService | None":
         """Get the IndexService for vector indexing and search operations."""
         from zk_chat.services.index_service import IndexService
 
         return self._registry.get_service(ServiceType.INDEX_SERVICE, IndexService)
 
-    def get_link_traversal_service(self):
+    def get_link_traversal_service(self) -> "LinkTraversalService | None":
         """Get the LinkTraversalService for wikilink analysis and graph traversal."""
         from zk_chat.services.link_traversal_service import LinkTraversalService
 
         return self._registry.get_service(ServiceType.LINK_TRAVERSAL_SERVICE, LinkTraversalService)
 
-    def get_console_service(self):
+    def get_console_service(self) -> "RichConsoleService | None":
         """Get the console service for user-facing output."""
         from zk_chat.console_service import RichConsoleService
 

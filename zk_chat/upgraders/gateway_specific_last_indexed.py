@@ -25,7 +25,7 @@ class GatewaySpecificLastIndexed(Upgrader):
         return self.config.last_indexed is not None and not self.config.gateway_last_indexed
 
     @override
-    def run(self):
+    def run(self) -> None:
         # Migrate the last_indexed value to the gateway-specific dictionary
         if self.config.last_indexed is not None:
             self.config.set_last_indexed(self.config.last_indexed)

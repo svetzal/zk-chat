@@ -19,7 +19,7 @@ class MCPServerConfig(BaseModel):
     url: str | None = None
     args: list[str] | None = Field(default_factory=list)
 
-    def model_post_init(self, __context):
+    def model_post_init(self, __context) -> None:
         if self.server_type == MCPServerType.STDIO and not self.command:
             raise ValueError("STDIO server requires a command")
         if self.server_type == MCPServerType.HTTP and not self.url:
