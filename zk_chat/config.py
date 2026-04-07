@@ -29,7 +29,7 @@ class Config(BaseModel):
             return self.gateway_last_indexed[gateway_value]
         return self.last_indexed
 
-    def set_last_indexed(self, timestamp: datetime, gateway: ModelGateway | None = None):
+    def set_last_indexed(self, timestamp: datetime, gateway: ModelGateway | None = None) -> None:
         """
         Set the last indexed time for the specified gateway or the current gateway if not specified.
         """

@@ -14,7 +14,7 @@ class Upgrader:
     def should_run(self) -> bool:
         return False
 
-    def run(self):
+    def run(self) -> None:
         pass
 
 
@@ -23,11 +23,11 @@ class GatewaySpecificIndexFolder(Upgrader):
         self.config = config
 
     @property
-    def db_dir(self):
+    def db_dir(self) -> Path:
         return Path(self.config.vault) / ".zk_chat_db"
 
     @property
-    def index_dir(self):
+    def index_dir(self) -> Path:
         return self.db_dir / self.config.gateway.value
 
     @override
@@ -38,7 +38,7 @@ class GatewaySpecificIndexFolder(Upgrader):
         return False
 
     @override
-    def run(self):
+    def run(self) -> None:
         sqlite_file = self.db_dir / "chroma.sqlite3"
         if not self.index_dir.exists() or sqlite_file.exists():
             self.index_dir.mkdir(parents=True, exist_ok=True)

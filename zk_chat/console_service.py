@@ -25,7 +25,7 @@ class RichConsoleService:
 
         self.console = Console(theme=self.theme)
 
-    def print(self, *args, **kwargs):
+    def print(self, *args, **kwargs) -> None:
         """Print using Rich Console."""
         self.console.print(*args, **kwargs)
 

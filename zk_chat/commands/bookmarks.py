@@ -54,7 +54,7 @@ def _remove_bookmark(path: str, global_config_gateway: GlobalConfigGateway) -> b
 
 
 @bookmarks_app.command()
-def list():
+def list() -> None:
     """
     List all vault bookmarks.
 
@@ -66,7 +66,7 @@ def list():
 
 
 @bookmarks_app.command()
-def remove(path: str = typer.Argument(help="Path to the vault bookmark to remove (can be relative)")):
+def remove(path: str = typer.Argument(help="Path to the vault bookmark to remove (can be relative)")) -> None:
     """
     Remove a vault bookmark.
 
@@ -80,7 +80,7 @@ def remove(path: str = typer.Argument(help="Path to the vault bookmark to remove
 
 
 @bookmarks_app.callback()
-def bookmarks_default(ctx: typer.Context):
+def bookmarks_default(ctx: typer.Context) -> None:
     """
     Manage vault bookmarks for quick access.
 

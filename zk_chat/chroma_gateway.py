@@ -55,7 +55,7 @@ class ChromaGateway:
 
     def add_items(
         self, ids, documents, metadatas, embeddings, collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN
-    ):
+    ) -> None:
         """
         Add items to a collection.
 
@@ -74,7 +74,7 @@ class ChromaGateway:
             embeddings=embeddings,
         )
 
-    def reset_indexes(self, collection_name: ZkCollectionName | None = None):
+    def reset_indexes(self, collection_name: ZkCollectionName | None = None) -> None:
         """
         Reset the indexes for a collection or all collections.
 
@@ -95,7 +95,9 @@ class ChromaGateway:
             self.chroma_client.reset()
             self._collections = {}
 
-    def query(self, query_embeddings, n_results, collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN):
+    def query(
+        self, query_embeddings, n_results, collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN
+    ) -> dict:
         """
         Query a collection.
 

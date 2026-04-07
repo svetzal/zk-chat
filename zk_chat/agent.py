@@ -45,7 +45,7 @@ def _create_agent(config: Config):
         )
 
 
-def agent(config: Config):
+def agent(config: Config) -> None:
     global_config_gateway = create_default_global_config_gateway()
     global_config = global_config_gateway.load()
     if global_config.list_mcp_servers():

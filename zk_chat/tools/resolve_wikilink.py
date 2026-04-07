@@ -12,7 +12,7 @@ class ResolveWikiLink(LLMTool):
     def __init__(self, fs: MarkdownFilesystemGateway):
         self.fs = fs
 
-    def run(self, wikilink: str):
+    def run(self, wikilink: str) -> str:
         logger.info("Resolving wikilink", wikilink=wikilink)
 
         try:
@@ -22,7 +22,7 @@ class ResolveWikiLink(LLMTool):
             return "There is no document currently present matching the wikilink provided."
 
     @property
-    def descriptor(self):
+    def descriptor(self) -> dict:
         return {
             "type": "function",
             "function": {

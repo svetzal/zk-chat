@@ -1,7 +1,7 @@
 from mojentic.llm.gateways.models import LLMMessage, MessageRole
 
 
-def rag_query(chat_session, zk, query):
+def rag_query(chat_session, zk, query) -> str:
     results = zk.query_excerpts(query, n_results=10, max_distance=1.0)
 
     for result in results:

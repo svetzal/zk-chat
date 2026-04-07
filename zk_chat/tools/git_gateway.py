@@ -96,7 +96,7 @@ class GitGateway:
         """
         return self._run_git_command(["git", "commit", "-m", message])
 
-    def setup(self):
+    def setup(self) -> None:
         # Create a .gitignore file if it does not exist
         gitignore_path = os.path.join(self.base_path, ".gitignore")
         if not os.path.exists(gitignore_path):
