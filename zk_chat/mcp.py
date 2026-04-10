@@ -11,7 +11,7 @@ from typing import Any
 import structlog
 import yaml
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
@@ -40,7 +40,7 @@ class MCPServer:
         index_service: IndexService,
         smart_memory: SmartMemory,
         enable_unsafe_operations: bool = False,
-        console_service: RichConsoleService | None = None,
+        console_service: ConsoleGateway | None = None,
     ):
         """
         Initialize the MCP server with required dependencies.
@@ -55,14 +55,14 @@ class MCPServer:
             SmartMemory instance needed for memory-related tools
         enable_unsafe_operations : bool, optional
             Flag to enable potentially unsafe operations like document creation, by default False
-        console_service : RichConsoleService | None, optional
-            Console service for tool output; defaults to a new RichConsoleService instance
+        console_service : ConsoleGateway | None, optional
+            Console service for tool output; defaults to a new ConsoleGateway instance
         """
         self.document_service = document_service
         self.index_service = index_service
         self.smart_memory = smart_memory
         self.enable_unsafe_operations = enable_unsafe_operations
-        self.console_service = console_service or RichConsoleService()
+        self.console_service = console_service or ConsoleGateway()
         self.tools = {}
 
         self._register_tools()

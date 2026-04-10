@@ -53,20 +53,20 @@ class DescribeVerifyHttpServer:
 
     def should_return_true_when_server_reachable(self):
         server_config = MCPServerConfig(name="test-server", server_type=MCPServerType.HTTP, url="http://localhost:8080")
-        mock_response = Mock(spec=requests.Response)
-        mock_response.status_code = 200
+        response = requests.Response()
+        response.status_code = 200
 
-        with patch("requests.get", return_value=mock_response):
+        with patch("requests.get", return_value=response):
             result = verify_http_server(server_config)
 
         assert result is True
 
     def should_return_false_when_non_200_status(self):
         server_config = MCPServerConfig(name="test-server", server_type=MCPServerType.HTTP, url="http://localhost:8080")
-        mock_response = Mock(spec=requests.Response)
-        mock_response.status_code = 404
+        response = requests.Response()
+        response.status_code = 404
 
-        with patch("requests.get", return_value=mock_response):
+        with patch("requests.get", return_value=response):
             result = verify_http_server(server_config)
 
         assert result is False
@@ -110,10 +110,10 @@ class DescribeVerifyMcpServer:
 
     def should_verify_http_server(self):
         server_config = MCPServerConfig(name="test-server", server_type=MCPServerType.HTTP, url="http://localhost:8080")
-        mock_response = Mock(spec=requests.Response)
-        mock_response.status_code = 200
+        response = requests.Response()
+        response.status_code = 200
 
-        with patch("requests.get", return_value=mock_response):
+        with patch("requests.get", return_value=response):
             result = verify_mcp_server(server_config)
 
         assert result is True

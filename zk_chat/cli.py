@@ -11,7 +11,7 @@ from zk_chat.config_resolution import (
     resolve_vault_from_args,
     validate_gateway_selection,
 )
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.global_config import GlobalConfig
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.index import reindex
@@ -33,7 +33,7 @@ def get_version() -> str:
 
 def display_banner(config, title: str, unsafe=False, use_git=False, store_prompt=True) -> None:
     """Display a colorful banner with application information."""
-    console_service = RichConsoleService()
+    console_service = ConsoleGateway()
     console = console_service.get_console()
 
     console.print(f"\n[banner.title]{title} v{get_version()}[/]")

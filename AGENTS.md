@@ -127,6 +127,15 @@ Follow a Behavior-Driven Development (BDD) style using the "Describe/should" pat
 - Mocking:
   - Use Mock with `spec` parameter for type safety (e.g., `Mock(spec=SmartMemory)`)
   - Only mock gateway classes; do not mock library internals or private functions
+  - Gateway classes are: `ChromaGateway`, `ConfigGateway`, `GlobalConfigGateway`, `GitGateway`,
+    `MarkdownFilesystemGateway`, `TokenizerGateway`, `OllamaGateway`, `OpenAIGateway`, `ConsoleGateway`
+  - For services that wrap gateways (e.g. `VectorDatabase`, `SmartMemory`, `IndexService`), construct
+    them for real in tests and inject mocked gateway dependencies into them — do not mock the service itself
+  - Use real `LLMBroker(model="test", gateway=Mock(spec=OllamaGateway))` rather than `Mock(spec=LLMBroker)`
+  - In gateway spec files (e.g. `chroma_gateway_spec.py`, `console_service_spec.py`), mocking the
+    underlying library object (e.g. `Collection`, `Console`) is acceptable — those files exist specifically
+    to verify the library boundary is called correctly
+  - Use `requests.Response()` with `status_code` set directly rather than `Mock(spec=requests.Response)`
 
 #### Best Practices
 - Place instantiation/initialization tests first

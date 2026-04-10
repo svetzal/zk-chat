@@ -1,7 +1,7 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.tools.tool_helpers import check_document_exists
 
@@ -9,7 +9,7 @@ logger = structlog.get_logger()
 
 
 class DeleteZkDocument(LLMTool):
-    def __init__(self, document_service: DocumentService, console_service: RichConsoleService):
+    def __init__(self, document_service: DocumentService, console_service: ConsoleGateway):
         self.document_service = document_service
         self.console_service = console_service
 

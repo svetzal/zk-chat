@@ -6,10 +6,12 @@ from datetime import datetime, timedelta
 from unittest.mock import Mock
 
 import pytest
+from mojentic.llm.gateways import OllamaGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
+from zk_chat.chroma_collections import ZkCollectionName
+from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
-from zk_chat.models import QueryResult, VectorDocumentForStorage
 from zk_chat.services.index_service import IndexService, IndexStats
 from zk_chat.vector_database import VectorDatabase
 
@@ -20,13 +22,38 @@ def mock_tokenizer():
 
 
 @pytest.fixture
-def mock_excerpts_db():
-    return Mock(spec=VectorDatabase)
+def mock_chroma_excerpts():
+    return Mock(spec=ChromaGateway)
 
 
 @pytest.fixture
-def mock_documents_db():
-    return Mock(spec=VectorDatabase)
+def mock_chroma_documents():
+    return Mock(spec=ChromaGateway)
+
+
+@pytest.fixture
+def mock_model_gateway():
+    gateway = Mock(spec=OllamaGateway)
+    gateway.calculate_embeddings.return_value = [0.1, 0.2, 0.3]
+    return gateway
+
+
+@pytest.fixture
+def excerpts_db(mock_chroma_excerpts, mock_model_gateway):
+    return VectorDatabase(
+        chroma_gateway=mock_chroma_excerpts,
+        gateway=mock_model_gateway,
+        collection_name=ZkCollectionName.EXCERPTS,
+    )
+
+
+@pytest.fixture
+def documents_db(mock_chroma_documents, mock_model_gateway):
+    return VectorDatabase(
+        chroma_gateway=mock_chroma_documents,
+        gateway=mock_model_gateway,
+        collection_name=ZkCollectionName.DOCUMENTS,
+    )
 
 
 @pytest.fixture
@@ -35,11 +62,11 @@ def mock_filesystem():
 
 
 @pytest.fixture
-def index_service(mock_tokenizer, mock_excerpts_db, mock_documents_db, mock_filesystem):
+def index_service(mock_tokenizer, excerpts_db, documents_db, mock_filesystem):
     return IndexService(
         tokenizer_gateway=mock_tokenizer,
-        excerpts_db=mock_excerpts_db,
-        documents_db=mock_documents_db,
+        excerpts_db=excerpts_db,
+        documents_db=documents_db,
         filesystem_gateway=mock_filesystem,
     )
 
@@ -59,33 +86,33 @@ class DescribeIndexService:
         return ({"title": "Test Document", "tags": ["test"]}, "# Test Document\n\nThis is test content for indexing.")
 
     def should_be_instantiated_with_required_dependencies(
-        self, mock_tokenizer, mock_excerpts_db, mock_documents_db, mock_filesystem
+        self, mock_tokenizer, excerpts_db, documents_db, mock_filesystem
     ):
         service = IndexService(
             tokenizer_gateway=mock_tokenizer,
-            excerpts_db=mock_excerpts_db,
-            documents_db=mock_documents_db,
+            excerpts_db=excerpts_db,
+            documents_db=documents_db,
             filesystem_gateway=mock_filesystem,
         )
 
         assert isinstance(service, IndexService)
         assert service.tokenizer_gateway == mock_tokenizer
-        assert service.excerpts_db == mock_excerpts_db
-        assert service.documents_db == mock_documents_db
+        assert service.excerpts_db == excerpts_db
+        assert service.documents_db == documents_db
         assert service.filesystem_gateway == mock_filesystem
 
     def should_reindex_all_documents(
-        self, index_service, mock_filesystem, mock_excerpts_db, mock_documents_db, sample_document_data
+        self, index_service, mock_filesystem, mock_chroma_excerpts, mock_chroma_documents, sample_document_data
     ):
         mock_filesystem.iterate_markdown_files.return_value = ["doc1.md", "doc2.md"]
         mock_filesystem.read_markdown.return_value = sample_document_data
 
         index_service.reindex_all()
 
-        mock_excerpts_db.reset.assert_called_once()
-        mock_documents_db.reset.assert_called_once()
+        mock_chroma_excerpts.reset_indexes.assert_called_once_with(collection_name=ZkCollectionName.EXCERPTS)
+        mock_chroma_documents.reset_indexes.assert_called_once_with(collection_name=ZkCollectionName.DOCUMENTS)
         assert mock_filesystem.read_markdown.call_count == 2
-        assert mock_documents_db.add_documents.call_count == 2
+        assert mock_chroma_documents.add_items.call_count == 2
 
     def should_call_progress_callback_during_reindex(self, index_service, mock_filesystem, sample_document_data):
         mock_filesystem.iterate_markdown_files.return_value = ["doc1.md", "doc2.md"]
@@ -112,98 +139,137 @@ class DescribeIndexService:
         assert mock_filesystem.read_markdown.call_count == 1
         mock_filesystem.read_markdown.assert_called_with("new.md")
 
-    def should_index_single_document(self, index_service, mock_filesystem, mock_documents_db, sample_document_data):
+    def should_index_single_document(
+        self, index_service, mock_filesystem, mock_chroma_documents, sample_document_data
+    ):
         mock_filesystem.read_markdown.return_value = sample_document_data
 
         index_service.index_document("test.md")
 
         mock_filesystem.read_markdown.assert_called_once_with("test.md")
-        mock_documents_db.add_documents.assert_called_once()
+        mock_chroma_documents.add_items.assert_called_once()
 
-    def should_skip_empty_documents_during_indexing(self, index_service, mock_filesystem, mock_documents_db):
+    def should_skip_empty_documents_during_indexing(
+        self, index_service, mock_filesystem, mock_chroma_documents
+    ):
         mock_filesystem.read_markdown.return_value = ({}, "")
 
         index_service.index_document("empty.md")
 
-        mock_documents_db.add_documents.assert_not_called()
+        mock_chroma_documents.add_items.assert_not_called()
 
 
 class DescribeIndexServiceQueries:
     """Tests for query functionality in IndexService."""
 
     @pytest.fixture
-    def sample_excerpt_result(self):
-        return QueryResult(
-            document=VectorDocumentForStorage(
-                id="excerpt1", content="This is an excerpt", metadata={"id": "doc1.md", "title": "Test Document"}
-            ),
-            distance=0.5,
-        )
+    def mock_chroma_excerpts_with_results(self):
+        chroma = Mock(spec=ChromaGateway)
+        chroma.query.return_value = {
+            "ids": [["excerpt1"]],
+            "documents": [["This is an excerpt"]],
+            "metadatas": [[{"id": "doc1.md", "title": "Test Document"}]],
+            "distances": [[0.5]],
+        }
+        return chroma
 
     @pytest.fixture
-    def sample_document_result(self):
-        return QueryResult(
-            document=VectorDocumentForStorage(
-                id="doc1.md", content="Full document content", metadata={"id": "doc1.md", "title": "Test Document"}
-            ),
-            distance=0.3,
+    def mock_chroma_documents_with_results(self):
+        chroma = Mock(spec=ChromaGateway)
+        chroma.query.return_value = {
+            "ids": [["doc1.md"]],
+            "documents": [["Full document content"]],
+            "metadatas": [[{"id": "doc1.md", "title": "Test Document"}]],
+            "distances": [[0.3]],
+        }
+        return chroma
+
+    @pytest.fixture
+    def mock_gateway(self):
+        gateway = Mock(spec=OllamaGateway)
+        gateway.calculate_embeddings.return_value = [0.1, 0.2, 0.3]
+        return gateway
+
+    @pytest.fixture
+    def index_service_with_results(
+        self,
+        mock_tokenizer,
+        mock_chroma_excerpts_with_results,
+        mock_chroma_documents_with_results,
+        mock_gateway,
+        mock_filesystem,
+    ):
+        excerpts_db = VectorDatabase(mock_chroma_excerpts_with_results, mock_gateway, ZkCollectionName.EXCERPTS)
+        documents_db = VectorDatabase(mock_chroma_documents_with_results, mock_gateway, ZkCollectionName.DOCUMENTS)
+        return IndexService(
+            tokenizer_gateway=mock_tokenizer,
+            excerpts_db=excerpts_db,
+            documents_db=documents_db,
+            filesystem_gateway=mock_filesystem,
         )
 
-    def should_query_excerpts_with_distance_filter(self, index_service, mock_excerpts_db, sample_excerpt_result):
-        mock_excerpts_db.query.return_value = [sample_excerpt_result]
+    def should_query_excerpts_with_distance_filter(
+        self, index_service_with_results, mock_chroma_excerpts_with_results
+    ):
+        results = index_service_with_results.query_excerpts("test query", n_results=5, max_distance=1.0)
 
-        results = index_service.query_excerpts("test query", n_results=5, max_distance=1.0)
-
-        mock_excerpts_db.query.assert_called_once_with("test query", n_results=5)
+        mock_chroma_excerpts_with_results.query.assert_called_once()
         assert len(results) == 1
         assert results[0].excerpt.document_id == "doc1.md"
         assert results[0].distance == 0.5
 
-    def should_filter_excerpts_by_max_distance(self, index_service, mock_excerpts_db):
-        far_result = QueryResult(
-            document=VectorDocumentForStorage(
-                id="excerpt1", content="Far excerpt", metadata={"id": "doc1.md", "title": "Test"}
-            ),
-            distance=2.0,
-        )
-        mock_excerpts_db.query.return_value = [far_result]
+    def should_filter_excerpts_by_max_distance(
+        self, mock_tokenizer, mock_filesystem, mock_gateway
+    ):
+        chroma = Mock(spec=ChromaGateway)
+        chroma.query.return_value = {
+            "ids": [["excerpt1"]],
+            "documents": [["Far excerpt"]],
+            "metadatas": [[{"id": "doc1.md", "title": "Test"}]],
+            "distances": [[2.0]],
+        }
+        excerpts_db = VectorDatabase(chroma, mock_gateway, ZkCollectionName.EXCERPTS)
+        documents_db = VectorDatabase(Mock(spec=ChromaGateway), mock_gateway, ZkCollectionName.DOCUMENTS)
+        service = IndexService(mock_tokenizer, excerpts_db, documents_db, mock_filesystem)
 
-        results = index_service.query_excerpts("test query", max_distance=1.0)
+        results = service.query_excerpts("test query", max_distance=1.0)
 
         assert len(results) == 0
 
     def should_query_documents_and_read_full_content(
-        self, index_service, mock_documents_db, mock_filesystem, sample_document_result
+        self, index_service_with_results, mock_filesystem
     ):
-        mock_documents_db.query.return_value = [sample_document_result]
         mock_filesystem.read_markdown.return_value = ({"title": "Test Document"}, "Full document content")
 
-        results = index_service.query_documents("test query", n_results=3)
+        results = index_service_with_results.query_documents("test query", n_results=3)
 
-        mock_documents_db.query.assert_called_once_with("test query", n_results=3)
         assert len(results) == 1
         assert results[0].document.content == "Full document content"
 
     def should_skip_missing_documents_in_query_results(
-        self, index_service, mock_documents_db, mock_filesystem, sample_document_result
+        self, index_service_with_results, mock_filesystem
     ):
-        mock_documents_db.query.return_value = [sample_document_result]
         mock_filesystem.read_markdown.side_effect = FileNotFoundError("Not found")
 
-        results = index_service.query_documents("test query")
+        results = index_service_with_results.query_documents("test query")
 
         assert len(results) == 0
 
-    def should_filter_documents_by_max_distance(self, index_service, mock_documents_db, mock_filesystem):
-        far_result = QueryResult(
-            document=VectorDocumentForStorage(
-                id="doc1.md", content="Far document", metadata={"id": "doc1.md", "title": "Test"}
-            ),
-            distance=2.0,
-        )
-        mock_documents_db.query.return_value = [far_result]
+    def should_filter_documents_by_max_distance(
+        self, mock_tokenizer, mock_filesystem, mock_gateway
+    ):
+        chroma = Mock(spec=ChromaGateway)
+        chroma.query.return_value = {
+            "ids": [["doc1.md"]],
+            "documents": [["Far document"]],
+            "metadatas": [[{"id": "doc1.md", "title": "Test"}]],
+            "distances": [[2.0]],
+        }
+        excerpts_db = VectorDatabase(Mock(spec=ChromaGateway), mock_gateway, ZkCollectionName.EXCERPTS)
+        documents_db = VectorDatabase(chroma, mock_gateway, ZkCollectionName.DOCUMENTS)
+        service = IndexService(mock_tokenizer, excerpts_db, documents_db, mock_filesystem)
 
-        results = index_service.query_documents("test query", max_distance=1.0)
+        results = service.query_documents("test query", max_distance=1.0)
 
         assert len(results) == 0
 
@@ -236,7 +302,7 @@ class DescribeIndexServiceDocumentSplitting:
     """Tests for document splitting functionality in IndexService."""
 
     def should_split_large_documents_into_excerpts(
-        self, index_service, mock_tokenizer, mock_excerpts_db, mock_filesystem
+        self, index_service, mock_tokenizer, mock_chroma_excerpts, mock_filesystem
     ):
         mock_tokenizer.encode.return_value = list(range(1000))
         mock_tokenizer.decode.return_value = "decoded excerpt text"
@@ -250,10 +316,10 @@ class DescribeIndexServiceDocumentSplitting:
         # Should have called decode for each chunk
         assert mock_tokenizer.decode.call_count > 1
         # Should add excerpts to the index
-        mock_excerpts_db.add_documents.assert_called()
+        mock_chroma_excerpts.add_items.assert_called()
 
     def should_use_custom_excerpt_size_and_overlap(
-        self, index_service, mock_tokenizer, mock_filesystem, mock_excerpts_db
+        self, index_service, mock_tokenizer, mock_filesystem, mock_chroma_excerpts
     ):
         mock_tokenizer.encode.return_value = list(range(300))  # 300 tokens
         mock_tokenizer.decode.return_value = "decoded"

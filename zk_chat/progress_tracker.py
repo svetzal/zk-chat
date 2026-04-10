@@ -157,8 +157,8 @@ class ProgressTracker:
 class IndexingProgressTracker(ProgressTracker):
     """Specialized progress tracker for document indexing operations."""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, console: Console | None = None):
+        super().__init__(console=console)
         self._last_processed_count = 0
 
     def start_scanning(self, description: str = "Scanning vault for markdown files...") -> None:

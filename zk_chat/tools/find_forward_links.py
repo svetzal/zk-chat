@@ -1,7 +1,7 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.link_traversal_service import LinkTraversalService
 from zk_chat.tools.tool_helpers import check_document_exists, format_model_results
@@ -14,7 +14,7 @@ class FindForwardLinks(LLMTool):
         self,
         document_service: DocumentService,
         link_service: LinkTraversalService,
-        console_service: RichConsoleService,
+        console_service: ConsoleGateway,
     ):
         self.document_service = document_service
         self.link_service = link_service

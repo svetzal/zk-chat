@@ -1,14 +1,14 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.tools.git_gateway import GitGateway
 
 logger = structlog.get_logger()
 
 
 class UncommittedChanges(LLMTool):
-    def __init__(self, base_path: str, git: GitGateway, console_service: RichConsoleService):
+    def __init__(self, base_path: str, git: GitGateway, console_service: ConsoleGateway):
         self.base_path = base_path
         self.git = git
         self.console_service = console_service

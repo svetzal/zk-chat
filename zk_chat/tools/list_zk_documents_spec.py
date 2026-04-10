@@ -2,7 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.tools.list_zk_documents import ListZkDocuments
@@ -15,7 +15,7 @@ def mock_filesystem():
 
 @pytest.fixture
 def mock_console_service():
-    return Mock(spec=RichConsoleService)
+    return Mock(spec=ConsoleGateway)
 
 
 @pytest.fixture

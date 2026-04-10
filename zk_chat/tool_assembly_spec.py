@@ -9,11 +9,14 @@ from unittest.mock import Mock
 import pytest
 from mojentic.llm import LLMBroker
 from mojentic.llm.gateways import OllamaGateway
+from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 from mojentic.llm.tools.current_datetime import CurrentDateTimeTool
 from mojentic.llm.tools.date_resolver import ResolveDateTool
 
-from zk_chat.config import Config
-from zk_chat.console_service import RichConsoleService
+from zk_chat.chroma_collections import ZkCollectionName
+from zk_chat.chroma_gateway import ChromaGateway
+from zk_chat.config import Config, ModelGateway
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.services.document_service import DocumentService
@@ -37,16 +40,19 @@ from zk_chat.tools.resolve_wikilink import ResolveWikiLink
 from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory
 from zk_chat.tools.store_in_smart_memory import StoreInSmartMemory
 from zk_chat.tools.uncommitted_changes import UncommittedChanges
+from zk_chat.vector_database import VectorDatabase
 
 _EXPECTED_TOOL_COUNT = 18
 
 
 @pytest.fixture
 def mock_config():
-    config = Mock(spec=Config)
-    config.visual_model = "llama3.2-vision"
-    config.vault = "/tmp/test-vault"
-    return config
+    return Config(
+        vault="/tmp/test-vault",
+        model="test-model",
+        gateway=ModelGateway.OLLAMA,
+        visual_model="llama3.2-vision",
+    )
 
 
 @pytest.fixture
@@ -60,18 +66,29 @@ def mock_llm(mock_gateway):
 
 
 @pytest.fixture
-def tools(mock_config, mock_gateway, mock_llm):
+def mock_filesystem():
+    return Mock(spec=MarkdownFilesystemGateway)
+
+
+@pytest.fixture
+def tools(mock_config, mock_gateway, mock_llm, mock_filesystem):
+    index_service = IndexService(
+        tokenizer_gateway=Mock(spec=TokenizerGateway),
+        excerpts_db=VectorDatabase(Mock(spec=ChromaGateway), mock_gateway, ZkCollectionName.EXCERPTS),
+        documents_db=VectorDatabase(Mock(spec=ChromaGateway), mock_gateway, ZkCollectionName.DOCUMENTS),
+        filesystem_gateway=mock_filesystem,
+    )
     return build_agent_tools(
         config=mock_config,
-        filesystem_gateway=Mock(spec=MarkdownFilesystemGateway),
-        document_service=Mock(spec=DocumentService),
-        index_service=Mock(spec=IndexService),
-        link_traversal_service=Mock(spec=LinkTraversalService),
+        filesystem_gateway=mock_filesystem,
+        document_service=DocumentService(mock_filesystem),
+        index_service=index_service,
+        link_traversal_service=LinkTraversalService(mock_filesystem),
         llm=mock_llm,
-        smart_memory=Mock(spec=SmartMemory),
+        smart_memory=SmartMemory(Mock(spec=ChromaGateway), mock_gateway),
         git_gateway=Mock(spec=GitGateway),
         gateway=mock_gateway,
-        console_service=Mock(spec=RichConsoleService),
+        console_service=Mock(spec=ConsoleGateway),
     )
 
 

@@ -1,14 +1,14 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.memory.smart_memory import SmartMemory
 
 logger = structlog.get_logger()
 
 
 class StoreInSmartMemory(LLMTool):
-    def __init__(self, smart_memory: SmartMemory, console_service: RichConsoleService):
+    def __init__(self, smart_memory: SmartMemory, console_service: ConsoleGateway):
         self.memory = smart_memory
         self.console_service = console_service
 

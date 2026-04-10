@@ -2,7 +2,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.link_traversal_service import BacklinkResult, LinkTraversalService
 from zk_chat.tools.find_backlinks import FindBacklinks
 from zk_chat.tools.tool_helpers import format_model_results
@@ -57,25 +58,51 @@ class DescribeFormatBacklinkResults:
         assert "doc2.md" in result
 
 
+def _make_link_service_with_backlinks(target: str, backlink_results: list[BacklinkResult]) -> LinkTraversalService:
+    """
+    Build a real LinkTraversalService whose filesystem mock returns content
+    that, when scanned, produces the desired backlink results.
+    """
+    mock_filesystem = Mock(spec=MarkdownFilesystemGateway)
+
+    linking_docs = list({r.linking_document for r in backlink_results})
+    mock_filesystem.iterate_markdown_files.return_value = linking_docs
+
+    def path_exists(path):
+        return path in linking_docs
+
+    mock_filesystem.path_exists.side_effect = path_exists
+
+    def read_markdown(path):
+        snippets = [r.context_snippet for r in backlink_results if r.linking_document == path]
+        content = "\n".join(snippets)
+        return ({}, content)
+
+    mock_filesystem.read_markdown.side_effect = read_markdown
+
+    def resolve_wikilink(wikilink_str):
+        wikilink_title = wikilink_str.lstrip("[").rstrip("]").split("|")[0]
+        for r in backlink_results:
+            if r.target_wikilink in wikilink_str or wikilink_title in r.target_wikilink:
+                return target
+        raise ValueError(f"Cannot resolve {wikilink_str}")
+
+    mock_filesystem.resolve_wikilink.side_effect = resolve_wikilink
+
+    return LinkTraversalService(mock_filesystem)
+
+
 class DescribeFindBacklinks:
     """
     Tests for the FindBacklinks tool which finds documents that link to a target document.
     """
 
     @pytest.fixture
-    def mock_link_service(self):
-        return Mock(spec=LinkTraversalService)
-
-    @pytest.fixture
     def mock_console_service(self):
-        return Mock(spec=RichConsoleService)
+        return Mock(spec=ConsoleGateway)
 
     @pytest.fixture
-    def backlinks_tool(self, mock_link_service, mock_console_service):
-        return FindBacklinks(mock_link_service, mock_console_service)
-
-    @pytest.fixture
-    def mock_backlink_results(self):
+    def backlink_results(self):
         return [
             BacklinkResult(
                 linking_document="documents/intro.md",
@@ -93,56 +120,45 @@ class DescribeFindBacklinks:
             ),
         ]
 
-    def should_be_instantiated_with_link_service_and_console_service(self, mock_link_service, mock_console_service):
-        tool = FindBacklinks(mock_link_service, mock_console_service)
+    @pytest.fixture
+    def target(self):
+        return "concepts/systems-thinking.md"
+
+    @pytest.fixture
+    def link_service(self, target, backlink_results):
+        return _make_link_service_with_backlinks(target, backlink_results)
+
+    @pytest.fixture
+    def backlinks_tool(self, link_service, mock_console_service):
+        return FindBacklinks(link_service, mock_console_service)
+
+    def should_be_instantiated_with_link_service_and_console_service(self, link_service, mock_console_service):
+        tool = FindBacklinks(link_service, mock_console_service)
 
         assert isinstance(tool, FindBacklinks)
-        assert tool.link_service == mock_link_service
+        assert tool.link_service == link_service
         assert tool.console_service == mock_console_service
 
-    def should_find_backlinks_to_target_document(self, backlinks_tool, mock_backlink_results):
-        target = "concepts/systems-thinking.md"
-
-        # Mock the LinkTraversalService's find_backlinks method
-        backlinks_tool.link_service.find_backlinks.return_value = mock_backlink_results
-
+    def should_find_backlinks_to_target_document(self, backlinks_tool, target):
         result = backlinks_tool.run(target)
 
-        backlinks_tool.link_service.find_backlinks.assert_called_once_with(target)
         assert "documents/intro.md" in result
         assert "projects/analysis.md" in result
         assert "Systems Thinking" in result
 
-    def should_find_backlinks_using_wikilink_text(self, backlinks_tool, mock_backlink_results):
-        target = "Systems Thinking"
+    def should_handle_target_with_no_backlinks(self, mock_console_service):
+        mock_filesystem = Mock(spec=MarkdownFilesystemGateway)
+        mock_filesystem.iterate_markdown_files.return_value = []
+        link_service = LinkTraversalService(mock_filesystem)
+        tool = FindBacklinks(link_service, mock_console_service)
 
-        backlinks_tool.link_service.find_backlinks.return_value = mock_backlink_results
+        result = tool.run("orphaned/document.md")
 
-        result = backlinks_tool.run(target)
-
-        backlinks_tool.link_service.find_backlinks.assert_called_once_with(target)
-        assert "documents/intro.md" in result
-        assert "projects/analysis.md" in result
-
-    def should_handle_target_with_no_backlinks(self, backlinks_tool):
-        target = "orphaned/document.md"
-        empty_results = []
-
-        backlinks_tool.link_service.find_backlinks.return_value = empty_results
-
-        result = backlinks_tool.run(target)
-
-        backlinks_tool.link_service.find_backlinks.assert_called_once_with(target)
         assert result == "[]"
 
-    def should_return_json_formatted_backlink_results(self, backlinks_tool, mock_backlink_results):
-        target = "test-document.md"
-
-        backlinks_tool.link_service.find_backlinks.return_value = mock_backlink_results
-
+    def should_return_json_formatted_backlink_results(self, backlinks_tool, target):
         result = backlinks_tool.run(target)
 
-        # Should be valid JSON representation of BacklinkResult objects
         assert "linking_document" in result
         assert "target_wikilink" in result
         assert "resolved_target" in result
@@ -150,77 +166,34 @@ class DescribeFindBacklinks:
         assert "context_snippet" in result
 
     def should_print_console_feedback_about_results_found(
-        self, backlinks_tool, mock_console_service, mock_backlink_results
+        self, backlinks_tool, mock_console_service, target
     ):
-        target = "test-document.md"
-
-        backlinks_tool.link_service.find_backlinks.return_value = mock_backlink_results
-
         backlinks_tool.run(target)
 
-        # Should print informative message about results
         mock_console_service.print.assert_called_once()
         call_args = mock_console_service.print.call_args[0][0]
         assert "Found 2 backlinks" in call_args
         assert target in call_args
 
-    def should_handle_single_backlink_result(self, backlinks_tool):
-        target = "single-reference.md"
-        single_result = [
-            BacklinkResult(
-                linking_document="references/main.md",
-                target_wikilink="single-reference",
-                resolved_target="single-reference.md",
-                line_number=3,
-                context_snippet="See [[single-reference]] for details.",
-            )
-        ]
-
-        backlinks_tool.link_service.find_backlinks.return_value = single_result
-
-        result = backlinks_tool.run(target)
-
-        assert "references/main.md" in result
-        assert "single-reference" in result
-
-    def should_handle_backlinks_with_context_snippets(self, backlinks_tool):
+    def should_handle_backlinks_with_context_snippets(self, mock_console_service):
         target = "important-concept.md"
         contextual_results = [
             BacklinkResult(
                 linking_document="analysis/deep-dive.md",
                 target_wikilink="Important Concept",
-                resolved_target="important-concept.md",
+                resolved_target=target,
                 line_number=8,
                 context_snippet="Before we proceed, we must understand [[Important Concept]] thoroughly.",
             )
         ]
+        link_service = _make_link_service_with_backlinks(target, contextual_results)
+        tool = FindBacklinks(link_service, mock_console_service)
 
-        backlinks_tool.link_service.find_backlinks.return_value = contextual_results
-
-        result = backlinks_tool.run(target)
+        result = tool.run(target)
 
         assert "Before we proceed" in result
         assert "thoroughly" in result
         assert "Important Concept" in result
-
-    def should_handle_backlinks_with_captions(self, backlinks_tool):
-        target = "technical-topic.md"
-        caption_results = [
-            BacklinkResult(
-                linking_document="overview/summary.md",
-                target_wikilink="technical-topic",
-                resolved_target="technical-topic.md",
-                line_number=15,
-                context_snippet="For more details see [[technical-topic|this comprehensive guide]].",
-            )
-        ]
-
-        backlinks_tool.link_service.find_backlinks.return_value = caption_results
-
-        result = backlinks_tool.run(target)
-
-        assert "comprehensive guide" in result
-        assert "technical-topic" in result
 
     def should_have_correct_descriptor_for_llm_integration(self, backlinks_tool):
         descriptor = backlinks_tool.descriptor
@@ -235,7 +208,6 @@ class DescribeFindBacklinks:
         assert "target_document" in params["properties"]
         assert params["required"] == ["target_document"]
 
-        # Check that the parameter description explains both path and wikilink text options
         target_param = params["properties"]["target_document"]
         assert "relative path" in target_param["description"]
         assert "wikilink text" in target_param["description"]

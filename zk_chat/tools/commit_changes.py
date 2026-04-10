@@ -3,7 +3,7 @@ from mojentic.llm import LLMBroker
 from mojentic.llm.gateways.models import LLMMessage
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.text_processing import strip_thinking
 from zk_chat.tools.git_gateway import GitGateway
 
@@ -15,7 +15,7 @@ class CommitChanges(LLMTool):
     llm: LLMBroker
     git: GitGateway
 
-    def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway, console_service: RichConsoleService):
+    def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway, console_service: ConsoleGateway):
         self.base_path = base_path
         self.llm = llm
         self.git = git

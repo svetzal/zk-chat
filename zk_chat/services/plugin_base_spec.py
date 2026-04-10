@@ -2,105 +2,144 @@ from unittest.mock import Mock
 
 import pytest
 
+from zk_chat.chroma_gateway import ChromaGateway
+from zk_chat.config import Config, ModelGateway
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
+from zk_chat.memory.smart_memory import SmartMemory
+from zk_chat.services.document_service import DocumentService
+from zk_chat.services.index_service import IndexService
+from zk_chat.services.link_traversal_service import LinkTraversalService
 from zk_chat.services.plugin_base import ZkChatPlugin
 from zk_chat.services.service_provider import ServiceProvider
-from zk_chat.services.service_registry import ServiceType
+from zk_chat.services.service_registry import ServiceRegistry, ServiceType
+from zk_chat.tools.git_gateway import GitGateway
+
+
+def _make_registry(services: dict) -> ServiceRegistry:
+    """Build a ServiceRegistry populated with the given ServiceType -> instance mappings."""
+    registry = ServiceRegistry()
+    for service_type, instance in services.items():
+        registry.register_service(service_type, instance)
+    return registry
 
 
 @pytest.fixture
-def mock_service_provider():
-    return Mock(spec=ServiceProvider)
+def registry():
+    return ServiceRegistry()
 
 
 @pytest.fixture
-def plugin(mock_service_provider):
-    return ZkChatPlugin(mock_service_provider)
+def service_provider(registry):
+    return ServiceProvider(registry)
+
+
+@pytest.fixture
+def plugin(service_provider):
+    return ZkChatPlugin(service_provider)
 
 
 class DescribeZkChatPlugin:
     """Tests for the ZkChatPlugin base class."""
 
-    def should_be_instantiated_with_service_provider(self, mock_service_provider):
-        plugin = ZkChatPlugin(mock_service_provider)
+    def should_be_instantiated_with_service_provider(self, service_provider):
+        plugin = ZkChatPlugin(service_provider)
 
         assert isinstance(plugin, ZkChatPlugin)
 
-    def should_expose_service_provider(self, plugin, mock_service_provider):
-        assert plugin.service_provider is mock_service_provider
+    def should_expose_service_provider(self, plugin, service_provider):
+        assert plugin.service_provider is service_provider
 
     class DescribeServiceProperties:
-        """Tests for service accessor properties."""
+        """Tests verifying the service accessor properties delegate through the provider."""
 
-        def should_delegate_filesystem_gateway_to_provider(self, plugin, mock_service_provider):
-            _ = plugin.filesystem_gateway
+        def should_return_filesystem_gateway_when_registered(self):
+            mock_fs = Mock(spec=MarkdownFilesystemGateway)
+            registry = _make_registry({ServiceType.FILESYSTEM_GATEWAY: mock_fs})
+            plugin = ZkChatPlugin(ServiceProvider(registry))
 
-            mock_service_provider.get_filesystem_gateway.assert_called_once()
+            result = plugin.filesystem_gateway
 
-        def should_delegate_llm_broker_to_provider(self, plugin, mock_service_provider):
-            _ = plugin.llm_broker
+            assert result is mock_fs
 
-            mock_service_provider.get_llm_broker.assert_called_once()
+        def should_return_none_for_filesystem_gateway_when_not_registered(self, plugin):
+            assert plugin.filesystem_gateway is None
 
-        def should_delegate_document_service_to_provider(self, plugin, mock_service_provider):
-            _ = plugin.document_service
+        def should_return_document_service_when_registered(self):
+            mock_ds = Mock(spec=DocumentService)
+            registry = _make_registry({ServiceType.DOCUMENT_SERVICE: mock_ds})
+            plugin = ZkChatPlugin(ServiceProvider(registry))
 
-            mock_service_provider.get_document_service.assert_called_once()
+            result = plugin.document_service
 
-        def should_delegate_index_service_to_provider(self, plugin, mock_service_provider):
-            _ = plugin.index_service
+            assert result is mock_ds
 
-            mock_service_provider.get_index_service.assert_called_once()
+        def should_return_index_service_when_registered(self):
+            mock_is = Mock(spec=IndexService)
+            registry = _make_registry({ServiceType.INDEX_SERVICE: mock_is})
+            plugin = ZkChatPlugin(ServiceProvider(registry))
 
-        def should_delegate_link_traversal_service_to_provider(self, plugin, mock_service_provider):
-            _ = plugin.link_traversal_service
+            result = plugin.index_service
 
-            mock_service_provider.get_link_traversal_service.assert_called_once()
+            assert result is mock_is
 
-        def should_delegate_smart_memory_to_provider(self, plugin, mock_service_provider):
-            _ = plugin.smart_memory
+        def should_return_link_traversal_service_when_registered(self):
+            mock_lts = Mock(spec=LinkTraversalService)
+            registry = _make_registry({ServiceType.LINK_TRAVERSAL_SERVICE: mock_lts})
+            plugin = ZkChatPlugin(ServiceProvider(registry))
 
-            mock_service_provider.get_smart_memory.assert_called_once()
+            result = plugin.link_traversal_service
 
-        def should_delegate_chroma_gateway_to_provider(self, plugin, mock_service_provider):
-            _ = plugin.chroma_gateway
+            assert result is mock_lts
 
-            mock_service_provider.get_chroma_gateway.assert_called_once()
+        def should_return_smart_memory_when_registered(self):
+            mock_sm = Mock(spec=SmartMemory)
+            registry = _make_registry({ServiceType.SMART_MEMORY: mock_sm})
+            plugin = ZkChatPlugin(ServiceProvider(registry))
 
-        def should_delegate_model_gateway_to_provider(self, plugin, mock_service_provider):
-            _ = plugin.model_gateway
+            result = plugin.smart_memory
 
-            mock_service_provider.get_model_gateway.assert_called_once()
+            assert result is mock_sm
 
-        def should_delegate_tokenizer_gateway_to_provider(self, plugin, mock_service_provider):
-            _ = plugin.tokenizer_gateway
+        def should_return_chroma_gateway_when_registered(self):
+            mock_chroma = Mock(spec=ChromaGateway)
+            registry = _make_registry({ServiceType.CHROMA_GATEWAY: mock_chroma})
+            plugin = ZkChatPlugin(ServiceProvider(registry))
 
-            mock_service_provider.get_tokenizer_gateway.assert_called_once()
+            result = plugin.chroma_gateway
 
-        def should_delegate_git_gateway_to_provider(self, plugin, mock_service_provider):
-            _ = plugin.git_gateway
+            assert result is mock_chroma
 
-            mock_service_provider.get_git_gateway.assert_called_once()
+        def should_return_git_gateway_when_registered(self):
+            mock_git = Mock(spec=GitGateway)
+            registry = _make_registry({ServiceType.GIT_GATEWAY: mock_git})
+            plugin = ZkChatPlugin(ServiceProvider(registry))
 
-        def should_delegate_config_to_provider(self, plugin, mock_service_provider):
-            _ = plugin.config
+            result = plugin.git_gateway
 
-            mock_service_provider.get_config.assert_called_once()
+            assert result is mock_git
+
+        def should_return_config_when_registered(self):
+            config = Config(vault="/test/vault", model="test", gateway=ModelGateway.OLLAMA)
+            registry = _make_registry({ServiceType.CONFIG: config})
+            plugin = ZkChatPlugin(ServiceProvider(registry))
+
+            result = plugin.config
+
+            assert result is config
 
     class DescribeVaultPath:
         """Tests for the vault_path property."""
 
-        def should_return_vault_from_config_when_config_exists(self, plugin, mock_service_provider):
-            mock_config = Mock()
-            mock_config.vault = "/path/to/vault"
-            mock_service_provider.get_config.return_value = mock_config
+        def should_return_vault_from_config_when_config_exists(self):
+            config = Config(vault="/path/to/vault", model="test", gateway=ModelGateway.OLLAMA)
+            registry = _make_registry({ServiceType.CONFIG: config})
+            plugin = ZkChatPlugin(ServiceProvider(registry))
 
             result = plugin.vault_path
 
             assert result == "/path/to/vault"
 
-        def should_return_none_when_config_is_none(self, plugin, mock_service_provider):
-            mock_service_provider.get_config.return_value = None
-
+        def should_return_none_when_config_is_none(self, plugin):
             result = plugin.vault_path
 
             assert result is None
@@ -108,30 +147,35 @@ class DescribeZkChatPlugin:
     class DescribeRequireService:
         """Tests for the require_service method."""
 
-        def should_delegate_to_service_provider(self, plugin, mock_service_provider):
+        def should_raise_when_service_not_registered(self, plugin):
+            try:
+                plugin.require_service(ServiceType.LLM_BROKER)
+                raise AssertionError("Should have raised RuntimeError")
+            except RuntimeError as e:
+                assert "llm_broker" in str(e)
+
+        def should_return_service_when_registered(self):
             mock_service = Mock()
-            mock_service_provider.require_service.return_value = mock_service
+            registry = _make_registry({ServiceType.LLM_BROKER: mock_service})
+            plugin = ZkChatPlugin(ServiceProvider(registry))
 
             result = plugin.require_service(ServiceType.LLM_BROKER)
 
-            mock_service_provider.require_service.assert_called_once_with(ServiceType.LLM_BROKER)
             assert result is mock_service
 
     class DescribeHasService:
         """Tests for the has_service method."""
 
-        def should_return_true_when_service_is_available(self, plugin, mock_service_provider):
-            mock_service_provider.has_service.return_value = True
+        def should_return_true_when_service_is_available(self):
+            mock_fs = Mock(spec=MarkdownFilesystemGateway)
+            registry = _make_registry({ServiceType.FILESYSTEM_GATEWAY: mock_fs})
+            plugin = ZkChatPlugin(ServiceProvider(registry))
 
-            result = plugin.has_service(ServiceType.LLM_BROKER)
+            result = plugin.has_service(ServiceType.FILESYSTEM_GATEWAY)
 
-            mock_service_provider.has_service.assert_called_once_with(ServiceType.LLM_BROKER)
             assert result is True
 
-        def should_return_false_when_service_is_not_available(self, plugin, mock_service_provider):
-            mock_service_provider.has_service.return_value = False
-
+        def should_return_false_when_service_is_not_available(self, plugin):
             result = plugin.has_service(ServiceType.GIT_GATEWAY)
 
-            mock_service_provider.has_service.assert_called_once_with(ServiceType.GIT_GATEWAY)
             assert result is False

@@ -2,27 +2,58 @@ import json
 from unittest.mock import Mock
 
 import pytest
+from mojentic.llm.gateways import OllamaGateway
+from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.chroma_collections import ZkCollectionName
+from zk_chat.chroma_gateway import ChromaGateway
+from zk_chat.console_service import ConsoleGateway
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.models import ZkDocumentExcerpt, ZkQueryExcerptResult
 from zk_chat.services.index_service import IndexService
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.tool_helpers import format_model_results
+from zk_chat.vector_database import VectorDatabase
 
 
-@pytest.fixture
-def mock_index_service():
-    return Mock(spec=IndexService)
+def _make_index_service(chroma_excerpts=None, chroma_documents=None, filesystem=None):
+    """Build a real IndexService with gateway mocks."""
+    gateway = Mock(spec=OllamaGateway)
+    gateway.calculate_embeddings.return_value = [0.1, 0.2, 0.3]
+
+    if chroma_excerpts is None:
+        chroma_excerpts = Mock(spec=ChromaGateway)
+    if chroma_documents is None:
+        chroma_documents = Mock(spec=ChromaGateway)
+    if filesystem is None:
+        filesystem = Mock(spec=MarkdownFilesystemGateway)
+
+    return IndexService(
+        tokenizer_gateway=Mock(spec=TokenizerGateway),
+        excerpts_db=VectorDatabase(chroma_excerpts, gateway, ZkCollectionName.EXCERPTS),
+        documents_db=VectorDatabase(chroma_documents, gateway, ZkCollectionName.DOCUMENTS),
+        filesystem_gateway=filesystem,
+    )
 
 
 @pytest.fixture
 def mock_console_service():
-    return Mock(spec=RichConsoleService)
+    return Mock(spec=ConsoleGateway)
 
 
 @pytest.fixture
-def find_excerpts_tool(mock_index_service, mock_console_service):
-    return FindExcerptsRelatedTo(mock_index_service, mock_console_service)
+def mock_chroma_excerpts():
+    return Mock(spec=ChromaGateway)
+
+
+@pytest.fixture
+def index_service(mock_chroma_excerpts):
+    return _make_index_service(chroma_excerpts=mock_chroma_excerpts)
+
+
+@pytest.fixture
+def find_excerpts_tool(index_service, mock_console_service):
+    return FindExcerptsRelatedTo(index_service, mock_console_service)
 
 
 class DescribeFormatExcerptResults:
@@ -72,22 +103,17 @@ class DescribeFormatExcerptResults:
 class DescribeFindExcerptsRelatedTo:
     """Tests for the FindExcerptsRelatedTo tool."""
 
-    def should_return_json_list_of_excerpt_results(self, find_excerpts_tool, mock_index_service):
-        mock_results = [
-            ZkQueryExcerptResult(
-                excerpt=ZkDocumentExcerpt(document_id="doc1", document_title="Test Doc 1", text="Sample text 1"),
-                distance=0.1,
-            ),
-            ZkQueryExcerptResult(
-                excerpt=ZkDocumentExcerpt(document_id="doc2", document_title="Test Doc 2", text="Sample text 2"),
-                distance=0.2,
-            ),
-        ]
-        mock_index_service.query_excerpts.return_value = mock_results
+    def should_return_json_list_of_excerpt_results(self, find_excerpts_tool, mock_chroma_excerpts):
+        mock_chroma_excerpts.query.return_value = {
+            "ids": [["excerpt1", "excerpt2"]],
+            "documents": [["Sample text 1", "Sample text 2"]],
+            "metadatas": [[{"id": "doc1", "title": "Test Doc 1"}, {"id": "doc2", "title": "Test Doc 2"}]],
+            "distances": [[0.1, 0.2]],
+        }
 
         result = find_excerpts_tool.run("test query")
 
-        mock_index_service.query_excerpts.assert_called_once()
+        mock_chroma_excerpts.query.assert_called_once()
         parsed_result = json.loads(result)
         assert len(parsed_result) == 2
         assert parsed_result[0]["excerpt"]["document_id"] == "doc1"

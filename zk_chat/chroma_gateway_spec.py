@@ -1,3 +1,5 @@
+# ChromaGateway wraps chromadb — Collection mocks are the library boundary this gateway abstracts.
+
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest

@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import pytest
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.list_zk_images import ListZkImages
 
@@ -15,7 +15,7 @@ def mock_filesystem():
 
 @pytest.fixture
 def mock_console_service():
-    return Mock(spec=RichConsoleService)
+    return Mock(spec=ConsoleGateway)
 
 
 @pytest.fixture

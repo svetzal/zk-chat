@@ -9,8 +9,8 @@ from zk_chat.upgraders.gateway_specific_last_indexed import GatewaySpecificLastI
 
 
 @pytest.fixture
-def mock_config():
-    return Mock(spec=Config)
+def config():
+    return Config(vault="/test/vault", model="test", gateway=ModelGateway.OLLAMA)
 
 
 @pytest.fixture
@@ -19,74 +19,78 @@ def mock_config_gateway():
 
 
 @pytest.fixture
-def upgrader(mock_config, mock_config_gateway):
-    return GatewaySpecificLastIndexed(mock_config, mock_config_gateway)
+def upgrader(config, mock_config_gateway):
+    return GatewaySpecificLastIndexed(config, mock_config_gateway)
 
 
 class DescribeGatewaySpecificLastIndexed:
-    def should_store_config_and_gateway_on_init(self, upgrader, mock_config, mock_config_gateway):
-        assert upgrader.config is mock_config
+    def should_store_config_and_gateway_on_init(self, upgrader, config, mock_config_gateway):
+        assert upgrader.config is config
         assert upgrader.config_gateway is mock_config_gateway
 
     class DescribeShouldRun:
         def should_return_true_when_last_indexed_set_and_no_gateway_last_indexed(
-            self, upgrader, mock_config
+            self, config, mock_config_gateway
         ):
-            mock_config.last_indexed = datetime(2024, 1, 1)
-            mock_config.gateway_last_indexed = {}
+            config.last_indexed = datetime(2024, 1, 1)
+            config.gateway_last_indexed = {}
+            upgrader = GatewaySpecificLastIndexed(config, mock_config_gateway)
 
             assert upgrader.should_run() is True
 
-        def should_return_false_when_last_indexed_is_none(self, upgrader, mock_config):
-            mock_config.last_indexed = None
-            mock_config.gateway_last_indexed = {}
+        def should_return_false_when_last_indexed_is_none(self, config, mock_config_gateway):
+            config.last_indexed = None
+            config.gateway_last_indexed = {}
+            upgrader = GatewaySpecificLastIndexed(config, mock_config_gateway)
 
             assert upgrader.should_run() is False
 
         def should_return_false_when_gateway_last_indexed_already_populated(
-            self, upgrader, mock_config
+            self, config, mock_config_gateway
         ):
-            mock_config.last_indexed = datetime(2024, 1, 1)
-            mock_config.gateway_last_indexed = {"ollama": datetime(2024, 1, 1)}
+            config.last_indexed = datetime(2024, 1, 1)
+            config.gateway_last_indexed = {"ollama": datetime(2024, 1, 1)}
+            upgrader = GatewaySpecificLastIndexed(config, mock_config_gateway)
 
             assert upgrader.should_run() is False
 
         def should_return_false_when_both_last_indexed_none_and_gateway_last_indexed_empty(
-            self, upgrader, mock_config
+            self, config, mock_config_gateway
         ):
-            mock_config.last_indexed = None
-            mock_config.gateway_last_indexed = {}
+            config.last_indexed = None
+            config.gateway_last_indexed = {}
+            upgrader = GatewaySpecificLastIndexed(config, mock_config_gateway)
 
             assert upgrader.should_run() is False
 
     class DescribeRun:
-        def should_call_set_last_indexed_with_existing_timestamp(
-            self, upgrader, mock_config, mock_config_gateway
+        def should_migrate_last_indexed_to_gateway_specific_storage(
+            self, config, mock_config_gateway
         ):
             test_timestamp = datetime(2024, 6, 15, 12, 0, 0)
-            mock_config.last_indexed = test_timestamp
-            mock_config.gateway = ModelGateway.OLLAMA
+            config.last_indexed = test_timestamp
+            upgrader = GatewaySpecificLastIndexed(config, mock_config_gateway)
 
             upgrader.run()
 
-            mock_config.set_last_indexed.assert_called_once_with(test_timestamp)
+            assert config.gateway_last_indexed[ModelGateway.OLLAMA.value] == test_timestamp
 
         def should_save_config_via_gateway_after_migration(
-            self, upgrader, mock_config, mock_config_gateway
+            self, config, mock_config_gateway
         ):
-            mock_config.last_indexed = datetime(2024, 6, 15)
-            mock_config.gateway = ModelGateway.OLLAMA
+            config.last_indexed = datetime(2024, 6, 15)
+            upgrader = GatewaySpecificLastIndexed(config, mock_config_gateway)
 
             upgrader.run()
 
-            mock_config_gateway.save.assert_called_once_with(mock_config)
+            mock_config_gateway.save.assert_called_once_with(config)
 
-        def should_not_call_set_last_indexed_when_last_indexed_is_none(
-            self, upgrader, mock_config, mock_config_gateway
+        def should_not_save_config_when_last_indexed_is_none(
+            self, config, mock_config_gateway
         ):
-            mock_config.last_indexed = None
+            config.last_indexed = None
+            upgrader = GatewaySpecificLastIndexed(config, mock_config_gateway)
 
             upgrader.run()
 
-            mock_config.set_last_indexed.assert_not_called()
             mock_config_gateway.save.assert_not_called()
