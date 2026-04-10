@@ -1,14 +1,14 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 
 logger = structlog.get_logger()
 
 
 class ListZkImages(LLMTool):
-    def __init__(self, fs: MarkdownFilesystemGateway, console_service: RichConsoleService):
+    def __init__(self, fs: MarkdownFilesystemGateway, console_service: ConsoleGateway):
         self.fs = fs
         self.console_service = console_service
 

@@ -1,5 +1,9 @@
 """
 Tests for MCP tool wrapper functionality.
+
+Client (from fastmcp) is the gateway boundary for MCP server communication.
+Mocking Mock(spec=Client) is acceptable here because MCPToolWrapper and
+MCPClientManager are themselves gateway classes that wrap the MCP protocol.
 """
 
 import asyncio

@@ -1,7 +1,7 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.models import ZkQueryExcerptResult
 from zk_chat.services.index_service import IndexService
 from zk_chat.tools.tool_helpers import format_model_results
@@ -10,7 +10,7 @@ logger = structlog.get_logger()
 
 
 class FindExcerptsRelatedTo(LLMTool):
-    def __init__(self, index_service: IndexService, console_service: RichConsoleService):
+    def __init__(self, index_service: IndexService, console_service: ConsoleGateway):
         self.index_service = index_service
         self.console_service = console_service
 

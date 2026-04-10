@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 from pydantic import BaseModel
 
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.tools.tool_helpers import check_document_exists, format_model_results
 
@@ -44,17 +45,19 @@ class DescribeFormatModelResults:
 
 class DescribeCheckDocumentExists:
     def should_return_none_when_document_exists(self):
-        mock_document_service = Mock(spec=DocumentService)
-        mock_document_service.document_exists.return_value = True
+        mock_filesystem = Mock(spec=MarkdownFilesystemGateway)
+        mock_filesystem.path_exists.return_value = True
+        document_service = DocumentService(mock_filesystem)
 
-        result = check_document_exists(mock_document_service, "notes/doc.md")
+        result = check_document_exists(document_service, "notes/doc.md")
 
         assert result is None
 
     def should_return_error_message_when_document_not_found(self):
-        mock_document_service = Mock(spec=DocumentService)
-        mock_document_service.document_exists.return_value = False
+        mock_filesystem = Mock(spec=MarkdownFilesystemGateway)
+        mock_filesystem.path_exists.return_value = False
+        document_service = DocumentService(mock_filesystem)
 
-        result = check_document_exists(mock_document_service, "notes/missing.md")
+        result = check_document_exists(document_service, "notes/missing.md")
 
         assert result == "Document not found at notes/missing.md"

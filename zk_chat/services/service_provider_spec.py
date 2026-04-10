@@ -5,8 +5,9 @@ Tests for the service provider system.
 from unittest.mock import Mock
 
 from mojentic.llm import LLMBroker
+from mojentic.llm.gateways import OllamaGateway
 
-from zk_chat.config import Config
+from zk_chat.config import Config, ModelGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.service_provider import ServiceProvider
 from zk_chat.services.service_registry import ServiceRegistry, ServiceType
@@ -78,23 +79,23 @@ class DescribeServiceProvider:
 
         def should_get_llm_broker_by_type(self):
             registry = ServiceRegistry()
-            mock_service = Mock(spec=LLMBroker)
-            registry.register_service(ServiceType.LLM_BROKER, mock_service)
+            llm_broker = LLMBroker(model="test", gateway=Mock(spec=OllamaGateway))
+            registry.register_service(ServiceType.LLM_BROKER, llm_broker)
             provider = ServiceProvider(registry)
 
             result = provider.get_llm_broker()
 
-            assert result is mock_service
+            assert result is llm_broker
 
         def should_get_config_by_type(self):
             registry = ServiceRegistry()
-            mock_service = Mock(spec=Config)
-            registry.register_service(ServiceType.CONFIG, mock_service)
+            config = Config(vault="/test/vault", model="test", gateway=ModelGateway.OLLAMA)
+            registry.register_service(ServiceType.CONFIG, config)
             provider = ServiceProvider(registry)
 
             result = provider.get_config()
 
-            assert result is mock_service
+            assert result is config
 
         def should_return_none_when_typed_service_not_registered(self):
             registry = ServiceRegistry()

@@ -6,51 +6,97 @@ import json
 from unittest.mock import Mock
 
 import pytest
+from mojentic.llm.gateways import OllamaGateway
+from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.chroma_collections import ZkCollectionName
+from zk_chat.chroma_gateway import ChromaGateway
+from zk_chat.console_service import ConsoleGateway
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.mcp import MCPServer, create_mcp_server
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
+from zk_chat.vector_database import VectorDatabase
+
+
+class _StubTool(LLMTool):
+    """Minimal concrete LLMTool implementation for use in tests."""
+
+    def __init__(self, return_value=None, side_effect=None):
+        super().__init__()
+        self._return_value = return_value
+        self._side_effect = side_effect
+        self.call_args = None
+
+    def run(self, **kwargs):
+        self.call_args = kwargs
+        if self._side_effect is not None:
+            raise self._side_effect
+        return self._return_value
+
+    @property
+    def descriptor(self):
+        return {
+            "type": "function",
+            "function": {"name": "stub_tool", "description": "Stub tool for testing", "parameters": {}},
+        }
 
 
 @pytest.fixture
-def mock_document_service():
-    return Mock(spec=DocumentService)
+def mock_filesystem():
+    return Mock(spec=MarkdownFilesystemGateway)
 
 
 @pytest.fixture
-def mock_index_service():
-    return Mock(spec=IndexService)
+def mock_model_gateway():
+    gateway = Mock(spec=OllamaGateway)
+    gateway.calculate_embeddings.return_value = [0.1, 0.2, 0.3]
+    return gateway
 
 
 @pytest.fixture
-def mock_smart_memory():
-    return Mock(spec=SmartMemory)
+def document_service(mock_filesystem):
+    return DocumentService(mock_filesystem)
+
+
+@pytest.fixture
+def index_service(mock_filesystem, mock_model_gateway):
+    return IndexService(
+        tokenizer_gateway=Mock(spec=TokenizerGateway),
+        excerpts_db=VectorDatabase(Mock(spec=ChromaGateway), mock_model_gateway, ZkCollectionName.EXCERPTS),
+        documents_db=VectorDatabase(Mock(spec=ChromaGateway), mock_model_gateway, ZkCollectionName.DOCUMENTS),
+        filesystem_gateway=mock_filesystem,
+    )
+
+
+@pytest.fixture
+def smart_memory(mock_model_gateway):
+    return SmartMemory(Mock(spec=ChromaGateway), mock_model_gateway)
 
 
 @pytest.fixture
 def mock_console_service():
-    return Mock(spec=RichConsoleService)
+    return Mock(spec=ConsoleGateway)
 
 
 @pytest.fixture
-def server(mock_document_service, mock_index_service, mock_smart_memory, mock_console_service):
+def server(document_service, index_service, smart_memory, mock_console_service):
     return MCPServer(
-        document_service=mock_document_service,
-        index_service=mock_index_service,
-        smart_memory=mock_smart_memory,
+        document_service=document_service,
+        index_service=index_service,
+        smart_memory=smart_memory,
         console_service=mock_console_service,
     )
 
 
 @pytest.fixture
-def unsafe_server(mock_document_service, mock_index_service, mock_smart_memory, mock_console_service):
+def unsafe_server(document_service, index_service, smart_memory, mock_console_service):
     return MCPServer(
-        document_service=mock_document_service,
-        index_service=mock_index_service,
-        smart_memory=mock_smart_memory,
+        document_service=document_service,
+        index_service=index_service,
+        smart_memory=smart_memory,
         enable_unsafe_operations=True,
         console_service=mock_console_service,
     )
@@ -61,12 +107,12 @@ class DescribeMCPServer:
 
     class DescribeInit:
         def should_be_instantiated_with_required_dependencies(
-            self, mock_document_service, mock_index_service, mock_smart_memory, mock_console_service
+            self, document_service, index_service, smart_memory, mock_console_service
         ):
             srv = MCPServer(
-                document_service=mock_document_service,
-                index_service=mock_index_service,
-                smart_memory=mock_smart_memory,
+                document_service=document_service,
+                index_service=index_service,
+                smart_memory=smart_memory,
                 console_service=mock_console_service,
             )
 
@@ -125,20 +171,18 @@ class DescribeMCPServer:
             assert "nonexistent_tool" in result["error"]
 
         def should_return_success_when_tool_executes(self, server):
-            mock_tool = Mock(spec=LLMTool)
-            mock_tool.run.return_value = "tool result"
-            server.tools["test_tool"] = mock_tool
+            stub_tool = _StubTool(return_value="tool result")
+            server.tools["test_tool"] = stub_tool
 
             result = server.execute_tool("test_tool", {"key": "value"})
 
             assert result["status"] == "success"
             assert result["result"] == "tool result"
-            mock_tool.run.assert_called_once_with(key="value")
+            assert stub_tool.call_args == {"key": "value"}
 
         def should_return_error_when_tool_raises_exception(self, server):
-            mock_tool = Mock(spec=LLMTool)
-            mock_tool.run.side_effect = ValueError("something broke")
-            server.tools["failing_tool"] = mock_tool
+            stub_tool = _StubTool(side_effect=ValueError("something broke"))
+            server.tools["failing_tool"] = stub_tool
 
             result = server.execute_tool("failing_tool", {})
 
@@ -177,9 +221,8 @@ class DescribeMCPServer:
             assert result["status"] == "error"
 
         def should_execute_tool_for_valid_tool_call_request(self, server):
-            mock_tool = Mock(spec=LLMTool)
-            mock_tool.run.return_value = "result data"
-            server.tools["my_tool"] = mock_tool
+            stub_tool = _StubTool(return_value="result data")
+            server.tools["my_tool"] = stub_tool
 
             result = server.process_request({"type": "tool_call", "tool": "my_tool", "parameters": {}})
 
@@ -212,22 +255,22 @@ class DescribeMCPServer:
 
 
 class DescribeCreateMcpServer:
-    def should_return_mcp_server_instance(self, mock_document_service, mock_index_service, mock_smart_memory):
+    def should_return_mcp_server_instance(self, document_service, index_service, smart_memory):
         srv = create_mcp_server(
-            document_service=mock_document_service,
-            index_service=mock_index_service,
-            smart_memory=mock_smart_memory,
+            document_service=document_service,
+            index_service=index_service,
+            smart_memory=smart_memory,
         )
 
         assert isinstance(srv, MCPServer)
 
     def should_create_server_with_unsafe_operations_disabled_by_default(
-        self, mock_document_service, mock_index_service, mock_smart_memory
+        self, document_service, index_service, smart_memory
     ):
         srv = create_mcp_server(
-            document_service=mock_document_service,
-            index_service=mock_index_service,
-            smart_memory=mock_smart_memory,
+            document_service=document_service,
+            index_service=index_service,
+            smart_memory=smart_memory,
         )
 
         assert srv.enable_unsafe_operations is False

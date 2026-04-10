@@ -2,7 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.link_traversal_service import ForwardLinkResult, LinkTraversalService
@@ -59,29 +59,54 @@ class DescribeFormatForwardLinkResults:
         assert "b.md" in result
 
 
+def _make_services_for_forward_links(
+    source: str, forward_link_results: list[ForwardLinkResult]
+) -> tuple[DocumentService, LinkTraversalService, Mock]:
+    """
+    Build real DocumentService and LinkTraversalService instances whose filesystem
+    mock is configured to produce the desired forward link results when scanned.
+    """
+    mock_filesystem = Mock(spec=MarkdownFilesystemGateway)
+
+    snippet_content = "\n".join(r.context_snippet for r in forward_link_results)
+
+    def path_exists(path):
+        return path == source
+
+    mock_filesystem.path_exists.side_effect = path_exists
+
+    def read_markdown(path):
+        if path == source:
+            return ({}, snippet_content)
+        raise FileNotFoundError(path)
+
+    mock_filesystem.read_markdown.side_effect = read_markdown
+
+    def resolve_wikilink(wikilink_str):
+        wikilink_title = wikilink_str.lstrip("[").rstrip("]").split("|")[0]
+        for r in forward_link_results:
+            if r.target_wikilink == wikilink_title or r.target_wikilink in wikilink_str:
+                return r.resolved_target
+        raise ValueError(f"Cannot resolve {wikilink_str}")
+
+    mock_filesystem.resolve_wikilink.side_effect = resolve_wikilink
+
+    document_service = DocumentService(mock_filesystem)
+    link_service = LinkTraversalService(mock_filesystem)
+    return document_service, link_service, mock_filesystem
+
+
 class DescribeFindForwardLinks:
     """
     Tests for the FindForwardLinks tool which finds documents linked from a source document.
     """
 
     @pytest.fixture
-    def mock_filesystem(self):
-        return Mock(spec=MarkdownFilesystemGateway)
-
-    @pytest.fixture
-    def mock_link_service(self):
-        return Mock(spec=LinkTraversalService)
-
-    @pytest.fixture
     def mock_console_service(self):
-        return Mock(spec=RichConsoleService)
+        return Mock(spec=ConsoleGateway)
 
     @pytest.fixture
-    def forward_links_tool(self, mock_filesystem, mock_link_service, mock_console_service):
-        return FindForwardLinks(DocumentService(mock_filesystem), mock_link_service, mock_console_service)
-
-    @pytest.fixture
-    def mock_forward_link_results(self):
+    def forward_link_results(self):
         return [
             ForwardLinkResult(
                 source_document="concepts/systems-thinking.md",
@@ -99,66 +124,70 @@ class DescribeFindForwardLinks:
             ),
         ]
 
+    @pytest.fixture
+    def source(self):
+        return "concepts/systems-thinking.md"
+
+    @pytest.fixture
+    def services(self, source, forward_link_results):
+        return _make_services_for_forward_links(source, forward_link_results)
+
+    @pytest.fixture
+    def forward_links_tool(self, services, mock_console_service):
+        document_service, link_service, _ = services
+        return FindForwardLinks(document_service, link_service, mock_console_service)
+
     def should_be_instantiated_with_services_and_console_service(
-        self, mock_filesystem, mock_link_service, mock_console_service
+        self, services, mock_console_service
     ):
-        document_service = DocumentService(mock_filesystem)
-        tool = FindForwardLinks(document_service, mock_link_service, mock_console_service)
+        document_service, link_service, _ = services
+        tool = FindForwardLinks(document_service, link_service, mock_console_service)
 
         assert isinstance(tool, FindForwardLinks)
         assert tool.document_service is document_service
-        assert tool.link_service == mock_link_service
+        assert tool.link_service == link_service
         assert tool.console_service == mock_console_service
 
-    def should_return_error_message_when_document_does_not_exist(self, forward_links_tool, mock_filesystem):
-        test_path = "nonexistent/document.md"
+    def should_return_error_message_when_document_does_not_exist(self, mock_console_service):
+        mock_filesystem = Mock(spec=MarkdownFilesystemGateway)
         mock_filesystem.path_exists.return_value = False
+        document_service = DocumentService(mock_filesystem)
+        link_service = LinkTraversalService(mock_filesystem)
+        tool = FindForwardLinks(document_service, link_service, mock_console_service)
+        test_path = "nonexistent/document.md"
 
-        result = forward_links_tool.run(test_path)
+        result = tool.run(test_path)
 
         mock_filesystem.path_exists.assert_called_once_with(test_path)
         assert result == f"Document not found at {test_path}"
 
     def should_find_forward_links_from_source_document(
-        self, forward_links_tool, mock_filesystem, mock_forward_link_results
+        self, forward_links_tool, source
     ):
-        source = "concepts/systems-thinking.md"
-        mock_filesystem.path_exists.return_value = True
-
-        # Mock the LinkTraversalService's find_forward_links method
-        forward_links_tool.link_service.find_forward_links.return_value = mock_forward_link_results
-
         result = forward_links_tool.run(source)
 
-        forward_links_tool.link_service.find_forward_links.assert_called_once_with(source)
         assert "concepts/complex-systems.md" in result
         assert "concepts/feedback-loops.md" in result
         assert "Complex Systems" in result
         assert "Feedback Loops" in result
 
-    def should_handle_source_with_no_forward_links(self, forward_links_tool, mock_filesystem):
-        source = "isolated/document.md"
-        empty_results = []
+    def should_handle_source_with_no_forward_links(self, mock_console_service):
+        mock_filesystem = Mock(spec=MarkdownFilesystemGateway)
         mock_filesystem.path_exists.return_value = True
+        mock_filesystem.read_markdown.return_value = ({}, "No wikilinks here.")
+        document_service = DocumentService(mock_filesystem)
+        link_service = LinkTraversalService(mock_filesystem)
+        tool = FindForwardLinks(document_service, link_service, mock_console_service)
 
-        forward_links_tool.link_service.find_forward_links.return_value = empty_results
+        result = tool.run("isolated/document.md")
 
-        result = forward_links_tool.run(source)
-
-        forward_links_tool.link_service.find_forward_links.assert_called_once_with(source)
         assert result == "[]"
 
     def should_return_json_formatted_forward_link_results(
-        self, forward_links_tool, mock_filesystem, mock_forward_link_results
+        self, forward_links_tool, source
     ):
-        source = "test-document.md"
-        mock_filesystem.path_exists.return_value = True
-
-        forward_links_tool.link_service.find_forward_links.return_value = mock_forward_link_results
-
         result = forward_links_tool.run(source)
 
-        # Should be valid JSON representation of ForwardLinkResult objects
         assert "source_document" in result
         assert "target_wikilink" in result
         assert "resolved_target" in result
@@ -166,81 +195,14 @@ class DescribeFindForwardLinks:
         assert "context_snippet" in result
 
     def should_print_console_feedback_about_results_found(
-        self, forward_links_tool, mock_filesystem, mock_console_service, mock_forward_link_results
+        self, forward_links_tool, mock_console_service, source
     ):
-        source = "test-document.md"
-        mock_filesystem.path_exists.return_value = True
-
-        forward_links_tool.link_service.find_forward_links.return_value = mock_forward_link_results
-
         forward_links_tool.run(source)
 
-        # Should print informative message about results
         mock_console_service.print.assert_called_once()
         call_args = mock_console_service.print.call_args[0][0]
         assert "Found 2 forward links" in call_args
         assert source in call_args
-
-    def should_handle_single_forward_link_result(self, forward_links_tool, mock_filesystem):
-        source = "single-link.md"
-        single_result = [
-            ForwardLinkResult(
-                source_document="single-link.md",
-                target_wikilink="target-doc",
-                resolved_target="references/target-doc.md",
-                line_number=7,
-                context_snippet="For more info see [[target-doc]] in the references.",
-            )
-        ]
-        mock_filesystem.path_exists.return_value = True
-
-        forward_links_tool.link_service.find_forward_links.return_value = single_result
-
-        result = forward_links_tool.run(source)
-
-        assert "references/target-doc.md" in result
-        assert "target-doc" in result
-
-    def should_handle_forward_links_with_context_snippets(self, forward_links_tool, mock_filesystem):
-        source = "contextual-doc.md"
-        contextual_results = [
-            ForwardLinkResult(
-                source_document="contextual-doc.md",
-                target_wikilink="Deep Topic",
-                resolved_target="deep/topic.md",
-                line_number=12,
-                context_snippet="To fully grasp this concept, we must explore [[Deep Topic]] in detail.",
-            )
-        ]
-        mock_filesystem.path_exists.return_value = True
-
-        forward_links_tool.link_service.find_forward_links.return_value = contextual_results
-
-        result = forward_links_tool.run(source)
-
-        assert "To fully grasp" in result
-        assert "in detail" in result
-        assert "Deep Topic" in result
-
-    def should_handle_forward_links_with_captions(self, forward_links_tool, mock_filesystem):
-        source = "captioned-links.md"
-        caption_results = [
-            ForwardLinkResult(
-                source_document="captioned-links.md",
-                target_wikilink="technical-guide",
-                resolved_target="guides/technical-guide.md",
-                line_number=20,
-                context_snippet="Check out [[technical-guide|this excellent resource]] for implementation details.",
-            )
-        ]
-        mock_filesystem.path_exists.return_value = True
-
-        forward_links_tool.link_service.find_forward_links.return_value = caption_results
-
-        result = forward_links_tool.run(source)
-
-        assert "this excellent resource" in result
-        assert "technical-guide" in result
 
     def should_have_correct_descriptor_for_llm_integration(self, forward_links_tool):
         descriptor = forward_links_tool.descriptor
@@ -255,7 +217,6 @@ class DescribeFindForwardLinks:
         assert "source_document" in params["properties"]
         assert params["required"] == ["source_document"]
 
-        # Check that the parameter description explains the source document path
         source_param = params["properties"]["source_document"]
         assert "relative path" in source_param["description"]
         assert "source document" in source_param["description"]

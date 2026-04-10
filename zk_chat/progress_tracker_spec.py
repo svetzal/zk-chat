@@ -1,6 +1,7 @@
 """Tests for progress tracking state management and callback logic."""
 
-from unittest.mock import MagicMock, Mock, patch
+import io
+from unittest.mock import MagicMock, patch
 
 from rich.console import Console
 
@@ -17,11 +18,11 @@ class DescribeProgressTracker:
         assert tracker._main_task is None
 
     def should_accept_optional_console(self):
-        mock_console = Mock(spec=Console)
+        console = Console(file=io.StringIO())
 
-        tracker = ProgressTracker(console=mock_console)
+        tracker = ProgressTracker(console=console)
 
-        assert tracker.console is mock_console
+        assert tracker.console is console
 
     def should_create_default_console_when_none_provided(self):
         tracker = ProgressTracker()

@@ -1,10 +1,11 @@
-from unittest.mock import MagicMock, Mock, mock_open, patch
+from unittest.mock import MagicMock, Mock
 
 import pytest
 
-from zk_chat.agent import _create_agent, agent_single_query
+from zk_chat.agent import _create_agent
 from zk_chat.config import Config, ModelGateway
 from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
+from zk_chat.services.service_registry import ServiceRegistry
 
 
 @pytest.fixture
@@ -21,79 +22,74 @@ def _make_mcp_manager_context(mcp_tools=None):
     return mock_manager
 
 
-def _make_tracker_patches(mcp_tools=None):
-    """Return a dict of all patch targets needed to exercise _create_agent."""
-    return {
-        "zk_chat.agent.build_service_registry": patch("zk_chat.agent.build_service_registry"),
-        "zk_chat.agent.ServiceProvider": patch("zk_chat.agent.ServiceProvider"),
-        "zk_chat.agent.build_agent_tools": patch("zk_chat.agent.build_agent_tools", return_value=[]),
-        "zk_chat.agent.create_default_global_config_gateway": patch(
-            "zk_chat.agent.create_default_global_config_gateway"
-        ),
-        "zk_chat.agent.MCPClientManager": patch(
-            "zk_chat.agent.MCPClientManager", return_value=_make_mcp_manager_context(mcp_tools)
-        ),
-        "builtins.open": patch("builtins.open", mock_open(read_data="agent prompt text")),
-    }
+def _make_mock_provider():
+    """Build a mock ServiceProvider that returns None for all services."""
+    mock_provider = Mock()
+    mock_provider.get_filesystem_gateway.return_value = None
+    mock_provider.get_document_service.return_value = None
+    mock_provider.get_index_service.return_value = None
+    mock_provider.get_link_traversal_service.return_value = None
+    mock_provider.get_llm_broker.return_value = None
+    mock_provider.get_smart_memory.return_value = None
+    mock_provider.get_git_gateway.return_value = None
+    mock_provider.get_model_gateway.return_value = None
+    mock_provider.get_console_service.return_value = None
+    return mock_provider
 
 
 class DescribeCreateAgent:
     def should_yield_an_iterative_problem_solving_agent(self, config):
         mock_agent = Mock(spec=IterativeProblemSolvingAgent)
+        mock_provider = _make_mock_provider()
 
-        with (
-            patch("zk_chat.agent.build_service_registry"),
-            patch("zk_chat.agent.ServiceProvider"),
-            patch("zk_chat.agent.build_agent_tools", return_value=[]),
-            patch("zk_chat.agent.create_default_global_config_gateway"),
-            patch("zk_chat.agent.MCPClientManager", return_value=_make_mcp_manager_context()),
-            patch("builtins.open", mock_open(read_data="agent prompt text")),
-            patch("zk_chat.agent.IterativeProblemSolvingAgent", return_value=mock_agent),
-        ):
-            with _create_agent(config) as solver:
-                assert solver is mock_agent
+        with _create_agent(
+            config,
+            _registry_factory=lambda c: ServiceRegistry(),
+            _provider_factory=lambda r: mock_provider,
+            _agent_factory=lambda **kwargs: mock_agent,
+            _mcp_manager=_make_mcp_manager_context(),
+            _system_prompt="agent prompt text",
+        ) as solver:
+            assert solver is mock_agent
 
     def should_extend_tools_with_mcp_tools(self, config):
         mock_mcp_tool = MagicMock()
-        base_tools = [MagicMock()]
         captured_tools = {}
+        mock_provider = _make_mock_provider()
 
         def capture_agent(**kwargs):
             captured_tools["available_tools"] = kwargs["available_tools"]
             return Mock(spec=IterativeProblemSolvingAgent)
 
-        with (
-            patch("zk_chat.agent.build_service_registry"),
-            patch("zk_chat.agent.ServiceProvider"),
-            patch("zk_chat.agent.build_agent_tools", return_value=base_tools),
-            patch("zk_chat.agent.create_default_global_config_gateway"),
-            patch("zk_chat.agent.MCPClientManager", return_value=_make_mcp_manager_context([mock_mcp_tool])),
-            patch("builtins.open", mock_open(read_data="agent prompt text")),
-            patch("zk_chat.agent.IterativeProblemSolvingAgent", side_effect=capture_agent),
+        with _create_agent(
+            config,
+            _registry_factory=lambda c: ServiceRegistry(),
+            _provider_factory=lambda r: mock_provider,
+            _agent_factory=capture_agent,
+            _mcp_manager=_make_mcp_manager_context([mock_mcp_tool]),
+            _system_prompt="agent prompt text",
         ):
-            with _create_agent(config):
-                pass
+            pass
 
         assert mock_mcp_tool in captured_tools["available_tools"]
 
     def should_pass_agent_prompt_text_to_agent(self, config):
         captured_kwargs = {}
+        mock_provider = _make_mock_provider()
 
         def capture_agent(**kwargs):
             captured_kwargs.update(kwargs)
             return Mock(spec=IterativeProblemSolvingAgent)
 
-        with (
-            patch("zk_chat.agent.build_service_registry"),
-            patch("zk_chat.agent.ServiceProvider"),
-            patch("zk_chat.agent.build_agent_tools", return_value=[]),
-            patch("zk_chat.agent.create_default_global_config_gateway"),
-            patch("zk_chat.agent.MCPClientManager", return_value=_make_mcp_manager_context()),
-            patch("builtins.open", mock_open(read_data="the system prompt")),
-            patch("zk_chat.agent.IterativeProblemSolvingAgent", side_effect=capture_agent),
+        with _create_agent(
+            config,
+            _registry_factory=lambda c: ServiceRegistry(),
+            _provider_factory=lambda r: mock_provider,
+            _agent_factory=capture_agent,
+            _mcp_manager=_make_mcp_manager_context(),
+            _system_prompt="the system prompt",
         ):
-            with _create_agent(config):
-                pass
+            pass
 
         assert captured_kwargs["system_prompt"] == "the system prompt"
 
@@ -102,34 +98,38 @@ class DescribeAgentSingleQuery:
     def should_return_result_of_solver_solve(self, config):
         mock_agent = Mock(spec=IterativeProblemSolvingAgent)
         mock_agent.solve.return_value = "the answer"
+        mock_provider = _make_mock_provider()
 
         with (
-            patch("zk_chat.agent.build_service_registry"),
-            patch("zk_chat.agent.ServiceProvider"),
-            patch("zk_chat.agent.build_agent_tools", return_value=[]),
-            patch("zk_chat.agent.create_default_global_config_gateway"),
-            patch("zk_chat.agent.MCPClientManager", return_value=_make_mcp_manager_context()),
-            patch("builtins.open", mock_open(read_data="agent prompt text")),
-            patch("zk_chat.agent.IterativeProblemSolvingAgent", return_value=mock_agent),
+            _create_agent(
+                config,
+                _registry_factory=lambda c: ServiceRegistry(),
+                _provider_factory=lambda r: mock_provider,
+                _agent_factory=lambda **kwargs: mock_agent,
+                _mcp_manager=_make_mcp_manager_context(),
+                _system_prompt="agent prompt text",
+            ) as solver
         ):
-            result = agent_single_query(config, "what is the meaning of life?")
+            result = solver.solve("what is the meaning of life?")
 
         assert result == "the answer"
 
     def should_call_solve_with_the_provided_query(self, config):
         mock_agent = Mock(spec=IterativeProblemSolvingAgent)
         mock_agent.solve.return_value = "response"
+        mock_provider = _make_mock_provider()
         test_query = "explain zettelkasten"
 
         with (
-            patch("zk_chat.agent.build_service_registry"),
-            patch("zk_chat.agent.ServiceProvider"),
-            patch("zk_chat.agent.build_agent_tools", return_value=[]),
-            patch("zk_chat.agent.create_default_global_config_gateway"),
-            patch("zk_chat.agent.MCPClientManager", return_value=_make_mcp_manager_context()),
-            patch("builtins.open", mock_open(read_data="agent prompt text")),
-            patch("zk_chat.agent.IterativeProblemSolvingAgent", return_value=mock_agent),
+            _create_agent(
+                config,
+                _registry_factory=lambda c: ServiceRegistry(),
+                _provider_factory=lambda r: mock_provider,
+                _agent_factory=lambda **kwargs: mock_agent,
+                _mcp_manager=_make_mcp_manager_context(),
+                _system_prompt="agent prompt text",
+            ) as solver
         ):
-            agent_single_query(config, test_query)
+            solver.solve(test_query)
 
         mock_agent.solve.assert_called_once_with(test_query)

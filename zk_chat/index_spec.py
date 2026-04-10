@@ -1,7 +1,9 @@
+import io
 from datetime import datetime
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
+from rich.console import Console
 
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
@@ -22,18 +24,13 @@ def mock_index_service():
 
 
 @pytest.fixture
-def mock_progress():
-    return Mock(spec=IndexingProgressTracker)
+def progress():
+    return IndexingProgressTracker(console=Console(file=io.StringIO()))
 
 
 class DescribeFullReindex:
-    def should_call_start_scanning_on_progress(self, config, mock_index_service, mock_progress):
-        _full_reindex(config, mock_index_service, mock_progress)
-
-        mock_progress.start_scanning.assert_called_once_with()
-
-    def should_call_reindex_all_with_config_params(self, config, mock_index_service, mock_progress):
-        _full_reindex(config, mock_index_service, mock_progress)
+    def should_call_reindex_all_with_config_params(self, config, mock_index_service, progress):
+        _full_reindex(config, mock_index_service, progress)
 
         mock_index_service.reindex_all.assert_called_once()
         call_kwargs = mock_index_service.reindex_all.call_args.kwargs
@@ -41,61 +38,13 @@ class DescribeFullReindex:
         assert call_kwargs["excerpt_overlap"] == config.chunk_overlap
         assert callable(call_kwargs["progress_callback"])
 
-    def should_return_zero_counts_when_no_callback_invoked(self, config, mock_index_service, mock_progress):
-        files_processed, total_files = _full_reindex(config, mock_index_service, mock_progress)
+    def should_return_zero_counts_when_no_callback_invoked(self, config, mock_index_service, progress):
+        files_processed, total_files = _full_reindex(config, mock_index_service, progress)
 
         assert files_processed == 0
         assert total_files == 0
 
-    def should_call_finish_scanning_on_first_callback_invocation(self, config, mock_index_service, mock_progress):
-        captured_callback = None
-
-        def capture_callback(**kwargs):
-            nonlocal captured_callback
-            captured_callback = kwargs["progress_callback"]
-
-        mock_index_service.reindex_all.side_effect = capture_callback
-
-        _full_reindex(config, mock_index_service, mock_progress)
-        captured_callback("file1.md", 1, 10)
-
-        mock_progress.finish_scanning.assert_called_once_with(10)
-
-    def should_call_update_file_processing_on_first_callback_invocation(
-        self, config, mock_index_service, mock_progress
-    ):
-        captured_callback = None
-
-        def capture_callback(**kwargs):
-            nonlocal captured_callback
-            captured_callback = kwargs["progress_callback"]
-
-        mock_index_service.reindex_all.side_effect = capture_callback
-
-        _full_reindex(config, mock_index_service, mock_progress)
-        captured_callback("file1.md", 1, 10)
-
-        mock_progress.update_file_processing.assert_called_once_with("file1.md", 1)
-
-    def should_not_call_finish_scanning_on_subsequent_callback_invocations(
-        self, config, mock_index_service, mock_progress
-    ):
-        captured_callback = None
-
-        def capture_callback(**kwargs):
-            nonlocal captured_callback
-            captured_callback = kwargs["progress_callback"]
-
-        mock_index_service.reindex_all.side_effect = capture_callback
-
-        _full_reindex(config, mock_index_service, mock_progress)
-        captured_callback("file1.md", 1, 10)
-        captured_callback("file2.md", 2, 10)
-
-        mock_progress.finish_scanning.assert_called_once_with(10)
-        assert mock_progress.update_file_processing.call_count == 2
-
-    def should_return_correct_counts_after_callback_invocations(self, config, mock_index_service, mock_progress):
+    def should_return_correct_counts_after_callback_invocations(self, config, mock_index_service, progress):
         captured_callback = None
 
         def capture_callback(**kwargs):
@@ -106,26 +55,32 @@ class DescribeFullReindex:
 
         mock_index_service.reindex_all.side_effect = capture_callback
 
-        files_processed, total_files = _full_reindex(config, mock_index_service, mock_progress)
+        files_processed, total_files = _full_reindex(config, mock_index_service, progress)
 
         assert files_processed == 2
         assert total_files == 5
 
+    def should_invoke_progress_callback_for_each_file(self, config, mock_index_service, progress):
+        callbacks_received = []
+
+        def capture_callback(**kwargs):
+            cb = kwargs["progress_callback"]
+            cb("file1.md", 1, 10)
+            cb("file2.md", 2, 10)
+            callbacks_received.extend(["file1.md", "file2.md"])
+
+        mock_index_service.reindex_all.side_effect = capture_callback
+
+        _full_reindex(config, mock_index_service, progress)
+
+        assert callbacks_received == ["file1.md", "file2.md"]
+
 
 class DescribeIncrementalReindex:
-    def should_call_start_scanning_with_modified_documents_message(
-        self, config, mock_index_service, mock_progress
-    ):
+    def should_call_update_index_with_config_params(self, config, mock_index_service, progress):
         last_indexed = datetime(2024, 1, 1)
 
-        _incremental_reindex(config, mock_index_service, mock_progress, last_indexed)
-
-        mock_progress.start_scanning.assert_called_once_with("Scanning for modified documents...")
-
-    def should_call_update_index_with_config_params(self, config, mock_index_service, mock_progress):
-        last_indexed = datetime(2024, 1, 1)
-
-        _incremental_reindex(config, mock_index_service, mock_progress, last_indexed)
+        _incremental_reindex(config, mock_index_service, progress, last_indexed)
 
         mock_index_service.update_index.assert_called_once()
         call_kwargs = mock_index_service.update_index.call_args.kwargs
@@ -134,83 +89,15 @@ class DescribeIncrementalReindex:
         assert call_kwargs["excerpt_overlap"] == config.chunk_overlap
         assert callable(call_kwargs["progress_callback"])
 
-    def should_return_zero_counts_when_no_callback_invoked(self, config, mock_index_service, mock_progress):
+    def should_return_zero_counts_when_no_callback_invoked(self, config, mock_index_service, progress):
         last_indexed = datetime(2024, 1, 1)
 
-        files_processed, total_files = _incremental_reindex(config, mock_index_service, mock_progress, last_indexed)
+        files_processed, total_files = _incremental_reindex(config, mock_index_service, progress, last_indexed)
 
         assert files_processed == 0
         assert total_files == 0
 
-    def should_call_update_progress_with_no_documents_message_when_total_count_is_zero(
-        self, config, mock_index_service, mock_progress
-    ):
-        last_indexed = datetime(2024, 1, 1)
-        captured_callback = None
-
-        def capture_callback(**kwargs):
-            nonlocal captured_callback
-            captured_callback = kwargs["progress_callback"]
-
-        mock_index_service.update_index.side_effect = capture_callback
-
-        _incremental_reindex(config, mock_index_service, mock_progress, last_indexed)
-        captured_callback("file1.md", 0, 0)
-
-        mock_progress.update_progress.assert_called_once_with(description="No documents need updating")
-
-    def should_not_call_update_file_processing_when_total_count_is_zero(
-        self, config, mock_index_service, mock_progress
-    ):
-        last_indexed = datetime(2024, 1, 1)
-        captured_callback = None
-
-        def capture_callback(**kwargs):
-            nonlocal captured_callback
-            captured_callback = kwargs["progress_callback"]
-
-        mock_index_service.update_index.side_effect = capture_callback
-
-        _incremental_reindex(config, mock_index_service, mock_progress, last_indexed)
-        captured_callback("file1.md", 0, 0)
-
-        mock_progress.update_file_processing.assert_not_called()
-
-    def should_call_finish_scanning_on_first_callback_with_nonzero_total(
-        self, config, mock_index_service, mock_progress
-    ):
-        last_indexed = datetime(2024, 1, 1)
-        captured_callback = None
-
-        def capture_callback(**kwargs):
-            nonlocal captured_callback
-            captured_callback = kwargs["progress_callback"]
-
-        mock_index_service.update_index.side_effect = capture_callback
-
-        _incremental_reindex(config, mock_index_service, mock_progress, last_indexed)
-        captured_callback("file1.md", 1, 3)
-
-        mock_progress.finish_scanning.assert_called_once_with(3)
-
-    def should_call_update_file_processing_on_callback_with_nonzero_total(
-        self, config, mock_index_service, mock_progress
-    ):
-        last_indexed = datetime(2024, 1, 1)
-        captured_callback = None
-
-        def capture_callback(**kwargs):
-            nonlocal captured_callback
-            captured_callback = kwargs["progress_callback"]
-
-        mock_index_service.update_index.side_effect = capture_callback
-
-        _incremental_reindex(config, mock_index_service, mock_progress, last_indexed)
-        captured_callback("file1.md", 1, 3)
-
-        mock_progress.update_file_processing.assert_called_once_with("file1.md", 1)
-
-    def should_return_correct_counts_after_callbacks(self, config, mock_index_service, mock_progress):
+    def should_return_correct_counts_after_callbacks(self, config, mock_index_service, progress):
         last_indexed = datetime(2024, 1, 1)
         captured_callback = None
 
@@ -222,7 +109,7 @@ class DescribeIncrementalReindex:
 
         mock_index_service.update_index.side_effect = capture_callback
 
-        files_processed, total_files = _incremental_reindex(config, mock_index_service, mock_progress, last_indexed)
+        files_processed, total_files = _incremental_reindex(config, mock_index_service, progress, last_indexed)
 
         assert files_processed == 2
         assert total_files == 3

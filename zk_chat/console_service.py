@@ -3,7 +3,7 @@ from rich.prompt import Prompt
 from rich.theme import Theme
 
 
-class RichConsoleService:
+class ConsoleGateway:
     """Service for consistent Rich Console usage throughout the application."""
 
     def __init__(self):
@@ -36,3 +36,6 @@ class RichConsoleService:
     def get_console(self) -> Console:
         """Get the underlying Console instance for advanced usage."""
         return self.console
+
+
+RichConsoleService = ConsoleGateway

@@ -4,7 +4,7 @@ import structlog
 import yaml
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.filename_utils import ensure_md_extension, sanitize_filename
 from zk_chat.models import ZkDocument
 from zk_chat.services.document_service import DocumentService
@@ -39,7 +39,7 @@ def prepare_document(title: str, content: str, metadata: dict[str, Any] | None =
 
 
 class CreateOrOverwriteZkDocument(LLMTool):
-    def __init__(self, document_service: DocumentService, console_service: RichConsoleService):
+    def __init__(self, document_service: DocumentService, console_service: ConsoleGateway):
         self.document_service = document_service
         self.console_service = console_service
 

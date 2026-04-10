@@ -12,7 +12,7 @@ from mojentic.llm.tools.date_resolver import ResolveDateTool
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.config import Config
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.services.document_service import DocumentService
@@ -47,7 +47,7 @@ def build_agent_tools(
     smart_memory: SmartMemory,
     git_gateway: GitGateway,
     gateway: OllamaGateway | OpenAIGateway,
-    console_service: RichConsoleService,
+    console_service: ConsoleGateway,
 ) -> list[LLMTool]:
     """
     Assemble the complete list of tools for the ZK Chat agent.
@@ -72,7 +72,7 @@ def build_agent_tools(
         Gateway for git operations (may be a no-op implementation)
     gateway : OllamaGateway | OpenAIGateway
         Raw model gateway used to create a visual LLM broker
-    console_service : RichConsoleService
+    console_service : ConsoleGateway
         Console service for tool status output
 
     Returns

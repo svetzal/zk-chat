@@ -1,5 +1,7 @@
+from collections.abc import Callable
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Any
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config
@@ -13,10 +15,37 @@ from zk_chat.tool_assembly import build_agent_tools
 
 
 @contextmanager
-def _create_agent(config: Config):
-    """Build a fully-wired IterativeProblemSolvingAgent from config."""
-    registry = build_service_registry(config)
-    provider = ServiceProvider(registry)
+def _create_agent(
+    config: Config,
+    _registry_factory: Callable[..., Any] | None = None,
+    _provider_factory: Callable[..., Any] | None = None,
+    _agent_factory: Callable[..., Any] | None = None,
+    _mcp_manager: Any | None = None,
+    _system_prompt: str | None = None,
+):
+    """Build a fully-wired IterativeProblemSolvingAgent from config.
+
+    Parameters
+    ----------
+    config : Config
+        Application configuration
+    _registry_factory : callable, optional
+        Injectable factory for service registry (for testing)
+    _provider_factory : callable, optional
+        Injectable factory for service provider (for testing)
+    _agent_factory : callable, optional
+        Injectable factory for the agent (for testing)
+    _mcp_manager : context manager, optional
+        Injectable MCP client manager (for testing)
+    _system_prompt : str, optional
+        Injectable system prompt text (for testing)
+    """
+    registry_factory = _registry_factory or build_service_registry
+    provider_factory = _provider_factory or ServiceProvider
+    agent_factory = _agent_factory or IterativeProblemSolvingAgent
+
+    registry = registry_factory(config)
+    provider = provider_factory(registry)
 
     tools = build_agent_tools(
         config=config,
@@ -31,14 +60,22 @@ def _create_agent(config: Config):
         console_service=provider.get_console_service(),
     )
 
-    with MCPClientManager(create_default_global_config_gateway()) as mcp_manager:
+    if _mcp_manager is not None:
+        mcp_ctx = _mcp_manager
+    else:
+        mcp_ctx = MCPClientManager(create_default_global_config_gateway())
+
+    with mcp_ctx as mcp_manager:
         tools.extend(mcp_manager.get_tools())
 
-        agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
-        with open(agent_prompt_path) as f:
-            agent_prompt = f.read()
+        if _system_prompt is not None:
+            agent_prompt = _system_prompt
+        else:
+            agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
+            with open(agent_prompt_path) as f:
+                agent_prompt = f.read()
 
-        yield IterativeProblemSolvingAgent(
+        yield agent_factory(
             llm=provider.get_llm_broker(),
             available_tools=tools,
             system_prompt=agent_prompt,

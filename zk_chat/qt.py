@@ -28,7 +28,7 @@ from PySide6.QtWidgets import (
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.gateway_defaults import create_default_config_gateway, create_default_global_config_gateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.model_selection import get_available_models
@@ -406,7 +406,7 @@ class MainWindow(QMainWindow):
         document_service = provider.get_document_service()
         index_service = provider.get_index_service()
         chat_llm = provider.get_llm_broker()
-        console_service = RichConsoleService()
+        console_service = ConsoleGateway()
 
         # Initialize tools list with basic tools
         tools = [

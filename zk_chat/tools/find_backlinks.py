@@ -1,7 +1,7 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.services.link_traversal_service import LinkTraversalService
 from zk_chat.tools.tool_helpers import format_model_results
 
@@ -9,7 +9,7 @@ logger = structlog.get_logger()
 
 
 class FindBacklinks(LLMTool):
-    def __init__(self, link_service: LinkTraversalService, console_service: RichConsoleService):
+    def __init__(self, link_service: LinkTraversalService, console_service: ConsoleGateway):
         self.link_service = link_service
         self.console_service = console_service
 
