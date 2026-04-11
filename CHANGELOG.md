@@ -5,10 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Next]
+## [Unreleased]
+
+## [3.6.0] - 2026-04-11
+
+### Added
+
+- **Document and Index Services**: New compositional service layer (`DocumentService`, `IndexService`) for cleaner separation of concerns
+- **Project Charter**: Added `CHARTER.md` defining project purpose, goals, non-goals, and target users
+- **Executable Specs**: Added spec coverage for core logic modules including `ZkDocument.title` and `ChromaGateway` exception handling
+- **Design Documents**: Comprehensive design documents for document references feature with token accounting and context management
 
 ### Changed
 
+- **Architecture Refactoring**: Major internal improvements following Functional Core / Imperative Shell principles
+  - Extracted `text_processing` module to eliminate duplication
+  - Extracted `InitOptions` to eliminate implicit args contract
+  - Centralized bootstrap configuration in single module
+  - Extracted config resolution to pure functions
+  - Extracted formatting logic to pure functions
+  - Enforced `console_service` injection across all tools
+  - Consolidated duplicate composition roots
+  - Consolidated Zettelkasten services to reduce knowledge duplication
+- **Graph Traversal Tools**: Removed `ExtractWikilinksFromDocument`, consolidated functionality into `FindForwardLinks`
+- **CI/CD**: Simplified GitHub Actions workflow — removed broken venv caching, updated to actions/setup-python@v5
 - **Dependencies**: Updated minimum version requirements for all core dependencies
   - mojentic: 0.8.2 → 1.0.0 (first stable release)
   - chromadb: 1.1.0 → 1.3.0
@@ -16,6 +36,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - typer: 0.9.0 → 0.20.0 (removed deprecated `[all]` extra)
   - rich: added minimum version 14.0.0
   - pyyaml: added minimum version 6.0.3
+- **Dependencies**: Updated 35+ transitive dependencies to latest compatible versions
+- **Agent Guidance**: Consolidated agent guidance into unified `AGENTS.md`
+- **Test Fixtures**: Hoisted duplicated test fixtures to module scope in index_service and vector_database specs
+
+### Fixed
+
+- **Python 3.11 Compatibility**: Resolved linting errors and compatibility issues
+- **Excerpt and Document Querying**: Enhanced output with detailed results and improved logging
 
 ## [3.5.1] - 2025-11-06
 
