@@ -1,7 +1,10 @@
 from unittest.mock import Mock
 
 import pytest
+from mojentic.llm.gateways import OllamaGateway
+from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
+from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
@@ -13,6 +16,7 @@ from zk_chat.services.plugin_base import ZkChatPlugin
 from zk_chat.services.service_provider import ServiceProvider
 from zk_chat.services.service_registry import ServiceRegistry, ServiceType
 from zk_chat.tools.git_gateway import GitGateway
+from zk_chat.vector_database import VectorDatabase
 
 
 def _make_registry(services: dict) -> ServiceRegistry:
@@ -65,40 +69,50 @@ class DescribeZkChatPlugin:
             assert plugin.filesystem_gateway is None
 
         def should_return_document_service_when_registered(self):
-            mock_ds = Mock(spec=DocumentService)
-            registry = _make_registry({ServiceType.DOCUMENT_SERVICE: mock_ds})
+            mock_fs = Mock(spec=MarkdownFilesystemGateway)
+            real_ds = DocumentService(mock_fs)
+            registry = _make_registry({ServiceType.DOCUMENT_SERVICE: real_ds})
             plugin = ZkChatPlugin(ServiceProvider(registry))
 
             result = plugin.document_service
 
-            assert result is mock_ds
+            assert result is real_ds
 
         def should_return_index_service_when_registered(self):
-            mock_is = Mock(spec=IndexService)
-            registry = _make_registry({ServiceType.INDEX_SERVICE: mock_is})
+            mock_chroma = Mock(spec=ChromaGateway)
+            mock_ollama = Mock(spec=OllamaGateway)
+            mock_tokenizer = Mock(spec=TokenizerGateway)
+            mock_fs = Mock(spec=MarkdownFilesystemGateway)
+            excerpts_db = VectorDatabase(mock_chroma, mock_ollama, ZkCollectionName.EXCERPTS)
+            documents_db = VectorDatabase(mock_chroma, mock_ollama, ZkCollectionName.DOCUMENTS)
+            real_is = IndexService(mock_tokenizer, excerpts_db, documents_db, mock_fs)
+            registry = _make_registry({ServiceType.INDEX_SERVICE: real_is})
             plugin = ZkChatPlugin(ServiceProvider(registry))
 
             result = plugin.index_service
 
-            assert result is mock_is
+            assert result is real_is
 
         def should_return_link_traversal_service_when_registered(self):
-            mock_lts = Mock(spec=LinkTraversalService)
-            registry = _make_registry({ServiceType.LINK_TRAVERSAL_SERVICE: mock_lts})
+            mock_fs = Mock(spec=MarkdownFilesystemGateway)
+            real_lts = LinkTraversalService(mock_fs)
+            registry = _make_registry({ServiceType.LINK_TRAVERSAL_SERVICE: real_lts})
             plugin = ZkChatPlugin(ServiceProvider(registry))
 
             result = plugin.link_traversal_service
 
-            assert result is mock_lts
+            assert result is real_lts
 
         def should_return_smart_memory_when_registered(self):
-            mock_sm = Mock(spec=SmartMemory)
-            registry = _make_registry({ServiceType.SMART_MEMORY: mock_sm})
+            mock_chroma = Mock(spec=ChromaGateway)
+            mock_ollama = Mock(spec=OllamaGateway)
+            real_sm = SmartMemory(mock_chroma, mock_ollama)
+            registry = _make_registry({ServiceType.SMART_MEMORY: real_sm})
             plugin = ZkChatPlugin(ServiceProvider(registry))
 
             result = plugin.smart_memory
 
-            assert result is mock_sm
+            assert result is real_sm
 
         def should_return_chroma_gateway_when_registered(self):
             mock_chroma = Mock(spec=ChromaGateway)
