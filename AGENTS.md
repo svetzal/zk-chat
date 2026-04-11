@@ -250,83 +250,18 @@ Optional git integration allows the AI to view uncommitted changes and create co
 
 ## Release Process
 
-This project follows [Semantic Versioning](https://semver.org/) (SemVer) for version numbering. The version format is MAJOR.MINOR.PATCH.
+To create a new release:
 
-### Release Checklist
-
-Follow these steps in order when preparing and publishing a release:
-
-1. **Verification Phase**:
+1. **Pre-flight** — all quality gates pass:
    ```bash
-   # All lint checks must pass
    ruff check zk_chat
-
-   # All unit tests must pass
    pytest zk_chat/
-
-   # All integration tests must pass
    pytest integration_tests/
    ```
-
-2. **Documentation Phase**:
-   - Ensure CHANGELOG.md is up to date with all changes for this release
-   - Move items from "[Next]" section to new version section: `## [X.Y.Z] - YYYY-MM-DD`
-   - Verify README.md reflects current features and version
-   - Ensure all documentation in docs/ is current
-   - Update version in pyproject.toml
-
-3. **Commit and Push**:
-   ```bash
-   # Commit release changes
-   git add pyproject.toml CHANGELOG.md README.md docs/
-   git commit -m "Release vX.Y.Z with [brief description]"
-
-   # Push to trigger CI/CD validation
-   git push
-   ```
-
-4. **Monitor Build**:
-   ```bash
-   # Monitor the GitHub Actions workflow
-   gh run watch
-
-   # Wait for green build before proceeding
-   # If build fails, fix issues and repeat from step 1
-   ```
-
-5. **Tag Release**:
-   ```bash
-   # Create tag in format RELEASE_MAJOR_MINOR_PATCH
-   # Example: for version 3.5.0, tag is RELEASE_3_5_0
-   git tag RELEASE_X_Y_Z
-
-   # Push the tag to trigger release workflow
-   git push origin RELEASE_X_Y_Z
-   ```
-
-6. **Monitor Release Build**:
-   ```bash
-   # Watch the release workflow
-   gh run watch
-
-   # Verify:
-   # - Documentation deployed to GitHub Pages
-   # - Package published to PyPI
-   ```
-
-7. **Create GitHub Release**:
-   ```bash
-   # Create release with content from CHANGELOG
-   gh release create RELEASE_X_Y_Z \
-     --title "vX.Y.Z - [Brief Title]" \
-     --notes "$(sed -n '/## \[X.Y.Z\]/,/## \[/p' CHANGELOG.md | head -n -1)"
-
-   # Or create interactively to edit release notes
-   gh release create RELEASE_X_Y_Z --draft --generate-notes
-   ```
-
-### Release Types
-
-- **Major Release (X.0.0)**: Breaking API changes, architectural changes, removal of deprecated features. Consider providing migration guides and highlighting breaking changes in the CHANGELOG.
-- **Minor Release (0.X.0)**: New features, non-breaking enhancements, deprecation notices. Document new features and ensure backward compatibility.
-- **Patch Release (0.0.X)**: Bug fixes, security updates, documentation corrections. Avoid introducing new features; maintain strict backward compatibility.
+2. Update `CHANGELOG.md` — move `[Unreleased]` entries to `[X.Y.Z]` with today's date
+3. Bump version in `pyproject.toml`
+4. Commit: `git commit -m "Release vX.Y.Z"`
+5. Tag: `git tag vX.Y.Z`
+6. Push: `git push origin main --tags`
+7. CI handles PyPI publishing automatically
+8. Local install: `uv tool install . --force` (immediately, don't wait for PyPI)
