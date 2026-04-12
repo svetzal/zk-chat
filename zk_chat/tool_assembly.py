@@ -78,10 +78,10 @@ def build_agent_tools(
     Returns
     -------
     list[LLMTool]
-        Fully constructed list of tools ready for the agent
+        Fully constructed list of tools ready for the agent.
+        AnalyzeImage is included only when config.visual_model is set.
     """
-    visual_llm = LLMBroker(model=config.visual_model, gateway=gateway)
-    return [
+    tools: list[LLMTool] = [
         # Real world context
         CurrentDateTimeTool(),
         ResolveDateTool(),
@@ -101,9 +101,13 @@ def build_agent_tools(
         # Memory tools
         StoreInSmartMemory(smart_memory, console_service),
         RetrieveFromSmartMemory(smart_memory, console_service),
-        # Visual tools
-        AnalyzeImage(filesystem_gateway, visual_llm),
         # Git tools
         UncommittedChanges(config.vault, git_gateway, console_service),
         CommitChanges(config.vault, llm, git_gateway, console_service),
     ]
+
+    if config.visual_model:
+        visual_llm = LLMBroker(model=config.visual_model, gateway=gateway)
+        tools.append(AnalyzeImage(filesystem_gateway, visual_llm))
+
+    return tools

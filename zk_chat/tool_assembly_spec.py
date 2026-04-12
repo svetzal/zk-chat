@@ -170,6 +170,38 @@ class DescribeBuildAgentTools:
             tool_types = [type(t) for t in tools]
             assert AnalyzeImage in tool_types
 
+        def should_exclude_analyze_image_when_visual_model_is_none(self, mock_gateway, mock_llm, mock_filesystem):
+            config_without_visual = Config(
+                vault="/tmp/test-vault",
+                model="test-model",
+                gateway=ModelGateway.OLLAMA,
+                visual_model=None,
+            )
+            index_service = IndexService(
+                tokenizer_gateway=Mock(spec=TokenizerGateway),
+                excerpts_db=VectorDatabase(Mock(spec=ChromaGateway), mock_gateway, ZkCollectionName.EXCERPTS),
+                documents_db=VectorDatabase(Mock(spec=ChromaGateway), mock_gateway, ZkCollectionName.DOCUMENTS),
+                filesystem_gateway=mock_filesystem,
+            )
+
+            tools_without_visual = build_agent_tools(
+                config=config_without_visual,
+                filesystem_gateway=mock_filesystem,
+                document_service=DocumentService(mock_filesystem),
+                index_service=index_service,
+                link_traversal_service=LinkTraversalService(mock_filesystem),
+                llm=mock_llm,
+                smart_memory=SmartMemory(Mock(spec=ChromaGateway), mock_gateway),
+                git_gateway=Mock(spec=GitGateway),
+                gateway=mock_gateway,
+                console_service=Mock(spec=ConsoleGateway),
+            )
+
+            tool_types = [type(t) for t in tools_without_visual]
+
+            assert AnalyzeImage not in tool_types
+            assert len(tools_without_visual) == _EXPECTED_TOOL_COUNT - 1
+
     class DescribeGitTools:
         def should_include_uncommitted_changes(self, tools):
             tool_types = [type(t) for t in tools]

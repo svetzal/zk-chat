@@ -1,8 +1,8 @@
 import os
 import sys
+from pathlib import Path
 
-from mojentic.llm import ChatSession, LLMBroker
-from mojentic.llm.tools.date_resolver import ResolveDateTool
+from mojentic.llm import ChatSession
 from PySide6.QtCore import Qt, QThread, QTimer, Signal, Slot
 from PySide6.QtWidgets import (
     QApplication,
@@ -28,19 +28,13 @@ from PySide6.QtWidgets import (
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
-from zk_chat.console_service import ConsoleGateway
 from zk_chat.gateway_defaults import create_default_config_gateway, create_default_global_config_gateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.model_selection import get_available_models
 from zk_chat.qt_config_resolution import resolve_config_for_vault, resolve_gui_vault_init, resolve_settings_change
 from zk_chat.service_factory import build_service_registry
 from zk_chat.services.service_provider import ServiceProvider
-from zk_chat.tools.analyze_image import AnalyzeImage
-from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
-from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
-from zk_chat.tools.list_zk_images import ListZkImages
-from zk_chat.tools.read_zk_document import ReadZkDocument
-from zk_chat.tools.resolve_wikilink import ResolveWikiLink
+from zk_chat.tool_assembly import build_agent_tools
 
 
 class LoadingSpinnerWidget(QWidget):
@@ -406,24 +400,25 @@ class MainWindow(QMainWindow):
         document_service = provider.get_document_service()
         index_service = provider.get_index_service()
         chat_llm = provider.get_llm_broker()
-        console_service = ConsoleGateway()
 
-        # Initialize tools list with basic tools
-        tools = [
-            ResolveDateTool(),
-            ReadZkDocument(document_service),
-            ListZkImages(filesystem_gateway, console_service),
-            FindExcerptsRelatedTo(index_service, console_service),
-            FindZkDocumentsRelatedTo(index_service, console_service),
-            ResolveWikiLink(filesystem_gateway),
-        ]
+        tools = build_agent_tools(
+            config=self.config,
+            filesystem_gateway=filesystem_gateway,
+            document_service=document_service,
+            index_service=index_service,
+            link_traversal_service=provider.get_link_traversal_service(),
+            llm=chat_llm,
+            smart_memory=provider.get_smart_memory(),
+            git_gateway=provider.get_git_gateway(),
+            gateway=gateway,
+            console_service=provider.get_console_service(),
+        )
 
-        # Add AnalyzeImage tool only if a visual model is selected
-        if self.config.visual_model:
-            visual_llm = LLMBroker(self.config.visual_model, gateway=gateway)
-            tools.append(AnalyzeImage(filesystem_gateway, visual_llm))
+        agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
+        with open(agent_prompt_path) as f:
+            system_prompt = f.read()
 
-        self.chat_session = ChatSession(chat_llm, system_prompt="You are a helpful research assistant.", tools=tools)
+        self.chat_session = ChatSession(chat_llm, system_prompt=system_prompt, tools=tools)
 
     def show_settings(self) -> None:
         dialog = SettingsDialog(self.config, self.config_gateway, self.global_config_gateway, self)
