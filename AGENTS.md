@@ -248,6 +248,10 @@ zk_rag_plugins = { my_plugin = "my_plugin:MyPlugin" }
 
 Optional git integration allows the AI to view uncommitted changes and create commits. Git operations are handled through the `GitGateway` service when enabled with the `--git` flag.
 
+## Branching Workflow
+
+This project follows trunk-based development. `main` is the only long-lived branch. All work lands on `main` via direct commit. Feature branches are not pushed to `origin`, and pull requests are not used. Short-lived local working branches (e.g. from hopper worktrees) are merged to `main` and deleted locally before work is considered complete.
+
 ## Release Process
 
 This project follows [Semantic Versioning](https://semver.org/) (SemVer) for version numbering. The version format is MAJOR.MINOR.PATCH.
