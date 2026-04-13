@@ -24,6 +24,11 @@ from zk_chat.commands.diagnose import diagnose_app
 from zk_chat.commands.gui import gui_app
 from zk_chat.commands.index import index_app
 from zk_chat.commands.mcp import mcp_app
+from zk_chat.gateway_defaults import (
+    create_default_config_gateway,
+    create_default_console_gateway,
+    create_default_global_config_gateway,
+)
 from zk_chat.init_options import InitOptions
 
 # Create the main app
@@ -90,12 +95,19 @@ def interactive(
         store_prompt=store_prompt,
         reset_memory=reset_memory,
     )
-    config = common_init(options)
+    config = common_init(options, create_default_global_config_gateway(), create_default_config_gateway())
     if not config:
         return
 
     # Display banner and run agent
-    display_banner(config, title="ZkChat Agent", unsafe=unsafe, use_git=git, store_prompt=store_prompt)
+    display_banner(
+        config,
+        create_default_console_gateway(),
+        title="ZkChat Agent",
+        unsafe=unsafe,
+        use_git=git,
+        store_prompt=store_prompt,
+    )
     run_agent(config)
 
 
@@ -168,13 +180,20 @@ def query(
         store_prompt=store_prompt,
         reset_memory=reset_memory,
     )
-    config = common_init(options)
+    config = common_init(options, create_default_global_config_gateway(), create_default_config_gateway())
     if not config:
         return
 
     # Display banner if using unsafe or git modes
     if unsafe or git:
-        display_banner(config, title="ZkChat Query", unsafe=unsafe, use_git=git, store_prompt=store_prompt)
+        display_banner(
+            config,
+            create_default_console_gateway(),
+            title="ZkChat Query",
+            unsafe=unsafe,
+            use_git=git,
+            store_prompt=store_prompt,
+        )
 
     # Execute single query using agent
     console.print(f"[bold cyan]Query:[/] {prompt}")

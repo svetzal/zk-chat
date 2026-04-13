@@ -57,7 +57,7 @@ class DescribeInteractiveCommand:
     def should_construct_init_options_with_vault_argument(self, runner):
         captured_options = []
 
-        def mock_common_init(options):
+        def mock_common_init(options, global_config_gateway, config_gateway):
             captured_options.append(options)
             return None
 
@@ -70,7 +70,7 @@ class DescribeInteractiveCommand:
     def should_construct_init_options_with_unsafe_flag(self, runner):
         captured_options = []
 
-        def mock_common_init(options):
+        def mock_common_init(options, global_config_gateway, config_gateway):
             captured_options.append(options)
             return None
 
@@ -83,7 +83,7 @@ class DescribeInteractiveCommand:
     def should_construct_init_options_with_git_flag(self, runner):
         captured_options = []
 
-        def mock_common_init(options):
+        def mock_common_init(options, global_config_gateway, config_gateway):
             captured_options.append(options)
             return None
 
@@ -96,7 +96,7 @@ class DescribeInteractiveCommand:
     def should_construct_init_options_with_no_index_flag(self, runner):
         captured_options = []
 
-        def mock_common_init(options):
+        def mock_common_init(options, global_config_gateway, config_gateway):
             captured_options.append(options)
             return None
 

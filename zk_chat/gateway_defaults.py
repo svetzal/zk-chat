@@ -7,6 +7,7 @@ construction decision. If a gateway ever needs constructor parameters
 """
 
 from zk_chat.config_gateway import ConfigGateway
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 
 
@@ -18,3 +19,8 @@ def create_default_global_config_gateway() -> GlobalConfigGateway:
 def create_default_config_gateway() -> ConfigGateway:
     """Create a ConfigGateway with default settings."""
     return ConfigGateway()
+
+
+def create_default_console_gateway() -> ConsoleGateway:
+    """Create a ConsoleGateway with default settings."""
+    return ConsoleGateway()

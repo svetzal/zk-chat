@@ -158,18 +158,3 @@ class DescribeCommonInit:
             assert result is existing_config
             mock_reindex.assert_called_once_with(existing_config, mock_config_gateway, force_full=True)
 
-    class DescribeGatewayDefaults:
-        def should_construct_default_gateways_when_none_provided(self, tmp_path):
-            options = InitOptions(save=True, vault=str(tmp_path))
-
-            with (
-                patch("zk_chat.cli.GlobalConfigGateway") as mock_gcg_cls,
-                patch("zk_chat.cli.ConfigGateway"),
-            ):
-                mock_gcg = Mock(spec=GlobalConfigGateway)
-                mock_gcg.load.return_value = GlobalConfig()
-                mock_gcg_cls.return_value = mock_gcg
-
-                common_init(options)
-
-            mock_gcg_cls.assert_called_once()

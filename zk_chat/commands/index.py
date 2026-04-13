@@ -54,7 +54,7 @@ def update(
         reindex=True,
         full=full,
     )
-    config = common_init(options)
+    config = common_init(options, create_default_global_config_gateway(), create_default_config_gateway())
 
     if not config:
         return
