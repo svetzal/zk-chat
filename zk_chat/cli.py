@@ -31,9 +31,10 @@ def get_version() -> str:
         return "0.0.0"
 
 
-def display_banner(config, title: str, unsafe=False, use_git=False, store_prompt=True) -> None:
+def display_banner(
+    config, console_service: ConsoleGateway, title: str, unsafe=False, use_git=False, store_prompt=True
+) -> None:
     """Display a colorful banner with application information."""
-    console_service = ConsoleGateway()
     console = console_service.get_console()
 
     console.print(f"\n[banner.title]{title} v{get_version()}[/]")
@@ -256,14 +257,9 @@ def _handle_new_config(options: InitOptions, vault_path: str, config_gateway: Co
 
 def common_init(
     options: InitOptions,
-    global_config_gateway: GlobalConfigGateway | None = None,
-    config_gateway: ConfigGateway | None = None,
+    global_config_gateway: GlobalConfigGateway,
+    config_gateway: ConfigGateway,
 ) -> Config | None:
-    if global_config_gateway is None:
-        global_config_gateway = GlobalConfigGateway()
-    if config_gateway is None:
-        config_gateway = ConfigGateway()
-
     global_config = global_config_gateway.load()
 
     if _handle_save(options, global_config, global_config_gateway):
