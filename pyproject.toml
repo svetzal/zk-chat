@@ -17,7 +17,7 @@ dependencies = [
     "pyyaml>=6.0.3",
     "mojentic>=1.2.1",
     "pyside6>=6.11.0",
-    "rich>=14.3.4",
+    "rich>=15.0.0",
     "typer>=0.24.1",
     "fastmcp>=3.2.3,<4.0.0",
 ]
