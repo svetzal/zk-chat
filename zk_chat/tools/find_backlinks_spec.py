@@ -165,9 +165,7 @@ class DescribeFindBacklinks:
         assert "line_number" in result
         assert "context_snippet" in result
 
-    def should_print_console_feedback_about_results_found(
-        self, backlinks_tool, mock_console_service, target
-    ):
+    def should_print_console_feedback_about_results_found(self, backlinks_tool, mock_console_service, target):
         backlinks_tool.run(target)
 
         mock_console_service.print.assert_called_once()

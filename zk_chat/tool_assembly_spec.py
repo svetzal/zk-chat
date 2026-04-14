@@ -22,7 +22,8 @@ from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
 from zk_chat.services.link_traversal_service import LinkTraversalService
-from zk_chat.tool_assembly import build_agent_tools
+from zk_chat.services.service_registry import ServiceRegistry
+from zk_chat.tool_assembly import ChatSessionComponents, build_agent_tools, build_tools_from_config
 from zk_chat.tools.analyze_image import AnalyzeImage
 from zk_chat.tools.commit_changes import CommitChanges
 from zk_chat.tools.create_or_overwrite_zk_document import CreateOrOverwriteZkDocument
@@ -210,3 +211,97 @@ class DescribeBuildAgentTools:
         def should_include_commit_changes(self, tools):
             tool_types = [type(t) for t in tools]
             assert CommitChanges in tool_types
+
+
+def _make_mock_provider():
+    """Build a mock ServiceProvider with minimal stubs for all services."""
+    mock_llm = LLMBroker(model="test-model", gateway=Mock(spec=OllamaGateway))
+    mock_provider = Mock()
+    mock_provider.get_filesystem_gateway.return_value = None
+    mock_provider.get_document_service.return_value = None
+    mock_provider.get_index_service.return_value = None
+    mock_provider.get_link_traversal_service.return_value = None
+    mock_provider.get_llm_broker.return_value = mock_llm
+    mock_provider.get_smart_memory.return_value = None
+    mock_provider.get_git_gateway.return_value = None
+    mock_provider.get_model_gateway.return_value = None
+    mock_provider.get_console_service.return_value = None
+    return mock_provider
+
+
+class DescribeBuildToolsFromConfig:
+    """Tests for the build_tools_from_config composition function."""
+
+    @pytest.fixture
+    def config(self):
+        return Config(vault="/tmp/test-vault", model="test-model", gateway=ModelGateway.OLLAMA)
+
+    @pytest.fixture
+    def mock_provider(self):
+        return _make_mock_provider()
+
+    def should_return_chat_session_components(self, config, mock_provider):
+        result = build_tools_from_config(
+            config,
+            registry_factory=lambda c: ServiceRegistry(),
+            provider_factory=lambda r: mock_provider,
+            system_prompt="test prompt",
+        )
+
+        assert isinstance(result, ChatSessionComponents)
+
+    def should_use_injected_system_prompt(self, config, mock_provider):
+        result = build_tools_from_config(
+            config,
+            registry_factory=lambda c: ServiceRegistry(),
+            provider_factory=lambda r: mock_provider,
+            system_prompt="injected prompt",
+        )
+
+        assert result.system_prompt == "injected prompt"
+
+    def should_include_llm_broker_from_provider(self, config, mock_provider):
+        specific_llm = LLMBroker(model="specific-model", gateway=Mock(spec=OllamaGateway))
+        mock_provider.get_llm_broker.return_value = specific_llm
+
+        result = build_tools_from_config(
+            config,
+            registry_factory=lambda c: ServiceRegistry(),
+            provider_factory=lambda r: mock_provider,
+            system_prompt="test prompt",
+        )
+
+        assert result.llm_broker is specific_llm
+
+    def should_use_injected_registry_factory(self, config, mock_provider):
+        captured = {}
+
+        def capturing_registry_factory(c):
+            captured["config"] = c
+            return ServiceRegistry()
+
+        build_tools_from_config(
+            config,
+            registry_factory=capturing_registry_factory,
+            provider_factory=lambda r: mock_provider,
+            system_prompt="test prompt",
+        )
+
+        assert captured["config"] is config
+
+    def should_use_injected_provider_factory(self, config, mock_provider):
+        captured = {}
+        registry = ServiceRegistry()
+
+        def capturing_provider_factory(r):
+            captured["registry"] = r
+            return mock_provider
+
+        build_tools_from_config(
+            config,
+            registry_factory=lambda c: registry,
+            provider_factory=capturing_provider_factory,
+            system_prompt="test prompt",
+        )
+
+        assert captured["registry"] is registry

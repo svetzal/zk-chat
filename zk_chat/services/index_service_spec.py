@@ -139,9 +139,7 @@ class DescribeIndexService:
         assert mock_filesystem.read_markdown.call_count == 1
         mock_filesystem.read_markdown.assert_called_with("new.md")
 
-    def should_index_single_document(
-        self, index_service, mock_filesystem, mock_chroma_documents, sample_document_data
-    ):
+    def should_index_single_document(self, index_service, mock_filesystem, mock_chroma_documents, sample_document_data):
         mock_filesystem.read_markdown.return_value = sample_document_data
 
         index_service.index_document("test.md")
@@ -149,9 +147,7 @@ class DescribeIndexService:
         mock_filesystem.read_markdown.assert_called_once_with("test.md")
         mock_chroma_documents.add_items.assert_called_once()
 
-    def should_skip_empty_documents_during_indexing(
-        self, index_service, mock_filesystem, mock_chroma_documents
-    ):
+    def should_skip_empty_documents_during_indexing(self, index_service, mock_filesystem, mock_chroma_documents):
         mock_filesystem.read_markdown.return_value = ({}, "")
 
         index_service.index_document("empty.md")
@@ -208,9 +204,7 @@ class DescribeIndexServiceQueries:
             filesystem_gateway=mock_filesystem,
         )
 
-    def should_query_excerpts_with_distance_filter(
-        self, index_service_with_results, mock_chroma_excerpts_with_results
-    ):
+    def should_query_excerpts_with_distance_filter(self, index_service_with_results, mock_chroma_excerpts_with_results):
         results = index_service_with_results.query_excerpts("test query", n_results=5, max_distance=1.0)
 
         mock_chroma_excerpts_with_results.query.assert_called_once()
@@ -218,9 +212,7 @@ class DescribeIndexServiceQueries:
         assert results[0].excerpt.document_id == "doc1.md"
         assert results[0].distance == 0.5
 
-    def should_filter_excerpts_by_max_distance(
-        self, mock_tokenizer, mock_filesystem, mock_gateway
-    ):
+    def should_filter_excerpts_by_max_distance(self, mock_tokenizer, mock_filesystem, mock_gateway):
         chroma = Mock(spec=ChromaGateway)
         chroma.query.return_value = {
             "ids": [["excerpt1"]],
@@ -236,9 +228,7 @@ class DescribeIndexServiceQueries:
 
         assert len(results) == 0
 
-    def should_query_documents_and_read_full_content(
-        self, index_service_with_results, mock_filesystem
-    ):
+    def should_query_documents_and_read_full_content(self, index_service_with_results, mock_filesystem):
         mock_filesystem.read_markdown.return_value = ({"title": "Test Document"}, "Full document content")
 
         results = index_service_with_results.query_documents("test query", n_results=3)
@@ -246,18 +236,14 @@ class DescribeIndexServiceQueries:
         assert len(results) == 1
         assert results[0].document.content == "Full document content"
 
-    def should_skip_missing_documents_in_query_results(
-        self, index_service_with_results, mock_filesystem
-    ):
+    def should_skip_missing_documents_in_query_results(self, index_service_with_results, mock_filesystem):
         mock_filesystem.read_markdown.side_effect = FileNotFoundError("Not found")
 
         results = index_service_with_results.query_documents("test query")
 
         assert len(results) == 0
 
-    def should_filter_documents_by_max_distance(
-        self, mock_tokenizer, mock_filesystem, mock_gateway
-    ):
+    def should_filter_documents_by_max_distance(self, mock_tokenizer, mock_filesystem, mock_gateway):
         chroma = Mock(spec=ChromaGateway)
         chroma.query.return_value = {
             "ids": [["doc1.md"]],

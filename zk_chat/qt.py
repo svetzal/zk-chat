@@ -1,6 +1,5 @@
 import os
 import sys
-from pathlib import Path
 
 from mojentic.llm import ChatSession
 from PySide6.QtCore import Qt, QThread, QTimer, Signal, Slot
@@ -32,9 +31,7 @@ from zk_chat.gateway_defaults import create_default_config_gateway, create_defau
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.model_selection import get_available_models
 from zk_chat.qt_config_resolution import resolve_config_for_vault, resolve_gui_vault_init, resolve_settings_change
-from zk_chat.service_factory import build_service_registry
-from zk_chat.services.service_provider import ServiceProvider
-from zk_chat.tool_assembly import build_agent_tools
+from zk_chat.tool_assembly import build_tools_from_config
 
 
 class LoadingSpinnerWidget(QWidget):
@@ -392,33 +389,12 @@ class MainWindow(QMainWindow):
         splitter.setSizes([400, 200])
 
     def initialize_chat_session(self) -> None:
-        registry = build_service_registry(self.config)
-        provider = ServiceProvider(registry)
-
-        gateway = provider.get_model_gateway()
-        filesystem_gateway = provider.get_filesystem_gateway()
-        document_service = provider.get_document_service()
-        index_service = provider.get_index_service()
-        chat_llm = provider.get_llm_broker()
-
-        tools = build_agent_tools(
-            config=self.config,
-            filesystem_gateway=filesystem_gateway,
-            document_service=document_service,
-            index_service=index_service,
-            link_traversal_service=provider.get_link_traversal_service(),
-            llm=chat_llm,
-            smart_memory=provider.get_smart_memory(),
-            git_gateway=provider.get_git_gateway(),
-            gateway=gateway,
-            console_service=provider.get_console_service(),
+        components = build_tools_from_config(self.config)
+        self.chat_session = ChatSession(
+            components.llm_broker,
+            system_prompt=components.system_prompt,
+            tools=components.tools,
         )
-
-        agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
-        with open(agent_prompt_path) as f:
-            system_prompt = f.read()
-
-        self.chat_session = ChatSession(chat_llm, system_prompt=system_prompt, tools=tools)
 
     def show_settings(self) -> None:
         dialog = SettingsDialog(self.config, self.config_gateway, self.global_config_gateway, self)

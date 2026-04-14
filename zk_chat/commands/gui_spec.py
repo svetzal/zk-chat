@@ -19,9 +19,7 @@ class DescribeLaunch:
             with patch("zk_chat.qt.main"):
                 runner.invoke(gui_app, ["launch", "--vault", "/some/vault"])
 
-        mock_console.print.assert_any_call(
-            "[yellow]Note:[/] Vault parameter (/some/vault) will be ignored."
-        )
+        mock_console.print.assert_any_call("[yellow]Note:[/] Vault parameter (/some/vault) will be ignored.")
 
     def should_call_run_gui_when_launch_succeeds(self, runner):
         with patch("zk_chat.commands.gui.console"):
