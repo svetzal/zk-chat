@@ -84,9 +84,7 @@ class DescribeRetrieveFromSmartMemory:
         assert isinstance(tool, RetrieveFromSmartMemory)
         assert tool.memory is smart_memory
 
-    def should_return_formatted_results_when_information_found(
-        self, smart_memory, mock_chroma, mock_console_service
-    ):
+    def should_return_formatted_results_when_information_found(self, smart_memory, mock_chroma, mock_console_service):
         mock_chroma.query.return_value = {
             "documents": [["Test document 1"], ["Test document 2"]],
             "distances": [[0.2], [0.5]],
@@ -101,9 +99,7 @@ class DescribeRetrieveFromSmartMemory:
         assert "1. [Relevance: 80.00%] Test document 1" in result
         assert "2. [Relevance: 50.00%] Test document 2" in result
 
-    def should_return_no_results_message_when_nothing_found(
-        self, smart_memory, mock_chroma, mock_console_service
-    ):
+    def should_return_no_results_message_when_nothing_found(self, smart_memory, mock_chroma, mock_console_service):
         mock_chroma.query.return_value = {"documents": [], "distances": []}
         tool = RetrieveFromSmartMemory(smart_memory, mock_console_service)
         test_query = "test query"

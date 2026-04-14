@@ -1,4 +1,3 @@
-
 import pytest
 
 from zk_chat.config import Config, ModelGateway

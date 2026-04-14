@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock, Mock
 
 import pytest
+from mojentic.llm import LLMBroker
+from mojentic.llm.gateways import OllamaGateway
 
 from zk_chat.agent import _create_agent
 from zk_chat.config import Config, ModelGateway
@@ -23,13 +25,14 @@ def _make_mcp_manager_context(mcp_tools=None):
 
 
 def _make_mock_provider():
-    """Build a mock ServiceProvider that returns None for all services."""
+    """Build a mock ServiceProvider with minimal stubs for all services."""
+    mock_llm = LLMBroker(model="test-model", gateway=Mock(spec=OllamaGateway))
     mock_provider = Mock()
     mock_provider.get_filesystem_gateway.return_value = None
     mock_provider.get_document_service.return_value = None
     mock_provider.get_index_service.return_value = None
     mock_provider.get_link_traversal_service.return_value = None
-    mock_provider.get_llm_broker.return_value = None
+    mock_provider.get_llm_broker.return_value = mock_llm
     mock_provider.get_smart_memory.return_value = None
     mock_provider.get_git_gateway.return_value = None
     mock_provider.get_model_gateway.return_value = None
@@ -100,16 +103,14 @@ class DescribeAgentSingleQuery:
         mock_agent.solve.return_value = "the answer"
         mock_provider = _make_mock_provider()
 
-        with (
-            _create_agent(
-                config,
-                _registry_factory=lambda c: ServiceRegistry(),
-                _provider_factory=lambda r: mock_provider,
-                _agent_factory=lambda **kwargs: mock_agent,
-                _mcp_manager=_make_mcp_manager_context(),
-                _system_prompt="agent prompt text",
-            ) as solver
-        ):
+        with _create_agent(
+            config,
+            _registry_factory=lambda c: ServiceRegistry(),
+            _provider_factory=lambda r: mock_provider,
+            _agent_factory=lambda **kwargs: mock_agent,
+            _mcp_manager=_make_mcp_manager_context(),
+            _system_prompt="agent prompt text",
+        ) as solver:
             result = solver.solve("what is the meaning of life?")
 
         assert result == "the answer"
@@ -120,16 +121,14 @@ class DescribeAgentSingleQuery:
         mock_provider = _make_mock_provider()
         test_query = "explain zettelkasten"
 
-        with (
-            _create_agent(
-                config,
-                _registry_factory=lambda c: ServiceRegistry(),
-                _provider_factory=lambda r: mock_provider,
-                _agent_factory=lambda **kwargs: mock_agent,
-                _mcp_manager=_make_mcp_manager_context(),
-                _system_prompt="agent prompt text",
-            ) as solver
-        ):
+        with _create_agent(
+            config,
+            _registry_factory=lambda c: ServiceRegistry(),
+            _provider_factory=lambda r: mock_provider,
+            _agent_factory=lambda **kwargs: mock_agent,
+            _mcp_manager=_make_mcp_manager_context(),
+            _system_prompt="agent prompt text",
+        ) as solver:
             solver.solve(test_query)
 
         mock_agent.solve.assert_called_once_with(test_query)

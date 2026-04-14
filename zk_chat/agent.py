@@ -1,6 +1,5 @@
 from collections.abc import Callable
 from contextlib import contextmanager
-from pathlib import Path
 from typing import Any
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
@@ -9,9 +8,7 @@ from zk_chat.gateway_defaults import create_default_global_config_gateway
 from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
 from zk_chat.mcp_client import verify_all_mcp_servers
 from zk_chat.mcp_tool_wrapper import MCPClientManager
-from zk_chat.service_factory import build_service_registry
-from zk_chat.services.service_provider import ServiceProvider
-from zk_chat.tool_assembly import build_agent_tools
+from zk_chat.tool_assembly import build_tools_from_config
 
 
 @contextmanager
@@ -40,24 +37,13 @@ def _create_agent(
     _system_prompt : str, optional
         Injectable system prompt text (for testing)
     """
-    registry_factory = _registry_factory or build_service_registry
-    provider_factory = _provider_factory or ServiceProvider
     agent_factory = _agent_factory or IterativeProblemSolvingAgent
 
-    registry = registry_factory(config)
-    provider = provider_factory(registry)
-
-    tools = build_agent_tools(
-        config=config,
-        filesystem_gateway=provider.get_filesystem_gateway(),
-        document_service=provider.get_document_service(),
-        index_service=provider.get_index_service(),
-        link_traversal_service=provider.get_link_traversal_service(),
-        llm=provider.get_llm_broker(),
-        smart_memory=provider.get_smart_memory(),
-        git_gateway=provider.get_git_gateway(),
-        gateway=provider.get_model_gateway(),
-        console_service=provider.get_console_service(),
+    components = build_tools_from_config(
+        config,
+        registry_factory=_registry_factory,
+        provider_factory=_provider_factory,
+        system_prompt=_system_prompt,
     )
 
     if _mcp_manager is not None:
@@ -66,19 +52,13 @@ def _create_agent(
         mcp_ctx = MCPClientManager(create_default_global_config_gateway())
 
     with mcp_ctx as mcp_manager:
+        tools = list(components.tools)
         tools.extend(mcp_manager.get_tools())
 
-        if _system_prompt is not None:
-            agent_prompt = _system_prompt
-        else:
-            agent_prompt_path = Path(__file__).parent / "agent_prompt.txt"
-            with open(agent_prompt_path) as f:
-                agent_prompt = f.read()
-
         yield agent_factory(
-            llm=provider.get_llm_broker(),
+            llm=components.llm_broker,
             available_tools=tools,
-            system_prompt=agent_prompt,
+            system_prompt=components.system_prompt,
         )
 
 

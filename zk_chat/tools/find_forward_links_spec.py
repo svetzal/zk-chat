@@ -137,9 +137,7 @@ class DescribeFindForwardLinks:
         document_service, link_service, _ = services
         return FindForwardLinks(document_service, link_service, mock_console_service)
 
-    def should_be_instantiated_with_services_and_console_service(
-        self, services, mock_console_service
-    ):
+    def should_be_instantiated_with_services_and_console_service(self, services, mock_console_service):
         document_service, link_service, _ = services
         tool = FindForwardLinks(document_service, link_service, mock_console_service)
 
@@ -161,9 +159,7 @@ class DescribeFindForwardLinks:
         mock_filesystem.path_exists.assert_called_once_with(test_path)
         assert result == f"Document not found at {test_path}"
 
-    def should_find_forward_links_from_source_document(
-        self, forward_links_tool, source
-    ):
+    def should_find_forward_links_from_source_document(self, forward_links_tool, source):
         result = forward_links_tool.run(source)
 
         assert "concepts/complex-systems.md" in result
@@ -183,9 +179,7 @@ class DescribeFindForwardLinks:
 
         assert result == "[]"
 
-    def should_return_json_formatted_forward_link_results(
-        self, forward_links_tool, source
-    ):
+    def should_return_json_formatted_forward_link_results(self, forward_links_tool, source):
         result = forward_links_tool.run(source)
 
         assert "source_document" in result
@@ -194,9 +188,7 @@ class DescribeFindForwardLinks:
         assert "line_number" in result
         assert "context_snippet" in result
 
-    def should_print_console_feedback_about_results_found(
-        self, forward_links_tool, mock_console_service, source
-    ):
+    def should_print_console_feedback_about_results_found(self, forward_links_tool, mock_console_service, source):
         forward_links_tool.run(source)
 
         mock_console_service.print.assert_called_once()

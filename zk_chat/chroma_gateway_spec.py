@@ -117,9 +117,7 @@ class DescribeChromaGateway:
 
             mock_chroma_client.get_or_create_collection.assert_called_once()
 
-        def should_remove_collection_from_cache_before_recreating(
-            self, gateway, mock_chroma_client, mock_collection
-        ):
+        def should_remove_collection_from_cache_before_recreating(self, gateway, mock_chroma_client, mock_collection):
             mock_chroma_client.get_or_create_collection.return_value = mock_collection
             gateway._collections[ZkCollectionName.EXCERPTS] = mock_collection
 

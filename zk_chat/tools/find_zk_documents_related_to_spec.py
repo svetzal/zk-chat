@@ -108,9 +108,7 @@ class DescribeFormatDocumentResults:
 class DescribeFindZkDocumentsRelatedTo:
     """Tests for the FindZkDocumentsRelatedTo tool."""
 
-    def should_return_json_list_of_document_results_with_distances(
-        self, tool, mock_chroma_documents, mock_filesystem
-    ):
+    def should_return_json_list_of_document_results_with_distances(self, tool, mock_chroma_documents, mock_filesystem):
         mock_chroma_documents.query.return_value = {
             "ids": [["doc1", "doc2"]],
             "documents": [["First Document", "Second Document"]],

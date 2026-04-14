@@ -106,9 +106,7 @@ class DescribeCommitChanges:
         mock_git_gateway.get_diff.assert_called_once()
         assert result == "Error getting diff: Error getting diff"
 
-    def should_return_error_message_when_committing_fails(
-        self, commit_changes, mock_git_gateway, mock_gateway
-    ):
+    def should_return_error_message_when_committing_fails(self, commit_changes, mock_git_gateway, mock_gateway):
         """Test that run returns an error message when committing fails."""
         mock_git_gateway.add_all_files.return_value = (True, "Files added")
         mock_git_gateway.get_status.return_value = (True, "M file.txt")

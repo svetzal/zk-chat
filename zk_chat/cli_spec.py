@@ -157,4 +157,3 @@ class DescribeCommonInit:
 
             assert result is existing_config
             mock_reindex.assert_called_once_with(existing_config, mock_config_gateway, force_full=True)
-
