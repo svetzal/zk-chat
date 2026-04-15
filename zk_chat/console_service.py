@@ -6,7 +6,7 @@ from rich.theme import Theme
 class ConsoleGateway:
     """Service for consistent Rich Console usage throughout the application."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Define a consistent theme for the application
         self.theme = Theme(
             {

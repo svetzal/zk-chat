@@ -15,7 +15,7 @@ class GatewaySpecificLastIndexed(Upgrader):
     Upgrader to migrate from a single last_indexed field to gateway-specific last_indexed values.
     """
 
-    def __init__(self, config: Config, config_gateway: ConfigGateway):
+    def __init__(self, config: Config, config_gateway: ConfigGateway) -> None:
         self.config = config
         self.config_gateway = config_gateway
 

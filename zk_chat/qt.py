@@ -35,7 +35,7 @@ from zk_chat.tool_assembly import build_tools_from_config
 
 
 class LoadingSpinnerWidget(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -51,7 +51,7 @@ class LoadingSpinnerWidget(QWidget):
 
 
 class ChatMessageWidget(QWidget):
-    def __init__(self, role: str, content: str = "", loading: bool = False, parent=None):
+    def __init__(self, role: str, content: str = "", loading: bool = False, parent=None) -> None:
         super().__init__(parent)
         self.role = role
         layout = QHBoxLayout(self)
@@ -137,7 +137,7 @@ class ChatMessageWidget(QWidget):
 class ChatWorker(QThread):
     response_ready = Signal(str)
 
-    def __init__(self, chat_session: ChatSession, query: str):
+    def __init__(self, chat_session: ChatSession, query: str) -> None:
         super().__init__()
         self.chat_session = chat_session
         self.query = query
@@ -150,7 +150,7 @@ class ChatWorker(QThread):
 class SettingsDialog(QDialog):
     def __init__(
         self, config: Config, config_gateway: ConfigGateway, global_config_gateway: GlobalConfigGateway, parent=None
-    ):
+    ) -> None:
         super().__init__(parent)
         self.config = config
         self.config_gateway = config_gateway
@@ -296,7 +296,7 @@ class SettingsDialog(QDialog):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, config_gateway: ConfigGateway, global_config_gateway: GlobalConfigGateway):
+    def __init__(self, config_gateway: ConfigGateway, global_config_gateway: GlobalConfigGateway) -> None:
         super().__init__()
         self.config_gateway = config_gateway
         self.global_config_gateway = global_config_gateway

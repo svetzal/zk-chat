@@ -73,7 +73,7 @@ class LinkMetrics(BaseModel):
 class LinkGraphIndex:
     """In-memory index of the wikilink graph structure for fast traversal."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.forward_links: dict[str, set[str]] = {}  # document -> documents it links to
         self.backward_links: dict[str, set[str]] = {}  # document -> documents that link to it
         self.broken_links: dict[str, set[str]] = {}  # document -> broken wikilinks
@@ -166,7 +166,7 @@ class LinkTraversalService:
     - Finding paths between documents
     """
 
-    def __init__(self, filesystem_gateway: MarkdownFilesystemGateway):
+    def __init__(self, filesystem_gateway: MarkdownFilesystemGateway) -> None:
         self.filesystem_gateway = filesystem_gateway
         self.link_index = LinkGraphIndex()
         self._wikilink_pattern = re.compile(r"\[\[(.*?)(?:\|(.*?))?\]\]")

@@ -10,7 +10,7 @@ logger = structlog.get_logger()
 
 
 class FindZkDocumentsRelatedTo(LLMTool):
-    def __init__(self, index_service: IndexService, console_service: ConsoleGateway):
+    def __init__(self, index_service: IndexService, console_service: ConsoleGateway) -> None:
         self.index_service = index_service
         self.console_service = console_service
 

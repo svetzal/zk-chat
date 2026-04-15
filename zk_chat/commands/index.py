@@ -12,6 +12,7 @@ from rich.console import Console
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.cli import common_init
+from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway
 from zk_chat.gateway_defaults import create_default_config_gateway, create_default_global_config_gateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
@@ -82,7 +83,7 @@ def _resolve_vault_status(vault: Path | None, global_config_gateway: GlobalConfi
     return vault_path
 
 
-def _load_config_status(vault_path: str, config_gateway: ConfigGateway):
+def _load_config_status(vault_path: str, config_gateway: ConfigGateway) -> Config:
     config = config_gateway.load(vault_path)
     if not config:
         console.print("[yellow]⚠️  Warning:[/] No zk-chat configuration found in vault.")

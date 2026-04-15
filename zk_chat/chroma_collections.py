@@ -14,5 +14,5 @@ class ZkCollectionName(Enum):
     ZETTELKASTEN = "zettelkasten"  # deprecated
     SMART_MEMORY = "smart_memory"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value

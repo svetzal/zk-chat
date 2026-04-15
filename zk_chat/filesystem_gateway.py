@@ -1,12 +1,13 @@
 import os
 from collections.abc import Iterator
 from datetime import datetime
+from typing import Any
 
 
 class FilesystemGateway:
     """Gateway for filesystem operations to abstract OS dependencies."""
 
-    def __init__(self, root_path: str):
+    def __init__(self, root_path: str) -> None:
         """Initialize the gateway with a root path.
 
         Args:
@@ -197,7 +198,7 @@ class FilesystemGateway:
                     full_path = os.path.join(root, file)
                     yield self._get_relative_path(full_path)
 
-    def _walk_filesystem(self):
+    def _walk_filesystem(self) -> Iterator[tuple[str, list[Any], list[str]]]:
         """Wrapper for os.walk to make it easier to mock in tests."""
         import os
 

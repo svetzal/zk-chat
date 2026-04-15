@@ -8,7 +8,7 @@ logger = structlog.get_logger()
 
 
 class StoreInSmartMemory(LLMTool):
-    def __init__(self, smart_memory: SmartMemory, console_service: ConsoleGateway):
+    def __init__(self, smart_memory: SmartMemory, console_service: ConsoleGateway) -> None:
         self.memory = smart_memory
         self.console_service = console_service
 

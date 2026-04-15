@@ -9,7 +9,7 @@ logger = structlog.get_logger()
 
 
 class FindBacklinks(LLMTool):
-    def __init__(self, link_service: LinkTraversalService, console_service: ConsoleGateway):
+    def __init__(self, link_service: LinkTraversalService, console_service: ConsoleGateway) -> None:
         self.link_service = link_service
         self.console_service = console_service
 

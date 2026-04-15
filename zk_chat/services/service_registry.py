@@ -58,7 +58,7 @@ class ServiceRegistry:
     parameter changes as new services are added.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._services: dict[ServiceType, Any] = {}
         self._logger = logger
 

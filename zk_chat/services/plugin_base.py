@@ -51,7 +51,7 @@ class ZkChatPlugin(LLMTool):
                 return "result"
     """
 
-    def __init__(self, service_provider: ServiceProvider):
+    def __init__(self, service_provider: ServiceProvider) -> None:
         """
         Initialize the plugin with a service provider.
 

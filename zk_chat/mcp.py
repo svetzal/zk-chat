@@ -42,7 +42,7 @@ class MCPServer:
         smart_memory: SmartMemory,
         console_service: ConsoleGateway,
         enable_unsafe_operations: bool = False,
-    ):
+    ) -> None:
         """
         Initialize the MCP server with required dependencies.
 

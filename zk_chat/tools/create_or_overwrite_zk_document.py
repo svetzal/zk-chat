@@ -39,7 +39,7 @@ def prepare_document(title: str, content: str, metadata: dict[str, Any] | None =
 
 
 class CreateOrOverwriteZkDocument(LLMTool):
-    def __init__(self, document_service: DocumentService, console_service: ConsoleGateway):
+    def __init__(self, document_service: DocumentService, console_service: ConsoleGateway) -> None:
         self.document_service = document_service
         self.console_service = console_service
 

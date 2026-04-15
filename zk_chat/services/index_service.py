@@ -58,7 +58,7 @@ class IndexService:
         excerpts_db: VectorDatabase,
         documents_db: VectorDatabase,
         filesystem_gateway: MarkdownFilesystemGateway,
-    ):
+    ) -> None:
         """
         Initialize the IndexService with required dependencies.
 

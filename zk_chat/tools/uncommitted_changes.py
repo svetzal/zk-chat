@@ -8,7 +8,7 @@ logger = structlog.get_logger()
 
 
 class UncommittedChanges(LLMTool):
-    def __init__(self, base_path: str, git: GitGateway, console_service: ConsoleGateway):
+    def __init__(self, base_path: str, git: GitGateway, console_service: ConsoleGateway) -> None:
         self.base_path = base_path
         self.git = git
         self.console_service = console_service

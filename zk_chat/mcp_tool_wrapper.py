@@ -6,7 +6,7 @@ as mojentic-compatible tools within zk-chat.
 """
 
 import asyncio
-from typing import Any
+from typing import Any, Self
 
 import structlog
 from fastmcp import Client
@@ -79,7 +79,7 @@ class MCPToolWrapper(LLMTool):
         tool_name: str,
         tool_descriptor: dict[str, Any],
         loop: asyncio.AbstractEventLoop,
-    ):
+    ) -> None:
         """
         Initialize the MCP tool wrapper.
 
@@ -213,7 +213,7 @@ class MCPClientManager:
     - Runs a persistent event loop in a background thread
     """
 
-    def __init__(self, global_config_gateway: GlobalConfigGateway):
+    def __init__(self, global_config_gateway: GlobalConfigGateway) -> None:
         """Initialize the MCP client manager."""
         self._global_config_gateway = global_config_gateway
         self._clients: dict[str, Client] = {}
@@ -222,12 +222,12 @@ class MCPClientManager:
         self._loop: asyncio.AbstractEventLoop | None = None
         self._loop_thread = None
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         """Context manager entry - initialize all clients synchronously."""
         self.initialize_sync()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """Context manager exit - cleanup all clients synchronously."""
         self.cleanup_sync()
 
@@ -240,7 +240,7 @@ class MCPClientManager:
         """Async context manager exit - cleanup all clients."""
         await self.cleanup()
 
-    def _start_event_loop(self):
+    def _start_event_loop(self) -> None:
         """Start a background event loop in a separate thread."""
         import threading
 
@@ -254,7 +254,7 @@ class MCPClientManager:
 
         logger.info("Started background event loop for MCP clients")
 
-    def _stop_event_loop(self):
+    def _stop_event_loop(self) -> None:
         """Stop the background event loop."""
         if self._loop and self._loop.is_running():
             self._loop.call_soon_threadsafe(self._loop.stop)
