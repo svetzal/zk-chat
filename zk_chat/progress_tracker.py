@@ -1,6 +1,7 @@
 """Progress tracking for long-running operations using Rich library."""
 
 from collections.abc import Callable
+from typing import Self
 
 import structlog
 from rich.console import Console
@@ -27,7 +28,7 @@ class ProgressTracker:
     Provides progress bars with file counts, processing rates, and current operation display.
     """
 
-    def __init__(self, console: Console | None = None):
+    def __init__(self, console: Console | None = None) -> None:
         """Initialize progress tracker.
 
         Args:
@@ -145,11 +146,11 @@ class ProgressTracker:
 
         return callback
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         """Context manager entry."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """Context manager exit - ensure progress is stopped."""
         self.stop_progress()
 
@@ -157,7 +158,7 @@ class ProgressTracker:
 class IndexingProgressTracker(ProgressTracker):
     """Specialized progress tracker for document indexing operations."""
 
-    def __init__(self, console: Console | None = None):
+    def __init__(self, console: Console | None = None) -> None:
         super().__init__(console=console)
         self._last_processed_count = 0
 

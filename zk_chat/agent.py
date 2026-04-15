@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from typing import Any
 
@@ -19,7 +19,7 @@ def _create_agent(
     _agent_factory: Callable[..., Any] | None = None,
     _mcp_manager: Any | None = None,
     _system_prompt: str | None = None,
-):
+) -> Iterator[IterativeProblemSolvingAgent]:
     """Build a fully-wired IterativeProblemSolvingAgent from config.
 
     Parameters

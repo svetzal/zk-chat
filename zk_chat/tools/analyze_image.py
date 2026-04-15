@@ -8,7 +8,7 @@ logger = structlog.get_logger()
 
 
 class AnalyzeImage(LLMTool):
-    def __init__(self, fs: MarkdownFilesystemGateway, llm: LLMBroker):
+    def __init__(self, fs: MarkdownFilesystemGateway, llm: LLMBroker) -> None:
         self.fs = fs
         self.llm = llm
 

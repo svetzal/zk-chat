@@ -8,7 +8,7 @@ logger = structlog.get_logger()
 
 
 class RenameZkDocument(LLMTool):
-    def __init__(self, document_service: DocumentService):
+    def __init__(self, document_service: DocumentService) -> None:
         self.document_service = document_service
 
     def run(self, source_title: str, target_title: str) -> str:

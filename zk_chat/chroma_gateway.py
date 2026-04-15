@@ -17,7 +17,7 @@ class ChromaGateway:
     backward compatibility with the deprecated 'zettelkasten' collection.
     """
 
-    def __init__(self, gateway: ModelGateway, db_dir: str):
+    def __init__(self, gateway: ModelGateway, db_dir: str) -> None:
         """
         Initialize the ChromaGateway.
 

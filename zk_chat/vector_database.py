@@ -17,7 +17,7 @@ class VectorDatabase:
 
     def __init__(
         self, chroma_gateway: ChromaGateway, gateway: OllamaGateway | OpenAIGateway, collection_name: ZkCollectionName
-    ):
+    ) -> None:
         """
         Initialize the VectorDatabase with a ChromaGateway and a gateway for embeddings.
 

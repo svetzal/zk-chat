@@ -26,7 +26,7 @@ class WikiLink(BaseModel):
 
         return WikiLink(title=title, caption=caption)
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = self.title
         if self.caption:
             result += f"|{self.caption}"

@@ -31,7 +31,7 @@ class IterativeProblemSolvingAgent:
         available_tools: list[LLMTool] | None = None,
         max_iterations: int = 3,
         system_prompt: str | None = None,
-    ):
+    ) -> None:
         """Initialize the IterativeProblemSolver.
 
         Parameters

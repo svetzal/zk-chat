@@ -38,7 +38,7 @@ def format_memory_results(documents: list, distances: list) -> str:
 
 
 class RetrieveFromSmartMemory(LLMTool):
-    def __init__(self, smart_memory: SmartMemory, console_service: ConsoleGateway):
+    def __init__(self, smart_memory: SmartMemory, console_service: ConsoleGateway) -> None:
         self.memory = smart_memory
         self.console_service = console_service
 

@@ -40,7 +40,7 @@ class ServiceProvider:
     with proper error handling and logging.
     """
 
-    def __init__(self, registry: ServiceRegistry):
+    def __init__(self, registry: ServiceRegistry) -> None:
         """
         Initialize the service provider with a service registry.
 

@@ -14,7 +14,7 @@ class SmartMemory:
     A memory system that stores and retrieves information using vector embeddings.
     """
 
-    def __init__(self, chroma_gateway: ChromaGateway, gateway: OllamaGateway | OpenAIGateway):
+    def __init__(self, chroma_gateway: ChromaGateway, gateway: OllamaGateway | OpenAIGateway) -> None:
         """
         Initialize SmartMemory with a ChromaGateway and a gateway for embeddings.
 

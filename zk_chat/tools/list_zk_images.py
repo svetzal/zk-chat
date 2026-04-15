@@ -8,7 +8,7 @@ logger = structlog.get_logger()
 
 
 class ListZkImages(LLMTool):
-    def __init__(self, fs: MarkdownFilesystemGateway, console_service: ConsoleGateway):
+    def __init__(self, fs: MarkdownFilesystemGateway, console_service: ConsoleGateway) -> None:
         self.fs = fs
         self.console_service = console_service
 

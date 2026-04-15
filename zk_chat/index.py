@@ -20,7 +20,7 @@ def _full_reindex(config: Config, index_service: IndexService, progress: Indexin
     files_processed = 0
     total_files: int | None = None
 
-    def progress_callback(filename: str, processed_count: int, total_count: int):
+    def progress_callback(filename: str, processed_count: int, total_count: int) -> None:
         nonlocal files_processed, total_files
         if total_files is None:
             total_files = total_count
@@ -44,7 +44,7 @@ def _incremental_reindex(
     files_processed = 0
     total_files: int | None = None
 
-    def progress_callback(filename: str, processed_count: int, total_count: int):
+    def progress_callback(filename: str, processed_count: int, total_count: int) -> None:
         nonlocal files_processed, total_files
         if total_files is None:
             total_files = total_count

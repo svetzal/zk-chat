@@ -77,7 +77,7 @@ class DocumentService:
     This service does not handle indexing - that is the responsibility of the IndexService.
     """
 
-    def __init__(self, filesystem_gateway: MarkdownFilesystemGateway):
+    def __init__(self, filesystem_gateway: MarkdownFilesystemGateway) -> None:
         """
         Initialize the DocumentService with a filesystem gateway.
 

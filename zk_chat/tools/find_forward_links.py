@@ -15,7 +15,7 @@ class FindForwardLinks(LLMTool):
         document_service: DocumentService,
         link_service: LinkTraversalService,
         console_service: ConsoleGateway,
-    ):
+    ) -> None:
         self.document_service = document_service
         self.link_service = link_service
         self.console_service = console_service

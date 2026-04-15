@@ -12,7 +12,7 @@ class GitGateway:
     Provides an interface for executing git commands and handling errors.
     """
 
-    def __init__(self, base_path: str):
+    def __init__(self, base_path: str) -> None:
         """
         Initialize the GitGateway with the repository path.
 

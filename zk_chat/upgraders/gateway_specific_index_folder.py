@@ -19,7 +19,7 @@ class Upgrader:
 
 
 class GatewaySpecificIndexFolder(Upgrader):
-    def __init__(self, config: Config):
+    def __init__(self, config: Config) -> None:
         self.config = config
 
     @property

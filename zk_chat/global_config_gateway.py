@@ -25,7 +25,7 @@ class GlobalConfigGateway:
     is injectable for testing without patching os.path.expanduser.
     """
 
-    def __init__(self, config_path: str | None = None):
+    def __init__(self, config_path: str | None = None) -> None:
         """
         Initialize the gateway.
 

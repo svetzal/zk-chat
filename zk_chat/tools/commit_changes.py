@@ -15,7 +15,7 @@ class CommitChanges(LLMTool):
     llm: LLMBroker
     git: GitGateway
 
-    def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway, console_service: ConsoleGateway):
+    def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway, console_service: ConsoleGateway) -> None:
         self.base_path = base_path
         self.llm = llm
         self.git = git
