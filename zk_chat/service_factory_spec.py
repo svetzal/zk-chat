@@ -1,14 +1,20 @@
 """BDD-style tests for build_service_registry factory."""
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 from mojentic.llm.gateways import OllamaGateway
+from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
+from zk_chat.config_gateway import ConfigGateway
+from zk_chat.console_service import ConsoleGateway
+from zk_chat.global_config_gateway import GlobalConfigGateway
+from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.service_factory import build_service_registry
 from zk_chat.services.service_registry import ServiceType
+from zk_chat.tools.git_gateway import GitGateway
 
 
 @pytest.fixture
@@ -17,14 +23,28 @@ def config():
 
 
 @pytest.fixture
-def registry(config):
-    with (
-        patch("zk_chat.service_factory.create_model_gateway") as mock_create_gateway,
-        patch("zk_chat.service_factory.ChromaGateway") as mock_chroma,
-    ):
-        mock_create_gateway.return_value = Mock(spec=OllamaGateway)
-        mock_chroma.return_value = Mock(spec=ChromaGateway)
-        return build_service_registry(config)
+def mock_model_gateway():
+    return Mock(spec=OllamaGateway)
+
+
+@pytest.fixture
+def mock_chroma_gateway():
+    return Mock(spec=ChromaGateway)
+
+
+@pytest.fixture
+def registry(config, mock_model_gateway, mock_chroma_gateway):
+    return build_service_registry(
+        config=config,
+        config_gateway=Mock(spec=ConfigGateway),
+        global_config_gateway=Mock(spec=GlobalConfigGateway),
+        model_gateway=mock_model_gateway,
+        chroma_gateway=mock_chroma_gateway,
+        filesystem_gateway=Mock(spec=MarkdownFilesystemGateway),
+        tokenizer_gateway=Mock(spec=TokenizerGateway),
+        git_gateway=Mock(spec=GitGateway),
+        console_service=Mock(spec=ConsoleGateway),
+    )
 
 
 class DescribeBuildServiceRegistry:
@@ -62,13 +82,17 @@ class DescribeBuildServiceRegistry:
     def should_register_git_gateway(self, registry):
         assert registry.has_service(ServiceType.GIT_GATEWAY)
 
-    def should_use_create_model_gateway_with_configured_gateway(self, config):
-        with (
-            patch("zk_chat.service_factory.create_model_gateway") as mock_create_gateway,
-            patch("zk_chat.service_factory.ChromaGateway"),
-        ):
-            mock_create_gateway.return_value = Mock(spec=OllamaGateway)
+    def should_register_the_provided_model_gateway(self, config, mock_model_gateway, mock_chroma_gateway):
+        registry = build_service_registry(
+            config=config,
+            config_gateway=Mock(spec=ConfigGateway),
+            global_config_gateway=Mock(spec=GlobalConfigGateway),
+            model_gateway=mock_model_gateway,
+            chroma_gateway=mock_chroma_gateway,
+            filesystem_gateway=Mock(spec=MarkdownFilesystemGateway),
+            tokenizer_gateway=Mock(spec=TokenizerGateway),
+            git_gateway=Mock(spec=GitGateway),
+            console_service=Mock(spec=ConsoleGateway),
+        )
 
-            build_service_registry(config)
-
-            mock_create_gateway.assert_called_once_with(config.gateway)
+        assert registry.get_service(ServiceType.MODEL_GATEWAY) is mock_model_gateway

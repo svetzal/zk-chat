@@ -9,7 +9,7 @@ from zk_chat.gateway_defaults import create_default_config_gateway
 from zk_chat.index_resolution import determine_reindex_strategy
 from zk_chat.model_selection import select_model
 from zk_chat.progress_tracker import IndexingProgressTracker
-from zk_chat.service_factory import build_service_registry
+from zk_chat.service_factory import build_service_registry_with_defaults
 from zk_chat.services.index_service import IndexService
 from zk_chat.services.service_provider import ServiceProvider
 
@@ -67,7 +67,7 @@ def _incremental_reindex(
 
 def reindex(config: Config, config_gateway: ConfigGateway, force_full: bool = False) -> None:
     """Reindex the Zettelkasten vault with progress tracking."""
-    registry = build_service_registry(config)
+    registry = build_service_registry_with_defaults(config)
     provider = ServiceProvider(registry)
     index_service = provider.get_index_service()
 

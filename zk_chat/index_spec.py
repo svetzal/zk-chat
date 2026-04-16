@@ -143,7 +143,7 @@ class DescribeReindex:
         full_decision = ReindexDecision(strategy="full")
 
         with (
-            patch("zk_chat.index.build_service_registry"),
+            patch("zk_chat.index.build_service_registry_with_defaults"),
             patch("zk_chat.index.ServiceProvider") as mock_provider_class,
             patch("zk_chat.index.determine_reindex_strategy", return_value=full_decision),
             patch("zk_chat.index.IndexingProgressTracker") as mock_tracker_class,
@@ -164,7 +164,7 @@ class DescribeReindex:
         full_decision = ReindexDecision(strategy="full")
 
         with (
-            patch("zk_chat.index.build_service_registry"),
+            patch("zk_chat.index.build_service_registry_with_defaults"),
             patch("zk_chat.index.ServiceProvider") as mock_provider_class,
             patch("zk_chat.index.determine_reindex_strategy", return_value=full_decision),
             patch("zk_chat.index.IndexingProgressTracker") as mock_tracker_class,
@@ -188,7 +188,7 @@ class DescribeReindex:
         full_decision = ReindexDecision(strategy="full")
 
         with (
-            patch("zk_chat.index.build_service_registry"),
+            patch("zk_chat.index.build_service_registry_with_defaults"),
             patch("zk_chat.index.ServiceProvider") as mock_provider_class,
             patch("zk_chat.index.determine_reindex_strategy", return_value=full_decision),
             patch("zk_chat.index.IndexingProgressTracker") as mock_tracker_class,
@@ -215,7 +215,7 @@ class DescribeReindex:
         incremental_decision = ReindexDecision(strategy="incremental", last_indexed=last_indexed)
 
         with (
-            patch("zk_chat.index.build_service_registry"),
+            patch("zk_chat.index.build_service_registry_with_defaults"),
             patch("zk_chat.index.ServiceProvider") as mock_provider_class,
             patch("zk_chat.index.determine_reindex_strategy", return_value=incremental_decision),
             patch("zk_chat.index.IndexingProgressTracker") as mock_tracker_class,

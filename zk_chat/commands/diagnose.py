@@ -18,7 +18,16 @@ from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway
-from zk_chat.gateway_defaults import create_default_config_gateway, create_default_global_config_gateway
+from zk_chat.gateway_defaults import (
+    create_default_chroma_gateway,
+    create_default_config_gateway,
+    create_default_console_gateway,
+    create_default_filesystem_gateway,
+    create_default_git_gateway,
+    create_default_global_config_gateway,
+    create_default_model_gateway,
+    create_default_tokenizer_gateway,
+)
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.service_factory import build_service_registry
 from zk_chat.services.service_provider import ServiceProvider
@@ -156,8 +165,10 @@ def index(
     query: Annotated[str | None, typer.Option("--query", "-q", help="Test query to run")] = None,
 ) -> None:
     """Diagnose the search index to identify why queries aren't returning results."""
-    vault_path = _resolve_vault_path(vault, create_default_global_config_gateway())
-    config = _load_config(vault_path, create_default_config_gateway())
+    global_config_gateway = create_default_global_config_gateway()
+    config_gateway = create_default_config_gateway()
+    vault_path = _resolve_vault_path(vault, global_config_gateway)
+    config = _load_config(vault_path, config_gateway)
     console.print(Panel(f"[bold cyan]Index Diagnostics[/] - {vault_path}", expand=False))
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     if not os.path.exists(db_dir):
@@ -165,7 +176,17 @@ def index(
         console.print(f"[dim]Expected: {db_dir}[/]")
         console.print("\n[yellow]Run:[/] [cyan]zk-chat index update[/] to create the index")
         raise typer.Exit(1)
-    registry = build_service_registry(config)
+    registry = build_service_registry(
+        config=config,
+        config_gateway=config_gateway,
+        global_config_gateway=global_config_gateway,
+        model_gateway=create_default_model_gateway(config.gateway),
+        chroma_gateway=create_default_chroma_gateway(config),
+        filesystem_gateway=create_default_filesystem_gateway(config.vault),
+        tokenizer_gateway=create_default_tokenizer_gateway(),
+        git_gateway=create_default_git_gateway(config.vault),
+        console_service=create_default_console_gateway(),
+    )
     provider = ServiceProvider(registry)
     chroma = provider.get_chroma_gateway()
     gateway = provider.get_model_gateway()

@@ -19,7 +19,7 @@ from zk_chat.config import Config
 from zk_chat.console_service import ConsoleGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
-from zk_chat.service_factory import build_service_registry
+from zk_chat.service_factory import build_service_registry_with_defaults
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
 from zk_chat.services.link_traversal_service import LinkTraversalService
@@ -146,7 +146,7 @@ def build_tools_from_config(
     config : Config
         Application configuration
     registry_factory : callable, optional
-        Injectable factory for service registry (defaults to build_service_registry)
+        Injectable factory for service registry (defaults to build_service_registry_with_defaults)
     provider_factory : callable, optional
         Injectable factory for service provider (defaults to ServiceProvider)
     system_prompt : str, optional
@@ -157,7 +157,7 @@ def build_tools_from_config(
     ChatSessionComponents
         Assembled tools, LLM broker, and system prompt ready for a chat session.
     """
-    _registry_factory = registry_factory or build_service_registry
+    _registry_factory = registry_factory or build_service_registry_with_defaults
     _provider_factory = provider_factory or ServiceProvider
 
     registry = _registry_factory(config)

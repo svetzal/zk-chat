@@ -75,7 +75,7 @@ def agent(config: Config) -> None:
             print("\nYou can continue, but these servers will not be accessible during the session.")
             print("Use 'zk-chat mcp verify' to check server status or 'zk-chat mcp list' to see all servers.\n")
 
-    with _create_agent(config) as solver:
+    with _create_agent(config, _mcp_manager=MCPClientManager(global_config_gateway)) as solver:
         while True:
             query = input("Agent request: ")
             if not query:
