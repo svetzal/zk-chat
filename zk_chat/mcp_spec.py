@@ -6,14 +6,11 @@ import json
 from unittest.mock import Mock
 
 import pytest
-from mojentic.llm.gateways import OllamaGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
-from zk_chat.console_service import ConsoleGateway
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.mcp import MCPServer, create_mcp_server
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.services.document_service import DocumentService
@@ -45,40 +42,23 @@ class _StubTool(LLMTool):
 
 
 @pytest.fixture
-def mock_filesystem():
-    return Mock(spec=MarkdownFilesystemGateway)
-
-
-@pytest.fixture
-def mock_model_gateway():
-    gateway = Mock(spec=OllamaGateway)
-    gateway.calculate_embeddings.return_value = [0.1, 0.2, 0.3]
-    return gateway
-
-
-@pytest.fixture
 def document_service(mock_filesystem):
     return DocumentService(mock_filesystem)
 
 
 @pytest.fixture
-def index_service(mock_filesystem, mock_model_gateway):
+def index_service(mock_filesystem, mock_ollama_gateway):
     return IndexService(
         tokenizer_gateway=Mock(spec=TokenizerGateway),
-        excerpts_db=VectorDatabase(Mock(spec=ChromaGateway), mock_model_gateway, ZkCollectionName.EXCERPTS),
-        documents_db=VectorDatabase(Mock(spec=ChromaGateway), mock_model_gateway, ZkCollectionName.DOCUMENTS),
+        excerpts_db=VectorDatabase(Mock(spec=ChromaGateway), mock_ollama_gateway, ZkCollectionName.EXCERPTS),
+        documents_db=VectorDatabase(Mock(spec=ChromaGateway), mock_ollama_gateway, ZkCollectionName.DOCUMENTS),
         filesystem_gateway=mock_filesystem,
     )
 
 
 @pytest.fixture
-def smart_memory(mock_model_gateway):
-    return SmartMemory(Mock(spec=ChromaGateway), mock_model_gateway)
-
-
-@pytest.fixture
-def mock_console_service():
-    return Mock(spec=ConsoleGateway)
+def smart_memory(mock_ollama_gateway):
+    return SmartMemory(Mock(spec=ChromaGateway), mock_ollama_gateway)
 
 
 @pytest.fixture

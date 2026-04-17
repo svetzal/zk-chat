@@ -1,15 +1,7 @@
-from unittest.mock import Mock
-
 import pytest
 
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.tools.rename_zk_document import RenameZkDocument
-
-
-@pytest.fixture
-def mock_filesystem():
-    return Mock(spec=MarkdownFilesystemGateway)
 
 
 @pytest.fixture

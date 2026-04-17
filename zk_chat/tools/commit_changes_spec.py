@@ -5,7 +5,6 @@ from mojentic.llm import LLMBroker
 from mojentic.llm.gateways import OllamaGateway
 from mojentic.llm.gateways.models import LLMMessage, MessageRole
 
-from zk_chat.console_service import ConsoleGateway
 from zk_chat.tools.commit_changes import CommitChanges
 from zk_chat.tools.git_gateway import GitGateway
 
@@ -30,12 +29,6 @@ def mock_gateway():
 def llm_broker(mock_gateway):
     """Real LLMBroker backed by a mocked OllamaGateway."""
     return LLMBroker(model="test", gateway=mock_gateway)
-
-
-@pytest.fixture
-def mock_console_service():
-    """Fixture for mocked ConsoleGateway."""
-    return Mock(spec=ConsoleGateway)
 
 
 @pytest.fixture

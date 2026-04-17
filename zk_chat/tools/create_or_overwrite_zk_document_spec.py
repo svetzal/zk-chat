@@ -1,22 +1,8 @@
-from unittest.mock import Mock
-
 import pytest
 
-from zk_chat.console_service import ConsoleGateway
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.models import ZkDocument
 from zk_chat.services.document_service import DocumentService
 from zk_chat.tools.create_or_overwrite_zk_document import CreateOrOverwriteZkDocument, prepare_document
-
-
-@pytest.fixture
-def mock_filesystem():
-    return Mock(spec=MarkdownFilesystemGateway)
-
-
-@pytest.fixture
-def mock_console_service():
-    return Mock(spec=ConsoleGateway)
 
 
 @pytest.fixture

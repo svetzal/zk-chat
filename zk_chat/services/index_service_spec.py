@@ -6,19 +6,12 @@ from datetime import datetime, timedelta
 from unittest.mock import Mock
 
 import pytest
-from mojentic.llm.gateways import OllamaGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
 from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.index_service import IndexService, IndexStats
 from zk_chat.vector_database import VectorDatabase
-
-
-@pytest.fixture
-def mock_tokenizer():
-    return Mock(spec=TokenizerGateway)
 
 
 @pytest.fixture
@@ -32,33 +25,21 @@ def mock_chroma_documents():
 
 
 @pytest.fixture
-def mock_model_gateway():
-    gateway = Mock(spec=OllamaGateway)
-    gateway.calculate_embeddings.return_value = [0.1, 0.2, 0.3]
-    return gateway
-
-
-@pytest.fixture
-def excerpts_db(mock_chroma_excerpts, mock_model_gateway):
+def excerpts_db(mock_chroma_excerpts, mock_ollama_gateway):
     return VectorDatabase(
         chroma_gateway=mock_chroma_excerpts,
-        gateway=mock_model_gateway,
+        gateway=mock_ollama_gateway,
         collection_name=ZkCollectionName.EXCERPTS,
     )
 
 
 @pytest.fixture
-def documents_db(mock_chroma_documents, mock_model_gateway):
+def documents_db(mock_chroma_documents, mock_ollama_gateway):
     return VectorDatabase(
         chroma_gateway=mock_chroma_documents,
-        gateway=mock_model_gateway,
+        gateway=mock_ollama_gateway,
         collection_name=ZkCollectionName.DOCUMENTS,
     )
-
-
-@pytest.fixture
-def mock_filesystem():
-    return Mock(spec=MarkdownFilesystemGateway)
 
 
 @pytest.fixture
@@ -181,22 +162,20 @@ class DescribeIndexServiceQueries:
         return chroma
 
     @pytest.fixture
-    def mock_gateway(self):
-        gateway = Mock(spec=OllamaGateway)
-        gateway.calculate_embeddings.return_value = [0.1, 0.2, 0.3]
-        return gateway
-
-    @pytest.fixture
     def index_service_with_results(
         self,
         mock_tokenizer,
         mock_chroma_excerpts_with_results,
         mock_chroma_documents_with_results,
-        mock_gateway,
+        mock_ollama_gateway,
         mock_filesystem,
     ):
-        excerpts_db = VectorDatabase(mock_chroma_excerpts_with_results, mock_gateway, ZkCollectionName.EXCERPTS)
-        documents_db = VectorDatabase(mock_chroma_documents_with_results, mock_gateway, ZkCollectionName.DOCUMENTS)
+        excerpts_db = VectorDatabase(
+            mock_chroma_excerpts_with_results, mock_ollama_gateway, ZkCollectionName.EXCERPTS
+        )
+        documents_db = VectorDatabase(
+            mock_chroma_documents_with_results, mock_ollama_gateway, ZkCollectionName.DOCUMENTS
+        )
         return IndexService(
             tokenizer_gateway=mock_tokenizer,
             excerpts_db=excerpts_db,
@@ -212,7 +191,7 @@ class DescribeIndexServiceQueries:
         assert results[0].excerpt.document_id == "doc1.md"
         assert results[0].distance == 0.5
 
-    def should_filter_excerpts_by_max_distance(self, mock_tokenizer, mock_filesystem, mock_gateway):
+    def should_filter_excerpts_by_max_distance(self, mock_tokenizer, mock_filesystem, mock_ollama_gateway):
         chroma = Mock(spec=ChromaGateway)
         chroma.query.return_value = {
             "ids": [["excerpt1"]],
@@ -220,8 +199,8 @@ class DescribeIndexServiceQueries:
             "metadatas": [[{"id": "doc1.md", "title": "Test"}]],
             "distances": [[2.0]],
         }
-        excerpts_db = VectorDatabase(chroma, mock_gateway, ZkCollectionName.EXCERPTS)
-        documents_db = VectorDatabase(Mock(spec=ChromaGateway), mock_gateway, ZkCollectionName.DOCUMENTS)
+        excerpts_db = VectorDatabase(chroma, mock_ollama_gateway, ZkCollectionName.EXCERPTS)
+        documents_db = VectorDatabase(Mock(spec=ChromaGateway), mock_ollama_gateway, ZkCollectionName.DOCUMENTS)
         service = IndexService(mock_tokenizer, excerpts_db, documents_db, mock_filesystem)
 
         results = service.query_excerpts("test query", max_distance=1.0)
@@ -243,7 +222,7 @@ class DescribeIndexServiceQueries:
 
         assert len(results) == 0
 
-    def should_filter_documents_by_max_distance(self, mock_tokenizer, mock_filesystem, mock_gateway):
+    def should_filter_documents_by_max_distance(self, mock_tokenizer, mock_filesystem, mock_ollama_gateway):
         chroma = Mock(spec=ChromaGateway)
         chroma.query.return_value = {
             "ids": [["doc1.md"]],
@@ -251,8 +230,8 @@ class DescribeIndexServiceQueries:
             "metadatas": [[{"id": "doc1.md", "title": "Test"}]],
             "distances": [[2.0]],
         }
-        excerpts_db = VectorDatabase(Mock(spec=ChromaGateway), mock_gateway, ZkCollectionName.EXCERPTS)
-        documents_db = VectorDatabase(chroma, mock_gateway, ZkCollectionName.DOCUMENTS)
+        excerpts_db = VectorDatabase(Mock(spec=ChromaGateway), mock_ollama_gateway, ZkCollectionName.EXCERPTS)
+        documents_db = VectorDatabase(chroma, mock_ollama_gateway, ZkCollectionName.DOCUMENTS)
         service = IndexService(mock_tokenizer, excerpts_db, documents_db, mock_filesystem)
 
         results = service.query_documents("test query", max_distance=1.0)
