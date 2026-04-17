@@ -1,21 +1,7 @@
-from unittest.mock import Mock
-
 import pytest
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import ConsoleGateway
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.list_zk_images import ListZkImages
-
-
-@pytest.fixture
-def mock_filesystem():
-    return Mock(spec=MarkdownFilesystemGateway)
-
-
-@pytest.fixture
-def mock_console_service():
-    return Mock(spec=ConsoleGateway)
 
 
 @pytest.fixture

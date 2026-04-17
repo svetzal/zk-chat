@@ -8,14 +8,8 @@ import pytest
 from mojentic.llm.gateways import OllamaGateway
 
 from zk_chat.chroma_collections import ZkCollectionName
-from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.models import VectorDocumentForStorage
 from zk_chat.vector_database import VectorDatabase
-
-
-@pytest.fixture
-def mock_chroma_gateway():
-    return Mock(spec=ChromaGateway)
 
 
 @pytest.fixture

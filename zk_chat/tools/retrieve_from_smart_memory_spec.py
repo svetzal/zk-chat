@@ -1,34 +1,12 @@
-from unittest.mock import Mock
-
 import pytest
-from mojentic.llm.gateways import OllamaGateway
 
-from zk_chat.chroma_gateway import ChromaGateway
-from zk_chat.console_service import ConsoleGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory, format_memory_results
 
 
 @pytest.fixture
-def mock_console_service():
-    return Mock(spec=ConsoleGateway)
-
-
-@pytest.fixture
-def mock_chroma():
-    return Mock(spec=ChromaGateway)
-
-
-@pytest.fixture
-def mock_gateway():
-    gateway = Mock(spec=OllamaGateway)
-    gateway.calculate_embeddings.return_value = [0.1, 0.2, 0.3]
-    return gateway
-
-
-@pytest.fixture
-def smart_memory(mock_chroma, mock_gateway):
-    return SmartMemory(mock_chroma, mock_gateway)
+def smart_memory(mock_chroma_gateway, mock_ollama_gateway):
+    return SmartMemory(mock_chroma_gateway, mock_ollama_gateway)
 
 
 class DescribeFormatMemoryResults:
@@ -84,8 +62,10 @@ class DescribeRetrieveFromSmartMemory:
         assert isinstance(tool, RetrieveFromSmartMemory)
         assert tool.memory is smart_memory
 
-    def should_return_formatted_results_when_information_found(self, smart_memory, mock_chroma, mock_console_service):
-        mock_chroma.query.return_value = {
+    def should_return_formatted_results_when_information_found(
+        self, smart_memory, mock_chroma_gateway, mock_console_service
+    ):
+        mock_chroma_gateway.query.return_value = {
             "documents": [["Test document 1"], ["Test document 2"]],
             "distances": [[0.2], [0.5]],
         }
@@ -94,17 +74,19 @@ class DescribeRetrieveFromSmartMemory:
 
         result = tool.run(test_query)
 
-        mock_chroma.query.assert_called_once()
+        mock_chroma_gateway.query.assert_called_once()
         assert "Found relevant information:" in result
         assert "1. [Relevance: 80.00%] Test document 1" in result
         assert "2. [Relevance: 50.00%] Test document 2" in result
 
-    def should_return_no_results_message_when_nothing_found(self, smart_memory, mock_chroma, mock_console_service):
-        mock_chroma.query.return_value = {"documents": [], "distances": []}
+    def should_return_no_results_message_when_nothing_found(
+        self, smart_memory, mock_chroma_gateway, mock_console_service
+    ):
+        mock_chroma_gateway.query.return_value = {"documents": [], "distances": []}
         tool = RetrieveFromSmartMemory(smart_memory, mock_console_service)
         test_query = "test query"
 
         result = tool.run(test_query)
 
-        mock_chroma.query.assert_called_once()
+        mock_chroma_gateway.query.assert_called_once()
         assert result == "No relevant information found in memory."

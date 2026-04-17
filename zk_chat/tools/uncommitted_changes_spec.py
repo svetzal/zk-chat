@@ -1,6 +1,5 @@
 import pytest
 
-from zk_chat.console_service import ConsoleGateway
 from zk_chat.tools.git_gateway import GitGateway
 from zk_chat.tools.uncommitted_changes import UncommittedChanges
 
@@ -10,12 +9,6 @@ def mock_git_gateway(mocker):
     """Fixture for mocked GitGateway."""
     mock_instance = mocker.Mock(spec=GitGateway)
     return mock_instance
-
-
-@pytest.fixture
-def mock_console_service(mocker):
-    """Fixture for mocked ConsoleGateway."""
-    return mocker.Mock(spec=ConsoleGateway)
 
 
 @pytest.fixture

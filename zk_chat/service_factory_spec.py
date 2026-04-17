@@ -6,7 +6,6 @@ import pytest
 from mojentic.llm.gateways import OllamaGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
-from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
 from zk_chat.console_service import ConsoleGateway
@@ -25,11 +24,6 @@ def config():
 @pytest.fixture
 def mock_model_gateway():
     return Mock(spec=OllamaGateway)
-
-
-@pytest.fixture
-def mock_chroma_gateway():
-    return Mock(spec=ChromaGateway)
 
 
 @pytest.fixture

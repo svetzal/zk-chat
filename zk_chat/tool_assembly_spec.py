@@ -17,7 +17,6 @@ from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
 from zk_chat.console_service import ConsoleGateway
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
@@ -57,26 +56,16 @@ def mock_config():
 
 
 @pytest.fixture
-def mock_gateway():
-    return Mock(spec=OllamaGateway)
+def mock_llm(mock_ollama_gateway):
+    return LLMBroker(model="test-model", gateway=mock_ollama_gateway)
 
 
 @pytest.fixture
-def mock_llm(mock_gateway):
-    return LLMBroker(model="test-model", gateway=mock_gateway)
-
-
-@pytest.fixture
-def mock_filesystem():
-    return Mock(spec=MarkdownFilesystemGateway)
-
-
-@pytest.fixture
-def tools(mock_config, mock_gateway, mock_llm, mock_filesystem):
+def tools(mock_config, mock_ollama_gateway, mock_llm, mock_filesystem):
     index_service = IndexService(
         tokenizer_gateway=Mock(spec=TokenizerGateway),
-        excerpts_db=VectorDatabase(Mock(spec=ChromaGateway), mock_gateway, ZkCollectionName.EXCERPTS),
-        documents_db=VectorDatabase(Mock(spec=ChromaGateway), mock_gateway, ZkCollectionName.DOCUMENTS),
+        excerpts_db=VectorDatabase(Mock(spec=ChromaGateway), mock_ollama_gateway, ZkCollectionName.EXCERPTS),
+        documents_db=VectorDatabase(Mock(spec=ChromaGateway), mock_ollama_gateway, ZkCollectionName.DOCUMENTS),
         filesystem_gateway=mock_filesystem,
     )
     return build_agent_tools(
@@ -86,9 +75,9 @@ def tools(mock_config, mock_gateway, mock_llm, mock_filesystem):
         index_service=index_service,
         link_traversal_service=LinkTraversalService(mock_filesystem),
         llm=mock_llm,
-        smart_memory=SmartMemory(Mock(spec=ChromaGateway), mock_gateway),
+        smart_memory=SmartMemory(Mock(spec=ChromaGateway), mock_ollama_gateway),
         git_gateway=Mock(spec=GitGateway),
-        gateway=mock_gateway,
+        gateway=mock_ollama_gateway,
         console_service=Mock(spec=ConsoleGateway),
     )
 
@@ -171,7 +160,9 @@ class DescribeBuildAgentTools:
             tool_types = [type(t) for t in tools]
             assert AnalyzeImage in tool_types
 
-        def should_exclude_analyze_image_when_visual_model_is_none(self, mock_gateway, mock_llm, mock_filesystem):
+        def should_exclude_analyze_image_when_visual_model_is_none(
+            self, mock_ollama_gateway, mock_llm, mock_filesystem
+        ):
             config_without_visual = Config(
                 vault="/tmp/test-vault",
                 model="test-model",
@@ -180,8 +171,8 @@ class DescribeBuildAgentTools:
             )
             index_service = IndexService(
                 tokenizer_gateway=Mock(spec=TokenizerGateway),
-                excerpts_db=VectorDatabase(Mock(spec=ChromaGateway), mock_gateway, ZkCollectionName.EXCERPTS),
-                documents_db=VectorDatabase(Mock(spec=ChromaGateway), mock_gateway, ZkCollectionName.DOCUMENTS),
+                excerpts_db=VectorDatabase(Mock(spec=ChromaGateway), mock_ollama_gateway, ZkCollectionName.EXCERPTS),
+                documents_db=VectorDatabase(Mock(spec=ChromaGateway), mock_ollama_gateway, ZkCollectionName.DOCUMENTS),
                 filesystem_gateway=mock_filesystem,
             )
 
@@ -192,9 +183,9 @@ class DescribeBuildAgentTools:
                 index_service=index_service,
                 link_traversal_service=LinkTraversalService(mock_filesystem),
                 llm=mock_llm,
-                smart_memory=SmartMemory(Mock(spec=ChromaGateway), mock_gateway),
+                smart_memory=SmartMemory(Mock(spec=ChromaGateway), mock_ollama_gateway),
                 git_gateway=Mock(spec=GitGateway),
-                gateway=mock_gateway,
+                gateway=mock_ollama_gateway,
                 console_service=Mock(spec=ConsoleGateway),
             )
 
