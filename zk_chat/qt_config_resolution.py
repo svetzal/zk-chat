@@ -11,6 +11,92 @@ from pydantic import BaseModel, ConfigDict
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_resolution import resolve_visual_model_selection
 
+NONE_SENTINEL = "None - Disable Visual Analysis"
+_OPENAI_API_KEY_ERROR = "OPENAI_API_KEY environment variable is not set"
+
+
+class ModelListResolution(BaseModel):
+    """
+    Describes the items and selections for the chat and visual model combo boxes.
+
+    Produced by resolve_model_list_update; consumed by SettingsDialog.update_model_list shell.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    chat_model_items: list[str]
+    chat_model_selected_index: int
+    visual_model_items: list[str]
+    visual_model_selected_index: int
+    is_error_state: bool
+    error_message: str | None = None
+
+
+def resolve_model_list_update(
+    gateway: ModelGateway,
+    api_key_present: bool,
+    available_models: list[str],
+    current_chat_model: str,
+    current_visual_model: str | None,
+    none_sentinel: str = NONE_SENTINEL,
+) -> ModelListResolution:
+    """
+    Determine combo-box contents and selections for the model list dropdowns.
+
+    Parameters
+    ----------
+    gateway : ModelGateway
+        The gateway currently selected in the settings dialog.
+    api_key_present : bool
+        Whether the OPENAI_API_KEY environment variable is set.
+    available_models : list[str]
+        Models returned by the gateway (may be empty).
+    current_chat_model : str
+        The chat model currently saved in config.
+    current_visual_model : str | None
+        The visual model currently saved in config, or None.
+    none_sentinel : str
+        The label that represents "no visual model" in the combo box.
+
+    Returns
+    -------
+    ModelListResolution
+        All items and selection indices needed to populate the combos.
+    """
+    if gateway == ModelGateway.OPENAI and not api_key_present:
+        return ModelListResolution(
+            chat_model_items=[_OPENAI_API_KEY_ERROR],
+            chat_model_selected_index=0,
+            visual_model_items=[_OPENAI_API_KEY_ERROR],
+            visual_model_selected_index=0,
+            is_error_state=True,
+            error_message=_OPENAI_API_KEY_ERROR,
+        )
+
+    if current_chat_model in available_models:
+        chat_model_selected_index = available_models.index(current_chat_model)
+    else:
+        chat_model_selected_index = 0
+
+    visual_model_items = [none_sentinel] + available_models
+    if current_visual_model is not None:
+        if current_visual_model in visual_model_items:
+            visual_model_selected_index = visual_model_items.index(current_visual_model)
+        elif len(available_models) > 0:
+            visual_model_selected_index = 1
+        else:
+            visual_model_selected_index = 0
+    else:
+        visual_model_selected_index = 0
+
+    return ModelListResolution(
+        chat_model_items=available_models,
+        chat_model_selected_index=chat_model_selected_index,
+        visual_model_items=visual_model_items,
+        visual_model_selected_index=visual_model_selected_index,
+        is_error_state=False,
+    )
+
 
 class SettingsChangeResult(BaseModel):
     """

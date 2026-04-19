@@ -4,10 +4,155 @@ Tests for qt_config_resolution pure functions.
 
 from zk_chat.config import Config, ModelGateway
 from zk_chat.qt_config_resolution import (
+    NONE_SENTINEL,
     resolve_config_for_vault,
     resolve_gui_vault_init,
+    resolve_model_list_update,
     resolve_settings_change,
 )
+
+
+class DescribeResolveModelListUpdate:
+    """Tests for the resolve_model_list_update pure function."""
+
+    def should_return_error_state_when_openai_gateway_and_no_api_key(self):
+        result = resolve_model_list_update(
+            gateway=ModelGateway.OPENAI,
+            api_key_present=False,
+            available_models=[],
+            current_chat_model="gpt-4",
+            current_visual_model=None,
+        )
+
+        assert result.is_error_state is True
+        assert result.error_message is not None
+        assert "OPENAI_API_KEY" in result.error_message
+
+    def should_not_return_error_state_for_ollama_gateway(self):
+        result = resolve_model_list_update(
+            gateway=ModelGateway.OLLAMA,
+            api_key_present=False,
+            available_models=["llama3"],
+            current_chat_model="llama3",
+            current_visual_model=None,
+        )
+
+        assert result.is_error_state is False
+
+    def should_not_return_error_state_when_openai_gateway_and_api_key_present(self):
+        result = resolve_model_list_update(
+            gateway=ModelGateway.OPENAI,
+            api_key_present=True,
+            available_models=["gpt-4"],
+            current_chat_model="gpt-4",
+            current_visual_model=None,
+        )
+
+        assert result.is_error_state is False
+
+    def should_populate_chat_models_from_available_models(self):
+        models = ["llama3", "mistral", "phi3"]
+
+        result = resolve_model_list_update(
+            gateway=ModelGateway.OLLAMA,
+            api_key_present=False,
+            available_models=models,
+            current_chat_model="llama3",
+            current_visual_model=None,
+        )
+
+        assert result.chat_model_items == models
+
+    def should_select_current_chat_model_when_available(self):
+        result = resolve_model_list_update(
+            gateway=ModelGateway.OLLAMA,
+            api_key_present=False,
+            available_models=["llama3", "mistral", "phi3"],
+            current_chat_model="mistral",
+            current_visual_model=None,
+        )
+
+        assert result.chat_model_selected_index == 1
+
+    def should_select_first_chat_model_when_current_not_available(self):
+        result = resolve_model_list_update(
+            gateway=ModelGateway.OLLAMA,
+            api_key_present=False,
+            available_models=["llama3", "mistral"],
+            current_chat_model="not-in-list",
+            current_visual_model=None,
+        )
+
+        assert result.chat_model_selected_index == 0
+
+    def should_select_first_chat_model_when_list_not_empty_and_no_current(self):
+        result = resolve_model_list_update(
+            gateway=ModelGateway.OLLAMA,
+            api_key_present=False,
+            available_models=["llama3", "mistral"],
+            current_chat_model="",
+            current_visual_model=None,
+        )
+
+        assert result.chat_model_selected_index == 0
+
+    def should_include_none_sentinel_as_first_visual_model_item(self):
+        result = resolve_model_list_update(
+            gateway=ModelGateway.OLLAMA,
+            api_key_present=False,
+            available_models=["llama3"],
+            current_chat_model="llama3",
+            current_visual_model=None,
+        )
+
+        assert result.visual_model_items[0] == NONE_SENTINEL
+
+    def should_select_current_visual_model_when_available(self):
+        result = resolve_model_list_update(
+            gateway=ModelGateway.OLLAMA,
+            api_key_present=False,
+            available_models=["llama3", "llava", "phi3"],
+            current_chat_model="llama3",
+            current_visual_model="llava",
+        )
+
+        assert result.visual_model_selected_index == 2
+
+    def should_select_first_model_after_none_when_current_visual_not_available(self):
+        result = resolve_model_list_update(
+            gateway=ModelGateway.OLLAMA,
+            api_key_present=False,
+            available_models=["llama3", "phi3"],
+            current_chat_model="llama3",
+            current_visual_model="not-in-list",
+        )
+
+        assert result.visual_model_selected_index == 1
+
+    def should_select_none_when_no_visual_model_configured(self):
+        result = resolve_model_list_update(
+            gateway=ModelGateway.OLLAMA,
+            api_key_present=False,
+            available_models=["llama3", "llava"],
+            current_chat_model="llama3",
+            current_visual_model=None,
+        )
+
+        assert result.visual_model_selected_index == 0
+
+    def should_handle_empty_available_models_list(self):
+        result = resolve_model_list_update(
+            gateway=ModelGateway.OLLAMA,
+            api_key_present=False,
+            available_models=[],
+            current_chat_model="llama3",
+            current_visual_model="llava",
+        )
+
+        assert result.chat_model_items == []
+        assert result.chat_model_selected_index == 0
+        assert result.visual_model_items == [NONE_SENTINEL]
+        assert result.visual_model_selected_index == 0
 
 
 class DescribeResolveSettingsChange:

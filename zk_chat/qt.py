@@ -30,7 +30,12 @@ from zk_chat.config_gateway import ConfigGateway
 from zk_chat.gateway_defaults import create_default_config_gateway, create_default_global_config_gateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.model_selection import get_available_models
-from zk_chat.qt_config_resolution import resolve_config_for_vault, resolve_gui_vault_init, resolve_settings_change
+from zk_chat.qt_config_resolution import (
+    resolve_config_for_vault,
+    resolve_gui_vault_init,
+    resolve_model_list_update,
+    resolve_settings_change,
+)
 from zk_chat.tool_assembly import build_tools_from_config
 
 
@@ -218,51 +223,25 @@ class SettingsDialog(QDialog):
             self.folder_edit.setText(folder)
 
     def update_model_list(self) -> None:
-        # Get the selected gateway
-        gateway_text = self.gateway_combo.currentText()
-        gateway = ModelGateway(gateway_text)
-
-        # Check if OpenAI gateway is selected and OPENAI_API_KEY is not set
-        if gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
-            # Show a warning message
-            self.chat_model_combo.clear()
-            self.chat_model_combo.addItem("OPENAI_API_KEY environment variable is not set")
-            self.visual_model_combo.clear()
-            self.visual_model_combo.addItem("OPENAI_API_KEY environment variable is not set")
-            return
-
-        # Get available models for the selected gateway
+        gateway = ModelGateway(self.gateway_combo.currentText())
+        api_key_present = bool(os.environ.get("OPENAI_API_KEY"))
         available_models = get_available_models(gateway)
 
-        # Update the chat model combo box
+        resolution = resolve_model_list_update(
+            gateway=gateway,
+            api_key_present=api_key_present,
+            available_models=available_models,
+            current_chat_model=self.config.model,
+            current_visual_model=self.config.visual_model,
+        )
+
         self.chat_model_combo.clear()
-        self.chat_model_combo.addItems(available_models)
+        self.chat_model_combo.addItems(resolution.chat_model_items)
+        self.chat_model_combo.setCurrentIndex(resolution.chat_model_selected_index)
 
-        # Try to select the current chat model if it's available
-        current_chat_index = self.chat_model_combo.findText(self.config.model)
-        if current_chat_index >= 0:
-            self.chat_model_combo.setCurrentIndex(current_chat_index)
-        elif self.chat_model_combo.count() > 0:
-            # Otherwise select the first model
-            self.chat_model_combo.setCurrentIndex(0)
-
-        # Update the visual model combo box
         self.visual_model_combo.clear()
-        # Add the "None" option first
-        self.visual_model_combo.addItem("None - Disable Visual Analysis")
-        self.visual_model_combo.addItems(available_models)
-
-        # Try to select the current visual model if it's available
-        if self.config.visual_model:
-            current_visual_index = self.visual_model_combo.findText(self.config.visual_model)
-            if current_visual_index >= 0:
-                self.visual_model_combo.setCurrentIndex(current_visual_index)
-            else:
-                # If the current model isn't available, select the first model (after "None")
-                self.visual_model_combo.setCurrentIndex(1)
-        else:
-            # If no visual model is set, select "None"
-            self.visual_model_combo.setCurrentIndex(0)
+        self.visual_model_combo.addItems(resolution.visual_model_items)
+        self.visual_model_combo.setCurrentIndex(resolution.visual_model_selected_index)
 
     def save_settings(self) -> None:
         new_vault_path = self.folder_edit.text()
