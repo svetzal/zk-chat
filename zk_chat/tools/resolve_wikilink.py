@@ -2,6 +2,7 @@ import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
+from zk_chat.tools.tool_helpers import build_descriptor
 
 logger = structlog.get_logger()
 
@@ -23,24 +24,18 @@ class ResolveWikiLink(LLMTool):
 
     @property
     def descriptor(self) -> dict:
-        return {
-            "type": "function",
-            "function": {
-                "name": "resolve_wikilink",
-                "description": "Determine if a wikilink is valid (eg [[link title]]), and if so "
-                "return the relative_path of the target document or file. Returns "
-                "an error if there is no document present matching the wikilink.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "wikilink": {
-                            "type": "string",
-                            "description": "The wikilink you need to resolve to a relative_path, wrapped in "
-                            "double-square-brackets, in the form of [[Document Title]] or [[@Person "
-                            "Name]].",
-                        }
-                    },
-                    "required": ["wikilink"],
-                },
+        return build_descriptor(
+            name="resolve_wikilink",
+            description="Determine if a wikilink is valid (eg [[link title]]), and if so "
+            "return the relative_path of the target document or file. Returns "
+            "an error if there is no document present matching the wikilink.",
+            properties={
+                "wikilink": {
+                    "type": "string",
+                    "description": "The wikilink you need to resolve to a relative_path, wrapped in "
+                    "double-square-brackets, in the form of [[Document Title]] or [[@Person "
+                    "Name]].",
+                }
             },
-        }
+            required=["wikilink"],
+        )

@@ -191,8 +191,8 @@ class DescribeFindForwardLinks:
     def should_print_console_feedback_about_results_found(self, forward_links_tool, mock_console_service, source):
         forward_links_tool.run(source)
 
-        mock_console_service.print.assert_called_once()
-        call_args = mock_console_service.print.call_args[0][0]
+        mock_console_service.tool_info.assert_called_once()
+        call_args = mock_console_service.tool_info.call_args[0][0]
         assert "Found 2 forward links" in call_args
         assert source in call_args
 

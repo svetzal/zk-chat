@@ -5,12 +5,46 @@ from pydantic import BaseModel
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.document_service import DocumentService
-from zk_chat.tools.tool_helpers import check_document_exists, format_model_results
+from zk_chat.tools.tool_helpers import build_descriptor, check_document_exists, format_model_results
 
 
 class SimpleModel(BaseModel):
     name: str
     value: int
+
+
+class DescribeBuildDescriptor:
+    def should_build_parameterless_descriptor(self):
+        result = build_descriptor(name="my_tool", description="Does something.")
+
+        assert result["type"] == "function"
+        assert result["function"]["name"] == "my_tool"
+        assert result["function"]["description"] == "Does something."
+        assert result["function"]["parameters"]["type"] == "object"
+        assert result["function"]["parameters"]["properties"] == {}
+        assert result["function"]["parameters"]["required"] == []
+
+    def should_build_descriptor_with_properties_and_required(self):
+        properties = {"query": {"type": "string", "description": "A search query."}}
+
+        result = build_descriptor(
+            name="search", description="Search things.", properties=properties, required=["query"]
+        )
+
+        params = result["function"]["parameters"]
+        assert params["properties"] == properties
+        assert params["required"] == ["query"]
+        assert "additionalProperties" not in params
+
+    def should_include_additional_properties_when_specified(self):
+        result = build_descriptor(name="create", description="Create doc.", additional_properties=False)
+
+        assert result["function"]["parameters"]["additionalProperties"] is False
+
+    def should_omit_additional_properties_when_not_specified(self):
+        result = build_descriptor(name="list", description="List docs.")
+
+        assert "additionalProperties" not in result["function"]["parameters"]
 
 
 class DescribeFormatModelResults:

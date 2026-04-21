@@ -8,6 +8,7 @@ from zk_chat.console_service import ConsoleGateway
 from zk_chat.filename_utils import ensure_md_extension, sanitize_filename
 from zk_chat.models import ZkDocument
 from zk_chat.services.document_service import DocumentService
+from zk_chat.tools.tool_helpers import build_descriptor
 
 logger = structlog.get_logger()
 
@@ -45,7 +46,7 @@ class CreateOrOverwriteZkDocument(LLMTool):
 
     def run(self, title: str, content: str, metadata: dict[str, Any] | None = None) -> str:
         document = prepare_document(title, content, metadata)
-        self.console_service.print(f"[tool.info]Writing document at {document.relative_path}[/]")
+        self.console_service.tool_info(f"Writing document at {document.relative_path}")
         try:
             logger.info("writing file", relative_path=document.relative_path, metadata=document.metadata)
             self.document_service.write_document(document)
@@ -68,35 +69,29 @@ class CreateOrOverwriteZkDocument(LLMTool):
 
     @property
     def descriptor(self) -> dict:
-        return {
-            "type": "function",
-            "function": {
-                "name": "create_or_overwrite_document",
-                "description": "Create a new document or update an existing document in the Zettelkasten knowledge "
-                "base. Use this when you need to add new information to the knowledge base or update "
-                "existing information. This tool will create a new document if the title doesn't "
-                "exist, or completely replace the content of an existing document. Returns a success "
-                "message with the document details if successful, or an error message if the operation "
-                "fails.",
-                "parameters": {
+        return build_descriptor(
+            name="create_or_overwrite_document",
+            description="Create a new document or update an existing document in the Zettelkasten knowledge "
+            "base. Use this when you need to add new information to the knowledge base or update "
+            "existing information. This tool will create a new document if the title doesn't "
+            "exist, or completely replace the content of an existing document. Returns a success "
+            "message with the document details if successful, or an error message if the operation "
+            "fails.",
+            properties={
+                "title": {"type": "string", "description": "The title of the document"},
+                "content": {
+                    "type": "string",
+                    "description": "The body content for the document. DO NOT INCLUDE FRONT-MATTER OR TITLE. "
+                    "Content should be in markdown format, with proper unescaped newline "
+                    "characters",
+                },
+                "metadata": {
                     "type": "object",
-                    "properties": {
-                        "title": {"type": "string", "description": "The title of the document"},
-                        "content": {
-                            "type": "string",
-                            "description": "The body content for the document. DO NOT INCLUDE FRONT-MATTER OR TITLE. "
-                            "Content should be in markdown format, with proper unescaped newline "
-                            "characters",
-                        },
-                        "metadata": {
-                            "type": "object",
-                            "description": "The metadata for the document in JSON format. If not provided, "
-                            "the metadata will be empty.",
-                            "optional": True,
-                        },
-                    },
-                    "additionalProperties": False,
-                    "required": ["title", "content"],
+                    "description": "The metadata for the document in JSON format. If not provided, "
+                    "the metadata will be empty.",
+                    "optional": True,
                 },
             },
-        }
+            required=["title", "content"],
+            additional_properties=False,
+        )

@@ -6,6 +6,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 from zk_chat.console_service import ConsoleGateway
 from zk_chat.text_processing import strip_thinking
 from zk_chat.tools.git_gateway import GitGateway
+from zk_chat.tools.tool_helpers import build_descriptor
 
 logger = structlog.get_logger()
 
@@ -22,7 +23,7 @@ class CommitChanges(LLMTool):
         self.console_service = console_service
 
     def run(self) -> str:
-        self.console_service.print("[tool.info]Committing changes in vault folder[/]")
+        self.console_service.tool_info("Committing changes in vault folder")
 
         try:
             # Add all files to git staging
@@ -89,14 +90,10 @@ Output only the commit message, no other text, do not put it in code fences.
 
     @property
     def descriptor(self) -> dict:
-        return {
-            "type": "function",
-            "function": {
-                "name": "commit_changes",
-                "description": "Save all changes made to the Zettelkasten knowledge base by "
-                "creating a Git commit. Use this after making modifications to documents (creating, "
-                "updating, or renaming) to permanently store those changes in the version control "
-                "system. This ensures your changes are preserved and can be tracked over time.",
-                "parameters": {"type": "object", "properties": {}, "required": []},
-            },
-        }
+        return build_descriptor(
+            name="commit_changes",
+            description="Save all changes made to the Zettelkasten knowledge base by "
+            "creating a Git commit. Use this after making modifications to documents (creating, "
+            "updating, or renaming) to permanently store those changes in the version control "
+            "system. This ensures your changes are preserved and can be tracked over time.",
+        )

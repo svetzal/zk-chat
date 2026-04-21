@@ -3,6 +3,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import ConsoleGateway
 from zk_chat.tools.git_gateway import GitGateway
+from zk_chat.tools.tool_helpers import build_descriptor
 
 logger = structlog.get_logger()
 
@@ -14,7 +15,7 @@ class UncommittedChanges(LLMTool):
         self.console_service = console_service
 
     def run(self) -> str:
-        self.console_service.print("[tool.info]Getting uncommitted changes in vault folder[/]")
+        self.console_service.tool_info("Getting uncommitted changes in vault folder")
 
         try:
             # Add all files to git staging to include new files in the diff
@@ -39,15 +40,11 @@ class UncommittedChanges(LLMTool):
 
     @property
     def descriptor(self) -> dict:
-        return {
-            "type": "function",
-            "function": {
-                "name": "get_uncommitted_changes",
-                "description": "View all changes made to the Zettelkasten knowledge base that "
-                "haven't been committed yet. Use this to review your modifications "
-                "before committing them permanently with the commit_changes tool. "
-                "This helps you verify what documents have been created, modified, "
-                "or deleted since the last commit.",
-                "parameters": {"type": "object", "properties": {}, "required": []},
-            },
-        }
+        return build_descriptor(
+            name="get_uncommitted_changes",
+            description="View all changes made to the Zettelkasten knowledge base that "
+            "haven't been committed yet. Use this to review your modifications "
+            "before committing them permanently with the commit_changes tool. "
+            "This helps you verify what documents have been created, modified, "
+            "or deleted since the last commit.",
+        )

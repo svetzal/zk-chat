@@ -168,8 +168,8 @@ class DescribeFindBacklinks:
     def should_print_console_feedback_about_results_found(self, backlinks_tool, mock_console_service, target):
         backlinks_tool.run(target)
 
-        mock_console_service.print.assert_called_once()
-        call_args = mock_console_service.print.call_args[0][0]
+        mock_console_service.tool_info.assert_called_once()
+        call_args = mock_console_service.tool_info.call_args[0][0]
         assert "Found 2 backlinks" in call_args
         assert target in call_args
 

@@ -3,6 +3,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.filename_utils import ensure_md_extension, sanitize_filename
 from zk_chat.services.document_service import DocumentService
+from zk_chat.tools.tool_helpers import build_descriptor
 
 logger = structlog.get_logger()
 
@@ -36,31 +37,25 @@ class RenameZkDocument(LLMTool):
 
     @property
     def descriptor(self) -> dict:
-        return {
-            "type": "function",
-            "function": {
-                "name": "rename_document",
-                "description": "Change the name or path of an existing document in the Zettelkasten knowledge base. "
-                "Use this when you need to reorganize the knowledge base or provide a more appropriate "
-                "name for a document. This preserves the document's content while changing its "
-                "identifier. Returns a success message if the rename operation succeeds, or a detailed "
-                "error message if it fails.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "source_title": {
-                            "type": "string",
-                            "description": "The title or relative path of the document to rename. The .md extension "
-                            "is optional.",
-                        },
-                        "target_title": {
-                            "type": "string",
-                            "description": "The new title or relative path for the document. The .md extension is "
-                            "optional.",
-                        },
-                    },
-                    "additionalProperties": False,
-                    "required": ["source_title", "target_title"],
+        return build_descriptor(
+            name="rename_document",
+            description="Change the name or path of an existing document in the Zettelkasten knowledge base. "
+            "Use this when you need to reorganize the knowledge base or provide a more appropriate "
+            "name for a document. This preserves the document's content while changing its "
+            "identifier. Returns a success message if the rename operation succeeds, or a detailed "
+            "error message if it fails.",
+            properties={
+                "source_title": {
+                    "type": "string",
+                    "description": "The title or relative path of the document to rename. The .md extension "
+                    "is optional.",
+                },
+                "target_title": {
+                    "type": "string",
+                    "description": "The new title or relative path for the document. The .md extension is "
+                    "optional.",
                 },
             },
-        }
+            required=["source_title", "target_title"],
+            additional_properties=False,
+        )

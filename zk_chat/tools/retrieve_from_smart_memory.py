@@ -3,6 +3,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import ConsoleGateway
 from zk_chat.memory.smart_memory import SmartMemory
+from zk_chat.tools.tool_helpers import build_descriptor
 
 logger = structlog.get_logger()
 
@@ -43,34 +44,28 @@ class RetrieveFromSmartMemory(LLMTool):
         self.console_service = console_service
 
     def run(self, query: str) -> str:
-        self.console_service.print(f"[tool.info]Checking memory for anything about {query}[/]")
+        self.console_service.tool_info(f"Checking memory for anything about {query}")
         results = self.memory.retrieve(query, 10)
         information = format_memory_results(results["documents"], results["distances"])
-        self.console_service.print(f"[tool.info]{information}[/]")
+        self.console_service.tool_info(information)
         return information
 
     @property
     def descriptor(self) -> dict:
-        return {
-            "type": "function",
-            "function": {
-                "name": "retrieve_from_smart_memory",
-                "description": "Search for stored facts and context about the user that might "
-                "help understand their current request better. Use this when you "
-                "need to recall previously stored information about the user's preferences, "
-                "environment, or circumstances to provide more personalized and contextually "
-                "appropriate responses.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "query": {
-                            "type": "string",
-                            "description": "The aspect of the user or their context you want to learn more about. "
-                            "Frame your query to find relevant stored facts about the user's "
-                            "preferences, environment, or circumstances.",
-                        },
-                    },
-                    "required": ["query"],
+        return build_descriptor(
+            name="retrieve_from_smart_memory",
+            description="Search for stored facts and context about the user that might "
+            "help understand their current request better. Use this when you "
+            "need to recall previously stored information about the user's preferences, "
+            "environment, or circumstances to provide more personalized and contextually "
+            "appropriate responses.",
+            properties={
+                "query": {
+                    "type": "string",
+                    "description": "The aspect of the user or their context you want to learn more about. "
+                    "Frame your query to find relevant stored facts about the user's "
+                    "preferences, environment, or circumstances.",
                 },
             },
-        }
+            required=["query"],
+        )

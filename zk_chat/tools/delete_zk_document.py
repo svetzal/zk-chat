@@ -3,7 +3,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import ConsoleGateway
 from zk_chat.services.document_service import DocumentService
-from zk_chat.tools.tool_helpers import check_document_exists
+from zk_chat.tools.tool_helpers import build_descriptor, check_document_exists
 
 logger = structlog.get_logger()
 
@@ -14,7 +14,7 @@ class DeleteZkDocument(LLMTool):
         self.console_service = console_service
 
     def run(self, relative_path: str) -> str:
-        self.console_service.print(f"[tool.info]Deleting document at {relative_path}[/]")
+        self.console_service.tool_info(f"Deleting document at {relative_path}")
         error = check_document_exists(self.document_service, relative_path)
         if error:
             return error
@@ -28,21 +28,15 @@ class DeleteZkDocument(LLMTool):
 
     @property
     def descriptor(self) -> dict:
-        return {
-            "type": "function",
-            "function": {
-                "name": "delete_document",
-                "description": "Permanently delete a document from the Zettelkasten knowledge "
-                "base. This operation cannot be undone. Use with extreme caution.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "relative_path": {
-                            "type": "string",
-                            "description": "The relative path within the Zettelkasten of the document to delete.",
-                        }
-                    },
-                    "required": ["relative_path"],
-                },
+        return build_descriptor(
+            name="delete_document",
+            description="Permanently delete a document from the Zettelkasten knowledge "
+            "base. This operation cannot be undone. Use with extreme caution.",
+            properties={
+                "relative_path": {
+                    "type": "string",
+                    "description": "The relative path within the Zettelkasten of the document to delete.",
+                }
             },
-        }
+            required=["relative_path"],
+        )
