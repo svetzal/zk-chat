@@ -2,7 +2,7 @@ import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.services.document_service import DocumentService
-from zk_chat.tools.tool_helpers import check_document_exists
+from zk_chat.tools.tool_helpers import build_descriptor, check_document_exists
 
 logger = structlog.get_logger()
 
@@ -22,24 +22,18 @@ class ReadZkDocument(LLMTool):
 
     @property
     def descriptor(self) -> dict:
-        return {
-            "type": "function",
-            "function": {
-                "name": "read_document",
-                "description": "Retrieve and read the full content of a specific document from "
-                "the Zettelkasten knowledge base. Use this when you need to access "
-                "the complete content of a document that you already know exists (for example, "
-                "after using list_documents or find_documents). This returns the entire document "
-                "including its metadata and content.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "relative_path": {
-                            "type": "string",
-                            "description": "The relative path within the Zettelkasten from which to read the file.",
-                        }
-                    },
-                    "required": ["relative_path"],
-                },
+        return build_descriptor(
+            name="read_document",
+            description="Retrieve and read the full content of a specific document from "
+            "the Zettelkasten knowledge base. Use this when you need to access "
+            "the complete content of a document that you already know exists (for example, "
+            "after using list_documents or find_documents). This returns the entire document "
+            "including its metadata and content.",
+            properties={
+                "relative_path": {
+                    "type": "string",
+                    "description": "The relative path within the Zettelkasten from which to read the file.",
+                }
             },
-        }
+            required=["relative_path"],
+        )

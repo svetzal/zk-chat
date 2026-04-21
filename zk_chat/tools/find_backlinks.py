@@ -3,7 +3,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import ConsoleGateway
 from zk_chat.services.link_traversal_service import LinkTraversalService
-from zk_chat.tools.tool_helpers import format_model_results
+from zk_chat.tools.tool_helpers import build_descriptor, format_model_results
 
 logger = structlog.get_logger()
 
@@ -29,40 +29,33 @@ class FindBacklinks(LLMTool):
         # Use the link traversal service to find backlinks
         backlink_results = self.link_service.find_backlinks(target_document)
 
-        console_msg = f"[tool.info]Found {len(backlink_results)} backlinks to {target_document}[/]"
-        self.console_service.print(console_msg)
+        self.console_service.tool_info(f"Found {len(backlink_results)} backlinks to {target_document}")
 
         return format_model_results(backlink_results)
 
     @property
     def descriptor(self) -> dict:
-        return {
-            "type": "function",
-            "function": {
-                "name": "find_backlinks",
-                "description": (
-                    "Find all documents that contain wikilinks pointing to a specific target "
-                    "document. This provides fast discovery of what documents reference a "
-                    "given document, enabling reverse navigation through the knowledge graph. "
-                    "Returns documents with context snippets showing how they reference the "
-                    "target document. Use this to understand what content builds upon or "
-                    "references a particular document."
-                ),
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "target_document": {
-                            "type": "string",
-                            "description": (
-                                "The target document to find backlinks to. Can be either a "
-                                "relative path (e.g., 'concepts/systems-thinking.md') or "
-                                "wikilink text (e.g., 'Systems Thinking'). The service will "
-                                "handle resolution and find all documents that link to this "
-                                "target."
-                            ),
-                        }
-                    },
-                    "required": ["target_document"],
-                },
+        return build_descriptor(
+            name="find_backlinks",
+            description=(
+                "Find all documents that contain wikilinks pointing to a specific target "
+                "document. This provides fast discovery of what documents reference a "
+                "given document, enabling reverse navigation through the knowledge graph. "
+                "Returns documents with context snippets showing how they reference the "
+                "target document. Use this to understand what content builds upon or "
+                "references a particular document."
+            ),
+            properties={
+                "target_document": {
+                    "type": "string",
+                    "description": (
+                        "The target document to find backlinks to. Can be either a "
+                        "relative path (e.g., 'concepts/systems-thinking.md') or "
+                        "wikilink text (e.g., 'Systems Thinking'). The service will "
+                        "handle resolution and find all documents that link to this "
+                        "target."
+                    ),
+                }
             },
-        }
+            required=["target_document"],
+        )

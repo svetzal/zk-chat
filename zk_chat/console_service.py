@@ -33,6 +33,10 @@ class ConsoleGateway:
         """Get user input using Rich Prompt."""
         return Prompt.ask(prompt, console=self.console)
 
+    def tool_info(self, message: str) -> None:
+        """Print a tool status message styled with the tool.info theme."""
+        self.console.print(f"[tool.info]{message}[/]")
+
     def get_console(self) -> Console:
         """Get the underlying Console instance for advanced usage."""
         return self.console

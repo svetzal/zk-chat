@@ -3,6 +3,7 @@ from mojentic.llm import LLMBroker, MessageBuilder
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
+from zk_chat.tools.tool_helpers import build_descriptor
 
 logger = structlog.get_logger()
 
@@ -28,21 +29,15 @@ class AnalyzeImage(LLMTool):
 
     @property
     def descriptor(self) -> dict:
-        return {
-            "type": "function",
-            "function": {
-                "name": "analyze_image",
-                "description": "Analyze the contents of an image, returning a full description of "
-                "what is visually contained within.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "relative_path": {
-                            "type": "string",
-                            "description": "Relative path of the image to analyze",
-                        }
-                    },
-                    "required": ["relative_path"],
-                },
+        return build_descriptor(
+            name="analyze_image",
+            description="Analyze the contents of an image, returning a full description of "
+            "what is visually contained within.",
+            properties={
+                "relative_path": {
+                    "type": "string",
+                    "description": "Relative path of the image to analyze",
+                }
             },
-        }
+            required=["relative_path"],
+        )

@@ -4,7 +4,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 from zk_chat.console_service import ConsoleGateway
 from zk_chat.models import ZkQueryDocumentResult
 from zk_chat.services.index_service import IndexService
-from zk_chat.tools.tool_helpers import format_model_results
+from zk_chat.tools.tool_helpers import build_descriptor, format_model_results
 
 logger = structlog.get_logger()
 
@@ -15,29 +15,21 @@ class FindZkDocumentsRelatedTo(LLMTool):
         self.console_service = console_service
 
     def run(self, query: str) -> str:
-        self.console_service.print(f"[tool.info]Querying documents related to {query}[/]")
+        self.console_service.tool_info(f"Querying documents related to {query}")
         document_results: list[ZkQueryDocumentResult] = self.index_service.query_documents(query)
-        self.console_service.print(f"[tool.info]Found {len(document_results)} documents related to the query:[/]")
+        self.console_service.tool_info(f"Found {len(document_results)} documents related to the query:")
         for result in document_results:
-            self.console_service.print(f"  [tool.info]{result.document.title} (distance: {result.distance:.4f})[/]")
+            self.console_service.tool_info(f"  {result.document.title} (distance: {result.distance:.4f})")
         return format_model_results(document_results)
 
     @property
     def descriptor(self) -> dict:
-        return {
-            "type": "function",
-            "function": {
-                "name": "find_documents",
-                "description": "Search for complete documents in the Zettelkasten knowledge base "
-                "that are relevant to a query. This returns entire documents "
-                "rather than specific excerpts, which is useful when you need comprehensive "
-                "information on a topic rather than just specific passages.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "query": {"type": "string", "description": "The search query to find relevant documents."}
-                    },
-                    "required": ["query"],
-                },
-            },
-        }
+        return build_descriptor(
+            name="find_documents",
+            description="Search for complete documents in the Zettelkasten knowledge base "
+            "that are relevant to a query. This returns entire documents "
+            "rather than specific excerpts, which is useful when you need comprehensive "
+            "information on a topic rather than just specific passages.",
+            properties={"query": {"type": "string", "description": "The search query to find relevant documents."}},
+            required=["query"],
+        )

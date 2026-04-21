@@ -49,6 +49,14 @@ class DescribeConsoleGateway:
 
         service.console.print.assert_called_once_with("test message", style="bold")
 
+    def should_provide_tool_info_method(self):
+        service = ConsoleGateway()
+        service.console = Mock(spec=Console)
+
+        service.tool_info("hello")
+
+        service.console.print.assert_called_once_with("[tool.info]hello[/]")
+
     def should_provide_access_to_console_instance(self):
         service = ConsoleGateway()
 
