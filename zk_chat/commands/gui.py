@@ -67,7 +67,6 @@ def launch(
         raise typer.Exit(1) from e
 
 
-# Default command (launch)
 @gui_app.callback()
 def gui_default(ctx: typer.Context) -> None:
     """

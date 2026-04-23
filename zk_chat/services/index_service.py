@@ -27,7 +27,6 @@ from zk_chat.vector_database import VectorDatabase
 
 logger = structlog.get_logger()
 
-# Type alias for progress callback functions
 ProgressCallback = Callable[[str, int, int], None]
 
 

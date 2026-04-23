@@ -88,6 +88,5 @@ def bookmarks_default(ctx: typer.Context) -> None:
     without specifying the full path each time.
     """
     if ctx.invoked_subcommand is None:
-        # Show help by default
         console.print(ctx.get_help())
         console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat bookmarks list[/] to see your bookmarked vaults.")

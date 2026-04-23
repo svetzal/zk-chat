@@ -29,7 +29,6 @@ class ChromaGateway:
             settings=Settings(allow_reset=True),
         )
 
-        # Initialize collections dictionary
         self._collections: dict[ZkCollectionName, Collection] = {}
 
     def get_collection(self, collection_name: ZkCollectionName) -> Collection:
@@ -43,10 +42,6 @@ class ChromaGateway:
             The requested collection
         """
         if collection_name not in self._collections:
-            # Create HNSW configuration with cosine distance
-            # hnsw_config = HNSWConfiguration(space="cosine")
-            # collection_config = CollectionConfiguration(hnsw_configuration=hnsw_config)
-
             self._collections[collection_name] = self.chroma_client.get_or_create_collection(
                 name=collection_name.value,
                 metadata={"hsnw:space": "cosine"},
@@ -82,7 +77,6 @@ class ChromaGateway:
             collection_name: The name of the collection to reset (resets all if None)
         """
         if collection_name:
-            # Reset a specific collection
             try:
                 self.chroma_client.delete_collection(collection_name.value)
             except ValueError:
@@ -91,7 +85,6 @@ class ChromaGateway:
             self._collections.pop(collection_name, None)
             self.get_collection(collection_name)
         else:
-            # Reset all collections
             self.chroma_client.reset()
             self._collections = {}
 

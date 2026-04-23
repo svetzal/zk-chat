@@ -187,7 +187,6 @@ def status(
     _print_health(last_indexed, markdown_count, vault_path)
 
 
-# Default command
 @index_app.callback()
 def index_default(ctx: typer.Context) -> None:
     """
@@ -197,7 +196,6 @@ def index_default(ctx: typer.Context) -> None:
     Use [cyan]update[/] to refresh it and [cyan]status[/] to check its health.
     """
     if ctx.invoked_subcommand is None:
-        # Show help by default
         console.print(ctx.get_help())
         console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat index --help[/] to see available commands.")
         console.print("Most common: [cyan]zk-chat index update[/] or [cyan]zk-chat index status[/]")

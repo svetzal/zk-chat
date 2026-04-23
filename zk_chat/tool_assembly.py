@@ -99,10 +99,8 @@ def build_agent_tools(
         AnalyzeImage is included only when config.visual_model is set.
     """
     tools: list[LLMTool] = [
-        # Real world context
         CurrentDateTimeTool(),
         ResolveDateTool(),
-        # Document tools
         ReadZkDocument(document_service),
         ListZkDocuments(document_service, console_service),
         ListZkImages(filesystem_gateway, console_service),
@@ -112,13 +110,10 @@ def build_agent_tools(
         CreateOrOverwriteZkDocument(document_service, console_service),
         RenameZkDocument(document_service),
         DeleteZkDocument(document_service, console_service),
-        # Graph traversal tools
         FindBacklinks(link_traversal_service, console_service),
         FindForwardLinks(document_service, link_traversal_service, console_service),
-        # Memory tools
         StoreInSmartMemory(smart_memory, console_service),
         RetrieveFromSmartMemory(smart_memory, console_service),
-        # Git tools
         UncommittedChanges(config.vault, git_gateway, console_service),
         CommitChanges(config.vault, llm, git_gateway, console_service),
     ]

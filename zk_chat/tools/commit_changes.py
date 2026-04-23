@@ -26,12 +26,10 @@ class CommitChanges(LLMTool):
         self.console_service.tool_info("Committing changes in vault folder")
 
         try:
-            # Add all files to git staging
             success, message = self.git.add_all_files()
             if not success:
                 return f"Error adding files: {message}"
 
-            # Check if there are any changes to commit
             success, status_output = self.git.get_status()
             if not success:
                 return f"Error checking status: {status_output}"
@@ -39,14 +37,12 @@ class CommitChanges(LLMTool):
             if not status_output.strip():
                 return "No changes to commit in the vault folder."
 
-            # Get the diff to summarize changes
             success, diff_output = self.git.get_diff()
             if not success:
                 return f"Error getting diff: {diff_output}"
 
             commit_message = self._generate_commit_message(diff_output)
 
-            # Commit the changes
             success, commit_output = self.git.commit(commit_message)
             if not success:
                 return f"Error committing changes: {commit_output}"

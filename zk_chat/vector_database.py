@@ -1,6 +1,4 @@
 import structlog
-
-# CollectionName import no longer needed in ChromaDB 1.1.0
 from mojentic.llm.gateways import OllamaGateway, OpenAIGateway
 
 from zk_chat.chroma_collections import ZkCollectionName

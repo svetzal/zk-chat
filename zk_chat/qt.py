@@ -64,7 +64,6 @@ class ChatMessageWidget(QWidget):
         layout.setSpacing(10)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
-        # Role label on the left
         role_label = QLabel(role)
         role_label.setFixedWidth(80)
         role_label.setAlignment(Qt.AlignTop | Qt.AlignRight)
@@ -75,7 +74,6 @@ class ChatMessageWidget(QWidget):
         """)
         layout.addWidget(role_label)
 
-        # Frame for content
         self.frame = QFrame()
         self.frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         self.frame_layout = QHBoxLayout()
@@ -83,7 +81,6 @@ class ChatMessageWidget(QWidget):
         self.frame_layout.setSpacing(0)
         self.frame.setLayout(self.frame_layout)
 
-        # Content browser
         self.content_browser = QTextBrowser()
         self.content_browser.setOpenExternalLinks(True)
         self.content_browser.setFrameStyle(QFrame.NoFrame)
@@ -100,15 +97,12 @@ class ChatMessageWidget(QWidget):
             }
         """)
 
-        # Loading spinner
         self.spinner = LoadingSpinnerWidget()
         self.spinner.setVisible(False)
 
-        # Add widgets to frame
         self.frame_layout.addWidget(self.content_browser)
         self.frame_layout.addWidget(self.spinner)
 
-        # Set different background colors for user and assistant
         if role.lower() == "user":
             self.frame.setStyleSheet("background-color: #222222; border-radius: 5px;")
         else:
@@ -116,7 +110,6 @@ class ChatMessageWidget(QWidget):
 
         layout.addWidget(self.frame)
 
-        # Set initial state
         self.set_loading(loading)
         if not loading:
             self.set_content(content)
@@ -165,7 +158,6 @@ class SettingsDialog(QDialog):
 
         layout = QVBoxLayout()
 
-        # Zettelkasten folder selection
         folder_layout = QVBoxLayout()
         folder_label = QLabel("Zettelkasten Folder:")
         self.folder_edit = QLineEdit(self.config.vault)
@@ -176,7 +168,6 @@ class SettingsDialog(QDialog):
         folder_layout.addWidget(browse_button)
         layout.addLayout(folder_layout)
 
-        # Gateway selection
         gateway_layout = QVBoxLayout()
         gateway_label = QLabel("Model Gateway:")
         self.gateway_combo = QComboBox()
@@ -189,7 +180,6 @@ class SettingsDialog(QDialog):
         gateway_layout.addWidget(self.gateway_combo)
         layout.addLayout(gateway_layout)
 
-        # Chat Model selection
         chat_model_layout = QVBoxLayout()
         chat_model_label = QLabel("Chat Model:")
         self.chat_model_combo = QComboBox()
@@ -197,7 +187,6 @@ class SettingsDialog(QDialog):
         chat_model_layout.addWidget(self.chat_model_combo)
         layout.addLayout(chat_model_layout)
 
-        # Visual Model selection
         visual_model_layout = QVBoxLayout()
         visual_model_label = QLabel("Visual Analysis Model (optional):")
         self.visual_model_combo = QComboBox()
@@ -207,10 +196,8 @@ class SettingsDialog(QDialog):
         visual_model_layout.addWidget(self.visual_model_combo)
         layout.addLayout(visual_model_layout)
 
-        # Populate model lists based on selected gateway
         self.update_model_list()
 
-        # Save button
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
@@ -309,28 +296,23 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Zk-Chat")
         self.setMinimumSize(800, 600)
 
-        # Create menu bar
         menubar = self.menuBar()
         settings_menu = menubar.addMenu("Settings")
         settings_action = settings_menu.addAction("Configure...")
         settings_action.triggered.connect(self.show_settings)
 
-        # Create splitter
         splitter = QSplitter(Qt.Vertical)
         self.setCentralWidget(splitter)
 
-        # Create top widget for chat history
         top_widget = QWidget()
         top_layout = QVBoxLayout(top_widget)
         top_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Create a scroll area for messages
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scroll_area.setFrameStyle(QFrame.NoFrame)
 
-        # Create container widget for messages
         self.messages_container = QWidget()
         self.messages_container.setStyleSheet("")
         self.messages_layout = QVBoxLayout(self.messages_container)
@@ -342,29 +324,24 @@ class MainWindow(QMainWindow):
         top_layout.addWidget(self.scroll_area)
         splitter.addWidget(top_widget)
 
-        # Create bottom widget for input and send button
         bottom_widget = QWidget()
         bottom_layout = QHBoxLayout(bottom_widget)
         bottom_layout.setSpacing(10)  # Add spacing between elements
 
-        # Create chat input with expanding size policy
         self.chat_input = QTextEdit()
         self.chat_input.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # Create send button with fixed size policy
         send_button = QPushButton("Send")
         send_button.setMinimumWidth(80)  # Set minimum width
         send_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         send_button.clicked.connect(self.send_message)
 
-        # Add widgets to layout
         bottom_layout.addWidget(self.chat_input)
         bottom_layout.addWidget(send_button, alignment=Qt.AlignVCenter)  # Align vertically
         bottom_layout.setContentsMargins(0, 0, 0, 0)
 
         splitter.addWidget(bottom_widget)
 
-        # Set initial sizes
         splitter.setSizes([400, 200])
 
     def initialize_chat_session(self) -> None:
@@ -382,20 +359,16 @@ class MainWindow(QMainWindow):
             self.initialize_chat_session()
 
     def append_message(self, role: str, content: str = "", loading: bool = False) -> ChatMessageWidget:
-        # Remove the stretch if it exists
         if self.messages_layout.count() > 0:
             stretch_item = self.messages_layout.itemAt(self.messages_layout.count() - 1)
             if stretch_item.spacerItem():
                 self.messages_layout.removeItem(stretch_item)
 
-        # Create and add the new message widget
         message_widget = ChatMessageWidget(role, content, loading)
         self.messages_layout.addWidget(message_widget)
 
-        # Add stretch back at the bottom
         self.messages_layout.addStretch()
 
-        # Scroll to the bottom to show the new message
         QTimer.singleShot(
             1, lambda: self.scroll_area.verticalScrollBar().setValue(self.scroll_area.verticalScrollBar().maximum())
         )
@@ -411,10 +384,8 @@ class MainWindow(QMainWindow):
         self.append_message("User", message)
         self.chat_input.clear()
 
-        # Create assistant message with loading state
         assistant_widget = self.append_message("Assistant", loading=True)
 
-        # Create and start worker thread for chat response
         self.worker = ChatWorker(self.chat_session, message)
         self.worker.response_ready.connect(lambda response: self.update_assistant_response(assistant_widget, response))
         self.worker.start()

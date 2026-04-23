@@ -23,7 +23,6 @@ from zk_chat.tools.read_zk_document import ReadZkDocument
 from zk_chat.tools.retrieve_from_smart_memory import RetrieveFromSmartMemory
 from zk_chat.tools.store_in_smart_memory import StoreInSmartMemory
 
-# Initialize logger
 logger = structlog.get_logger()
 
 
@@ -72,14 +71,12 @@ class MCPServer:
         """
         Register the specific tools with appropriate dependencies.
         """
-        # Register read-only tools
         self._register_tool(ReadZkDocument(self.document_service))
         self._register_tool(FindExcerptsRelatedTo(self.index_service, self.console_service))
         self._register_tool(FindZkDocumentsRelatedTo(self.index_service, self.console_service))
         self._register_tool(RetrieveFromSmartMemory(self.smart_memory, self.console_service))
         self._register_tool(StoreInSmartMemory(self.smart_memory, self.console_service))
 
-        # Register potentially unsafe tools if enabled
         if self.enable_unsafe_operations:
             self._register_tool(CreateOrOverwriteZkDocument(self.document_service, self.console_service))
 
@@ -132,7 +129,6 @@ class MCPServer:
         logger.info("Executing tool", tool_name=tool_name, parameters=parameters)
 
         try:
-            # Call the tool's run method with the parameters
             result = self.tools[tool_name].run(**parameters)
             return {"status": "success", "result": result}
         except (OSError, ValueError, yaml.YAMLError) as e:
