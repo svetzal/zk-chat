@@ -79,7 +79,6 @@ def reindex(config: Config, config_gateway: ConfigGateway, force_full: bool = Fa
         else:
             files_processed, total_files = _incremental_reindex(config, index_service, progress, decision.last_indexed)
 
-        # Show completion message
         if total_files == 0:
             print("\n✓ No documents needed updating")
         else:
@@ -101,18 +100,14 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    # Ensure vault path exists
     if not os.path.exists(args.vault):
         print(f"Error: Vault path '{args.vault}' does not exist.")
         return
 
-    # Get absolute path to vault
     vault_path = os.path.abspath(args.vault)
 
-    # Convert gateway string to ModelGateway enum
     gateway = ModelGateway(args.gateway)
 
-    # Check if OpenAI API key is set when using OpenAI gateway
     if gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
         print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
         return
@@ -120,12 +115,10 @@ def main() -> None:
     config_gateway = create_default_config_gateway()
     config = config_gateway.load(vault_path)
     if config:
-        # Update gateway if different from config
         if gateway != config.gateway:
             config.gateway = gateway
             config_gateway.save(config)
     else:
-        # Initialize new config with specified gateway — prompt interactively
         print("Please select a model for chat:")
         model = select_model(gateway)
         config = Config(vault=vault_path, model=model, gateway=gateway)

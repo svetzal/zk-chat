@@ -133,7 +133,6 @@ class FilesystemGateway:
         full_source_path = self._get_full_path(source_path)
         full_target_path = self._get_full_path(target_path)
 
-        # Create target directory if it doesn't exist
         target_dir = os.path.dirname(full_target_path)
         if not os.path.exists(target_dir):
             os.makedirs(target_dir)

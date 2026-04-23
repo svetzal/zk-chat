@@ -84,30 +84,25 @@ class LinkGraphIndex:
         self, document: str, wikilink_refs: list[WikiLinkReference], resolved_targets: dict[str, str | None]
     ) -> None:
         """Add or update links for a document."""
-        # Clear existing links for this document
         if document in self.forward_links:
             for target in self.forward_links[document]:
                 if target in self.backward_links:
                     self.backward_links[target].discard(document)
 
-        # Reset for this document
         self.forward_links[document] = set()
         self.broken_links[document] = set()
         self.wikilink_references[document] = wikilink_refs
 
-        # Add new links
         for ref in wikilink_refs:
             wikilink_title = ref.wikilink.title
             resolved_target = resolved_targets.get(wikilink_title)
 
             if resolved_target:
-                # Valid link
                 self.forward_links[document].add(resolved_target)
                 if resolved_target not in self.backward_links:
                     self.backward_links[resolved_target] = set()
                 self.backward_links[resolved_target].add(document)
             else:
-                # Broken link
                 self.broken_links[document].add(wikilink_title)
 
     def get_forward_links(self, document: str) -> set[str]:
@@ -189,10 +184,8 @@ class LinkTraversalService:
             matches = self._wikilink_pattern.finditer(line)
             for match in matches:
                 try:
-                    # Parse the full wikilink
                     wikilink = WikiLink.parse(match.group(0))
 
-                    # Create context snippet (surrounding words)
                     context_snippet = self._create_context_snippet(line, match.start(), match.end())
 
                     wikilink_ref = WikiLinkReference(
@@ -249,7 +242,6 @@ class LinkTraversalService:
         backlinks = []
         target_title = Path(target_document).stem
 
-        # If we have a current index, use it
         if target_document in self.link_index.backward_links:
             linking_docs = self.link_index.backward_links[target_document]
             for linking_doc in linking_docs:
@@ -267,7 +259,6 @@ class LinkTraversalService:
                             )
             return backlinks
 
-        # Fall back to scanning all documents
         logger.info("Scanning all documents for backlinks", target=target_document)
         for relative_path in self.filesystem_gateway.iterate_markdown_files():
             wikilink_refs = self.extract_wikilinks_from_document(relative_path)
@@ -337,7 +328,6 @@ class LinkTraversalService:
         for relative_path in self.filesystem_gateway.iterate_markdown_files():
             wikilink_refs = self.extract_wikilinks_from_document(relative_path)
 
-            # Resolve all wikilinks for this document
             resolved_targets = {}
             for ref in wikilink_refs:
                 try:
@@ -367,7 +357,6 @@ class LinkTraversalService:
         Returns:
             LinkPath object if a path exists, None otherwise
         """
-        # Ensure index is built
         if not self.link_index.last_updated:
             self.build_link_index()
 
@@ -383,12 +372,10 @@ class LinkTraversalService:
         Returns:
             LinkMetrics object with graph statistics
         """
-        # Ensure index is built
         if not self.link_index.last_updated:
             self.build_link_index()
 
         if document:
-            # Metrics for specific document
             forward_links = len(self.link_index.get_forward_links(document))
             backward_links = len(self.link_index.get_backward_links(document))
             broken_links = len(self.link_index.get_broken_links(document))
@@ -404,22 +391,18 @@ class LinkTraversalService:
                 link_density=0.0,  # Not meaningful for single document
             )
 
-        # Global metrics
         total_documents = len(self.link_index.forward_links)
         total_links = sum(len(links) for links in self.link_index.forward_links.values())
         total_broken = sum(len(broken) for broken in self.link_index.broken_links.values())
 
-        # Find orphaned documents (no incoming links)
         orphaned = []
         for doc in self.link_index.forward_links:
             if len(self.link_index.get_backward_links(doc)) == 0:
                 orphaned.append(doc)
 
-        # Find hub documents (most incoming links)
         hub_scores = [(doc, len(self.link_index.get_backward_links(doc))) for doc in self.link_index.forward_links]
         hub_documents = sorted(hub_scores, key=lambda x: x[1], reverse=True)[:10]
 
-        # Calculate metrics
         avg_links = total_links / total_documents if total_documents > 0 else 0.0
         max_possible_links = total_documents * (total_documents - 1)
         link_density = total_links / max_possible_links if max_possible_links > 0 else 0.0
@@ -437,13 +420,11 @@ class LinkTraversalService:
 
     def _create_context_snippet(self, line: str, start: int, end: int, context_chars: int = 50) -> str:
         """Create a context snippet showing the wikilink within its surrounding text."""
-        # Get context before and after the wikilink
         context_start = max(0, start - context_chars)
         context_end = min(len(line), end + context_chars)
 
         snippet = line[context_start:context_end].strip()
 
-        # If we truncated, add ellipses
         if context_start > 0:
             snippet = "..." + snippet
         if context_end < len(line):

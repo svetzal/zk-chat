@@ -138,12 +138,9 @@ class MCPToolWrapper(LLMTool):
         logger.info("Executing MCP tool", server_name=self.server_name, tool_name=self.tool_name, parameters=kwargs)
 
         try:
-            # Coerce types to match schema
             coerced_args = self._coerce_types(kwargs)
 
-            # Schedule the async operation on the background loop
             future = asyncio.run_coroutine_threadsafe(self._async_run(coerced_args), self._loop)
-            # Wait for the result
             result = future.result(timeout=60)  # 60 second timeout for tool execution
             result_str = str(result)
             logger.info(
@@ -265,14 +262,10 @@ class MCPClientManager:
 
     def initialize_sync(self) -> None:
         """Initialize connections synchronously by running async code in background loop."""
-
-        # Start the background event loop
         self._start_event_loop()
 
-        # Schedule initialization on the background loop
         future = asyncio.run_coroutine_threadsafe(self.initialize(), self._loop)
 
-        # Wait for initialization to complete
         future.result()
 
     def cleanup_sync(self) -> None:
@@ -280,16 +273,13 @@ class MCPClientManager:
         import concurrent.futures
 
         if self._loop and self._loop.is_running():
-            # Schedule cleanup on the background loop
             future = asyncio.run_coroutine_threadsafe(self.cleanup(), self._loop)
 
-            # Wait for cleanup to complete
             try:
                 future.result(timeout=10)
             except concurrent.futures.TimeoutError:
                 logger.error("Timeout waiting for MCP client cleanup")
 
-        # Stop the event loop
         self._stop_event_loop()
 
     async def initialize(self):
@@ -339,7 +329,6 @@ class MCPClientManager:
         """
         logger.info("Connecting to MCP server", server_name=server_config.name)
 
-        # Create client based on server type
         if server_config.server_type == MCPServerType.STDIO:
             # FastMCP Client expects config in mcpServers format for STDIO
             client_config = {
@@ -352,13 +341,11 @@ class MCPClientManager:
         else:
             raise ValueError(f"Unsupported server type: {server_config.server_type}")
 
-        # Connect and initialize
         await client.__aenter__()
         self._clients[server_config.name] = client
 
         logger.info("Connected to MCP server", server_name=server_config.name)
 
-        # Discover tools
         await self._discover_tools(server_config, client)
 
     async def _discover_tools(self, server_config: MCPServerConfig, client: Client):

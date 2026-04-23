@@ -31,7 +31,6 @@ from zk_chat.gateway_defaults import (
 )
 from zk_chat.init_options import InitOptions
 
-# Create the main app
 app = typer.Typer(
     name="zk-chat",
     help="💬 Chat with your Zettelkasten - AI-powered knowledge management",
@@ -40,35 +39,28 @@ app = typer.Typer(
     pretty_exceptions_enable=False,  # We handle our own exceptions
 )
 
-# Add subcommands
 app.add_typer(gui_app, name="gui")
 app.add_typer(index_app, name="index")
 app.add_typer(mcp_app, name="mcp")
 app.add_typer(diagnose_app, name="diagnose")
 app.add_typer(bookmarks_app, name="bookmarks")
 
-# Global options that apply to all commands
 console = Console()
 
 
 @app.command()
 def interactive(
-    # Vault options
     vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
     save: Annotated[bool, typer.Option("--save", help="Save the vault path as a bookmark")] = False,
-    # Model options
     gateway: Annotated[str | None, typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
     model: Annotated[str | None, typer.Option("--model", "-m", help="Chat model to use")] = None,
     visual_model: Annotated[str | None, typer.Option("--visual-model", help="Visual analysis model")] = None,
-    # Index options
     no_index: Annotated[bool, typer.Option("--no-index", help="Skip indexing new documents on startup")] = False,
-    # Agent options
     unsafe: Annotated[bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")] = False,
     git: Annotated[bool, typer.Option("--git", help="Enable git integration")] = False,
     store_prompt: Annotated[
         bool, typer.Option("--store-prompt/--no-store-prompt", help="Store system prompt in vault")
     ] = True,
-    # Memory options
     reset_memory: Annotated[bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
 ) -> None:
     """
@@ -99,7 +91,6 @@ def interactive(
     if not config:
         return
 
-    # Display banner and run agent
     display_banner(
         config,
         create_default_console_gateway(),
@@ -116,22 +107,17 @@ def query(
     prompt: Annotated[
         str | None, typer.Argument(help="Query to ask your Zettelkasten (or read from STDIN if not provided)")
     ] = None,
-    # Vault options
     vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
     save: Annotated[bool, typer.Option("--save", help="Save the vault path as a bookmark")] = False,
-    # Model options
     gateway: Annotated[str | None, typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
     model: Annotated[str | None, typer.Option("--model", "-m", help="Chat model to use")] = None,
     visual_model: Annotated[str | None, typer.Option("--visual-model", help="Visual analysis model")] = None,
-    # Index options
     no_index: Annotated[bool, typer.Option("--no-index", help="Skip indexing new documents")] = False,
-    # Agent options
     unsafe: Annotated[bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")] = False,
     git: Annotated[bool, typer.Option("--git", help="Enable git integration")] = False,
     store_prompt: Annotated[
         bool, typer.Option("--store-prompt/--no-store-prompt", help="Store system prompt in vault")
     ] = True,
-    # Memory options
     reset_memory: Annotated[bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
 ) -> None:
     """
@@ -151,7 +137,6 @@ def query(
     • [cyan]zk-chat query "Update my notes" --unsafe --git[/]
     """
 
-    # Get prompt from argument or STDIN
     if prompt is None:
         if sys.stdin.isatty():
             console.print(
@@ -162,7 +147,6 @@ def query(
             console.print("  [cyan]cat prompt.txt | zk-chat query[/]")
             raise typer.Exit(1)
         else:
-            # Read from STDIN
             prompt = sys.stdin.read().strip()
             if not prompt:
                 console.print("[red]Error:[/] No input received from STDIN.")
@@ -184,7 +168,6 @@ def query(
     if not config:
         return
 
-    # Display banner if using unsafe or git modes
     if unsafe or git:
         display_banner(
             config,
@@ -195,11 +178,9 @@ def query(
             store_prompt=store_prompt,
         )
 
-    # Execute single query using agent
     console.print(f"[bold cyan]Query:[/] {prompt}")
     console.print("[dim]Using agent for autonomous problem solving...[/]\n")
 
-    # Import and run agent with single query
     from zk_chat.agent import agent_single_query
 
     result = agent_single_query(config, prompt)

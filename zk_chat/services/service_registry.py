@@ -19,31 +19,24 @@ T = TypeVar("T")
 class ServiceType(Enum):
     """Enumeration of available services that plugins can request."""
 
-    # Core services
     FILESYSTEM_GATEWAY = "filesystem_gateway"
     LLM_BROKER = "llm_broker"
     SMART_MEMORY = "smart_memory"
 
-    # Compositional services (new architecture)
     DOCUMENT_SERVICE = "document_service"
     INDEX_SERVICE = "index_service"
     LINK_TRAVERSAL_SERVICE = "link_traversal_service"
 
-    # Database services
     CHROMA_GATEWAY = "chroma_gateway"
     VECTOR_DATABASE = "vector_database"
 
-    # Gateway services
     MODEL_GATEWAY = "model_gateway"  # The underlying LLM gateway (Ollama/OpenAI)
     TOKENIZER_GATEWAY = "tokenizer_gateway"
 
-    # Git services (when enabled)
     GIT_GATEWAY = "git_gateway"
 
-    # UI services
     CONSOLE_SERVICE = "console_service"
 
-    # Configuration
     CONFIG = "config"
     CONFIG_GATEWAY = "config_gateway"
     GLOBAL_CONFIG_GATEWAY = "global_config_gateway"

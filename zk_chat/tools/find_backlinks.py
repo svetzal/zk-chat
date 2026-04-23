@@ -26,7 +26,6 @@ class FindBacklinks(LLMTool):
         """
         logger.info("Finding backlinks to document", target_document=target_document)
 
-        # Use the link traversal service to find backlinks
         backlink_results = self.link_service.find_backlinks(target_document)
 
         self.console_service.tool_info(f"Found {len(backlink_results)} backlinks to {target_document}")

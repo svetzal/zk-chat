@@ -176,14 +176,12 @@ def list() -> None:
         console.print("\n[dim]Add a server with:[/] [cyan]zk-chat mcp add <name> --type <stdio|http> ...[/]")
         return
 
-    # Create a table
     table = Table(title="Registered MCP Servers", show_header=True, header_style="bold cyan")
     table.add_column("Name", style="green", no_wrap=True)
     table.add_column("Type", style="yellow")
     table.add_column("Configuration", style="white")
     table.add_column("Status", style="magenta")
 
-    # Populate table
     for server in servers:
         config_str = ""
         if server.server_type == MCPServerType.STDIO:
@@ -193,7 +191,6 @@ def list() -> None:
         else:
             config_str = f"URL: {server.url}"
 
-        # Check availability
         is_available = verify_mcp_server(server)
         status = "✅ Available" if is_available else "❌ Unavailable"
 
@@ -201,7 +198,6 @@ def list() -> None:
 
     console.print(table)
 
-    # Check if any servers are unavailable
     unavailable = [s for s in servers if not verify_mcp_server(s)]
     if unavailable:
         console.print(f"\n[yellow]⚠️  Warning: {len(unavailable)} server(s) unavailable[/]")
@@ -225,7 +221,6 @@ def verify(
     global_config = create_default_global_config_gateway().load()
 
     if name:
-        # Verify specific server
         server = global_config.get_mcp_server(name)
         if not server:
             console.print(f"[red]❌ Error:[/] MCP server '{name}' not found.")
@@ -238,7 +233,6 @@ def verify(
             console.print(f"[red]❌ Server '{name}' is not available[/]")
             raise typer.Exit(1)
     else:
-        # Verify all servers
         servers = global_config.list_mcp_servers()
         if not servers:
             console.print("[yellow]No MCP servers registered.[/]")

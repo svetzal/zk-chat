@@ -18,18 +18,14 @@ class UncommittedChanges(LLMTool):
         self.console_service.tool_info("Getting uncommitted changes in vault folder")
 
         try:
-            # Add all files to git staging to include new files in the diff
             success, message = self.git.add_all_files()
             if not success:
                 return f"Error adding files: {message}"
 
-            # Execute git diff command to get uncommitted changes
-            # We use git diff HEAD to show all changes (both staged and unstaged)
             success, diff_output = self.git.get_diff()
             if not success:
                 return f"Error getting diff: {diff_output}"
 
-            # If there are no changes, git diff returns an empty string
             if not diff_output.strip():
                 return "No uncommitted changes in the vault folder."
 

@@ -7,7 +7,6 @@ class ConsoleGateway:
     """Service for consistent Rich Console usage throughout the application."""
 
     def __init__(self) -> None:
-        # Define a consistent theme for the application
         self.theme = Theme(
             {
                 "banner.title": "bold bright_cyan",
