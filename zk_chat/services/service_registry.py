@@ -41,6 +41,10 @@ class ServiceType(Enum):
     CONFIG_GATEWAY = "config_gateway"
     GLOBAL_CONFIG_GATEWAY = "global_config_gateway"
 
+    MCP_SERVICE = "mcp_service"
+    VAULT_STATUS_SERVICE = "vault_status_service"
+    DIAGNOSTIC_SERVICE = "diagnostic_service"
+
 
 class ServiceRegistry:
     """

@@ -22,9 +22,12 @@ if TYPE_CHECKING:
     from zk_chat.global_config_gateway import GlobalConfigGateway
     from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
     from zk_chat.memory.smart_memory import SmartMemory
+    from zk_chat.services.diagnostic_service import DiagnosticService
     from zk_chat.services.document_service import DocumentService
     from zk_chat.services.index_service import IndexService
     from zk_chat.services.link_traversal_service import LinkTraversalService
+    from zk_chat.services.mcp_service import MCPService
+    from zk_chat.services.vault_status_service import VaultStatusService
     from zk_chat.tools.git_gateway import GitGateway
 
 logger = structlog.get_logger()
@@ -131,6 +134,18 @@ class ServiceProvider:
         from zk_chat.console_service import ConsoleGateway
 
         return self._registry.get_service(ServiceType.CONSOLE_SERVICE, ConsoleGateway)
+
+    def get_mcp_service(self) -> "MCPService | None":
+        """Get the MCP service for server management."""
+        return self._registry.get_service(ServiceType.MCP_SERVICE)
+
+    def get_vault_status_service(self) -> "VaultStatusService | None":
+        """Get the VaultStatusService for vault filesystem statistics."""
+        return self._registry.get_service(ServiceType.VAULT_STATUS_SERVICE)
+
+    def get_diagnostic_service(self) -> "DiagnosticService | None":
+        """Get the DiagnosticService for index diagnostic data."""
+        return self._registry.get_service(ServiceType.DIAGNOSTIC_SERVICE)
 
     def get_service(self, service_type: ServiceType, expected_type: type[T] | None = None) -> T | None:
         """

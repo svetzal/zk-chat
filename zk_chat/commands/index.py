@@ -14,9 +14,13 @@ import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging befo
 from zk_chat.cli import common_init
 from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway
-from zk_chat.gateway_defaults import create_default_config_gateway, create_default_global_config_gateway
-from zk_chat.global_config_gateway import GlobalConfigGateway
+from zk_chat.gateway_defaults import (
+    create_default_config_gateway,
+    create_default_filesystem_gateway,
+    create_default_global_config_gateway,
+)
 from zk_chat.init_options import InitOptions
+from zk_chat.vault_resolution import VaultResolutionError, resolve_vault_path
 
 index_app = typer.Typer(name="index", help="🔍 Manage your Zettelkasten search index", rich_markup_mode="rich")
 
@@ -65,24 +69,6 @@ def update(
     console.print("[dim]Your Zettelkasten is ready for fast searching.[/]")
 
 
-def _resolve_vault_status(vault: Path | None, global_config_gateway: GlobalConfigGateway) -> str:
-    import os as _os
-
-    if vault:
-        vault_path = str(vault.resolve())
-    else:
-        global_config = global_config_gateway.load()
-        vault_path = global_config.get_last_opened_bookmark_path()
-        if not vault_path:
-            console.print("[red]❌ Error:[/] No vault specified and no bookmarks found.")
-            console.print("[yellow]Use:[/] [cyan]zk-chat index status --vault /path/to/vault[/]")
-            raise typer.Exit(1)
-    if not _os.path.exists(vault_path):
-        console.print(f"[red]❌ Error:[/] Vault path '{vault_path}' does not exist.")
-        raise typer.Exit(1)
-    return vault_path
-
-
 def _load_config_status(vault_path: str, config_gateway: ConfigGateway) -> Config:
     config = config_gateway.load(vault_path)
     if not config:
@@ -120,39 +106,16 @@ def _print_last_indexed(config) -> None:
         console.print("\n[red]❌ Never indexed[/]")
 
 
-def _print_db_info(vault_path: str) -> None:
-    import os as _os
+def _print_db_info(vault_path: str, db_info) -> None:
+    from zk_chat.formatting import format_file_size
 
-    db_dir = _os.path.join(vault_path, ".zk_chat_db")
-    if _os.path.exists(db_dir):
-        total_size = 0
-        file_count = 0
-        for dirpath, _dirnames, filenames in _os.walk(db_dir):
-            for filename in filenames:
-                filepath = _os.path.join(dirpath, filename)
-                total_size += _os.path.getsize(filepath)
-                file_count += 1
-        from zk_chat.formatting import format_file_size
-
+    if db_info:
         console.print("\n[bold]Index Database:[/]")
-        console.print(f"  • Location: {db_dir}")
-        console.print(f"  • Size: {format_file_size(total_size)}")
-        console.print(f"  • Files: {file_count}")
+        console.print(f"  • Location: {db_info.location}")
+        console.print(f"  • Size: {format_file_size(db_info.total_size)}")
+        console.print(f"  • Files: {db_info.file_count}")
     else:
         console.print("\n[yellow]⚠️  No index database found[/]")
-
-
-def _count_markdown_files(vault_path: str) -> int:
-    import os as _os
-
-    count = 0
-    for root, _dirs, files in _os.walk(vault_path):
-        if ".zk_chat_db" in root:
-            continue
-        for file in files:
-            if file.endswith(".md"):
-                count += 1
-    return count
 
 
 def _print_health(last_indexed, markdown_count: int, vault_path: str) -> None:
@@ -176,15 +139,24 @@ def status(
     vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
 ) -> None:
     """Show the current status of your Zettelkasten index."""
-    vault_path = _resolve_vault_status(vault, create_default_global_config_gateway())
+    try:
+        vault_path = resolve_vault_path(vault, create_default_global_config_gateway())
+    except VaultResolutionError as e:
+        console.print(f"[red]❌ Error:[/] {e}")
+        console.print("[yellow]Use:[/] [cyan]zk-chat index status --vault /path/to/vault[/]")
+        raise typer.Exit(1) from e
+
+    from zk_chat.services.vault_status_service import VaultStatusService
+
     config = _load_config_status(vault_path, create_default_config_gateway())
+    filesystem_gateway = create_default_filesystem_gateway(vault_path)
+    vault_status = VaultStatusService(filesystem_gateway)
     console.print(f"[bold cyan]Index Status[/] - {vault_path}")
     _print_basic_config(config)
     _print_last_indexed(config)
-    _print_db_info(vault_path)
-    markdown_count = _count_markdown_files(vault_path)
+    _print_db_info(vault_path, vault_status.get_db_info(vault_path))
     last_indexed = config.get_last_indexed()
-    _print_health(last_indexed, markdown_count, vault_path)
+    _print_health(last_indexed, vault_status.count_markdown_files(), vault_path)
 
 
 @index_app.callback()
