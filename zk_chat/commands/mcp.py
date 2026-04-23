@@ -11,9 +11,8 @@ from rich.console import Console
 from rich.table import Table
 
 from zk_chat.gateway_defaults import create_default_global_config_gateway
-from zk_chat.global_config import MCPServerConfig, MCPServerType
-from zk_chat.global_config_gateway import GlobalConfigGateway
-from zk_chat.mcp_client import verify_mcp_server
+from zk_chat.global_config import MCPServerType
+from zk_chat.services.mcp_service import MCPService, MCPValidationError
 
 mcp_app = typer.Typer(
     name="mcp", help="🔌 Manage MCP (Model Context Protocol) server connections", rich_markup_mode="rich"
@@ -47,84 +46,31 @@ def add(
 
     [bold yellow]💡 Tip:[/] Use --no-verify to skip availability check during registration.
     """
-    srv_type = _validate_server_type(server_type)
-    _validate_required_params(srv_type, command, url)
+    service = MCPService(create_default_global_config_gateway())
+    args_list = [arg.strip() for arg in args.split(",") if arg.strip()] if args else []
 
-    args_list = []
-    if args:
-        args_list = [arg.strip() for arg in args.split(",") if arg.strip()]
-
-    server_config = _create_server_config(name, srv_type, command, url, args_list)
+    try:
+        server_config = service.register_server(name, server_type, command, url, args_list)
+    except MCPValidationError as e:
+        console.print(f"[red]❌ Error:[/] {e}")
+        raise typer.Exit(1) from e
 
     if not no_verify:
-        _verify_server(name, server_config)
+        console.print(f"[dim]Verifying {name} server availability...[/]")
+        if service.verify_server(server_config):
+            console.print(f"[green]✅ Server {name} is available[/]")
+        else:
+            service.remove_server(name)
+            console.print(f"[red]❌ Server {name} is not available[/]")
+            console.print("[yellow]Use --no-verify to register anyway, or fix the server configuration.[/]")
+            raise typer.Exit(1)
 
-    _register_server(server_config, create_default_global_config_gateway())
-    _display_registration_success(name, srv_type, command, url, args_list)
-
-
-def _validate_server_type(server_type: str) -> MCPServerType:
-    """Validate and return the server type."""
-    try:
-        return MCPServerType(server_type.lower())
-    except ValueError as e:
-        console.print(f"[red]❌ Error:[/] Invalid server type '{server_type}'. Use 'stdio' or 'http'.")
-        raise typer.Exit(1) from e
-
-
-def _validate_required_params(srv_type: MCPServerType, command: str | None, url: str | None) -> None:
-    """Validate required parameters based on server type."""
-    if srv_type == MCPServerType.STDIO and not command:
-        console.print("[red]❌ Error:[/] STDIO server requires --command parameter.")
-        raise typer.Exit(1)
-
-    if srv_type == MCPServerType.HTTP and not url:
-        console.print("[red]❌ Error:[/] HTTP server requires --url parameter.")
-        raise typer.Exit(1)
-
-
-def _create_server_config(
-    name: str, srv_type: MCPServerType, command: str | None, url: str | None, args_list: list
-) -> MCPServerConfig:
-    """Create server configuration."""
-    try:
-        return MCPServerConfig(name=name, server_type=srv_type, command=command, url=url, args=args_list)
-    except ValueError as e:
-        console.print(f"[red]❌ Error:[/] {str(e)}")
-        raise typer.Exit(1) from e
-
-
-def _verify_server(name: str, server_config: MCPServerConfig) -> None:
-    """Verify server availability."""
-    console.print(f"[dim]Verifying {name} server availability...[/]")
-    if verify_mcp_server(server_config):
-        console.print(f"[green]✅ Server {name} is available[/]")
-    else:
-        console.print(f"[red]❌ Server {name} is not available[/]")
-        console.print("[yellow]Use --no-verify to register anyway, or fix the server configuration.[/]")
-        raise typer.Exit(1)
-
-
-def _register_server(server_config: MCPServerConfig, global_config_gateway: GlobalConfigGateway) -> None:
-    """Register server in global config."""
-    global_config = global_config_gateway.load()
-    global_config.add_mcp_server(server_config)
-    global_config_gateway.save(global_config)
-
-
-def _remove_server(name: str, global_config_gateway: GlobalConfigGateway) -> bool:
-    """Remove server from global config. Returns True if removed, False if not found."""
-    global_config = global_config_gateway.load()
-    if global_config.remove_mcp_server(name):
-        global_config_gateway.save(global_config)
-        return True
-    return False
+    _display_registration_success(name, server_config.server_type, command, url, args_list)
 
 
 def _display_registration_success(
     name: str, srv_type: MCPServerType, command: str | None, url: str | None, args_list: list
 ) -> None:
-    """Display success message and configuration."""
     console.print(f"\n[green]✅ MCP server '{name}' registered successfully![/]")
 
     console.print("\n[bold]Server Configuration:[/]")
@@ -151,7 +97,8 @@ def remove(
     • [cyan]zk-chat mcp remove figma[/]
     • [cyan]zk-chat mcp remove chrome[/]
     """
-    if _remove_server(name, create_default_global_config_gateway()):
+    service = MCPService(create_default_global_config_gateway())
+    if service.remove_server(name):
         console.print(f"[green]✅ MCP server '{name}' removed successfully![/]")
     else:
         console.print(f"[red]❌ Error:[/] MCP server '{name}' not found.")
@@ -168,8 +115,8 @@ def list() -> None:
 
     • [cyan]zk-chat mcp list[/]
     """
-    global_config = create_default_global_config_gateway().load()
-    servers = global_config.list_mcp_servers()
+    service = MCPService(create_default_global_config_gateway())
+    servers = service.list_servers()
 
     if not servers:
         console.print("[yellow]No MCP servers registered.[/]")
@@ -191,14 +138,14 @@ def list() -> None:
         else:
             config_str = f"URL: {server.url}"
 
-        is_available = verify_mcp_server(server)
+        is_available = service.verify_server(server)
         status = "✅ Available" if is_available else "❌ Unavailable"
 
         table.add_row(server.name, server.server_type.value, config_str, status)
 
     console.print(table)
 
-    unavailable = [s for s in servers if not verify_mcp_server(s)]
+    unavailable = [s for s in servers if not service.verify_server(s)]
     if unavailable:
         console.print(f"\n[yellow]⚠️  Warning: {len(unavailable)} server(s) unavailable[/]")
         console.print("[dim]These servers may not work during chat sessions.[/]")
@@ -218,22 +165,22 @@ def verify(
     • [cyan]zk-chat mcp verify[/] - Verify all servers
     • [cyan]zk-chat mcp verify figma[/] - Verify specific server
     """
-    global_config = create_default_global_config_gateway().load()
+    service = MCPService(create_default_global_config_gateway())
 
     if name:
-        server = global_config.get_mcp_server(name)
+        server = service.get_server(name)
         if not server:
             console.print(f"[red]❌ Error:[/] MCP server '{name}' not found.")
             raise typer.Exit(1)
 
         console.print(f"[dim]Verifying {name} server...[/]")
-        if verify_mcp_server(server):
+        if service.verify_server(server):
             console.print(f"[green]✅ Server '{name}' is available[/]")
         else:
             console.print(f"[red]❌ Server '{name}' is not available[/]")
             raise typer.Exit(1)
     else:
-        servers = global_config.list_mcp_servers()
+        servers = service.list_servers()
         if not servers:
             console.print("[yellow]No MCP servers registered.[/]")
             return
@@ -242,7 +189,7 @@ def verify(
 
         all_available = True
         for server in servers:
-            is_available = verify_mcp_server(server)
+            is_available = service.verify_server(server)
             status = "[green]✅[/]" if is_available else "[red]❌[/]"
             console.print(f"{status} {server.name} ({server.server_type.value})")
             if not is_available:

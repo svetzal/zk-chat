@@ -12,10 +12,13 @@ from zk_chat.console_service import ConsoleGateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
+from zk_chat.services.diagnostic_service import DiagnosticService
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
 from zk_chat.services.link_traversal_service import LinkTraversalService
+from zk_chat.services.mcp_service import MCPService
 from zk_chat.services.service_registry import ServiceRegistry, ServiceType
+from zk_chat.services.vault_status_service import VaultStatusService
 from zk_chat.tools.git_gateway import GitGateway
 from zk_chat.vector_database import VectorDatabase
 
@@ -108,6 +111,15 @@ def build_service_registry(
 
     registry.register_service(ServiceType.GIT_GATEWAY, git_gateway)
     registry.register_service(ServiceType.CONSOLE_SERVICE, console_service)
+
+    mcp_service = MCPService(global_config_gateway)
+    registry.register_service(ServiceType.MCP_SERVICE, mcp_service)
+
+    vault_status_service = VaultStatusService(filesystem_gateway)
+    registry.register_service(ServiceType.VAULT_STATUS_SERVICE, vault_status_service)
+
+    diagnostic_service = DiagnosticService(chroma_gateway)
+    registry.register_service(ServiceType.DIAGNOSTIC_SERVICE, diagnostic_service)
 
     return registry
 

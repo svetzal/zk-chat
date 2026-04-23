@@ -14,9 +14,6 @@ from rich.panel import Panel
 from rich.table import Table
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
-from zk_chat.chroma_collections import ZkCollectionName
-from zk_chat.chroma_gateway import ChromaGateway
-from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway
 from zk_chat.gateway_defaults import (
     create_default_chroma_gateway,
@@ -28,31 +25,22 @@ from zk_chat.gateway_defaults import (
     create_default_model_gateway,
     create_default_tokenizer_gateway,
 )
-from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.service_factory import build_service_registry
+from zk_chat.services.diagnostic_service import (
+    CollectionSamples,
+    CollectionStatus,
+    DiagnosticService,
+    EmbeddingTestResult,
+)
 from zk_chat.services.service_provider import ServiceProvider
+from zk_chat.vault_resolution import VaultResolutionError, resolve_vault_path
 
 diagnose_app = typer.Typer(name="diagnose", help="🔬 Diagnose index and search issues", rich_markup_mode="rich")
 
 console = Console()
 
 
-def _resolve_vault_path(vault: Path | None, global_config_gateway: GlobalConfigGateway) -> str:
-    if vault:
-        return str(vault.resolve())
-    global_config = global_config_gateway.load()
-    vault_path = global_config.get_last_opened_bookmark_path()
-    if not vault_path:
-        console.print("[red]❌ Error:[/] No vault specified and no bookmarks found.")
-        console.print("[yellow]Use:[/] [cyan]zk-chat diagnose index --vault /path/to/vault[/]")
-        raise typer.Exit(1)
-    if not os.path.exists(vault_path):
-        console.print(f"[red]❌ Error:[/] Vault path '{vault_path}' does not exist.")
-        raise typer.Exit(1)
-    return vault_path
-
-
-def _load_config(vault_path: str, config_gateway: ConfigGateway) -> Config:
+def _load_config(vault_path: str, config_gateway: ConfigGateway):
     config = config_gateway.load(vault_path)
     if not config:
         console.print("[yellow]⚠️  Warning:[/] No zk-chat configuration found in vault.")
@@ -61,52 +49,42 @@ def _load_config(vault_path: str, config_gateway: ConfigGateway) -> Config:
     return config
 
 
-def _print_collection_status(chroma: ChromaGateway) -> None:
+def _print_collection_status(statuses: list[CollectionStatus]) -> None:
     console.print("\n[bold]1. Collection Status[/]")
     table = Table(title="ChromaDB Collections")
     table.add_column("Collection", style="cyan")
     table.add_column("Documents", justify="right", style="green")
     table.add_column("Status", style="yellow")
-    for collection_name in [ZkCollectionName.DOCUMENTS, ZkCollectionName.EXCERPTS]:
-        try:
-            collection = chroma.get_collection(collection_name)
-            count = collection.count()
-            status = "✓ OK" if count > 0 else "⚠ Empty"
-            table.add_row(collection_name.value, str(count), status)
-        except (ValueError, OSError) as e:
-            table.add_row(collection_name.value, "N/A", f"✗ Error: {e}")
+    for status in statuses:
+        count_str = str(status.count) if status.count is not None else "N/A"
+        table.add_row(status.name, count_str, status.status)
     console.print(table)
 
 
-def _print_samples(chroma: ChromaGateway) -> None:
+def _print_samples(samples: list[CollectionSamples]) -> None:
     console.print("\n[bold]2. Sample Documents[/]")
-    for collection_name in [ZkCollectionName.DOCUMENTS, ZkCollectionName.EXCERPTS]:
-        try:
-            collection = chroma.get_collection(collection_name)
-            count = collection.count()
-            if count > 0:
-                results = collection.get(limit=3, include=["metadatas", "documents"])
-                console.print(f"\n[cyan]{collection_name.value}[/] (showing {min(3, count)} of {count}):")
-                for i, (doc_id, metadata, document) in enumerate(
-                    zip(results["ids"], results["metadatas"], results["documents"], strict=False)
-                ):
-                    console.print(f"  [{i + 1}] ID: {doc_id[:50]}...")
-                    console.print(f"      Title: {metadata.get('title', 'N/A')}")
-                    console.print(f"      Content: {document[:100]}...")
-            else:
-                console.print(f"\n[yellow]{collection_name.value}:[/] No documents")
-        except (ValueError, OSError) as e:
-            console.print(f"\n[red]{collection_name.value}:[/] Error: {e}")
+    for sample in samples:
+        if sample.total_count > 0:
+            console.print(
+                f"\n[cyan]{sample.collection_name}[/] (showing {len(sample.entries)} of {sample.total_count}):"
+            )
+            for i, entry in enumerate(sample.entries):
+                console.print(f"  [{i + 1}] ID: {entry.id[:50]}...")
+                console.print(f"      Title: {entry.title}")
+                console.print(f"      Content: {entry.content_preview}...")
+        else:
+            console.print(f"\n[yellow]{sample.collection_name}:[/] No documents")
 
 
-def _test_embedding(gateway, test_text: str = "This is a test document") -> None:
+def _print_embedding_result(result: EmbeddingTestResult) -> None:
     console.print("\n[bold]3. Embedding Generation Test[/]")
-    try:
-        embedding = gateway.calculate_embeddings(test_text)
-        console.print(f"  ✓ Generated embedding with {len(embedding)} dimensions")
-        console.print(f"  Sample values: [{embedding[0]:.4f}, {embedding[1]:.4f}, {embedding[2]:.4f}, ...]")
-    except (ConnectionError, OSError, ValueError) as e:
-        console.print(f"  [red]✗ Failed to generate embedding:[/] {e}")
+    if result.success:
+        console.print(f"  ✓ Generated embedding with {result.dimensions} dimensions")
+        if result.sample_values:
+            vals = ", ".join(f"{v:.4f}" for v in result.sample_values)
+            console.print(f"  Sample values: [{vals}, ...]")
+    else:
+        console.print(f"  [red]✗ Failed to generate embedding:[/] {result.error}")
 
 
 def _run_test_query(query: str, provider: ServiceProvider) -> tuple[list, list]:
@@ -139,17 +117,19 @@ def _run_test_query(query: str, provider: ServiceProvider) -> tuple[list, list]:
     return doc_results, excerpt_results
 
 
-def _print_recommendations(chroma: ChromaGateway, query: str | None, doc_results: list, excerpt_results: list) -> None:
+def _print_recommendations(
+    diagnostic_service: DiagnosticService, query: str | None, doc_results: list, excerpt_results: list
+) -> None:
     from zk_chat.diagnostics import generate_recommendations
 
     _SEVERITY_COLOR = {"error": "red", "warning": "yellow", "ok": "green"}
 
     console.print("\n[bold]Recommendations:[/]")
     try:
-        doc_collection = chroma.get_collection(ZkCollectionName.DOCUMENTS)
-        excerpt_collection = chroma.get_collection(ZkCollectionName.EXCERPTS)
-        doc_count = doc_collection.count()
-        excerpt_count = excerpt_collection.count()
+        statuses = diagnostic_service.get_collection_statuses()
+        counts = {s.name: s.count for s in statuses}
+        doc_count = counts.get("documents", 0) or 0
+        excerpt_count = counts.get("excerpts", 0) or 0
         for rec in generate_recommendations(doc_count, excerpt_count, query, doc_results, excerpt_results):
             color = _SEVERITY_COLOR.get(rec.severity, "white")
             console.print(f"  [{color}]•[/] {rec.message}")
@@ -167,7 +147,14 @@ def index(
     """Diagnose the search index to identify why queries aren't returning results."""
     global_config_gateway = create_default_global_config_gateway()
     config_gateway = create_default_config_gateway()
-    vault_path = _resolve_vault_path(vault, global_config_gateway)
+
+    try:
+        vault_path = resolve_vault_path(vault, global_config_gateway)
+    except VaultResolutionError as e:
+        console.print(f"[red]❌ Error:[/] {e}")
+        console.print("[yellow]Use:[/] [cyan]zk-chat diagnose index --vault /path/to/vault[/]")
+        raise typer.Exit(1) from e
+
     config = _load_config(vault_path, config_gateway)
     console.print(Panel(f"[bold cyan]Index Diagnostics[/] - {vault_path}", expand=False))
     db_dir = os.path.join(config.vault, ".zk_chat_db")
@@ -176,6 +163,7 @@ def index(
         console.print(f"[dim]Expected: {db_dir}[/]")
         console.print("\n[yellow]Run:[/] [cyan]zk-chat index update[/] to create the index")
         raise typer.Exit(1)
+
     registry = build_service_registry(
         config=config,
         config_gateway=config_gateway,
@@ -188,13 +176,15 @@ def index(
         console_service=create_default_console_gateway(),
     )
     provider = ServiceProvider(registry)
-    chroma = provider.get_chroma_gateway()
-    gateway = provider.get_model_gateway()
-    _print_collection_status(chroma)
-    _print_samples(chroma)
-    _test_embedding(gateway)
+    diagnostic_service = provider.get_diagnostic_service()
+    model_gateway = provider.get_model_gateway()
+
+    _print_collection_status(diagnostic_service.get_collection_statuses())
+    _print_samples(diagnostic_service.get_sample_documents())
+    _print_embedding_result(diagnostic_service.test_embedding(model_gateway))
+
     doc_results: list = []
     excerpt_results: list = []
     if query:
         doc_results, excerpt_results = _run_test_query(query, provider)
-    _print_recommendations(chroma, query, doc_results, excerpt_results)
+    _print_recommendations(diagnostic_service, query, doc_results, excerpt_results)
