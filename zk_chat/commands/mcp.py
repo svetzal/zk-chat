@@ -7,18 +7,16 @@ Manages MCP (Model Context Protocol) server connections.
 from typing import Annotated
 
 import typer
-from rich.console import Console
 from rich.table import Table
 
-from zk_chat.gateway_defaults import create_default_global_config_gateway
+from zk_chat.console_service import ConsoleGateway
+from zk_chat.gateway_defaults import create_default_console_gateway, create_default_global_config_gateway
 from zk_chat.global_config import MCPServerType
 from zk_chat.services.mcp_service import MCPService, MCPValidationError
 
 mcp_app = typer.Typer(
     name="mcp", help="🔌 Manage MCP (Model Context Protocol) server connections", rich_markup_mode="rich"
 )
-
-console = Console()
 
 
 @mcp_app.command()
@@ -46,43 +44,45 @@ def add(
 
     [bold yellow]💡 Tip:[/] Use --no-verify to skip availability check during registration.
     """
+    console_gateway = create_default_console_gateway()
     service = MCPService(create_default_global_config_gateway())
     args_list = [arg.strip() for arg in args.split(",") if arg.strip()] if args else []
 
     try:
         server_config = service.register_server(name, server_type, command, url, args_list)
     except MCPValidationError as e:
-        console.print(f"[red]❌ Error:[/] {e}")
+        console_gateway.print(f"[red]❌ Error:[/] {e}")
         raise typer.Exit(1) from e
 
     if not no_verify:
-        console.print(f"[dim]Verifying {name} server availability...[/]")
+        console_gateway.print(f"[dim]Verifying {name} server availability...[/]")
         if service.verify_server(server_config):
-            console.print(f"[green]✅ Server {name} is available[/]")
+            console_gateway.print(f"[green]✅ Server {name} is available[/]")
         else:
             service.remove_server(name)
-            console.print(f"[red]❌ Server {name} is not available[/]")
-            console.print("[yellow]Use --no-verify to register anyway, or fix the server configuration.[/]")
+            console_gateway.print(f"[red]❌ Server {name} is not available[/]")
+            console_gateway.print("[yellow]Use --no-verify to register anyway, or fix the server configuration.[/]")
             raise typer.Exit(1)
 
-    _display_registration_success(name, server_config.server_type, command, url, args_list)
+    _display_registration_success(name, server_config.server_type, command, url, args_list, console_gateway)
 
 
 def _display_registration_success(
-    name: str, srv_type: MCPServerType, command: str | None, url: str | None, args_list: list
+    name: str, srv_type: MCPServerType, command: str | None, url: str | None, args_list: list,
+    console_gateway: ConsoleGateway,
 ) -> None:
-    console.print(f"\n[green]✅ MCP server '{name}' registered successfully![/]")
+    console_gateway.print(f"\n[green]✅ MCP server '{name}' registered successfully![/]")
 
-    console.print("\n[bold]Server Configuration:[/]")
-    console.print(f"  • Name: {name}")
-    console.print(f"  • Type: {srv_type.value}")
+    console_gateway.print("\n[bold]Server Configuration:[/]")
+    console_gateway.print(f"  • Name: {name}")
+    console_gateway.print(f"  • Type: {srv_type.value}")
     if command:
-        console.print(f"  • Command: {command}")
+        console_gateway.print(f"  • Command: {command}")
     if url:
-        console.print(f"  • URL: {url}")
+        console_gateway.print(f"  • URL: {url}")
     if args_list:
         args_str = ", ".join(args_list)
-        console.print(f"  • Args: {args_str}")
+        console_gateway.print(f"  • Args: {args_str}")
 
 
 @mcp_app.command()
@@ -97,12 +97,13 @@ def remove(
     • [cyan]zk-chat mcp remove figma[/]
     • [cyan]zk-chat mcp remove chrome[/]
     """
+    console_gateway = create_default_console_gateway()
     service = MCPService(create_default_global_config_gateway())
     if service.remove_server(name):
-        console.print(f"[green]✅ MCP server '{name}' removed successfully![/]")
+        console_gateway.print(f"[green]✅ MCP server '{name}' removed successfully![/]")
     else:
-        console.print(f"[red]❌ Error:[/] MCP server '{name}' not found.")
-        console.print("[dim]Use [cyan]zk-chat mcp list[/dim] to see registered servers.")
+        console_gateway.print(f"[red]❌ Error:[/] MCP server '{name}' not found.")
+        console_gateway.print("[dim]Use [cyan]zk-chat mcp list[/dim] to see registered servers.")
         raise typer.Exit(1)
 
 
@@ -115,12 +116,13 @@ def list() -> None:
 
     • [cyan]zk-chat mcp list[/]
     """
+    console_gateway = create_default_console_gateway()
     service = MCPService(create_default_global_config_gateway())
     servers = service.list_servers()
 
     if not servers:
-        console.print("[yellow]No MCP servers registered.[/]")
-        console.print("\n[dim]Add a server with:[/] [cyan]zk-chat mcp add <name> --type <stdio|http> ...[/]")
+        console_gateway.print("[yellow]No MCP servers registered.[/]")
+        console_gateway.print("\n[dim]Add a server with:[/] [cyan]zk-chat mcp add <name> --type <stdio|http> ...[/]")
         return
 
     table = Table(title="Registered MCP Servers", show_header=True, header_style="bold cyan")
@@ -143,12 +145,12 @@ def list() -> None:
 
         table.add_row(server.name, server.server_type.value, config_str, status)
 
-    console.print(table)
+    console_gateway.print(table)
 
     unavailable = [s for s in servers if not service.verify_server(s)]
     if unavailable:
-        console.print(f"\n[yellow]⚠️  Warning: {len(unavailable)} server(s) unavailable[/]")
-        console.print("[dim]These servers may not work during chat sessions.[/]")
+        console_gateway.print(f"\n[yellow]⚠️  Warning: {len(unavailable)} server(s) unavailable[/]")
+        console_gateway.print("[dim]These servers may not work during chat sessions.[/]")
 
 
 @mcp_app.command()
@@ -165,40 +167,41 @@ def verify(
     • [cyan]zk-chat mcp verify[/] - Verify all servers
     • [cyan]zk-chat mcp verify figma[/] - Verify specific server
     """
+    console_gateway = create_default_console_gateway()
     service = MCPService(create_default_global_config_gateway())
 
     if name:
         server = service.get_server(name)
         if not server:
-            console.print(f"[red]❌ Error:[/] MCP server '{name}' not found.")
+            console_gateway.print(f"[red]❌ Error:[/] MCP server '{name}' not found.")
             raise typer.Exit(1)
 
-        console.print(f"[dim]Verifying {name} server...[/]")
+        console_gateway.print(f"[dim]Verifying {name} server...[/]")
         if service.verify_server(server):
-            console.print(f"[green]✅ Server '{name}' is available[/]")
+            console_gateway.print(f"[green]✅ Server '{name}' is available[/]")
         else:
-            console.print(f"[red]❌ Server '{name}' is not available[/]")
+            console_gateway.print(f"[red]❌ Server '{name}' is not available[/]")
             raise typer.Exit(1)
     else:
         servers = service.list_servers()
         if not servers:
-            console.print("[yellow]No MCP servers registered.[/]")
+            console_gateway.print("[yellow]No MCP servers registered.[/]")
             return
 
-        console.print(f"[dim]Verifying {len(servers)} server(s)...[/]\n")
+        console_gateway.print(f"[dim]Verifying {len(servers)} server(s)...[/]\n")
 
         all_available = True
         for server in servers:
             is_available = service.verify_server(server)
             status = "[green]✅[/]" if is_available else "[red]❌[/]"
-            console.print(f"{status} {server.name} ({server.server_type.value})")
+            console_gateway.print(f"{status} {server.name} ({server.server_type.value})")
             if not is_available:
                 all_available = False
 
         if all_available:
-            console.print("\n[green]✅ All servers are available[/]")
+            console_gateway.print("\n[green]✅ All servers are available[/]")
         else:
-            console.print("\n[yellow]⚠️  Some servers are unavailable[/]")
+            console_gateway.print("\n[yellow]⚠️  Some servers are unavailable[/]")
             raise typer.Exit(1)
 
 
@@ -211,8 +214,9 @@ def mcp_default(ctx: typer.Context) -> None:
     like Figma, Chrome DevTools, and other MCP-compatible systems.
     """
     if ctx.invoked_subcommand is None:
-        console.print(ctx.get_help())
-        console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat mcp --help[/] to see available commands.")
-        console.print(
+        console_gateway = create_default_console_gateway()
+        console_gateway.print(ctx.get_help())
+        console_gateway.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat mcp --help[/] to see available commands.")
+        console_gateway.print(
             "Most common: [cyan]zk-chat mcp add[/], [cyan]zk-chat mcp list[/], or [cyan]zk-chat mcp verify[/]"
         )

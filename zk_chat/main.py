@@ -13,7 +13,6 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
-from rich.console import Console
 from rich.panel import Panel
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
@@ -44,8 +43,6 @@ app.add_typer(index_app, name="index")
 app.add_typer(mcp_app, name="mcp")
 app.add_typer(diagnose_app, name="diagnose")
 app.add_typer(bookmarks_app, name="bookmarks")
-
-console = Console()
 
 
 @app.command()
@@ -137,19 +134,20 @@ def query(
     • [cyan]zk-chat query "Update my notes" --unsafe --git[/]
     """
 
+    console_gateway = create_default_console_gateway()
     if prompt is None:
         if sys.stdin.isatty():
-            console.print(
+            console_gateway.print(
                 "[red]Error:[/] No prompt provided. Either pass a prompt as an argument or pipe input via STDIN."
             )
-            console.print("Examples:")
-            console.print('  [cyan]zk-chat query "Your question here"[/]')
-            console.print("  [cyan]cat prompt.txt | zk-chat query[/]")
+            console_gateway.print("Examples:")
+            console_gateway.print('  [cyan]zk-chat query "Your question here"[/]')
+            console_gateway.print("  [cyan]cat prompt.txt | zk-chat query[/]")
             raise typer.Exit(1)
         else:
             prompt = sys.stdin.read().strip()
             if not prompt:
-                console.print("[red]Error:[/] No input received from STDIN.")
+                console_gateway.print("[red]Error:[/] No input received from STDIN.")
                 raise typer.Exit(1)
 
     options = InitOptions(
@@ -171,20 +169,20 @@ def query(
     if unsafe or git:
         display_banner(
             config,
-            create_default_console_gateway(),
+            console_gateway,
             title="ZkChat Query",
             unsafe=unsafe,
             use_git=git,
             store_prompt=store_prompt,
         )
 
-    console.print(f"[bold cyan]Query:[/] {prompt}")
-    console.print("[dim]Using agent for autonomous problem solving...[/]\n")
+    console_gateway.print(f"[bold cyan]Query:[/] {prompt}")
+    console_gateway.print("[dim]Using agent for autonomous problem solving...[/]\n")
 
     from zk_chat.agent import agent_single_query
 
     result = agent_single_query(config, prompt)
-    console.print(f"\n[bold green]Response:[/]\n{result}")
+    console_gateway.print(f"\n[bold green]Response:[/]\n{result}")
 
 
 @app.callback()
@@ -221,7 +219,7 @@ def main(
         except PackageNotFoundError:
             pkg_version = "unknown"
 
-        console.print(
+        create_default_console_gateway().print(
             Panel(
                 f"[bold cyan]zk-chat[/] version [green]{pkg_version}[/]\n[dim]Copyright (C) 2024-2025 Stacey Vetzal[/]",
                 title="Version Information",
