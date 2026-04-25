@@ -8,13 +8,11 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
-from rich.console import Console
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
+from zk_chat.gateway_defaults import create_default_console_gateway
 
 gui_app = typer.Typer(name="gui", help="🖥️ Launch the graphical user interface", rich_markup_mode="rich")
-
-console = Console()
 
 
 @gui_app.command()
@@ -38,32 +36,31 @@ def launch(
     • [cyan]zk-chat gui launch[/] - Launch GUI with last used vault
     • [cyan]zk-chat gui launch --vault ~/notes[/] - Launch with specific vault
     """
+    console_gateway = create_default_console_gateway()
     try:
         from zk_chat.qt import main as run_gui
 
-        console.print("[yellow]⚠️  [bold]Experimental Feature[/][/]")
-        console.print("[dim]The GUI is experimental and may not work as expected.[/]")
-        console.print("[dim]It uses the older configuration method.[/]\n")
+        console_gateway.print("[yellow]⚠️  [bold]Experimental Feature[/][/]")
+        console_gateway.print("[dim]The GUI is experimental and may not work as expected.[/]")
+        console_gateway.print("[dim]It uses the older configuration method.[/]\n")
 
-        console.print("[green]🚀 Launching zk-chat GUI...[/]")
+        console_gateway.print("[green]🚀 Launching zk-chat GUI...[/]")
 
-        # Note: The current GUI implementation doesn't use the same config system
-        # as the CLI commands, so we can't easily pass the vault parameter
         if vault:
-            console.print(f"[yellow]Note:[/] Vault parameter ({vault}) will be ignored.")
-            console.print("[yellow]Configure the vault through the GUI settings menu.[/]\n")
+            console_gateway.print(f"[yellow]Note:[/] Vault parameter ({vault}) will be ignored.")
+            console_gateway.print("[yellow]Configure the vault through the GUI settings menu.[/]\n")
 
         run_gui()
 
     except ImportError as e:
-        console.print("[red]❌ Error:[/] GUI dependencies not available")
-        console.print(f"[dim]Details: {e}[/]")
-        console.print("\n[yellow]Try installing GUI dependencies:[/]")
-        console.print("[cyan]pip install 'zk-chat[gui]'[/]")
+        console_gateway.print("[red]❌ Error:[/] GUI dependencies not available")
+        console_gateway.print(f"[dim]Details: {e}[/]")
+        console_gateway.print("\n[yellow]Try installing GUI dependencies:[/]")
+        console_gateway.print("[cyan]pip install 'zk-chat[gui]'[/]")
         raise typer.Exit(1) from e
 
     except (OSError, RuntimeError) as e:
-        console.print(f"[red]❌ Error launching GUI:[/] {e}")
+        console_gateway.print(f"[red]❌ Error launching GUI:[/] {e}")
         raise typer.Exit(1) from e
 
 

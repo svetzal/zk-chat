@@ -1,9 +1,10 @@
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock
 
 import pytest
 import typer
 
 from zk_chat.config_gateway import ConfigGateway
+from zk_chat.console_service import ConsoleGateway
 
 
 class DescribeLoadConfigStatus:
@@ -13,10 +14,11 @@ class DescribeLoadConfigStatus:
         from zk_chat.commands.index import _load_config_status
 
         mock_gateway = Mock(spec=ConfigGateway)
+        mock_console_gateway = Mock(spec=ConsoleGateway)
         mock_config = MagicMock()
         mock_gateway.load.return_value = mock_config
 
-        result = _load_config_status(str(tmp_path), mock_gateway)
+        result = _load_config_status(str(tmp_path), mock_gateway, mock_console_gateway)
 
         assert result is mock_config
 
@@ -24,11 +26,11 @@ class DescribeLoadConfigStatus:
         from zk_chat.commands.index import _load_config_status
 
         mock_gateway = Mock(spec=ConfigGateway)
+        mock_console_gateway = Mock(spec=ConsoleGateway)
         mock_gateway.load.return_value = None
 
-        with patch("zk_chat.commands.index.console"):
-            with pytest.raises(typer.Exit):
-                _load_config_status(str(tmp_path), mock_gateway)
+        with pytest.raises(typer.Exit):
+            _load_config_status(str(tmp_path), mock_gateway, mock_console_gateway)
 
 
 class DescribePrintBasicConfig:
@@ -39,11 +41,11 @@ class DescribePrintBasicConfig:
         from zk_chat.config import Config, ModelGateway
 
         config = Config(vault="/some/path", model="llama3", gateway=ModelGateway.OLLAMA)
+        mock_console_gateway = Mock(spec=ConsoleGateway)
 
-        with patch("zk_chat.commands.index.console") as mock_console:
-            _print_basic_config(config)
+        _print_basic_config(config, mock_console_gateway)
 
-        assert mock_console.print.called
+        assert mock_console_gateway.print.called
 
 
 class DescribePrintLastIndexed:
@@ -62,11 +64,11 @@ class DescribePrintLastIndexed:
             gateway=ModelGateway.OLLAMA,
             gateway_last_indexed={"ollama": timestamp},
         )
+        mock_console_gateway = Mock(spec=ConsoleGateway)
 
-        with patch("zk_chat.commands.index.console") as mock_console:
-            _print_last_indexed(config)
+        _print_last_indexed(config, mock_console_gateway)
 
-        calls = [str(call) for call in mock_console.print.call_args_list]
+        calls = [str(call) for call in mock_console_gateway.print.call_args_list]
         assert any("2024-01-15" in call for call in calls)
 
     def should_print_never_indexed_when_not_indexed(self):
@@ -74,9 +76,9 @@ class DescribePrintLastIndexed:
         from zk_chat.config import Config, ModelGateway
 
         config = Config(vault="/some/path", model="llama3", gateway=ModelGateway.OLLAMA)
+        mock_console_gateway = Mock(spec=ConsoleGateway)
 
-        with patch("zk_chat.commands.index.console") as mock_console:
-            _print_last_indexed(config)
+        _print_last_indexed(config, mock_console_gateway)
 
-        calls = [str(call) for call in mock_console.print.call_args_list]
+        calls = [str(call) for call in mock_console_gateway.print.call_args_list]
         assert any("Never indexed" in call for call in calls)
