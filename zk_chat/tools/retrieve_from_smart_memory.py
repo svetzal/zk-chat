@@ -8,7 +8,7 @@ from zk_chat.tools.tool_helpers import build_descriptor
 logger = structlog.get_logger()
 
 
-def format_memory_results(documents: list, distances: list) -> str:
+def format_memory_results(documents: list[list[str]], distances: list[list[float]]) -> str:
     """Format ChromaDB memory retrieval results into a human-readable string.
 
     Converts distance scores to relevance percentages (``1 - distance``) and

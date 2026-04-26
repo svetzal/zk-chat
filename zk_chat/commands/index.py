@@ -4,8 +4,14 @@ Index subcommand for zk-chat.
 Manages the search index for your Zettelkasten.
 """
 
+from __future__ import annotations
+
+from datetime import datetime
 from pathlib import Path
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
+
+if TYPE_CHECKING:
+    from zk_chat.services.vault_status_service import DbInfo
 
 import typer
 
@@ -76,7 +82,7 @@ def _load_config_status(vault_path: str, config_gateway: ConfigGateway, console_
     return config
 
 
-def _print_basic_config(config, console_gateway: ConsoleGateway) -> None:
+def _print_basic_config(config: Config, console_gateway: ConsoleGateway) -> None:
     console_gateway.print("=" * 60)
     console_gateway.print(f"[bold]Gateway:[/] {config.gateway.value}")
     console_gateway.print(f"[bold]Model:[/] {config.model}")
@@ -87,7 +93,7 @@ def _print_basic_config(config, console_gateway: ConsoleGateway) -> None:
     console_gateway.print(f"  • Overlap: {config.chunk_overlap} tokens")
 
 
-def _print_last_indexed(config, console_gateway: ConsoleGateway) -> None:
+def _print_last_indexed(config: Config, console_gateway: ConsoleGateway) -> None:
     from datetime import datetime as _dt
 
     from zk_chat.formatting import categorize_index_age
@@ -104,7 +110,7 @@ def _print_last_indexed(config, console_gateway: ConsoleGateway) -> None:
         console_gateway.print("\n[red]❌ Never indexed[/]")
 
 
-def _print_db_info(vault_path: str, db_info, console_gateway: ConsoleGateway) -> None:
+def _print_db_info(vault_path: str, db_info: DbInfo | None, console_gateway: ConsoleGateway) -> None:
     from zk_chat.formatting import format_file_size
 
     if db_info:
@@ -116,7 +122,9 @@ def _print_db_info(vault_path: str, db_info, console_gateway: ConsoleGateway) ->
         console_gateway.print("\n[yellow]⚠️  No index database found[/]")
 
 
-def _print_health(last_indexed, markdown_count: int, vault_path: str, console_gateway: ConsoleGateway) -> None:
+def _print_health(
+    last_indexed: datetime | None, markdown_count: int, vault_path: str, console_gateway: ConsoleGateway
+) -> None:
     from zk_chat.formatting import assess_vault_health
 
     console_gateway.print("\n[bold]Vault Statistics:[/]")

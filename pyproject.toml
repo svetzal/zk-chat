@@ -18,7 +18,7 @@ dependencies = [
     "mojentic>=1.2.1",
     "pyside6>=6.11.0",
     "rich>=15.0.0",
-    "typer>=0.24.2",
+    "typer>=0.25.0",
     "fastmcp>=3.2.4,<4.0.0",
 ]
 

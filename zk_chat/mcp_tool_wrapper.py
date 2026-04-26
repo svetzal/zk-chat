@@ -241,7 +241,7 @@ class MCPClientManager:
         """Start a background event loop in a separate thread."""
         import threading
 
-        def run_loop(loop) -> None:
+        def run_loop(loop: asyncio.AbstractEventLoop) -> None:
             asyncio.set_event_loop(loop)
             loop.run_forever()
 
@@ -318,7 +318,7 @@ class MCPClientManager:
 
         self._initialized = True
 
-    async def _connect_server(self, server_config: MCPServerConfig):
+    async def _connect_server(self, server_config: MCPServerConfig) -> None:
         """
         Connect to a single MCP server and discover its tools.
 
@@ -348,7 +348,7 @@ class MCPClientManager:
 
         await self._discover_tools(server_config, client)
 
-    async def _discover_tools(self, server_config: MCPServerConfig, client: Client):
+    async def _discover_tools(self, server_config: MCPServerConfig, client: Client) -> None:
         """
         Discover tools from a connected MCP server.
 

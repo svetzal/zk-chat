@@ -40,7 +40,7 @@ from zk_chat.tool_assembly import build_tools_from_config
 
 
 class LoadingSpinnerWidget(QWidget):
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -56,7 +56,7 @@ class LoadingSpinnerWidget(QWidget):
 
 
 class ChatMessageWidget(QWidget):
-    def __init__(self, role: str, content: str = "", loading: bool = False, parent=None) -> None:
+    def __init__(self, role: str, content: str = "", loading: bool = False, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.role = role
         layout = QHBoxLayout(self)
