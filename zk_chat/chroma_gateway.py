@@ -49,7 +49,12 @@ class ChromaGateway:
         return self._collections[collection_name]
 
     def add_items(
-        self, ids, documents, metadatas, embeddings, collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN
+        self,
+        ids: list[str],
+        documents: list[str],
+        metadatas: list[dict],
+        embeddings: list[list[float]],
+        collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN,
     ) -> None:
         """
         Add items to a collection.
@@ -89,7 +94,10 @@ class ChromaGateway:
             self._collections = {}
 
     def query(
-        self, query_embeddings, n_results, collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN
+        self,
+        query_embeddings: list[list[float]],
+        n_results: int,
+        collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN,
     ) -> dict:
         """
         Query a collection.

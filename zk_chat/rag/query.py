@@ -1,7 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from mojentic.llm.gateways.models import LLMMessage, MessageRole
 
+if TYPE_CHECKING:
+    from mojentic.llm import ChatSession
 
-def rag_query(chat_session, zk, query) -> str:
+    from zk_chat.services.index_service import IndexService
+
+
+def rag_query(chat_session: ChatSession, zk: IndexService, query: str) -> str:
     results = zk.query_excerpts(query, n_results=10, max_distance=1.0)
 
     for result in results:

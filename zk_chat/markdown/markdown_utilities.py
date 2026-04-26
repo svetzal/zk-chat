@@ -47,7 +47,7 @@ class MarkdownUtilities:
         return MarkdownUtilities.separate_metadata_lines_from_content_lines(lines)
 
     @staticmethod
-    def separate_metadata_lines_from_content_lines(lines: list) -> tuple[dict, str]:
+    def separate_metadata_lines_from_content_lines(lines: list[str]) -> tuple[dict, str]:
         """
         Separate metadata and content from the lines of the file.
 

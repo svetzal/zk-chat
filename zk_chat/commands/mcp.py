@@ -68,7 +68,7 @@ def add(
 
 
 def _display_registration_success(
-    name: str, srv_type: MCPServerType, command: str | None, url: str | None, args_list: list,
+    name: str, srv_type: MCPServerType, command: str | None, url: str | None, args_list: list[str],
     console_gateway: ConsoleGateway,
 ) -> None:
     console_gateway.print(f"\n[green]✅ MCP server '{name}' registered successfully![/]")

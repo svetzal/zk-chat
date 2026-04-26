@@ -13,6 +13,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
+from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway
 from zk_chat.console_service import ConsoleGateway
 from zk_chat.gateway_defaults import (
@@ -38,7 +39,7 @@ from zk_chat.vault_resolution import VaultResolutionError, resolve_vault_path
 diagnose_app = typer.Typer(name="diagnose", help="🔬 Diagnose index and search issues", rich_markup_mode="rich")
 
 
-def _load_config(vault_path: str, config_gateway: ConfigGateway, console_gateway: ConsoleGateway):
+def _load_config(vault_path: str, config_gateway: ConfigGateway, console_gateway: ConsoleGateway) -> Config:
     config = config_gateway.load(vault_path)
     if not config:
         console_gateway.print("[yellow]⚠️  Warning:[/] No zk-chat configuration found in vault.")
