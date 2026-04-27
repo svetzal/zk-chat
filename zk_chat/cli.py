@@ -12,20 +12,12 @@ from zk_chat.config_resolution import (
     validate_gateway_selection,
 )
 from zk_chat.console_service import ConsoleGateway
-from zk_chat.gateway_defaults import (
-    create_default_chroma_gateway,
-    create_default_console_gateway,
-    create_default_filesystem_gateway,
-    create_default_git_gateway,
-    create_default_model_gateway,
-    create_default_tokenizer_gateway,
-)
 from zk_chat.global_config import GlobalConfig
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.index import reindex
 from zk_chat.init_options import InitOptions
 from zk_chat.model_selection import get_available_models, select_model
-from zk_chat.service_factory import build_service_registry
+from zk_chat.service_factory import build_service_registry_with_defaults
 from zk_chat.services.service_provider import ServiceProvider
 from zk_chat.upgraders.gateway_specific_index_folder import GatewaySpecificIndexFolder
 from zk_chat.upgraders.gateway_specific_last_indexed import GatewaySpecificLastIndexed
@@ -186,21 +178,9 @@ def _maybe_update_models(
     config_gateway.save(config)
 
 
-def _reset_smart_memory(
-    vault_path: str, config: Config, config_gateway: ConfigGateway, global_config_gateway: GlobalConfigGateway
-) -> None:
+def _reset_smart_memory(config: Config) -> None:
     """Reset SmartMemory for the vault."""
-    registry = build_service_registry(
-        config=config,
-        config_gateway=config_gateway,
-        global_config_gateway=global_config_gateway,
-        model_gateway=create_default_model_gateway(config.gateway),
-        chroma_gateway=create_default_chroma_gateway(config),
-        filesystem_gateway=create_default_filesystem_gateway(config.vault),
-        tokenizer_gateway=create_default_tokenizer_gateway(),
-        git_gateway=create_default_git_gateway(config.vault),
-        console_service=create_default_console_gateway(),
-    )
+    registry = build_service_registry_with_defaults(config)
     provider = ServiceProvider(registry)
     memory = provider.get_smart_memory()
     memory.reset()
@@ -263,7 +243,7 @@ def _handle_existing_config(
     if changed or options.model is not None:
         _maybe_update_models(options, config, gateway, config_gateway)
     if options.reset_memory:
-        _reset_smart_memory(vault_path, config, config_gateway, global_config_gateway)
+        _reset_smart_memory(config)
         return None
     if options.reindex:
         reindex(config, config_gateway, force_full=options.full)

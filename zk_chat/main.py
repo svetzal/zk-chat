@@ -17,6 +17,7 @@ from rich.panel import Panel
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.agent import agent as run_agent
+from zk_chat.agent import agent_single_query
 from zk_chat.cli import common_init, display_banner
 from zk_chat.commands.bookmarks import bookmarks_app
 from zk_chat.commands.diagnose import diagnose_app
@@ -45,8 +46,58 @@ app.add_typer(diagnose_app, name="diagnose")
 app.add_typer(bookmarks_app, name="bookmarks")
 
 
+@app.callback()
+def main(
+    ctx: typer.Context,
+    version: Annotated[bool, typer.Option("--version", help="Show version information")] = False,
+) -> None:
+    """
+    💬 ZkChat - AI Agent for your Zettelkasten
+
+    Use [bold cyan]zk-chat COMMAND --help[/] to see options for specific commands.
+
+    [bold]Common workflows:[/]
+
+    • [cyan]zk-chat interactive[/] - Start interactive agent session
+    • [cyan]zk-chat query "your question"[/] - Ask a single question
+    • [cyan]zk-chat gui[/] - Launch graphical interface
+    • [cyan]zk-chat index update[/] - Update search index
+    • [cyan]zk-chat diagnose index[/] - Troubleshoot index issues
+    • [cyan]zk-chat mcp list[/] - Manage MCP server connections
+
+    [bold]Getting started:[/]
+
+    1. Set up your vault: [cyan]zk-chat interactive --vault /path/to/notes[/]
+    2. Work with your agent: [cyan]zk-chat interactive[/]
+    3. For visual interface: [cyan]zk-chat gui[/]
+    """
+    ctx.ensure_object(dict)
+    ctx.obj["console_gateway"] = create_default_console_gateway()
+    ctx.obj["global_config_gateway"] = create_default_global_config_gateway()
+    ctx.obj["config_gateway"] = create_default_config_gateway()
+
+    if version:
+        from importlib.metadata import PackageNotFoundError
+        from importlib.metadata import version as get_version
+
+        try:
+            pkg_version = get_version("zk-chat")
+        except PackageNotFoundError:
+            pkg_version = "unknown"
+
+        ctx.obj["console_gateway"].print(
+            Panel(
+                f"[bold cyan]zk-chat[/] version [green]{pkg_version}[/]\n[dim]Copyright (C) 2024-2025 Stacey Vetzal[/]",
+                title="Version Information",
+                border_style="cyan",
+            )
+        )
+        raise typer.Exit()
+
+
 @app.command()
 def interactive(
+    ctx: typer.Context,
     vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
     save: Annotated[bool, typer.Option("--save", help="Save the vault path as a bookmark")] = False,
     gateway: Annotated[str | None, typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
@@ -84,23 +135,25 @@ def interactive(
         store_prompt=store_prompt,
         reset_memory=reset_memory,
     )
-    config = common_init(options, create_default_global_config_gateway(), create_default_config_gateway())
+    global_config_gateway = ctx.obj["global_config_gateway"]
+    config = common_init(options, global_config_gateway, ctx.obj["config_gateway"])
     if not config:
         return
 
     display_banner(
         config,
-        create_default_console_gateway(),
+        ctx.obj["console_gateway"],
         title="ZkChat Agent",
         unsafe=unsafe,
         use_git=git,
         store_prompt=store_prompt,
     )
-    run_agent(config)
+    run_agent(config, global_config_gateway)
 
 
 @app.command()
 def query(
+    ctx: typer.Context,
     prompt: Annotated[
         str | None, typer.Argument(help="Query to ask your Zettelkasten (or read from STDIN if not provided)")
     ] = None,
@@ -134,7 +187,7 @@ def query(
     • [cyan]zk-chat query "Update my notes" --unsafe --git[/]
     """
 
-    console_gateway = create_default_console_gateway()
+    console_gateway = ctx.obj["console_gateway"]
     if prompt is None:
         if sys.stdin.isatty():
             console_gateway.print(
@@ -162,7 +215,8 @@ def query(
         store_prompt=store_prompt,
         reset_memory=reset_memory,
     )
-    config = common_init(options, create_default_global_config_gateway(), create_default_config_gateway())
+    global_config_gateway = ctx.obj["global_config_gateway"]
+    config = common_init(options, global_config_gateway, ctx.obj["config_gateway"])
     if not config:
         return
 
@@ -179,54 +233,8 @@ def query(
     console_gateway.print(f"[bold cyan]Query:[/] {prompt}")
     console_gateway.print("[dim]Using agent for autonomous problem solving...[/]\n")
 
-    from zk_chat.agent import agent_single_query
-
-    result = agent_single_query(config, prompt)
+    result = agent_single_query(config, prompt, global_config_gateway)
     console_gateway.print(f"\n[bold green]Response:[/]\n{result}")
-
-
-@app.callback()
-def main(
-    ctx: typer.Context,
-    version: Annotated[bool, typer.Option("--version", help="Show version information")] = False,
-) -> None:
-    """
-    💬 ZkChat - AI Agent for your Zettelkasten
-
-    Use [bold cyan]zk-chat COMMAND --help[/] to see options for specific commands.
-
-    [bold]Common workflows:[/]
-
-    • [cyan]zk-chat interactive[/] - Start interactive agent session
-    • [cyan]zk-chat query "your question"[/] - Ask a single question
-    • [cyan]zk-chat gui[/] - Launch graphical interface
-    • [cyan]zk-chat index update[/] - Update search index
-    • [cyan]zk-chat diagnose index[/] - Troubleshoot index issues
-    • [cyan]zk-chat mcp list[/] - Manage MCP server connections
-
-    [bold]Getting started:[/]
-
-    1. Set up your vault: [cyan]zk-chat interactive --vault /path/to/notes[/]
-    2. Work with your agent: [cyan]zk-chat interactive[/]
-    3. For visual interface: [cyan]zk-chat gui[/]
-    """
-    if version:
-        from importlib.metadata import PackageNotFoundError
-        from importlib.metadata import version as get_version
-
-        try:
-            pkg_version = get_version("zk-chat")
-        except PackageNotFoundError:
-            pkg_version = "unknown"
-
-        create_default_console_gateway().print(
-            Panel(
-                f"[bold cyan]zk-chat[/] version [green]{pkg_version}[/]\n[dim]Copyright (C) 2024-2025 Stacey Vetzal[/]",
-                title="Version Information",
-                border_style="cyan",
-            )
-        )
-        raise typer.Exit()
 
 
 if __name__ == "__main__":

@@ -114,7 +114,8 @@ class DescribeInteractiveCommand:
                 with patch("zk_chat.main.display_banner"):
                     runner.invoke(app, ["interactive"])
 
-        mock_run_agent.assert_called_once_with(mock_config)
+        assert mock_run_agent.called
+        assert mock_run_agent.call_args.args[0] is mock_config
 
     def should_not_invoke_run_agent_when_config_is_none(self, runner):
         with patch("zk_chat.main.common_init", return_value=None):

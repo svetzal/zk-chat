@@ -17,16 +17,11 @@ from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway
 from zk_chat.console_service import ConsoleGateway
 from zk_chat.gateway_defaults import (
-    create_default_chroma_gateway,
     create_default_config_gateway,
     create_default_console_gateway,
-    create_default_filesystem_gateway,
-    create_default_git_gateway,
     create_default_global_config_gateway,
-    create_default_model_gateway,
-    create_default_tokenizer_gateway,
 )
-from zk_chat.service_factory import build_service_registry
+from zk_chat.service_factory import build_service_registry_with_defaults
 from zk_chat.services.diagnostic_service import (
     CollectionSamples,
     CollectionStatus,
@@ -37,6 +32,15 @@ from zk_chat.services.service_provider import ServiceProvider
 from zk_chat.vault_resolution import VaultResolutionError, resolve_vault_path
 
 diagnose_app = typer.Typer(name="diagnose", help="🔬 Diagnose index and search issues", rich_markup_mode="rich")
+
+
+@diagnose_app.callback()
+def diagnose_default(ctx: typer.Context) -> None:
+    """Diagnose index and search issues."""
+    ctx.ensure_object(dict)
+    ctx.obj["console_gateway"] = create_default_console_gateway()
+    ctx.obj["global_config_gateway"] = create_default_global_config_gateway()
+    ctx.obj["config_gateway"] = create_default_config_gateway()
 
 
 def _load_config(vault_path: str, config_gateway: ConfigGateway, console_gateway: ConsoleGateway) -> Config:
@@ -143,13 +147,14 @@ def _print_recommendations(
 
 @diagnose_app.command()
 def index(
+    ctx: typer.Context,
     vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
     query: Annotated[str | None, typer.Option("--query", "-q", help="Test query to run")] = None,
 ) -> None:
     """Diagnose the search index to identify why queries aren't returning results."""
-    console_gateway = create_default_console_gateway()
-    global_config_gateway = create_default_global_config_gateway()
-    config_gateway = create_default_config_gateway()
+    console_gateway = ctx.obj["console_gateway"]
+    global_config_gateway = ctx.obj["global_config_gateway"]
+    config_gateway = ctx.obj["config_gateway"]
 
     try:
         vault_path = resolve_vault_path(vault, global_config_gateway)
@@ -167,17 +172,7 @@ def index(
         console_gateway.print("\n[yellow]Run:[/] [cyan]zk-chat index update[/] to create the index")
         raise typer.Exit(1)
 
-    registry = build_service_registry(
-        config=config,
-        config_gateway=config_gateway,
-        global_config_gateway=global_config_gateway,
-        model_gateway=create_default_model_gateway(config.gateway),
-        chroma_gateway=create_default_chroma_gateway(config),
-        filesystem_gateway=create_default_filesystem_gateway(config.vault),
-        tokenizer_gateway=create_default_tokenizer_gateway(),
-        git_gateway=create_default_git_gateway(config.vault),
-        console_service=console_gateway,
-    )
+    registry = build_service_registry_with_defaults(config)
     provider = ServiceProvider(registry)
     diagnostic_service = provider.get_diagnostic_service()
     model_gateway = provider.get_model_gateway()
