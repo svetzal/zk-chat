@@ -4,7 +4,7 @@ from typing import Any
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config
-from zk_chat.gateway_defaults import create_default_global_config_gateway
+from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
 from zk_chat.mcp_client import verify_all_mcp_servers
 from zk_chat.mcp_tool_wrapper import MCPClientManager
@@ -33,7 +33,7 @@ def _create_agent(
     _agent_factory : callable, optional
         Injectable factory for the agent (for testing)
     _mcp_manager : context manager, optional
-        Injectable MCP client manager (for testing)
+        Injectable MCP client manager (for testing or injection from callers)
     _system_prompt : str, optional
         Injectable system prompt text (for testing)
     """
@@ -46,10 +46,7 @@ def _create_agent(
         system_prompt=_system_prompt,
     )
 
-    if _mcp_manager is not None:
-        mcp_ctx = _mcp_manager
-    else:
-        mcp_ctx = MCPClientManager(create_default_global_config_gateway())
+    mcp_ctx = _mcp_manager
 
     with mcp_ctx as mcp_manager:
         tools = list(components.tools)
@@ -62,8 +59,7 @@ def _create_agent(
         )
 
 
-def agent(config: Config) -> None:
-    global_config_gateway = create_default_global_config_gateway()
+def agent(config: Config, global_config_gateway: GlobalConfigGateway) -> None:
     global_config = global_config_gateway.load()
     if global_config.list_mcp_servers():
         print("Verifying MCP server availability...")
@@ -85,7 +81,7 @@ def agent(config: Config) -> None:
                 print(response)
 
 
-def agent_single_query(config: Config, query: str) -> str:
+def agent_single_query(config: Config, query: str, global_config_gateway: GlobalConfigGateway) -> str:
     """
     Execute a single query using the agent and return the response.
 
@@ -95,11 +91,13 @@ def agent_single_query(config: Config, query: str) -> str:
         Configuration object
     query : str
         The query string to process
+    global_config_gateway : GlobalConfigGateway
+        Gateway for loading global configuration and MCP server settings
 
     Returns
     -------
     str
         The agent's response as a string
     """
-    with _create_agent(config) as solver:
+    with _create_agent(config, _mcp_manager=MCPClientManager(global_config_gateway)) as solver:
         return solver.solve(query)

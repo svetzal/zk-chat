@@ -32,8 +32,28 @@ from zk_chat.vault_resolution import VaultResolutionError, resolve_vault_path
 index_app = typer.Typer(name="index", help="🔍 Manage your Zettelkasten search index", rich_markup_mode="rich")
 
 
+@index_app.callback()
+def index_default(ctx: typer.Context) -> None:
+    """
+    Manage your Zettelkasten search index.
+
+    The index enables fast semantic search across your notes.
+    Use [cyan]update[/] to refresh it and [cyan]status[/] to check its health.
+    """
+    ctx.ensure_object(dict)
+    ctx.obj["console_gateway"] = create_default_console_gateway()
+    ctx.obj["global_config_gateway"] = create_default_global_config_gateway()
+    ctx.obj["config_gateway"] = create_default_config_gateway()
+    if ctx.invoked_subcommand is None:
+        console = ctx.obj["console_gateway"]
+        console.print(ctx.get_help())
+        console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat index --help[/] to see available commands.")
+        console.print("Most common: [cyan]zk-chat index update[/] or [cyan]zk-chat index status[/]")
+
+
 @index_app.command()
 def update(
+    ctx: typer.Context,
     vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
     full: Annotated[bool, typer.Option("--full", help="Force full rebuild (slower but comprehensive)")] = False,
     gateway: Annotated[str | None, typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
@@ -56,7 +76,7 @@ def update(
     [bold yellow]💡 Tip:[/] Incremental update is fast and happens automatically on startup.
     Use --full after major changes or for troubleshooting.
     """
-    console_gateway = create_default_console_gateway()
+    console_gateway = ctx.obj["console_gateway"]
     options = InitOptions(
         vault=str(vault) if vault else None,
         gateway=gateway,
@@ -64,7 +84,7 @@ def update(
         reindex=True,
         full=full,
     )
-    config = common_init(options, create_default_global_config_gateway(), create_default_config_gateway())
+    config = common_init(options, ctx.obj["global_config_gateway"], ctx.obj["config_gateway"])
 
     if not config:
         return
@@ -142,12 +162,13 @@ def _print_health(
 
 @index_app.command()
 def status(
+    ctx: typer.Context,
     vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
 ) -> None:
     """Show the current status of your Zettelkasten index."""
-    console_gateway = create_default_console_gateway()
+    console_gateway = ctx.obj["console_gateway"]
     try:
-        vault_path = resolve_vault_path(vault, create_default_global_config_gateway())
+        vault_path = resolve_vault_path(vault, ctx.obj["global_config_gateway"])
     except VaultResolutionError as e:
         console_gateway.print(f"[red]❌ Error:[/] {e}")
         console_gateway.print("[yellow]Use:[/] [cyan]zk-chat index status --vault /path/to/vault[/]")
@@ -155,7 +176,7 @@ def status(
 
     from zk_chat.services.vault_status_service import VaultStatusService
 
-    config = _load_config_status(vault_path, create_default_config_gateway(), console_gateway)
+    config = _load_config_status(vault_path, ctx.obj["config_gateway"], console_gateway)
     filesystem_gateway = create_default_filesystem_gateway(vault_path)
     vault_status = VaultStatusService(filesystem_gateway)
     console_gateway.print(f"[bold cyan]Index Status[/] - {vault_path}")
@@ -164,18 +185,3 @@ def status(
     _print_db_info(vault_path, vault_status.get_db_info(vault_path), console_gateway)
     last_indexed = config.get_last_indexed()
     _print_health(last_indexed, vault_status.count_markdown_files(), vault_path, console_gateway)
-
-
-@index_app.callback()
-def index_default(ctx: typer.Context) -> None:
-    """
-    Manage your Zettelkasten search index.
-
-    The index enables fast semantic search across your notes.
-    Use [cyan]update[/] to refresh it and [cyan]status[/] to check its health.
-    """
-    if ctx.invoked_subcommand is None:
-        console_gateway = create_default_console_gateway()
-        console_gateway.print(ctx.get_help())
-        console_gateway.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat index --help[/] to see available commands.")
-        console_gateway.print("Most common: [cyan]zk-chat index update[/] or [cyan]zk-chat index status[/]")

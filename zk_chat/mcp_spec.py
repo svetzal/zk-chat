@@ -235,22 +235,24 @@ class DescribeMCPServer:
 
 
 class DescribeCreateMcpServer:
-    def should_return_mcp_server_instance(self, document_service, index_service, smart_memory):
+    def should_return_mcp_server_instance(self, document_service, index_service, smart_memory, mock_console_service):
         srv = create_mcp_server(
             document_service=document_service,
             index_service=index_service,
             smart_memory=smart_memory,
+            console_service=mock_console_service,
         )
 
         assert isinstance(srv, MCPServer)
 
     def should_create_server_with_unsafe_operations_disabled_by_default(
-        self, document_service, index_service, smart_memory
+        self, document_service, index_service, smart_memory, mock_console_service
     ):
         srv = create_mcp_server(
             document_service=document_service,
             index_service=index_service,
             smart_memory=smart_memory,
+            console_service=mock_console_service,
         )
 
         assert srv.enable_unsafe_operations is False

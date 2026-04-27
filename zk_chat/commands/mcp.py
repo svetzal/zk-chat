@@ -19,8 +19,29 @@ mcp_app = typer.Typer(
 )
 
 
+@mcp_app.callback()
+def mcp_default(ctx: typer.Context) -> None:
+    """
+    Manage MCP (Model Context Protocol) server connections.
+
+    MCP servers allow zk-chat to connect to external tools and services
+    like Figma, Chrome DevTools, and other MCP-compatible systems.
+    """
+    ctx.ensure_object(dict)
+    ctx.obj["console_gateway"] = create_default_console_gateway()
+    ctx.obj["global_config_gateway"] = create_default_global_config_gateway()
+    if ctx.invoked_subcommand is None:
+        console = ctx.obj["console_gateway"]
+        console.print(ctx.get_help())
+        console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat mcp --help[/] to see available commands.")
+        console.print(
+            "Most common: [cyan]zk-chat mcp add[/], [cyan]zk-chat mcp list[/], or [cyan]zk-chat mcp verify[/]"
+        )
+
+
 @mcp_app.command()
 def add(
+    ctx: typer.Context,
     name: Annotated[str, typer.Argument(help="Name for this MCP server")],
     server_type: Annotated[str, typer.Option("--type", "-t", help="Server type (stdio or http)")],
     command: Annotated[str | None, typer.Option("--command", "-c", help="Command for STDIO server")] = None,
@@ -44,8 +65,8 @@ def add(
 
     [bold yellow]💡 Tip:[/] Use --no-verify to skip availability check during registration.
     """
-    console_gateway = create_default_console_gateway()
-    service = MCPService(create_default_global_config_gateway())
+    console_gateway = ctx.obj["console_gateway"]
+    service = MCPService(ctx.obj["global_config_gateway"])
     args_list = [arg.strip() for arg in args.split(",") if arg.strip()] if args else []
 
     try:
@@ -87,6 +108,7 @@ def _display_registration_success(
 
 @mcp_app.command()
 def remove(
+    ctx: typer.Context,
     name: Annotated[str, typer.Argument(help="Name of the MCP server to remove")],
 ) -> None:
     """
@@ -97,8 +119,8 @@ def remove(
     • [cyan]zk-chat mcp remove figma[/]
     • [cyan]zk-chat mcp remove chrome[/]
     """
-    console_gateway = create_default_console_gateway()
-    service = MCPService(create_default_global_config_gateway())
+    console_gateway = ctx.obj["console_gateway"]
+    service = MCPService(ctx.obj["global_config_gateway"])
     if service.remove_server(name):
         console_gateway.print(f"[green]✅ MCP server '{name}' removed successfully![/]")
     else:
@@ -108,7 +130,7 @@ def remove(
 
 
 @mcp_app.command()
-def list() -> None:
+def list(ctx: typer.Context) -> None:
     """
     List all registered MCP servers.
 
@@ -116,8 +138,8 @@ def list() -> None:
 
     • [cyan]zk-chat mcp list[/]
     """
-    console_gateway = create_default_console_gateway()
-    service = MCPService(create_default_global_config_gateway())
+    console_gateway = ctx.obj["console_gateway"]
+    service = MCPService(ctx.obj["global_config_gateway"])
     servers = service.list_servers()
 
     if not servers:
@@ -155,6 +177,7 @@ def list() -> None:
 
 @mcp_app.command()
 def verify(
+    ctx: typer.Context,
     name: Annotated[
         str | None, typer.Argument(help="Name of the MCP server to verify (or all if not specified)")
     ] = None,
@@ -167,8 +190,8 @@ def verify(
     • [cyan]zk-chat mcp verify[/] - Verify all servers
     • [cyan]zk-chat mcp verify figma[/] - Verify specific server
     """
-    console_gateway = create_default_console_gateway()
-    service = MCPService(create_default_global_config_gateway())
+    console_gateway = ctx.obj["console_gateway"]
+    service = MCPService(ctx.obj["global_config_gateway"])
 
     if name:
         server = service.get_server(name)
@@ -203,20 +226,3 @@ def verify(
         else:
             console_gateway.print("\n[yellow]⚠️  Some servers are unavailable[/]")
             raise typer.Exit(1)
-
-
-@mcp_app.callback()
-def mcp_default(ctx: typer.Context) -> None:
-    """
-    Manage MCP (Model Context Protocol) server connections.
-
-    MCP servers allow zk-chat to connect to external tools and services
-    like Figma, Chrome DevTools, and other MCP-compatible systems.
-    """
-    if ctx.invoked_subcommand is None:
-        console_gateway = create_default_console_gateway()
-        console_gateway.print(ctx.get_help())
-        console_gateway.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat mcp --help[/] to see available commands.")
-        console_gateway.print(
-            "Most common: [cyan]zk-chat mcp add[/], [cyan]zk-chat mcp list[/], or [cyan]zk-chat mcp verify[/]"
-        )

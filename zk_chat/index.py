@@ -5,7 +5,6 @@ from datetime import datetime
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
-from zk_chat.gateway_defaults import create_default_config_gateway
 from zk_chat.index_resolution import determine_reindex_strategy
 from zk_chat.model_selection import select_model
 from zk_chat.progress_tracker import IndexingProgressTracker
@@ -88,7 +87,7 @@ def reindex(config: Config, config_gateway: ConfigGateway, force_full: bool = Fa
     config_gateway.save(config)
 
 
-def main() -> None:
+def main(config_gateway: ConfigGateway) -> None:
     parser = argparse.ArgumentParser(description="Index the Zettelkasten vault")
     parser.add_argument("--vault", required=True, help="Path to your Zettelkasten vault")
     parser.add_argument("--full", action="store_true", default=False, help="Force full reindex")
@@ -112,7 +111,6 @@ def main() -> None:
         print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
         return
 
-    config_gateway = create_default_config_gateway()
     config = config_gateway.load(vault_path)
     if config:
         if gateway != config.gateway:
@@ -128,4 +126,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    from zk_chat.gateway_defaults import create_default_config_gateway
+
+    main(config_gateway=create_default_config_gateway())

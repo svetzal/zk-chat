@@ -51,34 +51,6 @@ def _remove_bookmark(path: str, global_config_gateway: GlobalConfigGateway, cons
         return False
 
 
-@bookmarks_app.command()
-def list() -> None:
-    """
-    List all vault bookmarks.
-
-    [bold]Examples:[/]
-
-    • [cyan]zk-chat bookmarks list[/] - Show all bookmarked vaults
-    """
-    console_gateway = create_default_console_gateway()
-    _list_bookmarks(create_default_global_config_gateway(), console_gateway)
-
-
-@bookmarks_app.command()
-def remove(path: str = typer.Argument(help="Path to the vault bookmark to remove (can be relative)")) -> None:
-    """
-    Remove a vault bookmark.
-
-    [bold]Examples:[/]
-
-    • [cyan]zk-chat bookmarks remove ~/notes[/] - Remove bookmark for ~/notes
-    • [cyan]zk-chat bookmarks remove /absolute/path/to/vault[/] - Remove by absolute path
-    """
-    console_gateway = create_default_console_gateway()
-    if not _remove_bookmark(path, create_default_global_config_gateway(), console_gateway):
-        raise typer.Exit(1)
-
-
 @bookmarks_app.callback()
 def bookmarks_default(ctx: typer.Context) -> None:
     """
@@ -87,7 +59,39 @@ def bookmarks_default(ctx: typer.Context) -> None:
     Bookmarks allow you to quickly switch between multiple Zettelkasten vaults
     without specifying the full path each time.
     """
+    ctx.ensure_object(dict)
+    ctx.obj["console_gateway"] = create_default_console_gateway()
+    ctx.obj["global_config_gateway"] = create_default_global_config_gateway()
     if ctx.invoked_subcommand is None:
-        console_gateway = create_default_console_gateway()
-        console_gateway.print(ctx.get_help())
-        console_gateway.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat bookmarks list[/] to see your bookmarked vaults.")
+        console = ctx.obj["console_gateway"]
+        console.print(ctx.get_help())
+        console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat bookmarks list[/] to see your bookmarked vaults.")
+
+
+@bookmarks_app.command()
+def list(ctx: typer.Context) -> None:
+    """
+    List all vault bookmarks.
+
+    [bold]Examples:[/]
+
+    • [cyan]zk-chat bookmarks list[/] - Show all bookmarked vaults
+    """
+    _list_bookmarks(ctx.obj["global_config_gateway"], ctx.obj["console_gateway"])
+
+
+@bookmarks_app.command()
+def remove(
+    ctx: typer.Context,
+    path: str = typer.Argument(help="Path to the vault bookmark to remove (can be relative)"),
+) -> None:
+    """
+    Remove a vault bookmark.
+
+    [bold]Examples:[/]
+
+    • [cyan]zk-chat bookmarks remove ~/notes[/] - Remove bookmark for ~/notes
+    • [cyan]zk-chat bookmarks remove /absolute/path/to/vault[/] - Remove by absolute path
+    """
+    if not _remove_bookmark(path, ctx.obj["global_config_gateway"], ctx.obj["console_gateway"]):
+        raise typer.Exit(1)

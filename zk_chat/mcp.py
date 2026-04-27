@@ -12,7 +12,6 @@ import structlog
 import yaml
 
 from zk_chat.console_service import ConsoleGateway
-from zk_chat.gateway_defaults import create_default_console_gateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
@@ -197,6 +196,7 @@ def create_mcp_server(
     document_service: DocumentService,
     index_service: IndexService,
     smart_memory: SmartMemory,
+    console_service: ConsoleGateway,
     enable_unsafe_operations: bool = False,
 ) -> MCPServer:
     """
@@ -210,6 +210,8 @@ def create_mcp_server(
         IndexService instance for search-related tools
     smart_memory : SmartMemory
         SmartMemory instance for memory-related tools
+    console_service : ConsoleGateway
+        Console service for tool output
     enable_unsafe_operations : bool, optional
         Flag to enable potentially unsafe operations like document creation, by default False
 
@@ -222,6 +224,6 @@ def create_mcp_server(
         document_service=document_service,
         index_service=index_service,
         smart_memory=smart_memory,
-        console_service=create_default_console_gateway(),
+        console_service=console_service,
         enable_unsafe_operations=enable_unsafe_operations,
     )
