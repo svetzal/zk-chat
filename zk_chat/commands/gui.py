@@ -10,13 +10,13 @@ from typing import Annotated
 import typer
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
-from zk_chat.gateway_defaults import create_default_console_gateway
 
 gui_app = typer.Typer(name="gui", help="🖥️ Launch the graphical user interface", rich_markup_mode="rich")
 
 
 @gui_app.command()
 def launch(
+    ctx: typer.Context,
     vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
 ) -> None:
     """
@@ -36,7 +36,7 @@ def launch(
     • [cyan]zk-chat gui launch[/] - Launch GUI with last used vault
     • [cyan]zk-chat gui launch --vault ~/notes[/] - Launch with specific vault
     """
-    console_gateway = create_default_console_gateway()
+    console_gateway = ctx.obj["console_gateway"]
     try:
         from zk_chat.qt import main as run_gui
 

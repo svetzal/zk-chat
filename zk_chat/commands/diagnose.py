@@ -16,11 +16,6 @@ import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging befo
 from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway
 from zk_chat.console_service import ConsoleGateway
-from zk_chat.gateway_defaults import (
-    create_default_config_gateway,
-    create_default_console_gateway,
-    create_default_global_config_gateway,
-)
 from zk_chat.service_factory import build_service_registry_with_defaults
 from zk_chat.services.diagnostic_service import (
     CollectionSamples,
@@ -38,9 +33,6 @@ diagnose_app = typer.Typer(name="diagnose", help="🔬 Diagnose index and search
 def diagnose_default(ctx: typer.Context) -> None:
     """Diagnose index and search issues."""
     ctx.ensure_object(dict)
-    ctx.obj["console_gateway"] = create_default_console_gateway()
-    ctx.obj["global_config_gateway"] = create_default_global_config_gateway()
-    ctx.obj["config_gateway"] = create_default_config_gateway()
 
 
 def _load_config(vault_path: str, config_gateway: ConfigGateway, console_gateway: ConsoleGateway) -> Config:
