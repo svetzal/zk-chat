@@ -10,7 +10,6 @@ import typer
 from rich.table import Table
 
 from zk_chat.console_service import ConsoleGateway
-from zk_chat.gateway_defaults import create_default_console_gateway, create_default_global_config_gateway
 from zk_chat.global_config import MCPServerType
 from zk_chat.services.mcp_service import MCPService, MCPValidationError
 
@@ -28,8 +27,6 @@ def mcp_default(ctx: typer.Context) -> None:
     like Figma, Chrome DevTools, and other MCP-compatible systems.
     """
     ctx.ensure_object(dict)
-    ctx.obj["console_gateway"] = create_default_console_gateway()
-    ctx.obj["global_config_gateway"] = create_default_global_config_gateway()
     if ctx.invoked_subcommand is None:
         console = ctx.obj["console_gateway"]
         console.print(ctx.get_help())

@@ -20,12 +20,7 @@ from zk_chat.cli import common_init
 from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway
 from zk_chat.console_service import ConsoleGateway
-from zk_chat.gateway_defaults import (
-    create_default_config_gateway,
-    create_default_console_gateway,
-    create_default_filesystem_gateway,
-    create_default_global_config_gateway,
-)
+from zk_chat.gateway_defaults import create_default_filesystem_gateway
 from zk_chat.init_options import InitOptions
 from zk_chat.vault_resolution import VaultResolutionError, resolve_vault_path
 
@@ -41,9 +36,6 @@ def index_default(ctx: typer.Context) -> None:
     Use [cyan]update[/] to refresh it and [cyan]status[/] to check its health.
     """
     ctx.ensure_object(dict)
-    ctx.obj["console_gateway"] = create_default_console_gateway()
-    ctx.obj["global_config_gateway"] = create_default_global_config_gateway()
-    ctx.obj["config_gateway"] = create_default_config_gateway()
     if ctx.invoked_subcommand is None:
         console = ctx.obj["console_gateway"]
         console.print(ctx.get_help())

@@ -8,7 +8,6 @@ import typer
 from rich.table import Table
 
 from zk_chat.console_service import ConsoleGateway
-from zk_chat.gateway_defaults import create_default_console_gateway, create_default_global_config_gateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 
 bookmarks_app = typer.Typer(name="bookmarks", help="🔖 Manage vault bookmarks", rich_markup_mode="rich")
@@ -60,8 +59,6 @@ def bookmarks_default(ctx: typer.Context) -> None:
     without specifying the full path each time.
     """
     ctx.ensure_object(dict)
-    ctx.obj["console_gateway"] = create_default_console_gateway()
-    ctx.obj["global_config_gateway"] = create_default_global_config_gateway()
     if ctx.invoked_subcommand is None:
         console = ctx.obj["console_gateway"]
         console.print(ctx.get_help())
