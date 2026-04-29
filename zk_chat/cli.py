@@ -67,27 +67,35 @@ def display_banner(
         )
 
 
-def _handle_save(options: InitOptions, global_config: GlobalConfig, global_config_gateway: GlobalConfigGateway) -> bool:
+def _handle_save(
+    options: InitOptions,
+    global_config: GlobalConfig,
+    global_config_gateway: GlobalConfigGateway,
+    console_gateway: ConsoleGateway,
+) -> bool:
     """Handle save option. Returns True if the command should exit early."""
     if not options.save:
         return False
     if not options.vault:
-        print("Error: --save requires --vault to be specified.")
+        console_gateway.print("Error: --save requires --vault to be specified.")
         return True
     path = options.vault
     if not os.path.exists(path):
-        print(f"Error: Path '{path}' does not exist.")
+        console_gateway.print(f"Error: Path '{path}' does not exist.")
         return True
     abs_path = os.path.abspath(path)
     global_config.add_bookmark(abs_path)
     global_config.set_last_opened_bookmark(abs_path)
     global_config_gateway.save(global_config)
-    print(f"Bookmark added for '{abs_path}'.")
+    console_gateway.print(f"Bookmark added for '{abs_path}'.")
     return True
 
 
 def _resolve_vault_path(
-    options: InitOptions, global_config: GlobalConfig, global_config_gateway: GlobalConfigGateway
+    options: InitOptions,
+    global_config: GlobalConfig,
+    global_config_gateway: GlobalConfigGateway,
+    console_gateway: ConsoleGateway,
 ) -> str | None:
     """Resolve the vault path from options or bookmarks and ensure it exists."""
     arg_vault = os.path.abspath(options.vault) if options.vault else None
@@ -97,15 +105,15 @@ def _resolve_vault_path(
         last_opened=global_config.get_last_opened_bookmark_path(),
     )
     if result.error:
-        print(f"Error: {result.error}")
+        console_gateway.print(f"Error: {result.error}")
         return None
     vault_path = result.vault_path
     if result.source == "argument" and vault_path in global_config.bookmarks:
         global_config.set_last_opened_bookmark(vault_path)
         global_config_gateway.save(global_config)
-        print(f"Using bookmarked vault: {vault_path}")
+        console_gateway.print(f"Using bookmarked vault: {vault_path}")
     if not os.path.exists(vault_path):
-        print(f"Error: Vault path '{vault_path}' does not exist.")
+        console_gateway.print(f"Error: Vault path '{vault_path}' does not exist.")
         return None
     return vault_path
 
@@ -121,7 +129,9 @@ def _run_upgraders(config: Config, config_gateway: ConfigGateway) -> None:
             upgrader.run()
 
 
-def _maybe_select_gateway(options: InitOptions, current_gateway: ModelGateway) -> tuple[ModelGateway, bool]:
+def _maybe_select_gateway(
+    options: InitOptions, current_gateway: ModelGateway, console_gateway: ConsoleGateway
+) -> tuple[ModelGateway, bool]:
     """Return (gateway, changed) based on options.gateway with validation."""
     result = validate_gateway_selection(
         requested=options.gateway,
@@ -129,18 +139,24 @@ def _maybe_select_gateway(options: InitOptions, current_gateway: ModelGateway) -
         openai_key_present=bool(os.environ.get("OPENAI_API_KEY")),
     )
     if result.error:
-        print(f"Error: {result.error}")
+        console_gateway.print(f"Error: {result.error}")
     return result.gateway, result.changed
 
 
-def _update_model_in_config(config: Config, model_name: str | None, gateway: ModelGateway, is_visual: bool) -> None:
+def _update_model_in_config(
+    config: Config,
+    model_name: str | None,
+    gateway: ModelGateway,
+    is_visual: bool,
+    console_gateway: ConsoleGateway,
+) -> None:
     """Update a single model field on config using interactive selection if needed."""
-    available_models = get_available_models(gateway)
+    available_models = get_available_models(gateway, console_gateway)
     action = determine_model_action(model_name, available_models)
     if action.error:
-        print(action.error)
+        console_gateway.print(action.error)
     if action.needs_interactive_selection:
-        selected = select_model(gateway, is_visual=is_visual)
+        selected = select_model(gateway, is_visual=is_visual, console_gateway=console_gateway)
     else:
         selected = action.model_name
     if is_visual:
@@ -150,11 +166,15 @@ def _update_model_in_config(config: Config, model_name: str | None, gateway: Mod
 
     model_type = "Visual model" if is_visual else "Chat model"
     current_name = config.visual_model if is_visual else config.model
-    print(f"{model_type} selected: {current_name} (using {gateway.value} gateway)")
+    console_gateway.print(f"{model_type} selected: {current_name} (using {gateway.value} gateway)")
 
 
 def _maybe_update_models(
-    options: InitOptions, config: Config, gateway: ModelGateway, config_gateway: ConfigGateway
+    options: InitOptions,
+    config: Config,
+    gateway: ModelGateway,
+    config_gateway: ConfigGateway,
+    console_gateway: ConsoleGateway,
 ) -> None:
     """Update chat and visual models based on options."""
     action = determine_model_update_action(
@@ -164,30 +184,39 @@ def _maybe_update_models(
     )
 
     if action.update_chat_model:
-        _update_model_in_config(config, action.chat_model_name, gateway, is_visual=False)
+        _update_model_in_config(
+            config, action.chat_model_name, gateway, is_visual=False, console_gateway=console_gateway
+        )
 
     if action.prompt_for_visual_model:
-        print("Would you like to select a visual model? (y/n): ")
-        choice = input().strip().lower()
+        console_gateway.print("Would you like to select a visual model? (y/n): ")
+        choice = console_gateway.input("").strip().lower()
         if choice == "y":
-            _update_model_in_config(config, None, gateway, is_visual=True)
+            _update_model_in_config(config, None, gateway, is_visual=True, console_gateway=console_gateway)
 
     if action.update_visual_model:
-        _update_model_in_config(config, action.visual_model_name, gateway, is_visual=True)
+        _update_model_in_config(
+            config, action.visual_model_name, gateway, is_visual=True, console_gateway=console_gateway
+        )
 
     config_gateway.save(config)
 
 
-def _reset_smart_memory(config: Config) -> None:
+def _reset_smart_memory(config: Config, console_gateway: ConsoleGateway) -> None:
     """Reset SmartMemory for the vault."""
     registry = build_service_registry_with_defaults(config)
     provider = ServiceProvider(registry)
     memory = provider.get_smart_memory()
     memory.reset()
-    print("Smart memory has been reset.")
+    console_gateway.print("Smart memory has been reset.")
 
 
-def _initialize_config(vault_path: str, options: InitOptions, config_gateway: ConfigGateway) -> Config | None:
+def _initialize_config(
+    vault_path: str,
+    options: InitOptions,
+    config_gateway: ConfigGateway,
+    console_gateway: ConsoleGateway,
+) -> Config | None:
     """Initialize config for a new vault based on options without prompting unnecessarily."""
     action = determine_init_config_action(
         gateway_arg=options.gateway,
@@ -197,31 +226,31 @@ def _initialize_config(vault_path: str, options: InitOptions, config_gateway: Co
     )
 
     if action.error:
-        print(action.error)
+        console_gateway.print(action.error)
         return None
 
     if action.needs_chat_model_selection:
-        print("Please select a model for chat:")
-        model = select_model(action.gateway)
+        console_gateway.print("Please select a model for chat:")
+        model = select_model(action.gateway, console_gateway=console_gateway)
     else:
         model = action.chat_model_name
 
     if action.needs_visual_model_selection:
-        print("Please select a model for visual analysis:")
-        visual_model = select_model(action.gateway, is_visual=True)
+        console_gateway.print("Please select a model for visual analysis:")
+        visual_model = select_model(action.gateway, is_visual=True, console_gateway=console_gateway)
     elif action.use_chat_model_for_visual:
         visual_model = model
     elif action.visual_model_name is not None:
         visual_model = action.visual_model_name
     elif action.needs_visual_model_prompt:
-        print("Would you like to select a model for visual analysis? (y/n): ")
-        choice = input().strip().lower()
+        console_gateway.print("Would you like to select a model for visual analysis? (y/n): ")
+        choice = console_gateway.input("").strip().lower()
         if choice == "y":
-            print("Please select a model for visual analysis:")
-            visual_model = select_model(action.gateway, is_visual=True)
+            console_gateway.print("Please select a model for visual analysis:")
+            visual_model = select_model(action.gateway, is_visual=True, console_gateway=console_gateway)
         else:
             visual_model = None
-            print("Visual analysis will be disabled.")
+            console_gateway.print("Visual analysis will be disabled.")
     else:
         visual_model = None
 
@@ -236,26 +265,32 @@ def _handle_existing_config(
     config: Config,
     config_gateway: ConfigGateway,
     global_config_gateway: GlobalConfigGateway,
+    console_gateway: ConsoleGateway,
 ) -> Config | None:
     """Handle flows when a config already exists for the vault."""
     _run_upgraders(config, config_gateway)
-    gateway, changed = _maybe_select_gateway(options, config.gateway)
+    gateway, changed = _maybe_select_gateway(options, config.gateway, console_gateway)
     if changed or options.model is not None:
-        _maybe_update_models(options, config, gateway, config_gateway)
+        _maybe_update_models(options, config, gateway, config_gateway, console_gateway)
     if options.reset_memory:
-        _reset_smart_memory(config)
+        _reset_smart_memory(config, console_gateway)
         return None
     if options.reindex:
-        reindex(config, config_gateway, force_full=options.full)
+        reindex(config, config_gateway, force_full=options.full, console_gateway=console_gateway)
     return config
 
 
-def _handle_new_config(options: InitOptions, vault_path: str, config_gateway: ConfigGateway) -> Config | None:
+def _handle_new_config(
+    options: InitOptions,
+    vault_path: str,
+    config_gateway: ConfigGateway,
+    console_gateway: ConsoleGateway,
+) -> Config | None:
     """Initialize a new config and trigger initial reindex."""
-    config = _initialize_config(vault_path, options, config_gateway)
+    config = _initialize_config(vault_path, options, config_gateway, console_gateway)
     if not config:
         return None
-    reindex(config, config_gateway, force_full=True)
+    reindex(config, config_gateway, force_full=True, console_gateway=console_gateway)
     return config
 
 
@@ -263,18 +298,21 @@ def common_init(
     options: InitOptions,
     global_config_gateway: GlobalConfigGateway,
     config_gateway: ConfigGateway,
+    console_gateway: ConsoleGateway,
 ) -> Config | None:
     global_config = global_config_gateway.load()
 
-    if _handle_save(options, global_config, global_config_gateway):
+    if _handle_save(options, global_config, global_config_gateway, console_gateway):
         return None
 
-    vault_path = _resolve_vault_path(options, global_config, global_config_gateway)
+    vault_path = _resolve_vault_path(options, global_config, global_config_gateway, console_gateway)
     if not vault_path:
         return None
 
     config = config_gateway.load(vault_path)
     if config:
-        return _handle_existing_config(options, vault_path, config, config_gateway, global_config_gateway)
+        return _handle_existing_config(
+            options, vault_path, config, config_gateway, global_config_gateway, console_gateway
+        )
     else:
-        return _handle_new_config(options, vault_path, config_gateway)
+        return _handle_new_config(options, vault_path, config_gateway, console_gateway)

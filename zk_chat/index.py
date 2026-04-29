@@ -5,6 +5,7 @@ from datetime import datetime
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.index_resolution import determine_reindex_strategy
 from zk_chat.model_selection import select_model
 from zk_chat.progress_tracker import IndexingProgressTracker
@@ -13,9 +14,14 @@ from zk_chat.services.index_service import IndexService
 from zk_chat.services.service_provider import ServiceProvider
 
 
-def _full_reindex(config: Config, index_service: IndexService, progress: IndexingProgressTracker) -> tuple[int, int]:
+def _full_reindex(
+    config: Config,
+    index_service: IndexService,
+    progress: IndexingProgressTracker,
+    console_gateway: ConsoleGateway,
+) -> tuple[int, int]:
     progress.start_scanning()
-    print("Performing full reindex...")
+    console_gateway.print("Performing full reindex...")
     files_processed = 0
     total_files: int | None = None
 
@@ -36,10 +42,14 @@ def _full_reindex(config: Config, index_service: IndexService, progress: Indexin
 
 
 def _incremental_reindex(
-    config: Config, index_service: IndexService, progress: IndexingProgressTracker, last_indexed: datetime
+    config: Config,
+    index_service: IndexService,
+    progress: IndexingProgressTracker,
+    last_indexed: datetime,
+    console_gateway: ConsoleGateway,
 ) -> tuple[int, int]:
     progress.start_scanning("Scanning for modified documents...")
-    print(f"Performing incremental reindex since {last_indexed}...")
+    console_gateway.print(f"Performing incremental reindex since {last_indexed}...")
     files_processed = 0
     total_files: int | None = None
 
@@ -64,8 +74,16 @@ def _incremental_reindex(
     return files_processed, total_files or 0
 
 
-def reindex(config: Config, config_gateway: ConfigGateway, force_full: bool = False) -> None:
+def reindex(
+    config: Config,
+    config_gateway: ConfigGateway,
+    force_full: bool = False,
+    console_gateway: ConsoleGateway | None = None,
+) -> None:
     """Reindex the Zettelkasten vault with progress tracking."""
+    if console_gateway is None:
+        console_gateway = ConsoleGateway()
+
     registry = build_service_registry_with_defaults(config)
     provider = ServiceProvider(registry)
     index_service = provider.get_index_service()
@@ -74,20 +92,26 @@ def reindex(config: Config, config_gateway: ConfigGateway, force_full: bool = Fa
 
     with IndexingProgressTracker() as progress:
         if decision.strategy == "full":
-            files_processed, total_files = _full_reindex(config, index_service, progress)
+            files_processed, total_files = _full_reindex(config, index_service, progress, console_gateway)
         else:
-            files_processed, total_files = _incremental_reindex(config, index_service, progress, decision.last_indexed)
+            files_processed, total_files = _incremental_reindex(
+                config, index_service, progress, decision.last_indexed, console_gateway
+            )
 
         if total_files == 0:
-            print("\n✓ No documents needed updating")
+            console_gateway.print("\n✓ No documents needed updating")
         else:
-            print(f"\n✓ Successfully processed {files_processed} document{'s' if files_processed != 1 else ''}")
+            console_gateway.print(
+                f"\n✓ Successfully processed {files_processed} document{'s' if files_processed != 1 else ''}"
+            )
 
     config.set_last_indexed(datetime.now())
     config_gateway.save(config)
 
 
 def main(config_gateway: ConfigGateway) -> None:
+    console_gateway = ConsoleGateway()
+
     parser = argparse.ArgumentParser(description="Index the Zettelkasten vault")
     parser.add_argument("--vault", required=True, help="Path to your Zettelkasten vault")
     parser.add_argument("--full", action="store_true", default=False, help="Force full reindex")
@@ -100,7 +124,7 @@ def main(config_gateway: ConfigGateway) -> None:
     args = parser.parse_args()
 
     if not os.path.exists(args.vault):
-        print(f"Error: Vault path '{args.vault}' does not exist.")
+        console_gateway.print(f"Error: Vault path '{args.vault}' does not exist.")
         return
 
     vault_path = os.path.abspath(args.vault)
@@ -108,7 +132,7 @@ def main(config_gateway: ConfigGateway) -> None:
     gateway = ModelGateway(args.gateway)
 
     if gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
-        print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
+        console_gateway.print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
         return
 
     config = config_gateway.load(vault_path)
@@ -117,12 +141,12 @@ def main(config_gateway: ConfigGateway) -> None:
             config.gateway = gateway
             config_gateway.save(config)
     else:
-        print("Please select a model for chat:")
-        model = select_model(gateway)
+        console_gateway.print("Please select a model for chat:")
+        model = select_model(gateway, console_gateway=console_gateway)
         config = Config(vault=vault_path, model=model, gateway=gateway)
         config_gateway.save(config)
 
-    reindex(config, config_gateway, force_full=args.full)
+    reindex(config, config_gateway, force_full=args.full, console_gateway=console_gateway)
 
 
 if __name__ == "__main__":

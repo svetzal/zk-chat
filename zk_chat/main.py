@@ -136,7 +136,7 @@ def interactive(
         reset_memory=reset_memory,
     )
     global_config_gateway = ctx.obj["global_config_gateway"]
-    config = common_init(options, global_config_gateway, ctx.obj["config_gateway"])
+    config = common_init(options, global_config_gateway, ctx.obj["config_gateway"], ctx.obj["console_gateway"])
     if not config:
         return
 
@@ -216,7 +216,7 @@ def query(
         reset_memory=reset_memory,
     )
     global_config_gateway = ctx.obj["global_config_gateway"]
-    config = common_init(options, global_config_gateway, ctx.obj["config_gateway"])
+    config = common_init(options, global_config_gateway, ctx.obj["config_gateway"], ctx.obj["console_gateway"])
     if not config:
         return
 
