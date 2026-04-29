@@ -76,7 +76,7 @@ def update(
         reindex=True,
         full=full,
     )
-    config = common_init(options, ctx.obj["global_config_gateway"], ctx.obj["config_gateway"])
+    config = common_init(options, ctx.obj["global_config_gateway"], ctx.obj["config_gateway"], console_gateway)
 
     if not config:
         return

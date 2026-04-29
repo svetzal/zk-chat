@@ -11,6 +11,7 @@ from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.index import _full_reindex, _incremental_reindex, reindex
 from zk_chat.index_resolution import ReindexDecision
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
@@ -41,13 +42,18 @@ def progress():
     return IndexingProgressTracker(console=Console(file=io.StringIO()))
 
 
+@pytest.fixture
+def mock_console_gateway():
+    return Mock(spec=ConsoleGateway)
+
+
 class DescribeFullReindex:
-    def should_call_reindex_all_with_config_params(self, config, index_service_setup, progress):
+    def should_call_reindex_all_with_config_params(self, config, index_service_setup, progress, mock_console_gateway):
         index_service, mock_fs = index_service_setup
         mock_fs.iterate_markdown_files.return_value = iter([])
 
         with patch.object(index_service, "reindex_all", wraps=index_service.reindex_all) as spy:
-            _full_reindex(config, index_service, progress)
+            _full_reindex(config, index_service, progress, mock_console_gateway)
 
         spy.assert_called_once()
         call_kwargs = spy.call_args.kwargs
@@ -55,43 +61,57 @@ class DescribeFullReindex:
         assert call_kwargs["excerpt_overlap"] == config.chunk_overlap
         assert callable(call_kwargs["progress_callback"])
 
-    def should_return_zero_counts_when_no_callback_invoked(self, config, index_service_setup, progress):
+    def should_return_zero_counts_when_no_callback_invoked(
+        self, config, index_service_setup, progress, mock_console_gateway
+    ):
         index_service, mock_fs = index_service_setup
         mock_fs.iterate_markdown_files.return_value = iter([])
 
-        files_processed, total_files = _full_reindex(config, index_service, progress)
+        files_processed, total_files = _full_reindex(config, index_service, progress, mock_console_gateway)
 
         assert files_processed == 0
         assert total_files == 0
 
-    def should_return_correct_counts_after_callback_invocations(self, config, index_service_setup, progress):
+    def should_return_correct_counts_after_callback_invocations(
+        self, config, index_service_setup, progress, mock_console_gateway
+    ):
         index_service, mock_fs = index_service_setup
         mock_fs.iterate_markdown_files.return_value = iter(["file1.md", "file2.md"])
         mock_fs.read_markdown.return_value = ({}, "")
 
-        files_processed, total_files = _full_reindex(config, index_service, progress)
+        files_processed, total_files = _full_reindex(config, index_service, progress, mock_console_gateway)
 
         assert files_processed == 2
         assert total_files == 2
 
-    def should_invoke_progress_callback_for_each_file(self, config, index_service_setup, progress):
+    def should_invoke_progress_callback_for_each_file(
+        self, config, index_service_setup, progress, mock_console_gateway
+    ):
         index_service, mock_fs = index_service_setup
         mock_fs.iterate_markdown_files.return_value = iter(["file1.md", "file2.md"])
         mock_fs.read_markdown.return_value = ({}, "")
 
-        files_processed, _ = _full_reindex(config, index_service, progress)
+        files_processed, _ = _full_reindex(config, index_service, progress, mock_console_gateway)
 
         assert files_processed == 2
 
+    def should_print_status_message(self, config, index_service_setup, progress, mock_console_gateway):
+        index_service, mock_fs = index_service_setup
+        mock_fs.iterate_markdown_files.return_value = iter([])
+
+        _full_reindex(config, index_service, progress, mock_console_gateway)
+
+        mock_console_gateway.print.assert_called_with("Performing full reindex...")
+
 
 class DescribeIncrementalReindex:
-    def should_call_update_index_with_config_params(self, config, index_service_setup, progress):
+    def should_call_update_index_with_config_params(self, config, index_service_setup, progress, mock_console_gateway):
         index_service, mock_fs = index_service_setup
         last_indexed = datetime(2024, 1, 1)
         mock_fs.iterate_markdown_files.return_value = iter([])
 
         with patch.object(index_service, "update_index", wraps=index_service.update_index) as spy:
-            _incremental_reindex(config, index_service, progress, last_indexed)
+            _incremental_reindex(config, index_service, progress, last_indexed, mock_console_gateway)
 
         spy.assert_called_once()
         call_kwargs = spy.call_args.kwargs
@@ -100,27 +120,44 @@ class DescribeIncrementalReindex:
         assert call_kwargs["excerpt_overlap"] == config.chunk_overlap
         assert callable(call_kwargs["progress_callback"])
 
-    def should_return_zero_counts_when_no_callback_invoked(self, config, index_service_setup, progress):
+    def should_return_zero_counts_when_no_callback_invoked(
+        self, config, index_service_setup, progress, mock_console_gateway
+    ):
         index_service, mock_fs = index_service_setup
         last_indexed = datetime(2024, 1, 1)
         mock_fs.iterate_markdown_files.return_value = iter([])
 
-        files_processed, total_files = _incremental_reindex(config, index_service, progress, last_indexed)
+        files_processed, total_files = _incremental_reindex(
+            config, index_service, progress, last_indexed, mock_console_gateway
+        )
 
         assert files_processed == 0
         assert total_files == 0
 
-    def should_return_correct_counts_after_callbacks(self, config, index_service_setup, progress):
+    def should_return_correct_counts_after_callbacks(
+        self, config, index_service_setup, progress, mock_console_gateway
+    ):
         index_service, mock_fs = index_service_setup
         last_indexed = datetime(2024, 1, 1)
         mock_fs.iterate_markdown_files.return_value = iter(["file1.md", "file2.md"])
         mock_fs.get_modified_time.return_value = datetime(2025, 1, 1)
         mock_fs.read_markdown.return_value = ({}, "")
 
-        files_processed, total_files = _incremental_reindex(config, index_service, progress, last_indexed)
+        files_processed, total_files = _incremental_reindex(
+            config, index_service, progress, last_indexed, mock_console_gateway
+        )
 
         assert files_processed == 2
         assert total_files == 2
+
+    def should_print_status_message(self, config, index_service_setup, progress, mock_console_gateway):
+        index_service, mock_fs = index_service_setup
+        last_indexed = datetime(2024, 1, 1)
+        mock_fs.iterate_markdown_files.return_value = iter([])
+
+        _incremental_reindex(config, index_service, progress, last_indexed, mock_console_gateway)
+
+        mock_console_gateway.print.assert_called_with(f"Performing incremental reindex since {last_indexed}...")
 
 
 class DescribeReindex:
@@ -139,7 +176,9 @@ class DescribeReindex:
         documents_db = VectorDatabase(mock_chroma, mock_ollama, ZkCollectionName.DOCUMENTS)
         return IndexService(mock_tokenizer, excerpts_db, documents_db, mock_fs)
 
-    def should_save_config_after_processing(self, config, mock_config_gateway, real_index_service):
+    def should_save_config_after_processing(
+        self, config, mock_config_gateway, real_index_service, mock_console_gateway
+    ):
         full_decision = ReindexDecision(strategy="full")
 
         with (
@@ -156,11 +195,13 @@ class DescribeReindex:
             mock_tracker.__exit__ = Mock(return_value=False)
             mock_tracker_class.return_value = mock_tracker
 
-            reindex(config, mock_config_gateway)
+            reindex(config, mock_config_gateway, console_gateway=mock_console_gateway)
 
         mock_config_gateway.save.assert_called_once_with(config)
 
-    def should_call_set_last_indexed_after_processing(self, config, mock_config_gateway, real_index_service):
+    def should_call_set_last_indexed_after_processing(
+        self, config, mock_config_gateway, real_index_service, mock_console_gateway
+    ):
         full_decision = ReindexDecision(strategy="full")
 
         with (
@@ -178,13 +219,15 @@ class DescribeReindex:
             mock_tracker.__exit__ = Mock(return_value=False)
             mock_tracker_class.return_value = mock_tracker
 
-            reindex(config, mock_config_gateway)
+            reindex(config, mock_config_gateway, console_gateway=mock_console_gateway)
 
         mock_set_last_indexed.assert_called_once()
         actual_timestamp = mock_set_last_indexed.call_args.args[0]
         assert isinstance(actual_timestamp, datetime)
 
-    def should_dispatch_to_full_reindex_when_strategy_is_full(self, config, mock_config_gateway, real_index_service):
+    def should_dispatch_to_full_reindex_when_strategy_is_full(
+        self, config, mock_config_gateway, real_index_service, mock_console_gateway
+    ):
         full_decision = ReindexDecision(strategy="full")
 
         with (
@@ -203,13 +246,13 @@ class DescribeReindex:
             mock_tracker.__exit__ = Mock(return_value=False)
             mock_tracker_class.return_value = mock_tracker
 
-            reindex(config, mock_config_gateway)
+            reindex(config, mock_config_gateway, console_gateway=mock_console_gateway)
 
         mock_full_reindex.assert_called_once()
         mock_incremental_reindex.assert_not_called()
 
     def should_dispatch_to_incremental_reindex_when_strategy_is_incremental(
-        self, config, mock_config_gateway, real_index_service
+        self, config, mock_config_gateway, real_index_service, mock_console_gateway
     ):
         last_indexed = datetime(2024, 6, 1)
         incremental_decision = ReindexDecision(strategy="incremental", last_indexed=last_indexed)
@@ -230,7 +273,7 @@ class DescribeReindex:
             mock_tracker.__exit__ = Mock(return_value=False)
             mock_tracker_class.return_value = mock_tracker
 
-            reindex(config, mock_config_gateway)
+            reindex(config, mock_config_gateway, console_gateway=mock_console_gateway)
 
         mock_incremental_reindex.assert_called_once()
         mock_full_reindex.assert_not_called()
