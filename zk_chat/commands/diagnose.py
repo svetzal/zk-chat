@@ -13,8 +13,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
-from zk_chat.config import Config
-from zk_chat.config_gateway import ConfigGateway
+from zk_chat.commands.config_helpers import load_config_or_exit
 from zk_chat.console_service import ConsoleGateway
 from zk_chat.service_factory import build_service_registry_with_defaults
 from zk_chat.services.diagnostic_service import (
@@ -33,15 +32,6 @@ diagnose_app = typer.Typer(name="diagnose", help="🔬 Diagnose index and search
 def diagnose_default(ctx: typer.Context) -> None:
     """Diagnose index and search issues."""
     ctx.ensure_object(dict)
-
-
-def _load_config(vault_path: str, config_gateway: ConfigGateway, console_gateway: ConsoleGateway) -> Config:
-    config = config_gateway.load(vault_path)
-    if not config:
-        console_gateway.print("[yellow]⚠️  Warning:[/] No zk-chat configuration found in vault.")
-        console_gateway.print(f"[dim]Run [cyan]zk-chat interactive --vault {vault_path}[/dim] to initialize.")
-        raise typer.Exit(1)
-    return config
 
 
 def _print_collection_status(statuses: list[CollectionStatus], console_gateway: ConsoleGateway) -> None:
@@ -155,7 +145,7 @@ def index(
         console_gateway.print("[yellow]Use:[/] [cyan]zk-chat diagnose index --vault /path/to/vault[/]")
         raise typer.Exit(1) from e
 
-    config = _load_config(vault_path, config_gateway, console_gateway)
+    config = load_config_or_exit(vault_path, config_gateway, console_gateway)
     console_gateway.print(Panel(f"[bold cyan]Index Diagnostics[/] - {vault_path}", expand=False))
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     if not os.path.exists(db_dir):

@@ -17,8 +17,8 @@ import typer
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.cli import common_init
+from zk_chat.commands.config_helpers import load_config_or_exit
 from zk_chat.config import Config
-from zk_chat.config_gateway import ConfigGateway
 from zk_chat.console_service import ConsoleGateway
 from zk_chat.gateway_defaults import create_default_filesystem_gateway
 from zk_chat.init_options import InitOptions
@@ -83,15 +83,6 @@ def update(
 
     console_gateway.print("\n[green]✅ Index update completed![/]")
     console_gateway.print("[dim]Your Zettelkasten is ready for fast searching.[/]")
-
-
-def _load_config_status(vault_path: str, config_gateway: ConfigGateway, console_gateway: ConsoleGateway) -> Config:
-    config = config_gateway.load(vault_path)
-    if not config:
-        console_gateway.print("[yellow]⚠️  Warning:[/] No zk-chat configuration found in vault.")
-        console_gateway.print("[dim]Run [cyan]zk-chat interactive --vault {vault_path}[/dim] to initialize.")
-        raise typer.Exit(1)
-    return config
 
 
 def _print_basic_config(config: Config, console_gateway: ConsoleGateway) -> None:
@@ -168,7 +159,7 @@ def status(
 
     from zk_chat.services.vault_status_service import VaultStatusService
 
-    config = _load_config_status(vault_path, ctx.obj["config_gateway"], console_gateway)
+    config = load_config_or_exit(vault_path, ctx.obj["config_gateway"], console_gateway)
     filesystem_gateway = create_default_filesystem_gateway(vault_path)
     vault_status = VaultStatusService(filesystem_gateway)
     console_gateway.print(f"[bold cyan]Index Status[/] - {vault_path}")
