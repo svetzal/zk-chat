@@ -26,7 +26,7 @@ def sample_config(tmp_vault):
 
 
 @pytest.fixture
-def gateway():
+def config_gateway():
     """Provide a ConfigGateway instance."""
     return ConfigGateway()
 
@@ -34,28 +34,28 @@ def gateway():
 class DescribeConfigGateway:
     """Tests for ConfigGateway — vault config persistence."""
 
-    def should_return_none_when_no_config_file_exists(self, gateway, tmp_vault):
-        result = gateway.load(tmp_vault)
+    def should_return_none_when_no_config_file_exists(self, config_gateway, tmp_vault):
+        result = config_gateway.load(tmp_vault)
 
         assert result is None
 
-    def should_load_config_from_existing_file(self, gateway, tmp_vault, sample_config):
-        gateway.save(sample_config)
+    def should_load_config_from_existing_file(self, config_gateway, tmp_vault, sample_config):
+        config_gateway.save(sample_config)
 
-        result = gateway.load(tmp_vault)
+        result = config_gateway.load(tmp_vault)
 
         assert result is not None
         assert result.vault == tmp_vault
         assert result.model == "llama3.2"
         assert result.gateway == ModelGateway.OLLAMA
 
-    def should_save_config_to_file(self, gateway, tmp_vault, sample_config):
-        gateway.save(sample_config)
+    def should_save_config_to_file(self, config_gateway, tmp_vault, sample_config):
+        config_gateway.save(sample_config)
 
         config_path = os.path.join(tmp_vault, ".zk_chat")
         assert os.path.exists(config_path)
 
-    def should_round_trip_config_through_save_and_load(self, gateway, tmp_vault):
+    def should_round_trip_config_through_save_and_load(self, config_gateway, tmp_vault):
         original = Config(
             vault=tmp_vault,
             model="mistral",
@@ -65,8 +65,8 @@ class DescribeConfigGateway:
             chunk_overlap=50,
         )
 
-        gateway.save(original)
-        loaded = gateway.load(tmp_vault)
+        config_gateway.save(original)
+        loaded = config_gateway.load(tmp_vault)
 
         assert loaded is not None
         assert loaded.vault == original.vault
@@ -76,12 +76,12 @@ class DescribeConfigGateway:
         assert loaded.chunk_size == original.chunk_size
         assert loaded.chunk_overlap == original.chunk_overlap
 
-    def should_overwrite_existing_config_on_save(self, gateway, tmp_vault, sample_config):
-        gateway.save(sample_config)
+    def should_overwrite_existing_config_on_save(self, config_gateway, tmp_vault, sample_config):
+        config_gateway.save(sample_config)
 
         updated = Config(vault=tmp_vault, model="updated-model", gateway=ModelGateway.OLLAMA)
-        gateway.save(updated)
-        loaded = gateway.load(tmp_vault)
+        config_gateway.save(updated)
+        loaded = config_gateway.load(tmp_vault)
 
         assert loaded is not None
         assert loaded.model == "updated-model"

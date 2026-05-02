@@ -15,16 +15,6 @@ from zk_chat.vector_database import VectorDatabase
 
 
 @pytest.fixture
-def mock_chroma_excerpts():
-    return Mock(spec=ChromaGateway)
-
-
-@pytest.fixture
-def mock_chroma_documents():
-    return Mock(spec=ChromaGateway)
-
-
-@pytest.fixture
 def excerpts_db(mock_chroma_excerpts, mock_ollama_gateway):
     return VectorDatabase(
         chroma_gateway=mock_chroma_excerpts,

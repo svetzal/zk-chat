@@ -62,23 +62,23 @@ def smart_memory(mock_ollama_gateway):
 
 
 @pytest.fixture
-def server(document_service, index_service, smart_memory, mock_console_service):
+def server(document_service, index_service, smart_memory, mock_console_gateway):
     return MCPServer(
         document_service=document_service,
         index_service=index_service,
         smart_memory=smart_memory,
-        console_service=mock_console_service,
+        console_service=mock_console_gateway,
     )
 
 
 @pytest.fixture
-def unsafe_server(document_service, index_service, smart_memory, mock_console_service):
+def unsafe_server(document_service, index_service, smart_memory, mock_console_gateway):
     return MCPServer(
         document_service=document_service,
         index_service=index_service,
         smart_memory=smart_memory,
         enable_unsafe_operations=True,
-        console_service=mock_console_service,
+        console_service=mock_console_gateway,
     )
 
 
@@ -87,13 +87,13 @@ class DescribeMCPServer:
 
     class DescribeInit:
         def should_be_instantiated_with_required_dependencies(
-            self, document_service, index_service, smart_memory, mock_console_service
+            self, document_service, index_service, smart_memory, mock_console_gateway
         ):
             srv = MCPServer(
                 document_service=document_service,
                 index_service=index_service,
                 smart_memory=smart_memory,
-                console_service=mock_console_service,
+                console_service=mock_console_gateway,
             )
 
             assert isinstance(srv, MCPServer)
@@ -235,24 +235,24 @@ class DescribeMCPServer:
 
 
 class DescribeCreateMcpServer:
-    def should_return_mcp_server_instance(self, document_service, index_service, smart_memory, mock_console_service):
+    def should_return_mcp_server_instance(self, document_service, index_service, smart_memory, mock_console_gateway):
         srv = create_mcp_server(
             document_service=document_service,
             index_service=index_service,
             smart_memory=smart_memory,
-            console_service=mock_console_service,
+            console_service=mock_console_gateway,
         )
 
         assert isinstance(srv, MCPServer)
 
     def should_create_server_with_unsafe_operations_disabled_by_default(
-        self, document_service, index_service, smart_memory, mock_console_service
+        self, document_service, index_service, smart_memory, mock_console_gateway
     ):
         srv = create_mcp_server(
             document_service=document_service,
             index_service=index_service,
             smart_memory=smart_memory,
-            console_service=mock_console_service,
+            console_service=mock_console_gateway,
         )
 
         assert srv.enable_unsafe_operations is False

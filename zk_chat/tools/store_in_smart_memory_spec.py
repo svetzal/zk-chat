@@ -16,9 +16,9 @@ class DescribeStoreInSmartMemory:
     """
 
     def should_store_information_in_memory_and_return_confirmation(
-        self, smart_memory, mock_chroma_gateway, mock_console_service
+        self, smart_memory, mock_chroma_gateway, mock_console_gateway
     ):
-        tool = StoreInSmartMemory(smart_memory, mock_console_service)
+        tool = StoreInSmartMemory(smart_memory, mock_console_gateway)
         test_info = "test information to store"
 
         _ = tool.run(test_info)

@@ -5,15 +5,15 @@ from zk_chat.tools.list_zk_images import ListZkImages
 
 
 @pytest.fixture
-def tool(mock_filesystem, mock_console_service) -> LLMTool:
-    return ListZkImages(mock_filesystem, mock_console_service)
+def tool(mock_filesystem, mock_console_gateway) -> LLMTool:
+    return ListZkImages(mock_filesystem, mock_console_gateway)
 
 
 class DescribeListZkImages:
     """Tests for the ListZkImages tool which finds image files in the vault."""
 
-    def should_be_instantiated_with_filesystem_gateway(self, mock_filesystem, mock_console_service):
-        tool = ListZkImages(mock_filesystem, mock_console_service)
+    def should_be_instantiated_with_filesystem_gateway(self, mock_filesystem, mock_console_gateway):
+        tool = ListZkImages(mock_filesystem, mock_console_gateway)
 
         assert isinstance(tool, ListZkImages)
         assert tool.fs is mock_filesystem

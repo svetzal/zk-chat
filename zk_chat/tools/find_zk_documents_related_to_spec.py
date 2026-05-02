@@ -1,18 +1,11 @@
 import json
-from unittest.mock import Mock
 
 import pytest
 
-from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.models import ZkDocument, ZkQueryDocumentResult
 from zk_chat.tools.conftest import _make_index_service
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
 from zk_chat.tools.tool_helpers import format_model_results
-
-
-@pytest.fixture
-def mock_chroma_documents():
-    return Mock(spec=ChromaGateway)
 
 
 @pytest.fixture
@@ -21,8 +14,8 @@ def index_service(mock_chroma_documents, mock_filesystem):
 
 
 @pytest.fixture
-def tool(index_service, mock_console_service):
-    return FindZkDocumentsRelatedTo(index_service, mock_console_service)
+def tool(index_service, mock_console_gateway):
+    return FindZkDocumentsRelatedTo(index_service, mock_console_gateway)
 
 
 class DescribeFormatDocumentResults:

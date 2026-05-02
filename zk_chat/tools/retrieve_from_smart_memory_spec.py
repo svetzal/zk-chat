@@ -56,20 +56,20 @@ class DescribeRetrieveFromSmartMemory:
     retrieving relevant information from memory based on a query
     """
 
-    def should_be_instantiated_with_smart_memory(self, smart_memory, mock_console_service):
-        tool = RetrieveFromSmartMemory(smart_memory, mock_console_service)
+    def should_be_instantiated_with_smart_memory(self, smart_memory, mock_console_gateway):
+        tool = RetrieveFromSmartMemory(smart_memory, mock_console_gateway)
 
         assert isinstance(tool, RetrieveFromSmartMemory)
         assert tool.memory is smart_memory
 
     def should_return_formatted_results_when_information_found(
-        self, smart_memory, mock_chroma_gateway, mock_console_service
+        self, smart_memory, mock_chroma_gateway, mock_console_gateway
     ):
         mock_chroma_gateway.query.return_value = {
             "documents": [["Test document 1"], ["Test document 2"]],
             "distances": [[0.2], [0.5]],
         }
-        tool = RetrieveFromSmartMemory(smart_memory, mock_console_service)
+        tool = RetrieveFromSmartMemory(smart_memory, mock_console_gateway)
         test_query = "test query"
 
         result = tool.run(test_query)
@@ -80,10 +80,10 @@ class DescribeRetrieveFromSmartMemory:
         assert "2. [Relevance: 50.00%] Test document 2" in result
 
     def should_return_no_results_message_when_nothing_found(
-        self, smart_memory, mock_chroma_gateway, mock_console_service
+        self, smart_memory, mock_chroma_gateway, mock_console_gateway
     ):
         mock_chroma_gateway.query.return_value = {"documents": [], "distances": []}
-        tool = RetrieveFromSmartMemory(smart_memory, mock_console_service)
+        tool = RetrieveFromSmartMemory(smart_memory, mock_console_gateway)
         test_query = "test query"
 
         result = tool.run(test_query)

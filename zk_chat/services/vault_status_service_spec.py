@@ -1,16 +1,8 @@
 """Tests for VaultStatusService."""
 
-from unittest.mock import Mock
-
 import pytest
 
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.vault_status_service import DbInfo, VaultStatusService
-
-
-@pytest.fixture
-def mock_filesystem():
-    return Mock(spec=MarkdownFilesystemGateway)
 
 
 @pytest.fixture

@@ -11,7 +11,6 @@ from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
-from zk_chat.console_service import ConsoleGateway
 from zk_chat.index import _full_reindex, _incremental_reindex, reindex
 from zk_chat.index_resolution import ReindexDecision
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
@@ -40,11 +39,6 @@ def index_service_setup():
 @pytest.fixture
 def progress():
     return IndexingProgressTracker(console=Console(file=io.StringIO()))
-
-
-@pytest.fixture
-def mock_console_gateway():
-    return Mock(spec=ConsoleGateway)
 
 
 class DescribeFullReindex:

@@ -4,9 +4,7 @@ import pytest
 
 from zk_chat.cli import common_init
 from zk_chat.config import Config, ModelGateway
-from zk_chat.config_gateway import ConfigGateway
 from zk_chat.config_resolution import GatewayValidationResult
-from zk_chat.console_service import ConsoleGateway
 from zk_chat.global_config import GlobalConfig
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.init_options import InitOptions
@@ -17,16 +15,6 @@ def mock_global_config_gateway():
     gateway = Mock(spec=GlobalConfigGateway)
     gateway.load.return_value = GlobalConfig()
     return gateway
-
-
-@pytest.fixture
-def mock_config_gateway():
-    return Mock(spec=ConfigGateway)
-
-
-@pytest.fixture
-def mock_console_gateway():
-    return Mock(spec=ConsoleGateway)
 
 
 @pytest.fixture
