@@ -5,8 +5,8 @@ from zk_chat.tools.list_zk_documents import ListZkDocuments
 
 
 @pytest.fixture
-def tool(mock_filesystem, mock_console_service):
-    return ListZkDocuments(DocumentService(mock_filesystem), mock_console_service)
+def tool(mock_filesystem, mock_console_gateway):
+    return ListZkDocuments(DocumentService(mock_filesystem), mock_console_gateway)
 
 
 class DescribeListZkDocuments:

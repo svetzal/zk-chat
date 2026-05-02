@@ -1,18 +1,11 @@
 import json
-from unittest.mock import Mock
 
 import pytest
 
-from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.models import ZkDocumentExcerpt, ZkQueryExcerptResult
 from zk_chat.tools.conftest import _make_index_service
 from zk_chat.tools.find_excerpts_related_to import FindExcerptsRelatedTo
 from zk_chat.tools.tool_helpers import format_model_results
-
-
-@pytest.fixture
-def mock_chroma_excerpts():
-    return Mock(spec=ChromaGateway)
 
 
 @pytest.fixture
@@ -21,8 +14,8 @@ def index_service(mock_chroma_excerpts):
 
 
 @pytest.fixture
-def find_excerpts_tool(index_service, mock_console_service):
-    return FindExcerptsRelatedTo(index_service, mock_console_service)
+def find_excerpts_tool(index_service, mock_console_gateway):
+    return FindExcerptsRelatedTo(index_service, mock_console_gateway)
 
 
 class DescribeFormatExcerptResults:

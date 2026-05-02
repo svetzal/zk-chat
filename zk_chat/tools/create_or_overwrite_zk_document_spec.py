@@ -6,10 +6,10 @@ from zk_chat.tools.create_or_overwrite_zk_document import CreateOrOverwriteZkDoc
 
 
 @pytest.fixture
-def write_tool(mock_filesystem, mock_console_service):
+def write_tool(mock_filesystem, mock_console_gateway):
     mock_filesystem.get_directory_path.return_value = ""
     mock_filesystem.path_exists.return_value = True
-    return CreateOrOverwriteZkDocument(DocumentService(mock_filesystem), mock_console_service)
+    return CreateOrOverwriteZkDocument(DocumentService(mock_filesystem), mock_console_gateway)
 
 
 class DescribePrepareDocument:

@@ -20,7 +20,7 @@ def tmp_config_path(tmp_path):
 
 
 @pytest.fixture
-def gateway(tmp_config_path):
+def global_config_gateway(tmp_config_path):
     """Provide a GlobalConfigGateway with an injected temp path."""
     return GlobalConfigGateway(config_path=tmp_config_path)
 
@@ -28,65 +28,65 @@ def gateway(tmp_config_path):
 class DescribeGlobalConfigGateway:
     """Tests for GlobalConfigGateway — global config persistence."""
 
-    def should_return_default_config_when_no_file_exists(self, gateway):
-        result = gateway.load()
+    def should_return_default_config_when_no_file_exists(self, global_config_gateway):
+        result = global_config_gateway.load()
 
         assert isinstance(result, GlobalConfig)
         assert result.bookmarks == set()
         assert result.last_opened_bookmark is None
         assert result.mcp_servers == {}
 
-    def should_load_config_from_existing_file(self, gateway, tmp_config_path):
+    def should_load_config_from_existing_file(self, global_config_gateway, tmp_config_path):
         config = GlobalConfig()
         config.bookmarks.add("/some/vault")
         config.last_opened_bookmark = "/some/vault"
-        gateway.save(config)
+        global_config_gateway.save(config)
 
-        result = gateway.load()
+        result = global_config_gateway.load()
 
         assert "/some/vault" in result.bookmarks
         assert result.last_opened_bookmark == "/some/vault"
 
-    def should_save_config_to_file(self, gateway, tmp_config_path):
+    def should_save_config_to_file(self, global_config_gateway, tmp_config_path):
         import os
 
         config = GlobalConfig()
 
-        gateway.save(config)
+        global_config_gateway.save(config)
 
         assert os.path.exists(tmp_config_path)
 
-    def should_return_default_config_when_file_is_corrupt(self, gateway, tmp_config_path):
+    def should_return_default_config_when_file_is_corrupt(self, global_config_gateway, tmp_config_path):
         with open(tmp_config_path, "w") as f:
             f.write("not valid json {{{")
 
-        result = gateway.load()
+        result = global_config_gateway.load()
 
         assert isinstance(result, GlobalConfig)
         assert result.bookmarks == set()
 
-    def should_log_warning_when_file_contains_malformed_json(self, gateway, tmp_config_path):
+    def should_log_warning_when_file_contains_malformed_json(self, global_config_gateway, tmp_config_path):
         with open(tmp_config_path, "w") as f:
             f.write("not valid json {{{")
 
         with patch("zk_chat.global_config_gateway.logger") as mock_logger:
-            gateway.load()
+            global_config_gateway.load()
 
         mock_logger.warning.assert_called_once()
         call_kwargs = mock_logger.warning.call_args
         assert "Corrupt" in call_kwargs.args[0]
 
-    def should_log_warning_when_file_has_wrong_types(self, gateway, tmp_config_path):
+    def should_log_warning_when_file_has_wrong_types(self, global_config_gateway, tmp_config_path):
         with open(tmp_config_path, "w") as f:
             f.write('{"bookmarks": "not-a-set", "last_opened_bookmark": 12345}')
 
         with patch("zk_chat.global_config_gateway.logger") as mock_logger:
-            result = gateway.load()
+            result = global_config_gateway.load()
 
         assert isinstance(result, GlobalConfig)
         mock_logger.warning.assert_called_once()
 
-    def should_round_trip_config_through_save_and_load(self, gateway):
+    def should_round_trip_config_through_save_and_load(self, global_config_gateway):
         server = MCPServerConfig(
             name="test-server",
             server_type=MCPServerType.STDIO,
@@ -98,23 +98,23 @@ class DescribeGlobalConfigGateway:
         original.last_opened_bookmark = "/my/vault"
         original.mcp_servers["test-server"] = server
 
-        gateway.save(original)
-        loaded = gateway.load()
+        global_config_gateway.save(original)
+        loaded = global_config_gateway.load()
 
         assert "/my/vault" in loaded.bookmarks
         assert loaded.last_opened_bookmark == "/my/vault"
         assert "test-server" in loaded.mcp_servers
         assert loaded.mcp_servers["test-server"].command == "my-command"
 
-    def should_overwrite_existing_config_on_save(self, gateway):
+    def should_overwrite_existing_config_on_save(self, global_config_gateway):
         first = GlobalConfig()
         first.bookmarks.add("/first/vault")
-        gateway.save(first)
+        global_config_gateway.save(first)
 
         second = GlobalConfig()
         second.bookmarks.add("/second/vault")
-        gateway.save(second)
-        loaded = gateway.load()
+        global_config_gateway.save(second)
+        loaded = global_config_gateway.load()
 
         assert "/first/vault" not in loaded.bookmarks
         assert "/second/vault" in loaded.bookmarks

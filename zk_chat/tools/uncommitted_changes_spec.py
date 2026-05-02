@@ -5,16 +5,9 @@ from zk_chat.tools.uncommitted_changes import UncommittedChanges
 
 
 @pytest.fixture
-def mock_git_gateway(mocker):
-    """Fixture for mocked GitGateway."""
-    mock_instance = mocker.Mock(spec=GitGateway)
-    return mock_instance
-
-
-@pytest.fixture
-def uncommitted_changes(mock_git_gateway, mock_console_service):
+def uncommitted_changes(mock_git_gateway, mock_console_gateway):
     """Fixture for UncommittedChanges instance with mocked dependencies."""
-    return UncommittedChanges("/mock/path", mock_git_gateway, mock_console_service)
+    return UncommittedChanges("/mock/path", mock_git_gateway, mock_console_gateway)
 
 
 class DescribeUncommittedChanges:
@@ -22,12 +15,12 @@ class DescribeUncommittedChanges:
     Tests for the UncommittedChanges tool which retrieves uncommitted changes from a git repository.
     """
 
-    def should_be_instantiated_with_base_path_and_git(self, mocker, mock_console_service):
+    def should_be_instantiated_with_base_path_and_git(self, mocker, mock_console_gateway):
         """Test that UncommittedChanges can be instantiated with a base path and GitGateway."""
         base_path = "/test/path"
         mock_git = mocker.Mock(spec=GitGateway)
 
-        tool = UncommittedChanges(base_path, mock_git, mock_console_service)
+        tool = UncommittedChanges(base_path, mock_git, mock_console_gateway)
 
         assert isinstance(tool, UncommittedChanges)
         assert tool.base_path == base_path

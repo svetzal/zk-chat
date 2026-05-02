@@ -5,17 +5,17 @@ from zk_chat.tools.delete_zk_document import DeleteZkDocument
 
 
 @pytest.fixture
-def delete_tool(mock_filesystem, mock_console_service):
-    return DeleteZkDocument(DocumentService(mock_filesystem), mock_console_service)
+def delete_tool(mock_filesystem, mock_console_gateway):
+    return DeleteZkDocument(DocumentService(mock_filesystem), mock_console_gateway)
 
 
 class DescribeDeleteZkDocument:
     """Tests for the DeleteZkDocument tool."""
 
-    def should_be_instantiated_with_document_service(self, mock_filesystem, mock_console_service):
+    def should_be_instantiated_with_document_service(self, mock_filesystem, mock_console_gateway):
         document_service = DocumentService(mock_filesystem)
 
-        tool = DeleteZkDocument(document_service, mock_console_service)
+        tool = DeleteZkDocument(document_service, mock_console_gateway)
 
         assert isinstance(tool, DeleteZkDocument)
         assert tool.document_service is document_service
