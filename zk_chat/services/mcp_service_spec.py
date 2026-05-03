@@ -1,7 +1,5 @@
 """Tests for MCPService."""
 
-from unittest.mock import Mock
-
 import pytest
 
 from zk_chat.global_config import GlobalConfig, MCPServerConfig, MCPServerType
@@ -9,8 +7,8 @@ from zk_chat.services.mcp_service import MCPService, MCPValidationError
 
 
 @pytest.fixture
-def mock_global_config():
-    return Mock(spec=GlobalConfig)
+def global_config():
+    return GlobalConfig()
 
 
 @pytest.fixture
@@ -27,19 +25,19 @@ class DescribeMCPService:
         assert isinstance(svc, MCPService)
 
     class DescribeRegisterServer:
-        def should_register_valid_stdio_server(self, service, mock_global_config_gateway, mock_global_config):
-            mock_global_config_gateway.load.return_value = mock_global_config
+        def should_register_valid_stdio_server(self, service, mock_global_config_gateway, global_config):
+            mock_global_config_gateway.load.return_value = global_config
 
             result = service.register_server("figma", "stdio", "figma-mcp", None, [])
 
             assert result.name == "figma"
             assert result.server_type == MCPServerType.STDIO
             assert result.command == "figma-mcp"
-            mock_global_config.add_mcp_server.assert_called_once_with(result)
-            mock_global_config_gateway.save.assert_called_once_with(mock_global_config)
+            assert global_config.mcp_servers.get("figma") == result
+            mock_global_config_gateway.save.assert_called_once_with(global_config)
 
-        def should_register_valid_http_server(self, service, mock_global_config_gateway, mock_global_config):
-            mock_global_config_gateway.load.return_value = mock_global_config
+        def should_register_valid_http_server(self, service, mock_global_config_gateway, global_config):
+            mock_global_config_gateway.load.return_value = global_config
 
             result = service.register_server("chrome", "http", None, "http://localhost:8080", [])
 
@@ -47,8 +45,8 @@ class DescribeMCPService:
             assert result.server_type == MCPServerType.HTTP
             assert result.url == "http://localhost:8080"
 
-        def should_register_server_with_args(self, service, mock_global_config_gateway, mock_global_config):
-            mock_global_config_gateway.load.return_value = mock_global_config
+        def should_register_server_with_args(self, service, mock_global_config_gateway, global_config):
+            mock_global_config_gateway.load.return_value = global_config
 
             result = service.register_server("custom", "stdio", "my-mcp", None, ["--flag1", "--flag2"])
 
@@ -75,20 +73,21 @@ class DescribeMCPService:
 
     class DescribeRemoveServer:
         def should_remove_existing_server_and_return_true(
-            self, service, mock_global_config_gateway, mock_global_config
+            self, service, mock_global_config_gateway, global_config
         ):
-            mock_global_config_gateway.load.return_value = mock_global_config
-            mock_global_config.remove_mcp_server.return_value = True
+            global_config.add_mcp_server(
+                MCPServerConfig(name="figma", server_type=MCPServerType.STDIO, command="figma-mcp")
+            )
+            mock_global_config_gateway.load.return_value = global_config
 
             result = service.remove_server("figma")
 
             assert result is True
-            mock_global_config.remove_mcp_server.assert_called_once_with("figma")
-            mock_global_config_gateway.save.assert_called_once_with(mock_global_config)
+            assert "figma" not in global_config.mcp_servers
+            mock_global_config_gateway.save.assert_called_once_with(global_config)
 
-        def should_return_false_when_server_not_found(self, service, mock_global_config_gateway, mock_global_config):
-            mock_global_config_gateway.load.return_value = mock_global_config
-            mock_global_config.remove_mcp_server.return_value = False
+        def should_return_false_when_server_not_found(self, service, mock_global_config_gateway, global_config):
+            mock_global_config_gateway.load.return_value = global_config
 
             result = service.remove_server("nonexistent")
 
@@ -96,37 +95,34 @@ class DescribeMCPService:
             mock_global_config_gateway.save.assert_not_called()
 
     class DescribeListServers:
-        def should_return_all_registered_servers(self, service, mock_global_config_gateway, mock_global_config):
+        def should_return_all_registered_servers(self, service, mock_global_config_gateway, global_config):
             test_server = MCPServerConfig(name="figma", server_type=MCPServerType.STDIO, command="figma-mcp")
-            mock_global_config.list_mcp_servers.return_value = [test_server]
-            mock_global_config_gateway.load.return_value = mock_global_config
+            global_config.add_mcp_server(test_server)
+            mock_global_config_gateway.load.return_value = global_config
 
             result = service.list_servers()
 
             assert result == [test_server]
 
-        def should_return_empty_list_when_no_servers(self, service, mock_global_config_gateway, mock_global_config):
-            mock_global_config.list_mcp_servers.return_value = []
-            mock_global_config_gateway.load.return_value = mock_global_config
+        def should_return_empty_list_when_no_servers(self, service, mock_global_config_gateway, global_config):
+            mock_global_config_gateway.load.return_value = global_config
 
             result = service.list_servers()
 
             assert result == []
 
     class DescribeGetServer:
-        def should_return_server_config_by_name(self, service, mock_global_config_gateway, mock_global_config):
+        def should_return_server_config_by_name(self, service, mock_global_config_gateway, global_config):
             test_server = MCPServerConfig(name="figma", server_type=MCPServerType.STDIO, command="figma-mcp")
-            mock_global_config.get_mcp_server.return_value = test_server
-            mock_global_config_gateway.load.return_value = mock_global_config
+            global_config.add_mcp_server(test_server)
+            mock_global_config_gateway.load.return_value = global_config
 
             result = service.get_server("figma")
 
             assert result is test_server
-            mock_global_config.get_mcp_server.assert_called_once_with("figma")
 
-        def should_return_none_when_server_not_found(self, service, mock_global_config_gateway, mock_global_config):
-            mock_global_config.get_mcp_server.return_value = None
-            mock_global_config_gateway.load.return_value = mock_global_config
+        def should_return_none_when_server_not_found(self, service, mock_global_config_gateway, global_config):
+            mock_global_config_gateway.load.return_value = global_config
 
             result = service.get_server("nonexistent")
 

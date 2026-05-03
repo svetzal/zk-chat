@@ -29,9 +29,8 @@ class DescribeResolveVaultPath:
 
     def should_resolve_path_from_bookmarks_when_no_vault_provided(self, tmp_path):
         mock_gateway = Mock(spec=GlobalConfigGateway)
-        mock_config = Mock(spec=GlobalConfig)
-        mock_config.get_last_opened_bookmark_path.return_value = str(tmp_path)
-        mock_gateway.load.return_value = mock_config
+        config = GlobalConfig(bookmarks={str(tmp_path)}, last_opened_bookmark=str(tmp_path))
+        mock_gateway.load.return_value = config
 
         result = resolve_vault_path(None, mock_gateway)
 
@@ -39,9 +38,7 @@ class DescribeResolveVaultPath:
 
     def should_raise_error_when_no_vault_and_no_bookmarks(self):
         mock_gateway = Mock(spec=GlobalConfigGateway)
-        mock_config = Mock(spec=GlobalConfig)
-        mock_config.get_last_opened_bookmark_path.return_value = None
-        mock_gateway.load.return_value = mock_config
+        mock_gateway.load.return_value = GlobalConfig()
 
         with pytest.raises(VaultResolutionError) as exc_info:
             resolve_vault_path(None, mock_gateway)
@@ -59,9 +56,11 @@ class DescribeResolveVaultPath:
 
     def should_raise_error_when_bookmarked_path_does_not_exist(self):
         mock_gateway = Mock(spec=GlobalConfigGateway)
-        mock_config = Mock(spec=GlobalConfig)
-        mock_config.get_last_opened_bookmark_path.return_value = "/nonexistent/bookmarked/path"
-        mock_gateway.load.return_value = mock_config
+        config = GlobalConfig(
+            bookmarks={"/nonexistent/bookmarked/path"},
+            last_opened_bookmark="/nonexistent/bookmarked/path",
+        )
+        mock_gateway.load.return_value = config
 
         with pytest.raises(VaultResolutionError) as exc_info:
             resolve_vault_path(None, mock_gateway)

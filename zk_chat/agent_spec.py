@@ -6,7 +6,6 @@ from mojentic.llm.gateways import OllamaGateway
 
 from zk_chat.agent import _create_agent
 from zk_chat.config import Config, ModelGateway
-from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
 from zk_chat.services.service_registry import ServiceRegistry
 
 
@@ -42,7 +41,7 @@ def _make_mock_provider():
 
 class DescribeCreateAgent:
     def should_yield_an_iterative_problem_solving_agent(self, config):
-        mock_agent = Mock(spec=IterativeProblemSolvingAgent)
+        mock_agent = Mock()
         mock_provider = _make_mock_provider()
 
         with _create_agent(
@@ -62,7 +61,7 @@ class DescribeCreateAgent:
 
         def capture_agent(**kwargs):
             captured_tools["available_tools"] = kwargs["available_tools"]
-            return Mock(spec=IterativeProblemSolvingAgent)
+            return Mock()
 
         with _create_agent(
             config,
@@ -82,7 +81,7 @@ class DescribeCreateAgent:
 
         def capture_agent(**kwargs):
             captured_kwargs.update(kwargs)
-            return Mock(spec=IterativeProblemSolvingAgent)
+            return Mock()
 
         with _create_agent(
             config,
@@ -99,7 +98,7 @@ class DescribeCreateAgent:
 
 class DescribeAgentSingleQuery:
     def should_return_result_of_solver_solve(self, config):
-        mock_agent = Mock(spec=IterativeProblemSolvingAgent)
+        mock_agent = Mock()
         mock_agent.solve.return_value = "the answer"
         mock_provider = _make_mock_provider()
 
@@ -116,7 +115,7 @@ class DescribeAgentSingleQuery:
         assert result == "the answer"
 
     def should_call_solve_with_the_provided_query(self, config):
-        mock_agent = Mock(spec=IterativeProblemSolvingAgent)
+        mock_agent = Mock()
         mock_agent.solve.return_value = "response"
         mock_provider = _make_mock_provider()
         test_query = "explain zettelkasten"
