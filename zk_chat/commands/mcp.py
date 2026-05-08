@@ -27,6 +27,7 @@ def mcp_default(ctx: typer.Context) -> None:
     like Figma, Chrome DevTools, and other MCP-compatible systems.
     """
     ctx.ensure_object(dict)
+    ctx.obj["mcp_service"] = MCPService(ctx.obj["global_config_gateway"])
     if ctx.invoked_subcommand is None:
         console = ctx.obj["console_gateway"]
         console.print(ctx.get_help())
@@ -63,7 +64,7 @@ def add(
     [bold yellow]💡 Tip:[/] Use --no-verify to skip availability check during registration.
     """
     console_gateway = ctx.obj["console_gateway"]
-    service = MCPService(ctx.obj["global_config_gateway"])
+    service = ctx.obj["mcp_service"]
     args_list = [arg.strip() for arg in args.split(",") if arg.strip()] if args else []
 
     try:
@@ -117,7 +118,7 @@ def remove(
     • [cyan]zk-chat mcp remove chrome[/]
     """
     console_gateway = ctx.obj["console_gateway"]
-    service = MCPService(ctx.obj["global_config_gateway"])
+    service = ctx.obj["mcp_service"]
     if service.remove_server(name):
         console_gateway.print(f"[green]✅ MCP server '{name}' removed successfully![/]")
     else:
@@ -136,7 +137,7 @@ def list(ctx: typer.Context) -> None:
     • [cyan]zk-chat mcp list[/]
     """
     console_gateway = ctx.obj["console_gateway"]
-    service = MCPService(ctx.obj["global_config_gateway"])
+    service = ctx.obj["mcp_service"]
     servers = service.list_servers()
 
     if not servers:
@@ -188,7 +189,7 @@ def verify(
     • [cyan]zk-chat mcp verify figma[/] - Verify specific server
     """
     console_gateway = ctx.obj["console_gateway"]
-    service = MCPService(ctx.obj["global_config_gateway"])
+    service = ctx.obj["mcp_service"]
 
     if name:
         server = service.get_server(name)

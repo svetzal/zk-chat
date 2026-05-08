@@ -39,6 +39,45 @@ app = typer.Typer(
     pretty_exceptions_enable=False,  # We handle our own exceptions
 )
 
+VaultOption = Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")]
+SaveOption = Annotated[bool, typer.Option("--save", help="Save the vault path as a bookmark")]
+GatewayOption = Annotated[str | None, typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")]
+ModelOption = Annotated[str | None, typer.Option("--model", "-m", help="Chat model to use")]
+VisualModelOption = Annotated[str | None, typer.Option("--visual-model", help="Visual analysis model")]
+NoIndexOption = Annotated[bool, typer.Option("--no-index", help="Skip indexing new documents on startup")]
+UnsafeOption = Annotated[bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")]
+GitOption = Annotated[bool, typer.Option("--git", help="Enable git integration")]
+StorePromptOption = Annotated[
+    bool, typer.Option("--store-prompt/--no-store-prompt", help="Store system prompt in vault")
+]
+ResetMemoryOption = Annotated[bool, typer.Option("--reset-memory", help="Clear smart memory")]
+
+
+def _build_init_options(
+    vault: Path | None,
+    save: bool,
+    gateway: str | None,
+    model: str | None,
+    visual_model: str | None,
+    no_index: bool,
+    unsafe: bool,
+    git: bool,
+    store_prompt: bool,
+    reset_memory: bool,
+) -> InitOptions:
+    return InitOptions(
+        vault=str(vault) if vault else None,
+        save=save,
+        gateway=gateway,
+        model=model,
+        visual_model=visual_model,
+        reindex=not no_index,
+        unsafe=unsafe,
+        git=git,
+        store_prompt=store_prompt,
+        reset_memory=reset_memory,
+    )
+
 app.add_typer(gui_app, name="gui")
 app.add_typer(index_app, name="index")
 app.add_typer(mcp_app, name="mcp")
@@ -98,18 +137,16 @@ def main(
 @app.command()
 def interactive(
     ctx: typer.Context,
-    vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
-    save: Annotated[bool, typer.Option("--save", help="Save the vault path as a bookmark")] = False,
-    gateway: Annotated[str | None, typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
-    model: Annotated[str | None, typer.Option("--model", "-m", help="Chat model to use")] = None,
-    visual_model: Annotated[str | None, typer.Option("--visual-model", help="Visual analysis model")] = None,
-    no_index: Annotated[bool, typer.Option("--no-index", help="Skip indexing new documents on startup")] = False,
-    unsafe: Annotated[bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")] = False,
-    git: Annotated[bool, typer.Option("--git", help="Enable git integration")] = False,
-    store_prompt: Annotated[
-        bool, typer.Option("--store-prompt/--no-store-prompt", help="Store system prompt in vault")
-    ] = True,
-    reset_memory: Annotated[bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
+    vault: VaultOption = None,
+    save: SaveOption = False,
+    gateway: GatewayOption = None,
+    model: ModelOption = None,
+    visual_model: VisualModelOption = None,
+    no_index: NoIndexOption = False,
+    unsafe: UnsafeOption = False,
+    git: GitOption = False,
+    store_prompt: StorePromptOption = True,
+    reset_memory: ResetMemoryOption = False,
 ) -> None:
     """
     Start an interactive agent session with your Zettelkasten.
@@ -123,17 +160,8 @@ def interactive(
     • [cyan]zk-chat interactive --unsafe --git[/] - Allow AI to edit files with git tracking
     • [cyan]zk-chat interactive --no-index[/] - Skip indexing new documents on startup
     """
-    options = InitOptions(
-        vault=str(vault) if vault else None,
-        save=save,
-        gateway=gateway,
-        model=model,
-        visual_model=visual_model,
-        reindex=not no_index,
-        unsafe=unsafe,
-        git=git,
-        store_prompt=store_prompt,
-        reset_memory=reset_memory,
+    options = _build_init_options(
+        vault, save, gateway, model, visual_model, no_index, unsafe, git, store_prompt, reset_memory
     )
     global_config_gateway = ctx.obj["global_config_gateway"]
     config = common_init(options, global_config_gateway, ctx.obj["config_gateway"], ctx.obj["console_gateway"])
@@ -157,18 +185,16 @@ def query(
     prompt: Annotated[
         str | None, typer.Argument(help="Query to ask your Zettelkasten (or read from STDIN if not provided)")
     ] = None,
-    vault: Annotated[Path | None, typer.Option("--vault", "-v", help="Path to your Zettelkasten vault")] = None,
-    save: Annotated[bool, typer.Option("--save", help="Save the vault path as a bookmark")] = False,
-    gateway: Annotated[str | None, typer.Option("--gateway", "-g", help="Model gateway (ollama/openai)")] = None,
-    model: Annotated[str | None, typer.Option("--model", "-m", help="Chat model to use")] = None,
-    visual_model: Annotated[str | None, typer.Option("--visual-model", help="Visual analysis model")] = None,
-    no_index: Annotated[bool, typer.Option("--no-index", help="Skip indexing new documents")] = False,
-    unsafe: Annotated[bool, typer.Option("--unsafe", help="Allow AI to modify your Zettelkasten")] = False,
-    git: Annotated[bool, typer.Option("--git", help="Enable git integration")] = False,
-    store_prompt: Annotated[
-        bool, typer.Option("--store-prompt/--no-store-prompt", help="Store system prompt in vault")
-    ] = True,
-    reset_memory: Annotated[bool, typer.Option("--reset-memory", help="Clear smart memory")] = False,
+    vault: VaultOption = None,
+    save: SaveOption = False,
+    gateway: GatewayOption = None,
+    model: ModelOption = None,
+    visual_model: VisualModelOption = None,
+    no_index: NoIndexOption = False,
+    unsafe: UnsafeOption = False,
+    git: GitOption = False,
+    store_prompt: StorePromptOption = True,
+    reset_memory: ResetMemoryOption = False,
 ) -> None:
     """
     Ask a single question to your Zettelkasten and exit.
@@ -203,17 +229,8 @@ def query(
                 console_gateway.print("[red]Error:[/] No input received from STDIN.")
                 raise typer.Exit(1)
 
-    options = InitOptions(
-        vault=str(vault) if vault else None,
-        save=save,
-        gateway=gateway,
-        model=model,
-        visual_model=visual_model,
-        reindex=not no_index,
-        unsafe=unsafe,
-        git=git,
-        store_prompt=store_prompt,
-        reset_memory=reset_memory,
+    options = _build_init_options(
+        vault, save, gateway, model, visual_model, no_index, unsafe, git, store_prompt, reset_memory
     )
     global_config_gateway = ctx.obj["global_config_gateway"]
     config = common_init(options, global_config_gateway, ctx.obj["config_gateway"], ctx.obj["console_gateway"])

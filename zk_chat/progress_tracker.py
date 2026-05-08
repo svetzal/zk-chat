@@ -53,7 +53,6 @@ class ProgressTracker:
             logger.warning("Progress already started, stopping previous session")
             self.stop_progress()
 
-        # Create progress with rich columns
         self._progress = Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -96,13 +95,9 @@ class ProgressTracker:
 
         advance, completed = validate_progress_params(advance, completed)
 
-        # Build description without filename (filename goes in separate column)
         display_desc = description
-
-        # Prepare filename for fixed-width column
         formatted_file = truncate_for_display(current_file) if current_file else ""
 
-        # Update with appropriate parameters
         update_kwargs = {"description": display_desc, "current_file": formatted_file}
         if advance is not None:
             update_kwargs["advance"] = advance
