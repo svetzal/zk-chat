@@ -119,4 +119,6 @@ force_alphabetical_sort_within_sections = true
 combine_as_imports = true
 
 [dependency-groups]
-dev = []
+dev = [
+    "pip-audit>=2.10.0",
+]

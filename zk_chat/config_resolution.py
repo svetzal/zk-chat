@@ -239,7 +239,6 @@ def determine_init_config_action(
     InitConfigAction
         Fully describes what the shell function should do for gateway, chat model, and visual model.
     """
-    # Resolve gateway
     gateway = ModelGateway(gateway_arg) if gateway_arg else ModelGateway.OLLAMA
     if gateway == ModelGateway.OPENAI and not openai_key_present:
         return InitConfigAction(
@@ -247,11 +246,9 @@ def determine_init_config_action(
             error="Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.",
         )
 
-    # Chat model decisions
     needs_chat_model_selection = model_arg is None or model_arg == "choose"
     chat_model_name = None if needs_chat_model_selection else model_arg
 
-    # Visual model decisions
     if visual_model_arg == "choose":
         return InitConfigAction(
             gateway=gateway,
