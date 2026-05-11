@@ -78,12 +78,10 @@ def reindex(
     config: Config,
     config_gateway: ConfigGateway,
     force_full: bool = False,
-    console_gateway: ConsoleGateway | None = None,
+    *,
+    console_gateway: ConsoleGateway,
 ) -> None:
     """Reindex the Zettelkasten vault with progress tracking."""
-    if console_gateway is None:
-        console_gateway = ConsoleGateway()
-
     registry = build_service_registry_with_defaults(config)
     provider = ServiceProvider(registry)
     index_service = provider.get_index_service()
@@ -109,9 +107,7 @@ def reindex(
     config_gateway.save(config)
 
 
-def main(config_gateway: ConfigGateway) -> None:
-    console_gateway = ConsoleGateway()
-
+def main(config_gateway: ConfigGateway, console_gateway: ConsoleGateway) -> None:
     parser = argparse.ArgumentParser(description="Index the Zettelkasten vault")
     parser.add_argument("--vault", required=True, help="Path to your Zettelkasten vault")
     parser.add_argument("--full", action="store_true", default=False, help="Force full reindex")
@@ -152,4 +148,4 @@ def main(config_gateway: ConfigGateway) -> None:
 if __name__ == "__main__":
     from zk_chat.gateway_defaults import create_default_config_gateway
 
-    main(config_gateway=create_default_config_gateway())
+    main(config_gateway=create_default_config_gateway(), console_gateway=ConsoleGateway())
