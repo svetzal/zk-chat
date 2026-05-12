@@ -8,14 +8,15 @@ MCPClientManager are themselves gateway classes that wrap the MCP protocol.
 
 import asyncio
 import concurrent.futures
-from unittest.mock import Mock, patch
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from fastmcp import Client
 
-from zk_chat.global_config import GlobalConfig
+from zk_chat.global_config import GlobalConfig, MCPServerConfig, MCPServerType
 from zk_chat.global_config_gateway import GlobalConfigGateway
-from zk_chat.mcp_tool_wrapper import MCPClientManager, MCPToolWrapper, coerce_types
+from zk_chat.mcp_tool_wrapper import MCP_TIMEOUT_SECONDS, MCPClientManager, MCPToolWrapper, coerce_types
 
 
 class DescribeCoerceTypes:
@@ -235,3 +236,67 @@ class DescribeMCPToolWrapperRun:
             wrapper.run(count="42")
 
         mock_async_run.assert_called_once_with({"count": 42})
+
+
+class DescribeMCPClientManagerConnectionTimeout:
+    """Tests for per-server connection timeout in MCPClientManager."""
+
+    @pytest.fixture
+    def two_server_gateway(self):
+        mock = Mock(spec=GlobalConfigGateway)
+        config = GlobalConfig()
+        config.add_mcp_server(MCPServerConfig(name="slow-server", server_type=MCPServerType.STDIO, command="slow"))
+        config.add_mcp_server(MCPServerConfig(name="good-server", server_type=MCPServerType.STDIO, command="good"))
+        mock.load.return_value = config
+        return mock
+
+    def should_skip_server_that_hangs_past_connection_timeout_and_still_initialize_others(self, two_server_gateway):
+        async def hang():
+            await asyncio.sleep(3600)
+
+        slow_client = AsyncMock()
+        slow_client.__aenter__.side_effect = hang
+
+        good_client = AsyncMock()
+        good_client.__aenter__.return_value = good_client
+        good_client.list_tools.return_value = []
+
+        manager = MCPClientManager(two_server_gateway)
+        mock_logger = Mock()
+
+        with (
+            patch("zk_chat.mcp_tool_wrapper.Client", side_effect=[slow_client, good_client]),
+            patch("zk_chat.mcp_tool_wrapper.MCP_TIMEOUT_SECONDS", 0.05),
+            patch("zk_chat.mcp_tool_wrapper.logger", mock_logger),
+        ):
+            asyncio.run(manager.initialize())
+
+        assert "slow-server" not in manager._clients
+        assert "good-server" in manager._clients
+        assert manager._initialized is True
+        mock_logger.warning.assert_called()
+        warning_calls_str = str(mock_logger.warning.call_args_list)
+        assert "slow-server" in warning_calls_str
+
+    def should_initialize_reachable_server_normally(self):
+        mock_gateway = Mock(spec=GlobalConfigGateway)
+        config = GlobalConfig()
+        config.add_mcp_server(MCPServerConfig(name="my-server", server_type=MCPServerType.STDIO, command="my"))
+        mock_gateway.load.return_value = config
+
+        tool = SimpleNamespace(name="t", description="d", inputSchema={})
+        good_client = AsyncMock()
+        good_client.__aenter__.return_value = good_client
+        good_client.list_tools.return_value = [tool]
+
+        manager = MCPClientManager(mock_gateway)
+
+        with patch("zk_chat.mcp_tool_wrapper.Client", return_value=good_client):
+            asyncio.run(manager.initialize())
+
+        assert "my-server" in manager._clients
+        assert len(manager.get_tools()) == 1
+        assert manager._initialized is True
+
+    def should_define_shared_mcp_timeout_constant(self):
+        assert MCP_TIMEOUT_SECONDS == 10
