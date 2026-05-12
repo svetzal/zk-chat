@@ -6,9 +6,15 @@ file within a vault directory. Follows the gateway pattern used throughout
 zk-chat to isolate file I/O from the pure Config data model.
 """
 
+import json
 import os
 
+import structlog
+from pydantic import ValidationError
+
 from zk_chat.config import Config
+
+logger = structlog.get_logger()
 
 
 class ConfigGateway:
@@ -31,12 +37,16 @@ class ConfigGateway:
         Returns
         -------
         Config | None
-            Loaded configuration, or None if no config file exists.
+            Loaded configuration, or None if no config file exists or the config file is corrupt.
         """
         config_path = os.path.join(vault_path, ".zk_chat")
         if os.path.exists(config_path):
-            with open(config_path) as f:
-                return Config.model_validate_json(f.read())
+            try:
+                with open(config_path) as f:
+                    return Config.model_validate_json(f.read())
+            except (json.JSONDecodeError, ValidationError) as e:
+                logger.warning("Corrupt vault config file, returning None", path=config_path, error=str(e))
+                return None
         return None
 
     def save(self, config: Config) -> None:

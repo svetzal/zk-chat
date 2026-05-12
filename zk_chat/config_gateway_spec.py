@@ -6,6 +6,7 @@ for gateway tests, which should test the actual I/O behaviour rather than mockin
 """
 
 import os
+from unittest.mock import patch
 
 import pytest
 
@@ -85,3 +86,32 @@ class DescribeConfigGateway:
 
         assert loaded is not None
         assert loaded.model == "updated-model"
+
+    def should_return_none_when_config_file_is_corrupt(self, config_gateway, tmp_vault):
+        config_path = os.path.join(tmp_vault, ".zk_chat")
+        with open(config_path, "w") as f:
+            f.write("not valid json {{{")
+
+        result = config_gateway.load(tmp_vault)
+
+        assert result is None
+
+    def should_return_none_when_config_file_has_wrong_types(self, config_gateway, tmp_vault):
+        config_path = os.path.join(tmp_vault, ".zk_chat")
+        with open(config_path, "w") as f:
+            f.write('{"vault": 12345, "model": ["not", "a", "string"]}')
+
+        result = config_gateway.load(tmp_vault)
+
+        assert result is None
+
+    def should_log_warning_when_config_file_is_corrupt(self, config_gateway, tmp_vault):
+        config_path = os.path.join(tmp_vault, ".zk_chat")
+        with open(config_path, "w") as f:
+            f.write("not valid json {{{")
+
+        with patch("zk_chat.config_gateway.logger") as mock_logger:
+            config_gateway.load(tmp_vault)
+
+        mock_logger.warning.assert_called_once()
+        assert "Corrupt" in mock_logger.warning.call_args.args[0]
