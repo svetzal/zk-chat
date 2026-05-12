@@ -276,13 +276,23 @@ class IndexService:
 
     def _add_text_excerpts_to_index(self, document: ZkDocument, text_excerpts: list[str]) -> None:
         """Add text excerpts to the excerpts index."""
-        docs_for_storage = [self._create_vector_document_for_storage(excerpt, document) for excerpt in text_excerpts]
+        docs_for_storage = [
+            self._create_vector_document_for_storage(excerpt, document, ordinal)
+            for ordinal, excerpt in enumerate(text_excerpts)
+        ]
         self.excerpts_db.add_documents(docs_for_storage)
 
-    def _create_vector_document_for_storage(self, excerpt: str, document: ZkDocument) -> VectorDocumentForStorage:
-        """Create a vector document for storage from an excerpt."""
+    def _create_vector_document_for_storage(
+        self, excerpt: str, document: ZkDocument, ordinal: int
+    ) -> VectorDocumentForStorage:
+        """Create a vector document for storage from an excerpt.
+
+        The ID is derived from the document path, ordinal position, and excerpt text so that
+        identical passages in different documents — or at different positions in the same document
+        — each receive a distinct entry in the vector index.
+        """
         return VectorDocumentForStorage(
-            id=hashlib.md5(bytes(excerpt, "utf-8")).hexdigest(),
+            id=hashlib.md5(f"{document.id}\0{ordinal}\0{excerpt}".encode()).hexdigest(),
             content=excerpt,
             metadata={
                 "id": document.id,
