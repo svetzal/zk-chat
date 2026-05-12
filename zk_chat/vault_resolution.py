@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 from zk_chat.global_config_gateway import GlobalConfigGateway
+from zk_chat.vault_path import normalize_vault_path
 
 
 class VaultResolutionError(Exception):
@@ -31,7 +32,7 @@ def resolve_vault_path(vault: Path | None, global_config_gateway: GlobalConfigGa
         If no vault path can be determined or the resolved path does not exist.
     """
     if vault:
-        vault_path = str(vault.resolve())
+        vault_path = normalize_vault_path(vault)
     else:
         global_config = global_config_gateway.load()
         vault_path = global_config.get_last_opened_bookmark_path()

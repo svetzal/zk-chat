@@ -12,6 +12,7 @@ from zk_chat.progress_tracker import IndexingProgressTracker
 from zk_chat.service_factory import build_service_registry_with_defaults
 from zk_chat.services.index_service import IndexService
 from zk_chat.services.service_provider import ServiceProvider
+from zk_chat.vault_path import normalize_vault_path
 
 
 def _full_reindex(
@@ -123,7 +124,7 @@ def main(config_gateway: ConfigGateway, console_gateway: ConsoleGateway) -> None
         console_gateway.print(f"Error: Vault path '{args.vault}' does not exist.")
         return
 
-    vault_path = os.path.abspath(args.vault)
+    vault_path = normalize_vault_path(args.vault)
 
     gateway = ModelGateway(args.gateway)
 

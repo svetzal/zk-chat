@@ -32,11 +32,12 @@ class GlobalConfig(BaseModel):
     Stores bookmarks, the last opened bookmark, and registered MCP servers.
 
     This is a pure data model — all persistence is handled by GlobalConfigGateway.
-    Path resolution (e.g. os.path.abspath) is the caller's responsibility.
+    Callers must pass paths produced by zk_chat.vault_path.normalize_vault_path so
+    that every stored path is a canonical, symlink-resolved absolute path.
     """
 
-    bookmarks: set[str] = set()  # set of absolute vault paths
-    last_opened_bookmark: str | None = None  # absolute path of the last opened bookmark
+    bookmarks: set[str] = set()  # set of canonical, symlink-resolved vault paths
+    last_opened_bookmark: str | None = None  # canonical, symlink-resolved path of the last opened bookmark
     mcp_servers: dict[str, MCPServerConfig] = Field(default_factory=dict)  # registered MCP servers by name
 
     def add_bookmark(self, vault_path: str) -> None:

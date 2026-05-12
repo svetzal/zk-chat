@@ -37,6 +37,7 @@ from zk_chat.qt_config_resolution import (
     resolve_settings_change,
 )
 from zk_chat.tool_assembly import build_tools_from_config
+from zk_chat.vault_path import normalize_vault_path
 
 
 class LoadingSpinnerWidget(QWidget):
@@ -231,7 +232,7 @@ class SettingsDialog(QDialog):
         self.visual_model_combo.setCurrentIndex(resolution.visual_model_selected_index)
 
     def save_settings(self) -> None:
-        new_vault_path = self.folder_edit.text()
+        new_vault_path = normalize_vault_path(self.folder_edit.text())
         new_gateway = ModelGateway(self.gateway_combo.currentText())
         new_chat_model = self.chat_model_combo.currentText()
         visual_model_text = self.visual_model_combo.currentText()
@@ -251,9 +252,8 @@ class SettingsDialog(QDialog):
 
         if result.updated_global_config_needed:
             global_config = self.global_config_gateway.load()
-            abs_vault_path = os.path.abspath(new_vault_path)
-            global_config.add_bookmark(abs_vault_path)
-            global_config.set_last_opened_bookmark(abs_vault_path)
+            global_config.add_bookmark(new_vault_path)
+            global_config.set_last_opened_bookmark(new_vault_path)
             self.global_config_gateway.save(global_config)
 
         self.config = result.updated_config
@@ -277,6 +277,7 @@ class MainWindow(QMainWindow):
             )
             if not user_selected:
                 sys.exit(0)
+            user_selected = normalize_vault_path(user_selected)
 
         vault_init = resolve_gui_vault_init(last_opened, user_selected)
 

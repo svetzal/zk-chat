@@ -21,6 +21,7 @@ from zk_chat.service_factory import build_service_registry_with_defaults
 from zk_chat.services.service_provider import ServiceProvider
 from zk_chat.upgraders.gateway_specific_index_folder import GatewaySpecificIndexFolder
 from zk_chat.upgraders.gateway_specific_last_indexed import GatewaySpecificLastIndexed
+from zk_chat.vault_path import normalize_vault_path
 
 
 def get_version() -> str:
@@ -83,7 +84,7 @@ def _handle_save(
     if not os.path.exists(path):
         console_gateway.print(f"Error: Path '{path}' does not exist.")
         return True
-    abs_path = os.path.abspath(path)
+    abs_path = normalize_vault_path(path)
     global_config.add_bookmark(abs_path)
     global_config.set_last_opened_bookmark(abs_path)
     global_config_gateway.save(global_config)
@@ -98,7 +99,7 @@ def _resolve_vault_path(
     console_gateway: ConsoleGateway,
 ) -> str | None:
     """Resolve the vault path from options or bookmarks and ensure it exists."""
-    arg_vault = os.path.abspath(options.vault) if options.vault else None
+    arg_vault = normalize_vault_path(options.vault) if options.vault else None
     result = resolve_vault_from_args(
         arg_vault=arg_vault,
         bookmarks=global_config.bookmarks,

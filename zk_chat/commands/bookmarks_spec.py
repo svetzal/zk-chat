@@ -6,6 +6,7 @@ import os
 
 from zk_chat.commands.bookmarks import _list_bookmarks, _remove_bookmark
 from zk_chat.global_config import GlobalConfig
+from zk_chat.vault_path import normalize_vault_path
 
 
 class DescribeListBookmarks:
@@ -57,3 +58,18 @@ class DescribeRemoveBookmark:
         _remove_bookmark(abs_path, mock_global_config_gateway, mock_console_gateway)
 
         mock_global_config_gateway.save.assert_called_once_with(config)
+
+    def should_treat_symlinked_path_as_same_bookmark(self, tmp_path, mock_global_config_gateway, mock_console_gateway):
+        real = tmp_path / "real"
+        real.mkdir()
+        link = tmp_path / "link"
+        link.symlink_to(real)
+
+        config = GlobalConfig()
+        config.add_bookmark(normalize_vault_path(real))
+        mock_global_config_gateway.load.return_value = config
+
+        result = _remove_bookmark(str(link), mock_global_config_gateway, mock_console_gateway)
+
+        assert result is True
+        mock_global_config_gateway.save.assert_called_once()
