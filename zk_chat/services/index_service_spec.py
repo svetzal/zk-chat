@@ -261,6 +261,44 @@ class DescribeIndexServiceQueries:
 
         assert len(results) == 0
 
+    def should_not_filter_excerpts_when_max_distance_is_none(
+        self, mock_tokenizer, mock_filesystem, mock_ollama_gateway
+    ):
+        chroma = Mock(spec=ChromaGateway)
+        chroma.query.return_value = {
+            "ids": [["excerpt1"]],
+            "documents": [["Far excerpt"]],
+            "metadatas": [[{"id": "doc1.md", "title": "Test"}]],
+            "distances": [[2.0]],
+        }
+        excerpts_db = VectorDatabase(chroma, mock_ollama_gateway, ZkCollectionName.EXCERPTS)
+        documents_db = VectorDatabase(Mock(spec=ChromaGateway), mock_ollama_gateway, ZkCollectionName.DOCUMENTS)
+        service = IndexService(mock_tokenizer, excerpts_db, documents_db, mock_filesystem)
+        mock_filesystem.path_exists.return_value = True
+
+        results = service.query_excerpts("test query", max_distance=None)
+
+        assert len(results) == 1
+
+    def should_not_filter_documents_when_max_distance_is_none(
+        self, mock_tokenizer, mock_filesystem, mock_ollama_gateway
+    ):
+        chroma = Mock(spec=ChromaGateway)
+        chroma.query.return_value = {
+            "ids": [["doc1.md"]],
+            "documents": [["Far document"]],
+            "metadatas": [[{"id": "doc1.md", "title": "Test"}]],
+            "distances": [[2.0]],
+        }
+        excerpts_db = VectorDatabase(Mock(spec=ChromaGateway), mock_ollama_gateway, ZkCollectionName.EXCERPTS)
+        documents_db = VectorDatabase(chroma, mock_ollama_gateway, ZkCollectionName.DOCUMENTS)
+        service = IndexService(mock_tokenizer, excerpts_db, documents_db, mock_filesystem)
+        mock_filesystem.read_markdown.return_value = ({"title": "Test"}, "Far document content")
+
+        results = service.query_documents("test query", max_distance=None)
+
+        assert len(results) == 1
+
 
 class DescribeIndexServiceStats:
     """Tests for index statistics in IndexService."""
