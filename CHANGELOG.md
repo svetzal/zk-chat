@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Unified `max_distance` semantics**: `IndexService.query_excerpts` and `query_documents` now both treat `max_distance=None` as "no distance filtering" and any non-`None` value as a real threshold; the previous `0.0`-means-no-filter sentinel in `query_documents` has been removed. Behavior is unchanged for existing callers.
+
 ### Fixed
 
 - Standardized vault path normalization: bookmarks, vault config lookup, and vault

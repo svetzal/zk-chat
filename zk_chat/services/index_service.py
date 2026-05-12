@@ -176,7 +176,9 @@ class IndexService:
         self.documents_db.delete_by_metadata({"id": relative_path})
         self.excerpts_db.delete_by_metadata({"document_path": relative_path})
 
-    def query_excerpts(self, query: str, n_results: int = 8, max_distance: float = 1.0) -> list[ZkQueryExcerptResult]:
+    def query_excerpts(
+        self, query: str, n_results: int = 8, max_distance: float | None = 1.0
+    ) -> list[ZkQueryExcerptResult]:
         """
         Query the excerpt index for relevant text excerpts.
 
@@ -186,8 +188,8 @@ class IndexService:
             The query text
         n_results : int, optional
             The number of results to return, by default 8
-        max_distance : float, optional
-            The maximum distance to consider, by default 1.0
+        max_distance : float | None, optional
+            Maximum distance to keep a result; ``None`` disables distance filtering. Default 1.0.
 
         Returns
         -------
@@ -196,14 +198,16 @@ class IndexService:
         """
         results = []
         for result in self.excerpts_db.query(query, n_results=n_results):
-            if result.distance > max_distance:
+            if max_distance is not None and result.distance > max_distance:
                 continue
             query_result = self._create_excerpt_query_result(result)
             if query_result is not None:
                 results.append(query_result)
         return results
 
-    def query_documents(self, query: str, n_results: int = 3, max_distance: float = 0.0) -> list[ZkQueryDocumentResult]:
+    def query_documents(
+        self, query: str, n_results: int = 3, max_distance: float | None = None
+    ) -> list[ZkQueryDocumentResult]:
         """
         Query the document index for whole documents.
 
@@ -213,8 +217,8 @@ class IndexService:
             The query text
         n_results : int, optional
             The number of results to return, by default 3
-        max_distance : float, optional
-            The maximum distance to consider (0.0 means no distance filtering), by default 0.0
+        max_distance : float | None, optional
+            Maximum distance to keep a result; ``None`` disables distance filtering. Default ``None`` (no filtering).
 
         Returns
         -------
@@ -223,7 +227,7 @@ class IndexService:
         """
         results = []
         for result in self.documents_db.query(query, n_results=n_results):
-            if max_distance != 0.0 and result.distance > max_distance:
+            if max_distance is not None and result.distance > max_distance:
                 continue
             query_result = self._create_document_query_result(result)
             if query_result is not None:
