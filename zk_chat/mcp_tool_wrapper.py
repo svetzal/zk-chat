@@ -17,6 +17,9 @@ from zk_chat.global_config_gateway import GlobalConfigGateway
 
 logger = structlog.get_logger()
 
+# Timeout (seconds) for connecting to / cleaning up an MCP server
+MCP_TIMEOUT_SECONDS = 10
+
 
 def coerce_types(arguments: dict[str, Any], input_schema: dict[str, Any]) -> dict[str, Any]:
     """
@@ -276,7 +279,7 @@ class MCPClientManager:
             future = asyncio.run_coroutine_threadsafe(self.cleanup(), self._loop)
 
             try:
-                future.result(timeout=10)
+                future.result(timeout=MCP_TIMEOUT_SECONDS)
             except concurrent.futures.TimeoutError:
                 logger.error("Timeout waiting for MCP client cleanup")
 
@@ -309,6 +312,12 @@ class MCPClientManager:
         for server_config in servers:
             try:
                 await self._connect_server(server_config)
+            except TimeoutError:
+                logger.warning(
+                    "MCP server connection timed out",
+                    server_name=server_config.name,
+                    timeout=MCP_TIMEOUT_SECONDS,
+                )
             except (ValueError, ConnectionError, OSError) as e:
                 logger.error("Failed to connect to MCP server", server_name=server_config.name, error=str(e))
 
@@ -341,7 +350,7 @@ class MCPClientManager:
         else:
             raise ValueError(f"Unsupported server type: {server_config.server_type}")
 
-        await client.__aenter__()
+        await asyncio.wait_for(client.__aenter__(), timeout=MCP_TIMEOUT_SECONDS)
         self._clients[server_config.name] = client
 
         logger.info("Connected to MCP server", server_name=server_config.name)
@@ -362,7 +371,7 @@ class MCPClientManager:
         logger.info("Discovering tools from MCP server", server_name=server_config.name)
 
         try:
-            tools = await client.list_tools()
+            tools = await asyncio.wait_for(client.list_tools(), timeout=MCP_TIMEOUT_SECONDS)
 
             for tool in tools:
                 tool_dict = {"name": tool.name, "description": tool.description, "inputSchema": tool.inputSchema}
