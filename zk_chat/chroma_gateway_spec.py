@@ -95,6 +95,29 @@ class DescribeChromaGateway:
                 embeddings=test_embeddings,
             )
 
+    class DescribeDeleteItems:
+        def should_delete_items_by_ids(self, chroma_gateway, mock_chroma_client, mock_collection):
+            mock_chroma_client.get_or_create_collection.return_value = mock_collection
+            test_ids = ["id1", "id2"]
+
+            chroma_gateway.delete_items(
+                collection_name=ZkCollectionName.EXCERPTS,
+                ids=test_ids,
+            )
+
+            mock_collection.delete.assert_called_once_with(ids=test_ids, where=None)
+
+        def should_delete_items_by_where_filter(self, chroma_gateway, mock_chroma_client, mock_collection):
+            mock_chroma_client.get_or_create_collection.return_value = mock_collection
+            test_where = {"document_path": "doc.md"}
+
+            chroma_gateway.delete_items(
+                collection_name=ZkCollectionName.EXCERPTS,
+                where=test_where,
+            )
+
+            mock_collection.delete.assert_called_once_with(ids=None, where=test_where)
+
     class DescribeResetIndexes:
         def should_reset_specific_collection_and_recreate_it(self, chroma_gateway, mock_chroma_client, mock_collection):
             mock_chroma_client.get_or_create_collection.return_value = mock_collection

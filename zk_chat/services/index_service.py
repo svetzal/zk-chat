@@ -165,18 +165,16 @@ class IndexService:
 
     def remove_document_from_index(self, relative_path: str) -> None:
         """
-        Remove a document from the index.
-
-        Note: This is a placeholder for future implementation. Currently,
-        ChromaDB doesn't support efficient single document removal without
-        knowing all the excerpt IDs.
+        Remove a document and all its excerpts from the index.
 
         Parameters
         ----------
         relative_path : str
             Path to the document to remove from index
         """
-        logger.warning("Document removal from index not yet implemented", path=relative_path)
+        logger.info("Removing document from index", path=relative_path)
+        self.documents_db.delete_by_metadata({"id": relative_path})
+        self.excerpts_db.delete_by_metadata({"document_path": relative_path})
 
     def query_excerpts(self, query: str, n_results: int = 8, max_distance: float = 1.0) -> list[ZkQueryExcerptResult]:
         """
@@ -196,11 +194,14 @@ class IndexService:
         list[ZkQueryExcerptResult]
             A list of query results with excerpts
         """
-        return [
-            self._create_excerpt_query_result(result)
-            for result in self.excerpts_db.query(query, n_results=n_results)
-            if result.distance <= max_distance
-        ]
+        results = []
+        for result in self.excerpts_db.query(query, n_results=n_results):
+            if result.distance > max_distance:
+                continue
+            query_result = self._create_excerpt_query_result(result)
+            if query_result is not None:
+                results.append(query_result)
+        return results
 
     def query_documents(self, query: str, n_results: int = 3, max_distance: float = 0.0) -> list[ZkQueryDocumentResult]:
         """
@@ -248,6 +249,7 @@ class IndexService:
     def _index_document(self, relative_path: str, excerpt_size: int, excerpt_overlap: int) -> None:
         """Index a single document by reading and processing it."""
         document = self._read_document(relative_path)
+        self.excerpts_db.delete_by_metadata({"document_path": document.id})
         if document.content:
             self._add_document_to_index(document)
             self._split_document(document, excerpt_size, excerpt_overlap)
@@ -285,6 +287,7 @@ class IndexService:
             metadata={
                 "id": document.id,
                 "title": document.title,
+                "document_path": document.id,
             },
         )
 
@@ -313,11 +316,15 @@ class IndexService:
         """Check if a file needs reindexing based on modification time."""
         return self._get_file_mtime(relative_path) > since
 
-    def _create_excerpt_query_result(self, result: QueryResult) -> ZkQueryExcerptResult:
-        """Create an excerpt query result from a query result."""
+    def _create_excerpt_query_result(self, result: QueryResult) -> ZkQueryExcerptResult | None:
+        """Create an excerpt query result, returning None if the backing file no longer exists."""
+        document_id = result.document.metadata["id"]
+        if not self.filesystem_gateway.path_exists(document_id):
+            logger.warning("Excerpt in index references file not found on filesystem", document_id=document_id)
+            return None
         return ZkQueryExcerptResult(
             excerpt=ZkDocumentExcerpt(
-                document_id=result.document.metadata["id"],
+                document_id=document_id,
                 document_title=result.document.metadata["title"],
                 text=result.document.content,
             ),

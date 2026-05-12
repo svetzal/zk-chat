@@ -109,7 +109,7 @@ def build_agent_tools(
         FindZkDocumentsRelatedTo(index_service, console_service),
         CreateOrOverwriteZkDocument(document_service, console_service),
         RenameZkDocument(document_service),
-        DeleteZkDocument(document_service, console_service),
+        DeleteZkDocument(document_service, index_service, console_service),
         FindBacklinks(link_traversal_service, console_service),
         FindForwardLinks(document_service, link_traversal_service, console_service),
         StoreInSmartMemory(smart_memory, console_service),

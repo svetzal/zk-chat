@@ -125,6 +125,32 @@ class DescribeIndexService:
 
         mock_chroma_documents.add_items.assert_not_called()
 
+    def should_remove_prior_excerpts_when_reindexing_a_document(
+        self, index_service, mock_filesystem, mock_chroma_excerpts, sample_document_data
+    ):
+        mock_filesystem.read_markdown.return_value = sample_document_data
+
+        index_service.index_document("doc.md")
+
+        mock_chroma_excerpts.delete_items.assert_called_once_with(
+            collection_name=ZkCollectionName.EXCERPTS,
+            where={"document_path": "doc.md"},
+        )
+
+    def should_remove_document_and_excerpts_from_index(
+        self, index_service, mock_chroma_excerpts, mock_chroma_documents
+    ):
+        index_service.remove_document_from_index("doc.md")
+
+        mock_chroma_documents.delete_items.assert_called_once_with(
+            collection_name=ZkCollectionName.DOCUMENTS,
+            where={"id": "doc.md"},
+        )
+        mock_chroma_excerpts.delete_items.assert_called_once_with(
+            collection_name=ZkCollectionName.EXCERPTS,
+            where={"document_path": "doc.md"},
+        )
+
 
 class DescribeIndexServiceQueries:
     """Tests for query functionality in IndexService."""
@@ -211,6 +237,13 @@ class DescribeIndexServiceQueries:
         results = index_service_with_results.query_documents("test query")
 
         assert len(results) == 0
+
+    def should_skip_excerpt_whose_backing_file_is_missing(self, index_service_with_results, mock_filesystem):
+        mock_filesystem.path_exists.return_value = False
+
+        results = index_service_with_results.query_excerpts("test query")
+
+        assert results == []
 
     def should_filter_documents_by_max_distance(self, mock_tokenizer, mock_filesystem, mock_ollama_gateway):
         chroma = Mock(spec=ChromaGateway)
