@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Standardized vault path normalization: bookmarks, vault config lookup, and vault
+  resolution now all canonicalize to the symlink-resolved absolute path via a single
+  helper (`normalize_vault_path`), so a vault reached through a symlink is no longer
+  treated as a separate vault (preventing duplicate bookmarks, missed configs, and
+  re-initialization loops).
 - **Unreachable MCP server no longer blocks startup**: connecting to and discovering tools from a registered MCP server is now bounded by a 10-second timeout (the same `MCP_TIMEOUT_SECONDS` constant used for MCP cleanup); a server that fails to respond in time is logged with a warning and skipped, and the rest of the chat/agent session starts normally instead of hanging forever.
 - **Corrupt vault config no longer crashes the app**: `ConfigGateway.load()` now recovers from a malformed `.zk_chat` file the same way `GlobalConfigGateway.load()` does — it logs a warning and returns `None` instead of propagating the parse/validation error. Its docstring now reflects this.
 - **Stale ChromaDB index entries**: deleting a document now removes its document entry *and* all of its excerpt entries from the vector database; re-indexing an edited document purges its previous excerpts so orphaned excerpts no longer accumulate. Excerpt metadata now records the owning document path (`document_path`). Queries that hit an excerpt whose backing file no longer exists now skip it gracefully instead of surfacing stale results.

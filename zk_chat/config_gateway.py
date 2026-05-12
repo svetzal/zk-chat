@@ -13,6 +13,7 @@ import structlog
 from pydantic import ValidationError
 
 from zk_chat.config import Config
+from zk_chat.vault_path import normalize_vault_path
 
 logger = structlog.get_logger()
 
@@ -39,6 +40,7 @@ class ConfigGateway:
         Config | None
             Loaded configuration, or None if no config file exists or the config file is corrupt.
         """
+        vault_path = normalize_vault_path(vault_path)
         config_path = os.path.join(vault_path, ".zk_chat")
         if os.path.exists(config_path):
             try:

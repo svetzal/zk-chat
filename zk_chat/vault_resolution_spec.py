@@ -66,3 +66,14 @@ class DescribeResolveVaultPath:
             resolve_vault_path(None, mock_gateway)
 
         assert "does not exist" in str(exc_info.value)
+
+    def should_resolve_symlinked_vault_path_to_real_target(self, tmp_path):
+        real = tmp_path / "real"
+        real.mkdir()
+        link = tmp_path / "link"
+        link.symlink_to(real)
+        mock_gateway = Mock(spec=GlobalConfigGateway)
+
+        result = resolve_vault_path(link, mock_gateway)
+
+        assert result == str(real.resolve())

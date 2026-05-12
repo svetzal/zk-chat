@@ -9,6 +9,7 @@ from rich.table import Table
 
 from zk_chat.console_service import ConsoleGateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
+from zk_chat.vault_path import normalize_vault_path
 
 bookmarks_app = typer.Typer(name="bookmarks", help="🔖 Manage vault bookmarks", rich_markup_mode="rich")
 
@@ -35,9 +36,7 @@ def _list_bookmarks(global_config_gateway: GlobalConfigGateway, console_gateway:
 
 
 def _remove_bookmark(path: str, global_config_gateway: GlobalConfigGateway, console_gateway: ConsoleGateway) -> bool:
-    import os
-
-    abs_path = os.path.abspath(path)
+    abs_path = normalize_vault_path(path)
     global_config = global_config_gateway.load()
 
     if global_config.remove_bookmark(abs_path):

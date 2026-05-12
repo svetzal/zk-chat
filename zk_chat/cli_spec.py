@@ -2,12 +2,14 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from zk_chat.cli import common_init
+from zk_chat.cli import _handle_save, _resolve_vault_path, common_init
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_resolution import GatewayValidationResult
+from zk_chat.console_service import ConsoleGateway
 from zk_chat.global_config import GlobalConfig
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.init_options import InitOptions
+from zk_chat.vault_path import normalize_vault_path
 
 
 @pytest.fixture
@@ -190,3 +192,71 @@ class DescribeCommonInit:
             mock_reindex.assert_called_once_with(
                 existing_config, mock_config_gateway, force_full=True, console_gateway=mock_console_gateway
             )
+
+
+class DescribeSymlinkedVaultEquivalence:
+    """Tests that symlinked vault paths are treated as the same vault as their target."""
+
+    def should_store_resolved_path_when_saving_bookmark_via_symlink(self, tmp_path):
+        real = tmp_path / "real"
+        real.mkdir()
+        link = tmp_path / "link"
+        link.symlink_to(real)
+
+        mock_gcg = Mock(spec=GlobalConfigGateway)
+        mock_console = Mock(spec=ConsoleGateway)
+        global_config = GlobalConfig()
+
+        _handle_save(InitOptions(vault=str(link), save=True), global_config, mock_gcg, mock_console)
+
+        saved_config = mock_gcg.save.call_args[0][0]
+        expected_path = normalize_vault_path(real)
+        assert saved_config.bookmarks == {expected_path}
+        assert saved_config.last_opened_bookmark == expected_path
+
+    def should_find_existing_bookmark_when_resolving_via_symlink(self, tmp_path):
+        real = tmp_path / "real"
+        real.mkdir()
+        link = tmp_path / "link"
+        link.symlink_to(real)
+
+        mock_gcg = Mock(spec=GlobalConfigGateway)
+        mock_console = Mock(spec=ConsoleGateway)
+        canonical = normalize_vault_path(real)
+        global_config = GlobalConfig(bookmarks={canonical}, last_opened_bookmark=canonical)
+
+        result = _resolve_vault_path(InitOptions(vault=str(link)), global_config, mock_gcg, mock_console)
+
+        assert result == canonical
+
+    def should_keep_one_bookmark_for_same_vault_added_twice_via_different_paths(self, tmp_path):
+        real = tmp_path / "real"
+        real.mkdir()
+        link = tmp_path / "link"
+        link.symlink_to(real)
+
+        global_config = GlobalConfig()
+        mock_gcg = Mock(spec=GlobalConfigGateway)
+        mock_console = Mock(spec=ConsoleGateway)
+
+        _handle_save(InitOptions(vault=str(real), save=True), global_config, mock_gcg, mock_console)
+        _handle_save(InitOptions(vault=str(link), save=True), global_config, mock_gcg, mock_console)
+
+        assert len(global_config.bookmarks) == 1
+
+    def should_treat_two_distinct_vaults_as_different_bookmarks(self, tmp_path):
+        vault_a = tmp_path / "a"
+        vault_b = tmp_path / "b"
+        vault_a.mkdir()
+        vault_b.mkdir()
+
+        global_config = GlobalConfig()
+        mock_gcg = Mock(spec=GlobalConfigGateway)
+        mock_console = Mock(spec=ConsoleGateway)
+
+        _handle_save(InitOptions(vault=str(vault_a), save=True), global_config, mock_gcg, mock_console)
+        _handle_save(InitOptions(vault=str(vault_b), save=True), global_config, mock_gcg, mock_console)
+
+        assert len(global_config.bookmarks) == 2
+        assert normalize_vault_path(vault_a) in global_config.bookmarks
+        assert normalize_vault_path(vault_b) in global_config.bookmarks
