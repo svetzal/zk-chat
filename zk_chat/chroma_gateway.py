@@ -74,6 +74,23 @@ class ChromaGateway:
             embeddings=embeddings,
         )
 
+    def delete_items(
+        self,
+        collection_name: ZkCollectionName,
+        ids: list[str] | None = None,
+        where: dict | None = None,
+    ) -> None:
+        """
+        Delete items from a collection by IDs or metadata filter.
+
+        Args:
+            collection_name: The name of the collection to delete from
+            ids: The IDs of the items to delete (optional)
+            where: A metadata filter for items to delete (optional)
+        """
+        collection = self.get_collection(collection_name)
+        collection.delete(ids=ids, where=where)
+
     def reset_indexes(self, collection_name: ZkCollectionName | None = None) -> None:
         """
         Reset the indexes for a collection or all collections.

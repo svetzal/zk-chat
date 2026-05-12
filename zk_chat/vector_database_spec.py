@@ -115,6 +115,17 @@ class DescribeVectorDatabase:
                 collection_name=ZkCollectionName.DOCUMENTS,
             )
 
+    class DescribeDeleteByMetadata:
+        """Tests for the delete_by_metadata method."""
+
+        def should_delegate_to_chroma_gateway_with_where_filter(self, vector_db, mock_chroma_gateway):
+            vector_db.delete_by_metadata({"document_path": "doc.md"})
+
+            mock_chroma_gateway.delete_items.assert_called_once_with(
+                collection_name=ZkCollectionName.DOCUMENTS,
+                where={"document_path": "doc.md"},
+            )
+
     class DescribeReset:
         """Tests for the reset method."""
 

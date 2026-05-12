@@ -3,14 +3,18 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_service import ConsoleGateway
 from zk_chat.services.document_service import DocumentService
+from zk_chat.services.index_service import IndexService
 from zk_chat.tools.tool_helpers import build_descriptor, check_document_exists
 
 logger = structlog.get_logger()
 
 
 class DeleteZkDocument(LLMTool):
-    def __init__(self, document_service: DocumentService, console_service: ConsoleGateway) -> None:
+    def __init__(
+        self, document_service: DocumentService, index_service: IndexService, console_service: ConsoleGateway
+    ) -> None:
         self.document_service = document_service
+        self.index_service = index_service
         self.console_service = console_service
 
     def run(self, relative_path: str) -> str:
@@ -21,6 +25,7 @@ class DeleteZkDocument(LLMTool):
 
         try:
             self.document_service.delete_document(relative_path)
+            self.index_service.remove_document_from_index(relative_path)
             return f"Document successfully deleted at {relative_path}"
         except (FileNotFoundError, OSError) as e:
             logger.error("Error deleting document", path=relative_path, error=str(e))

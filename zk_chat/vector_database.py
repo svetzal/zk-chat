@@ -48,6 +48,15 @@ class VectorDatabase:
             collection_name=self.collection_name,
         )
 
+    def delete_by_metadata(self, where: dict) -> None:
+        """
+        Delete documents from the vector database matching a metadata filter.
+
+        Args:
+            where: A metadata filter dict; entries whose metadata matches are deleted
+        """
+        self.chroma_gateway.delete_items(collection_name=self.collection_name, where=where)
+
     def reset(self) -> None:
         """
         Reset the vector database.
