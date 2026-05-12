@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Corrupt vault config no longer crashes the app**: `ConfigGateway.load()` now recovers from a malformed `.zk_chat` file the same way `GlobalConfigGateway.load()` does — it logs a warning and returns `None` instead of propagating the parse/validation error. Its docstring now reflects this.
 - **Stale ChromaDB index entries**: deleting a document now removes its document entry *and* all of its excerpt entries from the vector database; re-indexing an edited document purges its previous excerpts so orphaned excerpts no longer accumulate. Excerpt metadata now records the owning document path (`document_path`). Queries that hit an excerpt whose backing file no longer exists now skip it gracefully instead of surfacing stale results.
+- **Renamed documents stay searchable**: renaming a document now removes the old path's document and excerpt entries from the vector database and re-indexes the document under its new path, so a renamed note is findable by search immediately instead of only after a full reindex.
 
 ## [3.6.0] - 2026-04-11
 

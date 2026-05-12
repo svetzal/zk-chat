@@ -3,14 +3,16 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.filename_utils import ensure_md_extension, sanitize_filename
 from zk_chat.services.document_service import DocumentService
+from zk_chat.services.index_service import IndexService
 from zk_chat.tools.tool_helpers import build_descriptor
 
 logger = structlog.get_logger()
 
 
 class RenameZkDocument(LLMTool):
-    def __init__(self, document_service: DocumentService) -> None:
+    def __init__(self, document_service: DocumentService, index_service: IndexService) -> None:
         self.document_service = document_service
+        self.index_service = index_service
 
     def run(self, source_title: str, target_title: str) -> str:
         source_path = ensure_md_extension(sanitize_filename(source_title))
@@ -20,6 +22,8 @@ class RenameZkDocument(LLMTool):
             logger.info("renaming document", source_path=source_path, target_path=target_path)
 
             self.document_service.rename_document(source_path, target_path)
+            self.index_service.remove_document_from_index(source_path)
+            self.index_service.index_document(target_path)
 
             return f"Successfully renamed document from '{source_path}' to '{target_path}'"
         except FileNotFoundError as e:
