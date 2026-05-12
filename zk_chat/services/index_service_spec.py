@@ -317,3 +317,38 @@ class DescribeIndexServiceDocumentSplitting:
 
         # With 300 tokens, 100 size, 20 overlap: should create multiple chunks
         assert mock_tokenizer.decode.call_count >= 3
+
+
+class DescribeIndexServiceExcerptIds:
+    """Tests that excerpt IDs are unique across documents and positions."""
+
+    def should_assign_distinct_ids_to_identical_passages_in_different_documents(
+        self, index_service, mock_tokenizer, mock_chroma_excerpts, mock_filesystem
+    ):
+        mock_tokenizer.encode.return_value = [1, 2, 3]
+        mock_tokenizer.decode.return_value = "same repeated passage"
+        mock_filesystem.read_markdown.return_value = ({"title": "Test"}, "same repeated passage")
+
+        index_service.index_document("a.md")
+        index_service.index_document("b.md")
+
+        call_args_list = mock_chroma_excerpts.add_items.call_args_list
+        ids_a = call_args_list[0].kwargs["ids"]
+        ids_b = call_args_list[1].kwargs["ids"]
+
+        assert ids_a != ids_b
+
+    def should_assign_distinct_ids_to_identical_passages_at_different_positions(
+        self, index_service, mock_tokenizer, mock_chroma_excerpts, mock_filesystem
+    ):
+        mock_tokenizer.encode.return_value = list(range(1000))
+        mock_tokenizer.decode.return_value = "same repeated passage"
+        mock_filesystem.read_markdown.return_value = ({"title": "Test"}, "A" * 5000)
+
+        index_service.index_document("doc.md", excerpt_size=500, excerpt_overlap=100)
+
+        call_args = mock_chroma_excerpts.add_items.call_args
+        ids = call_args.kwargs["ids"]
+
+        assert len(ids) > 1
+        assert len(set(ids)) == len(ids)
