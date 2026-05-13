@@ -11,7 +11,6 @@ from datetime import datetime
 
 import structlog
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
-from pydantic import BaseModel
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.models import (
@@ -28,14 +27,6 @@ from zk_chat.vector_database import VectorDatabase
 logger = structlog.get_logger()
 
 ProgressCallback = Callable[[str, int, int], None]
-
-
-class IndexStats(BaseModel):
-    """Statistics about the index state."""
-
-    total_documents: int
-    total_excerpts: int
-    last_indexed: datetime | None
 
 
 class IndexService:
@@ -233,22 +224,6 @@ class IndexService:
             if query_result is not None:
                 results.append(query_result)
         return results
-
-    def get_index_stats(self) -> IndexStats:
-        """
-        Get statistics about the current index state.
-
-        Returns
-        -------
-        IndexStats
-            Statistics about the index
-        """
-        total_documents = sum(1 for _ in self.filesystem_gateway.iterate_markdown_files())
-        return IndexStats(
-            total_documents=total_documents,
-            total_excerpts=0,  # Would need Chroma API to get actual count
-            last_indexed=self._last_indexed,
-        )
 
     def _index_document(self, relative_path: str, excerpt_size: int, excerpt_overlap: int) -> None:
         """Index a single document by reading and processing it."""

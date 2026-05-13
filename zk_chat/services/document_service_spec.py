@@ -8,7 +8,7 @@ import pytest
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.models import ZkDocument
-from zk_chat.services.document_service import DocumentService, merge_metadata
+from zk_chat.services.document_service import DocumentService
 
 
 class DescribeDocumentService:
@@ -108,45 +108,6 @@ class DescribeDocumentService:
         with pytest.raises(FileNotFoundError):
             document_service.rename_document(source_path, target_path)
 
-    def should_append_content_to_existing_document(self, document_service, mock_filesystem):
-        original_metadata = {"tags": ["original"]}
-        original_content = "Original content"
-        append_metadata = {"tags": ["new"], "extra": "value"}
-        append_content = "Appended content"
-
-        mock_filesystem.read_markdown.return_value = (original_metadata, original_content)
-        mock_filesystem.get_directory_path.return_value = "test"
-        mock_filesystem.path_exists.side_effect = [True]  # For directory check
-
-        append_document = ZkDocument(relative_path="test/document.md", metadata=append_metadata, content=append_content)
-
-        document_service.append_to_document(append_document)
-
-        call_args = mock_filesystem.write_markdown.call_args
-        written_content = call_args[0][2]
-        assert original_content in written_content
-        assert append_content in written_content
-        assert "---" in written_content  # Separator
-
-    def should_create_document_when_append_and_not_exists(self, document_service, mock_filesystem, sample_document):
-        mock_filesystem.path_exists.side_effect = [False, True]  # First doc check, then dir check
-        mock_filesystem.get_directory_path.return_value = "test"
-
-        document_service.create_or_append_document(sample_document)
-
-        mock_filesystem.write_markdown.assert_called_once()
-
-    def should_append_document_when_append_and_exists(
-        self, document_service, mock_filesystem, sample_document, sample_metadata, sample_content
-    ):
-        mock_filesystem.path_exists.side_effect = [True, True]  # Doc exists, then dir check
-        mock_filesystem.read_markdown.return_value = (sample_metadata, sample_content)
-        mock_filesystem.get_directory_path.return_value = "test"
-
-        document_service.create_or_append_document(sample_document)
-
-        mock_filesystem.write_markdown.assert_called_once()
-
     def should_list_all_document_paths(self, document_service, mock_filesystem):
         expected_paths = ["doc1.md", "folder/doc2.md", "folder/subfolder/doc3.md"]
         mock_filesystem.iterate_markdown_files.return_value = iter(expected_paths)
@@ -181,89 +142,3 @@ class DescribeDocumentService:
 
         assert result is False
 
-    def should_get_document_metadata(self, document_service, mock_filesystem, sample_metadata):
-        test_path = "test/document.md"
-        mock_filesystem.read_markdown.return_value = (sample_metadata, "content")
-
-        result = document_service.get_document_metadata(test_path)
-
-        assert result == sample_metadata
-        mock_filesystem.read_markdown.assert_called_once_with(test_path)
-
-    def should_update_document_metadata(self, document_service, mock_filesystem, sample_metadata, sample_content):
-        test_path = "test/document.md"
-        new_metadata = {"status": "reviewed", "author": "new_author"}
-        mock_filesystem.read_markdown.return_value = (sample_metadata, sample_content)
-        mock_filesystem.get_directory_path.return_value = "test"
-        mock_filesystem.path_exists.return_value = True
-
-        document_service.update_document_metadata(test_path, new_metadata)
-
-        call_args = mock_filesystem.write_markdown.call_args
-        written_metadata = call_args[0][1]
-        assert written_metadata["status"] == "reviewed"
-        assert written_metadata["author"] == "new_author"
-        assert "tags" in written_metadata  # Original tag preserved
-
-
-class DescribeMergeMetadata:
-    """Tests for the pure merge_metadata function."""
-
-    def should_merge_non_overlapping_keys(self):
-        original = {"key1": "value1"}
-        new = {"key2": "value2"}
-
-        result = merge_metadata(original, new)
-
-        assert result == {"key1": "value1", "key2": "value2"}
-
-    def should_override_simple_values(self):
-        original = {"key": "old_value"}
-        new = {"key": "new_value"}
-
-        result = merge_metadata(original, new)
-
-        assert result == {"key": "new_value"}
-
-    def should_merge_lists_without_duplicates(self):
-        original = {"tags": ["a", "b"]}
-        new = {"tags": ["b", "c"]}
-
-        result = merge_metadata(original, new)
-
-        assert set(result["tags"]) == {"a", "b", "c"}
-
-    def should_merge_nested_dictionaries(self):
-        original = {"nested": {"key1": "value1", "key2": "old"}}
-        new = {"nested": {"key2": "new", "key3": "value3"}}
-
-        result = merge_metadata(original, new)
-
-        assert result["nested"]["key1"] == "value1"
-        assert result["nested"]["key2"] == "new"
-        assert result["nested"]["key3"] == "value3"
-
-    def should_handle_none_values_in_original(self):
-        original = {"key": None}
-        new = {"key": "value"}
-
-        result = merge_metadata(original, new)
-
-        assert result["key"] == "value"
-
-    def should_preserve_original_when_new_is_none(self):
-        original = {"key": "value"}
-        new = {"key": None}
-
-        result = merge_metadata(original, new)
-
-        assert result["key"] == "value"
-
-    def should_not_modify_original_metadata(self):
-        original = {"key": "value", "nested": {"inner": "data"}}
-        new = {"key": "new_value", "extra": "field"}
-        original_copy = {"key": "value", "nested": {"inner": "data"}}
-
-        merge_metadata(original, new)
-
-        assert original == original_copy

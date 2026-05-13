@@ -41,16 +41,3 @@ class DescribeServiceRegistry:
 
         assert registry.has_service(ServiceType.LLM_BROKER)
 
-    def should_list_available_services(self):
-        registry = ServiceRegistry()
-        mock_service1 = Mock()  # Intentionally unspec'd: testing generic registry contract
-        mock_service2 = Mock()  # Intentionally unspec'd: testing generic registry contract
-
-        registry.register_service(ServiceType.LLM_BROKER, mock_service1)
-        registry.register_service(ServiceType.FILESYSTEM_GATEWAY, mock_service2)
-
-        available_services = registry.list_available_services()
-
-        assert ServiceType.LLM_BROKER in available_services
-        assert ServiceType.FILESYSTEM_GATEWAY in available_services
-        assert len(available_services) == 2

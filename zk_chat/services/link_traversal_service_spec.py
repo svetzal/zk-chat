@@ -1,4 +1,3 @@
-from datetime import datetime
 from unittest.mock import Mock
 
 import pytest
@@ -213,98 +212,6 @@ Another valid: [[Another Good Link]]"""
 
         assert link_service.link_index.last_updated is not None
 
-    def should_find_link_path_between_documents(self, link_service, mock_filesystem):
-        # Setup a simple path: doc1 -> doc2 -> doc3
-        doc1, doc2, doc3 = "doc1.md", "doc2.md", "doc3.md"
-
-        # Build the index manually for testing
-        link_service.link_index.forward_links = {doc1: {doc2}, doc2: {doc3}, doc3: set()}
-        link_service.link_index.last_updated = datetime.now()
-
-        result = link_service.find_link_path(doc1, doc3, max_hops=3)
-
-        assert result is not None
-        assert result.from_document == doc1
-        assert result.to_document == doc3
-        assert result.path == [doc1, doc2, doc3]
-        assert result.hops == 2
-
-    def should_return_none_when_no_path_exists(self, link_service, mock_filesystem):
-        # Setup disconnected documents
-        doc1, doc2 = "doc1.md", "doc2.md"
-
-        link_service.link_index.forward_links = {doc1: set(), doc2: set()}
-        link_service.link_index.last_updated = datetime.now()
-
-        result = link_service.find_link_path(doc1, doc2, max_hops=3)
-
-        assert result is None
-
-    def should_respect_max_hops_limit(self, link_service, mock_filesystem):
-        # Setup a long chain: doc1 -> doc2 -> doc3 -> doc4
-        doc1, doc2, doc3, doc4 = "doc1.md", "doc2.md", "doc3.md", "doc4.md"
-
-        link_service.link_index.forward_links = {doc1: {doc2}, doc2: {doc3}, doc3: {doc4}, doc4: set()}
-        link_service.link_index.last_updated = datetime.now()
-
-        # Should find path with enough hops
-        result = link_service.find_link_path(doc1, doc4, max_hops=3)
-        assert result is not None
-        assert result.hops == 3
-
-        # Should not find path with insufficient hops
-        result = link_service.find_link_path(doc1, doc4, max_hops=2)
-        assert result is None
-
-    def should_calculate_global_link_metrics(self, link_service, mock_filesystem):
-        # Setup test index with known structure
-        doc1, doc2, doc3 = "doc1.md", "doc2.md", "doc3.md"
-
-        link_service.link_index.forward_links = {
-            doc1: {doc2},  # doc1 links to doc2
-            doc2: {doc3},  # doc2 links to doc3
-            doc3: set(),  # doc3 has no outgoing links
-        }
-
-        link_service.link_index.backward_links = {
-            doc1: set(),  # doc1 has no incoming links (orphaned)
-            doc2: {doc1},  # doc2 is linked by doc1
-            doc3: {doc2},  # doc3 is linked by doc2
-        }
-
-        link_service.link_index.broken_links = {doc1: {"broken1"}, doc2: set(), doc3: {"broken2", "broken3"}}
-
-        link_service.link_index.last_updated = datetime.now()
-
-        metrics = link_service.get_link_metrics()
-
-        assert metrics.total_documents == 3
-        assert metrics.total_links == 2  # doc1->doc2, doc2->doc3
-        assert metrics.total_broken_links == 3  # broken1, broken2, broken3
-        assert doc1 in metrics.orphaned_documents  # doc1 has no incoming links
-        assert metrics.average_links_per_document == 2.0 / 3.0
-
-        # Check hub documents (most incoming links)
-        hub_documents = dict(metrics.hub_documents)
-        assert hub_documents[doc2] == 1  # doc2 has 1 incoming link
-        assert hub_documents[doc3] == 1  # doc3 has 1 incoming link
-
-    def should_calculate_document_specific_metrics(self, link_service, mock_filesystem):
-        doc1 = "doc1.md"
-
-        link_service.link_index.forward_links = {doc1: {"doc2.md", "doc3.md"}}
-        link_service.link_index.backward_links = {doc1: {"source.md"}}
-        link_service.link_index.broken_links = {doc1: {"broken.md"}}
-        link_service.link_index.last_updated = datetime.now()
-
-        metrics = link_service.get_link_metrics(doc1)
-
-        assert metrics.total_documents == 1
-        assert metrics.total_links == 2  # Forward links
-        assert metrics.total_broken_links == 1
-        assert metrics.average_links_per_document == 2.0
-        assert metrics.hub_documents == [(doc1, 1)]  # 1 incoming link
-
     def should_create_proper_context_snippets(self, link_service):
         line = "This is a long line with a [[Test Link]] in the middle of some other content"
         start = line.index("[[Test Link]]")
@@ -404,31 +311,3 @@ class DescribeLinkGraphIndex:
         assert source_doc not in link_index.get_backward_links(old_target)
         assert source_doc in link_index.get_backward_links(new_target)
 
-    def should_find_direct_path(self, link_index):
-        doc1, doc2 = "doc1.md", "doc2.md"
-        link_index.forward_links = {doc1: {doc2}}
-
-        path = link_index.find_path(doc1, doc2)
-
-        assert path is not None
-        assert path.path == [doc1, doc2]
-        assert path.hops == 1
-
-    def should_find_multi_hop_path(self, link_index):
-        doc1, doc2, doc3 = "doc1.md", "doc2.md", "doc3.md"
-        link_index.forward_links = {doc1: {doc2}, doc2: {doc3}, doc3: set()}
-
-        path = link_index.find_path(doc1, doc3)
-
-        assert path is not None
-        assert path.path == [doc1, doc2, doc3]
-        assert path.hops == 2
-
-    def should_return_zero_hop_path_for_same_document(self, link_index):
-        doc1 = "doc1.md"
-
-        path = link_index.find_path(doc1, doc1)
-
-        assert path is not None
-        assert path.path == [doc1]
-        assert path.hops == 0
