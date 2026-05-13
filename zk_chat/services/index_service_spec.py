@@ -10,7 +10,7 @@ from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
 from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
-from zk_chat.services.index_service import IndexService, IndexStats
+from zk_chat.services.index_service import IndexService
 from zk_chat.vector_database import VectorDatabase
 
 
@@ -298,30 +298,6 @@ class DescribeIndexServiceQueries:
         results = service.query_documents("test query", max_distance=None)
 
         assert len(results) == 1
-
-
-class DescribeIndexServiceStats:
-    """Tests for index statistics in IndexService."""
-
-    def should_return_index_stats(self, index_service, mock_filesystem):
-        mock_filesystem.iterate_markdown_files.return_value = ["doc1.md", "doc2.md", "doc3.md"]
-
-        stats = index_service.get_index_stats()
-
-        assert isinstance(stats, IndexStats)
-        assert stats.total_documents == 3
-        assert stats.last_indexed is None
-
-    def should_update_last_indexed_after_reindex(self, index_service, mock_filesystem):
-        mock_filesystem.iterate_markdown_files.return_value = []
-
-        before = datetime.now()
-        index_service.reindex_all()
-        after = datetime.now()
-
-        stats = index_service.get_index_stats()
-        assert stats.last_indexed is not None
-        assert before <= stats.last_indexed <= after
 
 
 class DescribeIndexServiceDocumentSplitting:

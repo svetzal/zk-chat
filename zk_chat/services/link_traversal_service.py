@@ -48,28 +48,6 @@ class ForwardLinkResult(BaseModel):
     context_snippet: str
 
 
-class LinkPath(BaseModel):
-    """A path through the link graph between two documents."""
-
-    from_document: str
-    to_document: str
-    path: list[str]
-    hops: int
-
-
-class LinkMetrics(BaseModel):
-    """Metrics about the link graph structure."""
-
-    total_documents: int
-    total_links: int
-    total_resolved_links: int
-    total_broken_links: int
-    orphaned_documents: list[str]  # documents with no incoming links
-    hub_documents: list[tuple[str, int]]  # documents with most incoming links
-    average_links_per_document: float
-    link_density: float  # ratio of actual links to possible links
-
-
 class LinkGraphIndex:
     """In-memory index of the wikilink graph structure for fast traversal."""
 
@@ -116,38 +94,6 @@ class LinkGraphIndex:
     def get_broken_links(self, document: str) -> set[str]:
         """Get broken wikilinks from this document."""
         return self.broken_links.get(document, set())
-
-    def find_path(self, from_doc: str, to_doc: str, max_hops: int = 3) -> LinkPath | None:
-        """Find shortest path between documents using BFS."""
-        if from_doc == to_doc:
-            return LinkPath(from_document=from_doc, to_document=to_doc, path=[from_doc], hops=0)
-
-        visited = {from_doc}
-        queue = [(from_doc, [from_doc])]
-
-        for _ in range(max_hops):
-            if not queue:
-                break
-
-            current_level = []
-            while queue:
-                current_doc, path = queue.pop(0)
-
-                for next_doc in self.get_forward_links(current_doc):
-                    if next_doc == to_doc:
-                        final_path = path + [next_doc]
-                        return LinkPath(
-                            from_document=from_doc, to_document=to_doc, path=final_path, hops=len(final_path) - 1
-                        )
-
-                    if next_doc not in visited:
-                        visited.add(next_doc)
-                        current_level.append((next_doc, path + [next_doc]))
-
-            queue = current_level
-
-        return None  # No path found within max_hops
-
 
 class LinkTraversalService:
     """
@@ -343,79 +289,6 @@ class LinkTraversalService:
             "Link graph index built",
             documents=len(self.link_index.forward_links),
             total_links=sum(len(links) for links in self.link_index.forward_links.values()),
-        )
-
-    def find_link_path(self, from_document: str, to_document: str, max_hops: int = 3) -> LinkPath | None:
-        """
-        Find a path between two documents through wikilinks.
-
-        Args:
-            from_document: Starting document
-            to_document: Target document
-            max_hops: Maximum number of hops to search
-
-        Returns:
-            LinkPath object if a path exists, None otherwise
-        """
-        if not self.link_index.last_updated:
-            self.build_link_index()
-
-        return self.link_index.find_path(from_document, to_document, max_hops)
-
-    def get_link_metrics(self, document: str | None = None) -> LinkMetrics:
-        """
-        Get metrics about the link graph structure.
-
-        Args:
-            document: Optional specific document to analyze, or None for global metrics
-
-        Returns:
-            LinkMetrics object with graph statistics
-        """
-        if not self.link_index.last_updated:
-            self.build_link_index()
-
-        if document:
-            forward_links = len(self.link_index.get_forward_links(document))
-            backward_links = len(self.link_index.get_backward_links(document))
-            broken_links = len(self.link_index.get_broken_links(document))
-
-            return LinkMetrics(
-                total_documents=1,
-                total_links=forward_links,
-                total_resolved_links=forward_links,
-                total_broken_links=broken_links,
-                orphaned_documents=[document] if backward_links == 0 else [],
-                hub_documents=[(document, backward_links)],
-                average_links_per_document=float(forward_links),
-                link_density=0.0,  # Not meaningful for single document
-            )
-
-        total_documents = len(self.link_index.forward_links)
-        total_links = sum(len(links) for links in self.link_index.forward_links.values())
-        total_broken = sum(len(broken) for broken in self.link_index.broken_links.values())
-
-        orphaned = []
-        for doc in self.link_index.forward_links:
-            if len(self.link_index.get_backward_links(doc)) == 0:
-                orphaned.append(doc)
-
-        hub_scores = [(doc, len(self.link_index.get_backward_links(doc))) for doc in self.link_index.forward_links]
-        hub_documents = sorted(hub_scores, key=lambda x: x[1], reverse=True)[:10]
-
-        avg_links = total_links / total_documents if total_documents > 0 else 0.0
-        max_possible_links = total_documents * (total_documents - 1)
-        link_density = total_links / max_possible_links if max_possible_links > 0 else 0.0
-
-        return LinkMetrics(
-            total_documents=total_documents,
-            total_links=total_links,
-            total_resolved_links=total_links,  # Only resolved links are in the index
-            total_broken_links=total_broken,
-            orphaned_documents=orphaned,
-            hub_documents=hub_documents,
-            average_links_per_document=avg_links,
-            link_density=link_density,
         )
 
     def _create_context_snippet(self, line: str, start: int, end: int, context_chars: int = 50) -> str:

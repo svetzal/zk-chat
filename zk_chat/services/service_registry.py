@@ -98,11 +98,3 @@ class ServiceRegistry:
         """
         return service_type in self._services
 
-    def list_available_services(self) -> list[ServiceType]:
-        """
-        Get a list of all available services.
-
-        Returns:
-            List of available service types
-        """
-        return list(self._services.keys())

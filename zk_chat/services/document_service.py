@@ -7,7 +7,6 @@ operations to the MarkdownFilesystemGateway.
 """
 
 from collections.abc import Iterator
-from typing import Any
 
 import structlog
 import yaml
@@ -16,51 +15,6 @@ from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGatew
 from zk_chat.models import ZkDocument
 
 logger = structlog.get_logger()
-
-
-def merge_metadata(original_metadata: dict[str, Any], new_metadata: dict[str, Any]) -> dict[str, Any]:
-    """
-    Merge two metadata dictionaries with special handling for nested structures and arrays.
-
-    Parameters
-    ----------
-    original_metadata : dict[str, Any]
-        The original metadata dictionary
-    new_metadata : dict[str, Any]
-        The new metadata to merge
-
-    Returns
-    -------
-    dict[str, Any]
-        The merged metadata
-    """
-    result = original_metadata.copy()
-
-    for key, new_value in new_metadata.items():
-        if key not in result:
-            result[key] = new_value
-            continue
-
-        original_value = result[key]
-
-        if original_value is None:
-            result[key] = new_value
-            continue
-
-        if new_value is None:
-            continue
-
-        if isinstance(original_value, list) and isinstance(new_value, list):
-            result[key] = list(set(original_value + new_value))
-            continue
-
-        if isinstance(original_value, dict) and isinstance(new_value, dict):
-            result[key] = merge_metadata(original_value, new_value)
-            continue
-
-        result[key] = new_value
-
-    return result
 
 
 class DocumentService:
@@ -197,42 +151,6 @@ class DocumentService:
 
         self.filesystem_gateway.rename_file(source_path, target_path)
 
-    def append_to_document(self, document: ZkDocument) -> None:
-        """
-        Append content to an existing document and merge metadata.
-
-        Parameters
-        ----------
-        document : ZkDocument
-            The document containing content to append and metadata to merge
-
-        Raises
-        ------
-        FileNotFoundError
-            If the document does not exist
-        """
-        original = self.read_document(document.relative_path)
-        merged_content = original.content + f"\n\n---\n\n{document.content}"
-        merged_metadata = merge_metadata(original.metadata, document.metadata)
-        merged_document = ZkDocument(
-            relative_path=original.relative_path, metadata=merged_metadata, content=merged_content
-        )
-        self.write_document(merged_document)
-
-    def create_or_append_document(self, document: ZkDocument) -> None:
-        """
-        Create a new document or append to an existing one.
-
-        Parameters
-        ----------
-        document : ZkDocument
-            The document to create or append to
-        """
-        if self.document_exists(document.relative_path):
-            self.append_to_document(document)
-        else:
-            self.write_document(document)
-
     def list_documents(self) -> list[str]:
         """
         List all document paths in the Zettelkasten.
@@ -272,45 +190,3 @@ class DocumentService:
         """
         return self.filesystem_gateway.path_exists(relative_path)
 
-    def get_document_metadata(self, relative_path: str) -> dict[str, Any]:
-        """
-        Get the metadata for a document without reading the full content.
-
-        Parameters
-        ----------
-        relative_path : str
-            The relative path to the document
-
-        Returns
-        -------
-        dict[str, Any]
-            The document's metadata
-
-        Raises
-        ------
-        FileNotFoundError
-            If the document does not exist
-        """
-        metadata, _ = self.filesystem_gateway.read_markdown(relative_path)
-        return metadata
-
-    def update_document_metadata(self, relative_path: str, metadata: dict[str, Any]) -> None:
-        """
-        Update the metadata for a document, merging with existing metadata.
-
-        Parameters
-        ----------
-        relative_path : str
-            The relative path to the document
-        metadata : dict[str, Any]
-            The metadata to merge with existing metadata
-
-        Raises
-        ------
-        FileNotFoundError
-            If the document does not exist
-        """
-        document = self.read_document(relative_path)
-        merged_metadata = merge_metadata(document.metadata, metadata)
-        updated_document = ZkDocument(relative_path=relative_path, metadata=merged_metadata, content=document.content)
-        self.write_document(updated_document)
