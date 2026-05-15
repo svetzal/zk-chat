@@ -1,10 +1,3 @@
-"""
-MCP Tool Wrapper that adapts MCP server tools to mojentic LLMTool interface.
-
-This module provides a wrapper that allows external MCP server tools to be used
-as mojentic-compatible tools within zk-chat.
-"""
-
 import asyncio
 from typing import Any, Self
 
@@ -22,23 +15,7 @@ MCP_TIMEOUT_SECONDS = 10
 
 
 def coerce_types(arguments: dict[str, Any], input_schema: dict[str, Any]) -> dict[str, Any]:
-    """
-    Coerce argument types to match the input schema.
-
-    LLMs sometimes return strings for numeric or boolean fields, so we need to convert them.
-
-    Parameters
-    ----------
-    arguments : Dict[str, Any]
-        Raw arguments from the LLM
-    input_schema : Dict[str, Any]
-        The tool's input schema (from the MCP tool descriptor's ``inputSchema`` field)
-
-    Returns
-    -------
-    Dict[str, Any]
-        Arguments with types coerced to match schema
-    """
+    """LLMs sometimes return strings for numeric/boolean fields; coerces to match the schema."""
     properties = input_schema.get("properties", {})
 
     coerced = {}
@@ -83,22 +60,6 @@ class MCPToolWrapper(LLMTool):
         tool_descriptor: dict[str, Any],
         loop: asyncio.AbstractEventLoop,
     ) -> None:
-        """
-        Initialize the MCP tool wrapper.
-
-        Parameters
-        ----------
-        client : Client
-            Shared MCP client connection (managed externally)
-        server_name : str
-            Name of the MCP server
-        tool_name : str
-            Name of the tool on the MCP server
-        tool_descriptor : Dict[str, Any]
-            Tool descriptor from the MCP server (mcp.types.Tool)
-        loop : asyncio.AbstractEventLoop
-            Event loop where the client is connected
-        """
         self._client = client
         self.server_name = server_name
         self.tool_name = tool_name
@@ -106,38 +67,10 @@ class MCPToolWrapper(LLMTool):
         self._loop = loop
 
     def _coerce_types(self, arguments: dict[str, Any]) -> dict[str, Any]:
-        """
-        Coerce argument types to match the input schema.
-
-        Delegates to the module-level :func:`coerce_types` function.
-
-        Parameters
-        ----------
-        arguments : Dict[str, Any]
-            Raw arguments from the LLM
-
-        Returns
-        -------
-        Dict[str, Any]
-            Arguments with types coerced to match schema
-        """
         input_schema = self.tool_descriptor.get("inputSchema", {})
         return coerce_types(arguments, input_schema)
 
     def run(self, **kwargs) -> str:
-        """
-        Execute the MCP tool with the given parameters.
-
-        Parameters
-        ----------
-        **kwargs
-            Tool parameters as keyword arguments
-
-        Returns
-        -------
-        str
-            Tool execution result as a string
-        """
         logger.info("Executing MCP tool", server_name=self.server_name, tool_name=self.tool_name, parameters=kwargs)
 
         try:
@@ -161,32 +94,11 @@ class MCPToolWrapper(LLMTool):
             return error_msg
 
     async def _async_run(self, arguments: dict[str, Any]) -> Any:
-        """
-        Async implementation of tool execution.
-
-        Parameters
-        ----------
-        arguments : Dict[str, Any]
-            Tool parameters
-
-        Returns
-        -------
-        Any
-            Tool execution result
-        """
         result = await self._client.call_tool(self.tool_name, arguments)
         return result
 
     @property
     def descriptor(self) -> dict[str, Any]:
-        """
-        Get the tool descriptor in mojentic format.
-
-        Returns
-        -------
-        Dict[str, Any]
-            Tool descriptor in mojentic format
-        """
         input_schema = self.tool_descriptor.get("inputSchema", {})
 
         descriptor = {
@@ -214,7 +126,6 @@ class MCPClientManager:
     """
 
     def __init__(self, global_config_gateway: GlobalConfigGateway) -> None:
-        """Initialize the MCP client manager."""
         self._global_config_gateway = global_config_gateway
         self._clients: dict[str, Client] = {}
         self._tools: list[MCPToolWrapper] = []
@@ -223,25 +134,20 @@ class MCPClientManager:
         self._loop_thread = None
 
     def __enter__(self) -> Self:
-        """Context manager entry - initialize all clients synchronously."""
         self.initialize_sync()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        """Context manager exit - cleanup all clients synchronously."""
         self.cleanup_sync()
 
     async def __aenter__(self):
-        """Async context manager entry - initialize all clients."""
         await self.initialize()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Async context manager exit - cleanup all clients."""
         await self.cleanup()
 
     def _start_event_loop(self) -> None:
-        """Start a background event loop in a separate thread."""
         import threading
 
         def run_loop(loop: asyncio.AbstractEventLoop) -> None:
@@ -255,7 +161,6 @@ class MCPClientManager:
         logger.info("Started background event loop for MCP clients")
 
     def _stop_event_loop(self) -> None:
-        """Stop the background event loop."""
         if self._loop and self._loop.is_running():
             self._loop.call_soon_threadsafe(self._loop.stop)
             if self._loop_thread:
@@ -415,14 +320,6 @@ class MCPClientManager:
         self._initialized = False
 
     def get_tools(self) -> list[LLMTool]:
-        """
-        Get all discovered tools from connected MCP servers.
-
-        Returns
-        -------
-        List[LLMTool]
-            List of all wrapped MCP tools
-        """
         return self._tools.copy()
 
 

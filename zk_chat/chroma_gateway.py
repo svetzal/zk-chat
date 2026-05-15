@@ -18,12 +18,6 @@ class ChromaGateway:
     """
 
     def __init__(self, gateway: ModelGateway, db_dir: str) -> None:
-        """
-        Initialize the ChromaGateway.
-
-        Args:
-            db_dir: The directory where the Chroma database is stored
-        """
         self.chroma_client = chromadb.PersistentClient(
             path=os.path.join(db_dir, gateway.value),
             settings=Settings(allow_reset=True),
@@ -32,15 +26,6 @@ class ChromaGateway:
         self._collections: dict[ZkCollectionName, Collection] = {}
 
     def get_collection(self, collection_name: ZkCollectionName) -> Collection:
-        """
-        Get or create a collection with the specified name.
-
-        Args:
-            collection_name: The name of the collection to get or create
-
-        Returns:
-            The requested collection
-        """
         if collection_name not in self._collections:
             self._collections[collection_name] = self.chroma_client.get_or_create_collection(
                 name=collection_name.value,
@@ -56,16 +41,6 @@ class ChromaGateway:
         embeddings: list[list[float]],
         collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN,
     ) -> None:
-        """
-        Add items to a collection.
-
-        Args:
-            ids: The IDs of the items to add
-            documents: The documents to add
-            metadatas: The metadata for each document
-            embeddings: The embeddings for each document
-            collection_name: The name of the collection to add items to
-        """
         collection = self.get_collection(collection_name)
         collection.upsert(
             ids=ids,
@@ -80,24 +55,10 @@ class ChromaGateway:
         ids: list[str] | None = None,
         where: dict | None = None,
     ) -> None:
-        """
-        Delete items from a collection by IDs or metadata filter.
-
-        Args:
-            collection_name: The name of the collection to delete from
-            ids: The IDs of the items to delete (optional)
-            where: A metadata filter for items to delete (optional)
-        """
         collection = self.get_collection(collection_name)
         collection.delete(ids=ids, where=where)
 
     def reset_indexes(self, collection_name: ZkCollectionName | None = None) -> None:
-        """
-        Reset the indexes for a collection or all collections.
-
-        Args:
-            collection_name: The name of the collection to reset (resets all if None)
-        """
         if collection_name:
             try:
                 self.chroma_client.delete_collection(collection_name.value)
@@ -116,16 +77,5 @@ class ChromaGateway:
         n_results: int,
         collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN,
     ) -> dict:
-        """
-        Query a collection.
-
-        Args:
-            query_embeddings: The embeddings to query with
-            n_results: The number of results to return
-            collection_name: The name of the collection to query
-
-        Returns:
-            The query results
-        """
         collection = self.get_collection(collection_name)
         return collection.query(query_embeddings=query_embeddings, n_results=n_results)

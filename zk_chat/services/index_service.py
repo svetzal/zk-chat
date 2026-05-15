@@ -1,10 +1,3 @@
-"""
-Index Service for Zettelkasten
-
-This service provides functionality for vector indexing and semantic search in a Zettelkasten.
-It handles document indexing, excerpt creation, and query operations using vector databases.
-"""
-
 import hashlib
 from collections.abc import Callable
 from datetime import datetime
@@ -30,17 +23,7 @@ ProgressCallback = Callable[[str, int, int], None]
 
 
 class IndexService:
-    """
-    Service for managing vector indexing and semantic search in a Zettelkasten.
-
-    Handles operations including:
-    - Full and incremental reindexing
-    - Document and excerpt indexing
-    - Semantic search queries
-    - Index statistics
-
-    This service does not handle document CRUD - that is the responsibility of DocumentService.
-    """
+    """Handles vector indexing and semantic search; does not handle document CRUD."""
 
     def __init__(
         self,
@@ -49,20 +32,6 @@ class IndexService:
         documents_db: VectorDatabase,
         filesystem_gateway: MarkdownFilesystemGateway,
     ) -> None:
-        """
-        Initialize the IndexService with required dependencies.
-
-        Parameters
-        ----------
-        tokenizer_gateway : TokenizerGateway
-            Gateway for tokenization operations
-        excerpts_db : VectorDatabase
-            Vector database for document excerpts
-        documents_db : VectorDatabase
-            Vector database for whole documents
-        filesystem_gateway : MarkdownFilesystemGateway
-            Gateway for filesystem operations
-        """
         self.tokenizer_gateway = tokenizer_gateway
         self.excerpts_db = excerpts_db
         self.documents_db = documents_db
@@ -234,12 +203,10 @@ class IndexService:
             self._split_document(document, excerpt_size, excerpt_overlap)
 
     def _read_document(self, relative_path: str) -> ZkDocument:
-        """Read a document from the filesystem."""
         metadata, content = self.filesystem_gateway.read_markdown(relative_path)
         return ZkDocument(relative_path=relative_path, metadata=metadata, content=content)
 
     def _split_document(self, document: ZkDocument, excerpt_size: int = 200, excerpt_overlap: int = 100) -> None:
-        """Split a document into excerpts and index them."""
         logger.info("Processing", document_title=document.title)
         tokens = self.tokenizer_gateway.encode(document.content)
         logger.info("Content length", text=len(document.content), tokens=len(tokens))
@@ -254,7 +221,6 @@ class IndexService:
             self._add_text_excerpts_to_index(document, excerpts)
 
     def _add_text_excerpts_to_index(self, document: ZkDocument, text_excerpts: list[str]) -> None:
-        """Add text excerpts to the excerpts index."""
         docs_for_storage = [
             self._create_vector_document_for_storage(excerpt, document, ordinal)
             for ordinal, excerpt in enumerate(text_excerpts)
@@ -281,7 +247,6 @@ class IndexService:
         )
 
     def _add_document_to_index(self, document: ZkDocument) -> None:
-        """Add the whole document to the document index."""
         logger.info("Indexing whole document", document_title=document.title)
         doc_for_storage = VectorDocumentForStorage(
             id=document.id,
@@ -294,15 +259,12 @@ class IndexService:
         self.documents_db.add_documents([doc_for_storage])
 
     def _decode_tokens_to_text(self, token_chunks: list[list[int]]) -> list[str]:
-        """Decode token chunks back to text."""
         return [self.tokenizer_gateway.decode(chunk) for chunk in token_chunks]
 
     def _get_file_mtime(self, relative_path: str) -> datetime:
-        """Get the modification time of a file."""
         return self.filesystem_gateway.get_modified_time(relative_path)
 
     def _needs_reindex(self, relative_path: str, since: datetime) -> bool:
-        """Check if a file needs reindexing based on modification time."""
         return self._get_file_mtime(relative_path) > since
 
     def _create_excerpt_query_result(self, result: QueryResult) -> ZkQueryExcerptResult | None:

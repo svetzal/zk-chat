@@ -1,10 +1,3 @@
-"""
-Service provider for plugins to easily access services they need.
-
-This provides a clean interface for plugins to request services without
-needing to manage service discovery or handle service unavailability.
-"""
-
 from typing import TYPE_CHECKING, Any, TypeVar
 
 import structlog
@@ -44,148 +37,93 @@ class ServiceProvider:
     """
 
     def __init__(self, registry: ServiceRegistry) -> None:
-        """
-        Initialize the service provider with a service registry.
-
-        Args:
-            registry: The service registry to use for service lookup
-        """
         self._registry = registry
         self._logger = logger
 
     def get_filesystem_gateway(self) -> "MarkdownFilesystemGateway | None":
-        """Get the filesystem gateway service."""
         from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 
         return self._registry.get_service(ServiceType.FILESYSTEM_GATEWAY, MarkdownFilesystemGateway)
 
     def get_llm_broker(self) -> "LLMBroker | None":
-        """Get the LLM broker service."""
         from mojentic.llm import LLMBroker
 
         return self._registry.get_service(ServiceType.LLM_BROKER, LLMBroker)
 
     def get_smart_memory(self) -> "SmartMemory | None":
-        """Get the Smart Memory service."""
         from zk_chat.memory.smart_memory import SmartMemory
 
         return self._registry.get_service(ServiceType.SMART_MEMORY, SmartMemory)
 
     def get_chroma_gateway(self) -> "ChromaGateway | None":
-        """Get the ChromaDB gateway service."""
         from zk_chat.chroma_gateway import ChromaGateway
 
         return self._registry.get_service(ServiceType.CHROMA_GATEWAY, ChromaGateway)
 
     def get_model_gateway(self) -> Any | None:
-        """Get the underlying model gateway (Ollama/OpenAI)."""
         return self._registry.get_service(ServiceType.MODEL_GATEWAY)
 
     def get_tokenizer_gateway(self) -> "TokenizerGateway | None":
-        """Get the tokenizer gateway service."""
         from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
         return self._registry.get_service(ServiceType.TOKENIZER_GATEWAY, TokenizerGateway)
 
     def get_git_gateway(self) -> "GitGateway | None":
-        """Get the Git gateway service (may not be available)."""
         from zk_chat.tools.git_gateway import GitGateway
 
         return self._registry.get_service(ServiceType.GIT_GATEWAY, GitGateway)
 
     def get_config(self) -> "Config | None":
-        """Get the application configuration."""
         from zk_chat.config import Config
 
         return self._registry.get_service(ServiceType.CONFIG, Config)
 
     def get_config_gateway(self) -> "ConfigGateway | None":
-        """Get the config gateway for vault config persistence."""
         from zk_chat.config_gateway import ConfigGateway
 
         return self._registry.get_service(ServiceType.CONFIG_GATEWAY, ConfigGateway)
 
     def get_global_config_gateway(self) -> "GlobalConfigGateway | None":
-        """Get the global config gateway for global config persistence."""
         from zk_chat.global_config_gateway import GlobalConfigGateway
 
         return self._registry.get_service(ServiceType.GLOBAL_CONFIG_GATEWAY, GlobalConfigGateway)
 
     def get_document_service(self) -> "DocumentService | None":
-        """Get the DocumentService for document CRUD operations."""
         from zk_chat.services.document_service import DocumentService
 
         return self._registry.get_service(ServiceType.DOCUMENT_SERVICE, DocumentService)
 
     def get_index_service(self) -> "IndexService | None":
-        """Get the IndexService for vector indexing and search operations."""
         from zk_chat.services.index_service import IndexService
 
         return self._registry.get_service(ServiceType.INDEX_SERVICE, IndexService)
 
     def get_link_traversal_service(self) -> "LinkTraversalService | None":
-        """Get the LinkTraversalService for wikilink analysis and graph traversal."""
         from zk_chat.services.link_traversal_service import LinkTraversalService
 
         return self._registry.get_service(ServiceType.LINK_TRAVERSAL_SERVICE, LinkTraversalService)
 
     def get_console_service(self) -> "ConsoleGateway | None":
-        """Get the console service for user-facing output."""
         from zk_chat.console_service import ConsoleGateway
 
         return self._registry.get_service(ServiceType.CONSOLE_SERVICE, ConsoleGateway)
 
     def get_mcp_service(self) -> "MCPService | None":
-        """Get the MCP service for server management."""
         return self._registry.get_service(ServiceType.MCP_SERVICE)
 
     def get_vault_status_service(self) -> "VaultStatusService | None":
-        """Get the VaultStatusService for vault filesystem statistics."""
         return self._registry.get_service(ServiceType.VAULT_STATUS_SERVICE)
 
     def get_diagnostic_service(self) -> "DiagnosticService | None":
-        """Get the DiagnosticService for index diagnostic data."""
         return self._registry.get_service(ServiceType.DIAGNOSTIC_SERVICE)
 
     def get_service(self, service_type: ServiceType, expected_type: type[T] | None = None) -> T | None:
-        """
-        Generic method to get a service by type.
-
-        Args:
-            service_type: The type of service to retrieve
-            expected_type: Optional type hint for better typing support
-
-        Returns:
-            The service instance if available, None otherwise
-        """
         return self._registry.get_service(service_type, expected_type)
 
     def has_service(self, service_type: ServiceType) -> bool:
-        """
-        Check if a service is available.
-
-        Args:
-            service_type: The type of service to check
-
-        Returns:
-            True if the service is available, False otherwise
-        """
         return self._registry.has_service(service_type)
 
     def require_service(self, service_type: ServiceType, expected_type: type[T] | None = None) -> T:
-        """
-        Get a required service and raise an exception if not available.
-
-        Args:
-            service_type: The type of service to retrieve
-            expected_type: Optional type hint for better typing support
-
-        Returns:
-            The service instance
-
-        Raises:
-            RuntimeError: If the required service is not available
-        """
         service = self._registry.get_service(service_type, expected_type)
         if service is None:
             raise RuntimeError(f"Required service {service_type.value} is not available")

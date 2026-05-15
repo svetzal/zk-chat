@@ -20,7 +20,6 @@ class VaultStatusService:
         self._filesystem_gateway = filesystem_gateway
 
     def count_markdown_files(self) -> int:
-        """Count the number of markdown files in the vault."""
         return sum(1 for _ in self._filesystem_gateway.iterate_markdown_files())
 
     def get_db_info(self, vault_path: str) -> DbInfo | None:

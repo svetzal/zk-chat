@@ -77,23 +77,6 @@ def validate_gateway_selection(
     current_gateway: ModelGateway,
     openai_key_present: bool,
 ) -> GatewayValidationResult:
-    """
-    Validate a requested gateway selection against current state.
-
-    Parameters
-    ----------
-    requested : str | None
-        The requested gateway name (e.g. "ollama", "openai"), or None/empty to keep current.
-    current_gateway : ModelGateway
-        The currently configured gateway.
-    openai_key_present : bool
-        Whether the OPENAI_API_KEY environment variable is set.
-
-    Returns
-    -------
-    GatewayValidationResult
-        Result containing the resolved gateway, whether it changed, and any error.
-    """
     if not requested:
         return GatewayValidationResult(gateway=current_gateway, changed=False)
 
@@ -122,25 +105,6 @@ def resolve_vault_from_args(
     bookmarks: list[str],
     last_opened: str | None,
 ) -> VaultResolutionResult:
-    """
-    Resolve the vault path from CLI arguments or bookmark history.
-
-    This function contains only the pure decision logic — no filesystem checks.
-
-    Parameters
-    ----------
-    arg_vault : str | None
-        Vault path provided via CLI argument (already resolved to absolute path by caller).
-    bookmarks : list[str]
-        List of known bookmarked vault paths.
-    last_opened : str | None
-        The last-opened bookmarked vault path, if any.
-
-    Returns
-    -------
-    VaultResolutionResult
-        Result with the resolved path and how it was determined.
-    """
     if arg_vault:
         return VaultResolutionResult(vault_path=arg_vault, source="argument")
 
@@ -158,21 +122,6 @@ def determine_model_action(
     model_arg: str | None,
     available_models: list[str],
 ) -> ModelActionResult:
-    """
-    Determine what action to take for model selection.
-
-    Parameters
-    ----------
-    model_arg : str | None
-        The model name from CLI args. None or "choose" triggers interactive selection.
-    available_models : list[str]
-        Models available from the current gateway.
-
-    Returns
-    -------
-    ModelActionResult
-        Result describing whether to use a specific model or prompt interactively.
-    """
     if model_arg is None or model_arg == "choose":
         return ModelActionResult(model_name=None, needs_interactive_selection=True)
 
@@ -190,21 +139,6 @@ def resolve_visual_model_selection(
     selected_text: str,
     none_sentinel: str = "None - Disable Visual Analysis",
 ) -> str | None:
-    """
-    Resolve the visual model selection from a combo-box string.
-
-    Parameters
-    ----------
-    selected_text : str
-        The text currently selected in the visual model combo box.
-    none_sentinel : str
-        The sentinel string that represents "no visual model".
-
-    Returns
-    -------
-    str | None
-        None if the sentinel was selected, otherwise the selected model name.
-    """
     if selected_text == none_sentinel:
         return None
     return selected_text
@@ -216,29 +150,7 @@ def determine_init_config_action(
     visual_model_arg: str | None,
     openai_key_present: bool,
 ) -> InitConfigAction:
-    """
-    Determine all decisions needed to initialize a new vault configuration.
-
-    Encodes the branching logic for gateway selection, chat model selection,
-    and visual model selection without performing any I/O.
-
-    Parameters
-    ----------
-    gateway_arg : str | None
-        The requested gateway name ("ollama", "openai"), or None to default to OLLAMA.
-    model_arg : str | None
-        The model name from CLI args. None or "choose" triggers interactive selection.
-    visual_model_arg : str | None
-        The visual model arg from CLI. "choose" triggers selection, specific name uses it,
-        None applies default rules.
-    openai_key_present : bool
-        Whether the OPENAI_API_KEY environment variable is set.
-
-    Returns
-    -------
-    InitConfigAction
-        Fully describes what the shell function should do for gateway, chat model, and visual model.
-    """
+    """Pure function — encodes all branching logic for gateway/chat/visual model without I/O."""
     gateway = ModelGateway(gateway_arg) if gateway_arg else ModelGateway.OLLAMA
     if gateway == ModelGateway.OPENAI and not openai_key_present:
         return InitConfigAction(
@@ -284,23 +196,6 @@ def determine_model_update_action(
     visual_model_arg: str | None,
     has_existing_visual_model: bool,
 ) -> ModelUpdateAction:
-    """
-    Determine what model updates to perform when a vault config already exists.
-
-    Parameters
-    ----------
-    model_arg : str | None
-        The model arg from CLI. None means no update; "choose" means interactive selection.
-    visual_model_arg : str | None
-        The visual model arg from CLI. None means no update; "choose" means interactive selection.
-    has_existing_visual_model : bool
-        Whether the config already has a visual model configured.
-
-    Returns
-    -------
-    ModelUpdateAction
-        Describes whether to update chat model, visual model, and whether to prompt.
-    """
     update_chat_model = model_arg is not None
     chat_model_name = None if model_arg in (None, "choose") else model_arg
 

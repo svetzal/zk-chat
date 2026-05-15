@@ -22,33 +22,15 @@ ProgressCallback = Callable[[str, int, int], None]
 
 
 class ProgressTracker:
-    """
-    Progress tracker for CLI operations using Rich library.
-
-    Provides progress bars with file counts, processing rates, and current operation display.
-    """
+    """Progress tracker for CLI operations using Rich library."""
 
     def __init__(self, console: Console | None = None) -> None:
-        """Initialize progress tracker.
-
-        Args:
-            console: Optional Rich Console instance. Creates new one if None.
-        """
         self.console = console or Console()
         self._progress: Progress | None = None
         self._main_task: TaskID | None = None
         self._current_operation = ""
 
     def start_progress(self, description: str = "Processing", total: int | None = None) -> TaskID:
-        """Start a new progress tracking session.
-
-        Args:
-            description: Description for the main progress bar
-            total: Total number of items to process (None for indeterminate)
-
-        Returns:
-            TaskID for the main progress task
-        """
         if self._progress is not None:
             logger.warning("Progress already started, stopping previous session")
             self.stop_progress()
@@ -79,14 +61,6 @@ class ProgressTracker:
         description: str | None = None,
         current_file: str | None = None,
     ) -> None:
-        """Update progress bar.
-
-        Args:
-            advance: Number of items to advance (mutually exclusive with completed)
-            completed: Set absolute completed count (mutually exclusive with advance)
-            description: Optional new description for progress bar
-            current_file: Optional current file being processed
-        """
         if self._progress is None or self._main_task is None:
             logger.warning("Progress not started, cannot update")
             return
@@ -107,11 +81,6 @@ class ProgressTracker:
         self._progress.update(self._main_task, **update_kwargs)
 
     def set_total(self, total: int) -> None:
-        """Set or update the total number of items.
-
-        Args:
-            total: Total number of items to process
-        """
         if self._progress is None or self._main_task is None:
             logger.warning("Progress not started, cannot set total")
             return
@@ -120,7 +89,6 @@ class ProgressTracker:
         logger.debug("Updated progress total", total=total)
 
     def stop_progress(self) -> None:
-        """Stop the progress tracking session."""
         if self._progress is not None:
             self._progress.stop()
             self._progress = None
@@ -128,12 +96,6 @@ class ProgressTracker:
             logger.info("Stopped progress tracking")
 
     def create_callback(self) -> ProgressCallback:
-        """Create a progress callback function for use with other components.
-
-        Returns:
-            A callback function that can be passed to other methods
-        """
-
         def callback(current_file: str, processed: int, total: int) -> None:
             if processed == 1:  # First file, set total if not already set
                 self.set_total(total)
@@ -142,32 +104,22 @@ class ProgressTracker:
         return callback
 
     def __enter__(self) -> Self:
-        """Context manager entry."""
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        """Context manager exit - ensure progress is stopped."""
         self.stop_progress()
 
 
 class IndexingProgressTracker(ProgressTracker):
-    """Specialized progress tracker for document indexing operations."""
-
     def __init__(self, console: Console | None = None) -> None:
         super().__init__(console=console)
         self._last_processed_count = 0
 
     def start_scanning(self, description: str = "Scanning vault for markdown files...") -> None:
-        """Start the file scanning phase."""
         self.start_progress(description, total=None)
         self._last_processed_count = 0
 
     def finish_scanning(self, file_count: int) -> None:
-        """Transition from scanning to processing phase.
-
-        Args:
-            file_count: Total number of files found
-        """
         if self._progress and self._main_task is not None:
             self._progress.update(
                 self._main_task,
@@ -179,12 +131,6 @@ class IndexingProgressTracker(ProgressTracker):
             self._last_processed_count = 0
 
     def update_file_processing(self, filename: str, processed_count: int) -> None:
-        """Update progress for file processing.
-
-        Args:
-            filename: Current file being processed
-            processed_count: Number of files processed so far
-        """
         from zk_chat.formatting import calculate_advance, extract_display_name
 
         display_name = extract_display_name(filename)

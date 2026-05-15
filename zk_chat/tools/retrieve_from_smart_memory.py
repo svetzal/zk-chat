@@ -9,23 +9,6 @@ logger = structlog.get_logger()
 
 
 def format_memory_results(documents: list[list[str]], distances: list[list[float]]) -> str:
-    """Format ChromaDB memory retrieval results into a human-readable string.
-
-    Converts distance scores to relevance percentages (``1 - distance``) and
-    formats results as a numbered list.
-
-    Parameters
-    ----------
-    documents : list
-        Document lists from ChromaDB query results (list of lists).
-    distances : list
-        Distance lists from ChromaDB query results (list of lists).
-
-    Returns
-    -------
-    str
-        Formatted results string, or a message indicating no results were found.
-    """
     formatted_results = []
     for i, (doc, distance) in enumerate(zip(documents, distances, strict=False), 1):
         if len(distance) > 0:
