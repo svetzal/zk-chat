@@ -13,30 +13,9 @@ class GitGateway:
     """
 
     def __init__(self, base_path: str) -> None:
-        """
-        Initialize the GitGateway with the repository path.
-
-        Parameters
-        ----------
-        base_path : str
-            The path to the git repository
-        """
         self.base_path = base_path
 
     def _run_git_command(self, command: list) -> tuple[bool, str]:
-        """
-        Run a git command and handle errors.
-
-        Parameters
-        ----------
-        command : list
-            The git command to run as a list of strings
-
-        Returns
-        -------
-        Tuple[bool, str]
-            A tuple containing a success flag and the command output or error message
-        """
         try:
             result = subprocess.run(command, cwd=self.base_path, capture_output=True, text=True, check=True)
             return True, result.stdout
@@ -48,52 +27,15 @@ class GitGateway:
             return False, str(e)
 
     def add_all_files(self) -> tuple[bool, str]:
-        """
-        Add all files to git staging.
-
-        Returns
-        -------
-        Tuple[bool, str]
-            A tuple containing a success flag and the command output or error message
-        """
         return self._run_git_command(["git", "add", "--all"])
 
     def get_status(self) -> tuple[bool, str]:
-        """
-        Get the git status in porcelain format.
-
-        Returns
-        -------
-        Tuple[bool, str]
-            A tuple containing a success flag and the status output or error message
-        """
         return self._run_git_command(["git", "status", "--porcelain"])
 
     def get_diff(self) -> tuple[bool, str]:
-        """
-        Get the git diff against HEAD.
-
-        Returns
-        -------
-        Tuple[bool, str]
-            A tuple containing a success flag and the diff output or error message
-        """
         return self._run_git_command(["git", "diff", "HEAD"])
 
     def commit(self, message: str) -> tuple[bool, str]:
-        """
-        Commit changes with the provided message.
-
-        Parameters
-        ----------
-        message : str
-            The commit message
-
-        Returns
-        -------
-        Tuple[bool, str]
-            A tuple containing a success flag and the commit output or error message
-        """
         return self._run_git_command(["git", "commit", "-m", message])
 
     def setup(self) -> None:

@@ -1,10 +1,3 @@
-"""
-MCP Client functionality for connecting to and verifying MCP servers.
-
-This module provides functionality for zk-chat to act as a client
-to external MCP servers.
-"""
-
 import structlog
 
 from zk_chat.global_config import MCPServerConfig, MCPServerType
@@ -14,19 +7,6 @@ logger = structlog.get_logger()
 
 
 def verify_stdio_server(server_config: MCPServerConfig) -> bool:
-    """
-    Verify that a STDIO MCP server is available.
-
-    Parameters
-    ----------
-    server_config : MCPServerConfig
-        Configuration for the STDIO server
-
-    Returns
-    -------
-    bool
-        True if the server command is available, False otherwise
-    """
     if server_config.server_type != MCPServerType.STDIO:
         return False
 
@@ -53,19 +33,6 @@ def verify_stdio_server(server_config: MCPServerConfig) -> bool:
 
 
 def verify_http_server(server_config: MCPServerConfig) -> bool:
-    """
-    Verify that an HTTP MCP server is available.
-
-    Parameters
-    ----------
-    server_config : MCPServerConfig
-        Configuration for the HTTP server
-
-    Returns
-    -------
-    bool
-        True if the server is reachable, False otherwise
-    """
     if server_config.server_type != MCPServerType.HTTP:
         return False
 
@@ -95,19 +62,6 @@ def verify_http_server(server_config: MCPServerConfig) -> bool:
 
 
 def verify_mcp_server(server_config: MCPServerConfig) -> bool:
-    """
-    Verify that an MCP server is available.
-
-    Parameters
-    ----------
-    server_config : MCPServerConfig
-        Configuration for the MCP server
-
-    Returns
-    -------
-    bool
-        True if the server is available, False otherwise
-    """
     if server_config.server_type == MCPServerType.STDIO:
         return verify_stdio_server(server_config)
     elif server_config.server_type == MCPServerType.HTTP:
@@ -118,19 +72,7 @@ def verify_mcp_server(server_config: MCPServerConfig) -> bool:
 
 
 def verify_all_mcp_servers(global_config_gateway: GlobalConfigGateway) -> list[str]:
-    """
-    Verify all registered MCP servers and return list of unavailable servers.
-
-    Parameters
-    ----------
-    global_config_gateway : GlobalConfigGateway
-        Gateway to load global config from.
-
-    Returns
-    -------
-    List[str]
-        List of names of unavailable servers (empty if all are available)
-    """
+    """Returns list of unavailable server names (empty if all are reachable)."""
     global_config = global_config_gateway.load()
     servers = global_config.list_mcp_servers()
 

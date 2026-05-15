@@ -25,7 +25,6 @@ from zk_chat.vault_path import normalize_vault_path
 
 
 def get_version() -> str:
-    """Get the package version from metadata."""
     try:
         return version("zk-chat")
     except PackageNotFoundError:
@@ -35,7 +34,6 @@ def get_version() -> str:
 def display_banner(
     config, console_service: ConsoleGateway, title: str, unsafe=False, use_git=False, store_prompt=True
 ) -> None:
-    """Display a colorful banner with application information."""
     console = console_service.get_console()
 
     console.print(f"\n[banner.title]{title} v{get_version()}[/]")
@@ -74,7 +72,6 @@ def _handle_save(
     global_config_gateway: GlobalConfigGateway,
     console_gateway: ConsoleGateway,
 ) -> bool:
-    """Handle save option. Returns True if the command should exit early."""
     if not options.save:
         return False
     if not options.vault:
@@ -98,7 +95,6 @@ def _resolve_vault_path(
     global_config_gateway: GlobalConfigGateway,
     console_gateway: ConsoleGateway,
 ) -> str | None:
-    """Resolve the vault path from options or bookmarks and ensure it exists."""
     arg_vault = normalize_vault_path(options.vault) if options.vault else None
     result = resolve_vault_from_args(
         arg_vault=arg_vault,
@@ -120,7 +116,6 @@ def _resolve_vault_path(
 
 
 def _run_upgraders(config: Config, config_gateway: ConfigGateway) -> None:
-    """Run config upgraders if needed."""
     upgraders = [
         GatewaySpecificIndexFolder(config),
         GatewaySpecificLastIndexed(config, config_gateway),
@@ -133,7 +128,6 @@ def _run_upgraders(config: Config, config_gateway: ConfigGateway) -> None:
 def _maybe_select_gateway(
     options: InitOptions, current_gateway: ModelGateway, console_gateway: ConsoleGateway
 ) -> tuple[ModelGateway, bool]:
-    """Return (gateway, changed) based on options.gateway with validation."""
     result = validate_gateway_selection(
         requested=options.gateway,
         current_gateway=current_gateway,
@@ -151,7 +145,6 @@ def _update_model_in_config(
     is_visual: bool,
     console_gateway: ConsoleGateway,
 ) -> None:
-    """Update a single model field on config using interactive selection if needed."""
     available_models = get_available_models(gateway, console_gateway)
     action = determine_model_action(model_name, available_models)
     if action.error:
@@ -177,7 +170,6 @@ def _maybe_update_models(
     config_gateway: ConfigGateway,
     console_gateway: ConsoleGateway,
 ) -> None:
-    """Update chat and visual models based on options."""
     action = determine_model_update_action(
         model_arg=options.model,
         visual_model_arg=options.visual_model,
@@ -204,7 +196,6 @@ def _maybe_update_models(
 
 
 def _reset_smart_memory(config: Config, console_gateway: ConsoleGateway) -> None:
-    """Reset SmartMemory for the vault."""
     registry = build_service_registry_with_defaults(config)
     provider = ServiceProvider(registry)
     memory = provider.get_smart_memory()
@@ -218,7 +209,6 @@ def _initialize_config(
     config_gateway: ConfigGateway,
     console_gateway: ConsoleGateway,
 ) -> Config | None:
-    """Initialize config for a new vault based on options without prompting unnecessarily."""
     action = determine_init_config_action(
         gateway_arg=options.gateway,
         model_arg=options.model,
@@ -268,7 +258,6 @@ def _handle_existing_config(
     global_config_gateway: GlobalConfigGateway,
     console_gateway: ConsoleGateway,
 ) -> Config | None:
-    """Handle flows when a config already exists for the vault."""
     _run_upgraders(config, config_gateway)
     gateway, changed = _maybe_select_gateway(options, config.gateway, console_gateway)
     if changed or options.model is not None:
@@ -287,7 +276,6 @@ def _handle_new_config(
     config_gateway: ConfigGateway,
     console_gateway: ConsoleGateway,
 ) -> Config | None:
-    """Initialize a new config and trigger initial reindex."""
     config = _initialize_config(vault_path, options, config_gateway, console_gateway)
     if not config:
         return None

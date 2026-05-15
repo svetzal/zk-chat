@@ -1,11 +1,3 @@
-"""
-Link Traversal Service for Zettelkasten
-
-This service provides functionality for analyzing and traversing the wikilink graph
-structure of a Zettelkasten. It handles wikilink extraction, resolution, backlink
-discovery, and graph analysis operations.
-"""
-
 import re
 from datetime import datetime
 from pathlib import Path
@@ -84,15 +76,12 @@ class LinkGraphIndex:
                 self.broken_links[document].add(wikilink_title)
 
     def get_forward_links(self, document: str) -> set[str]:
-        """Get documents that this document links to."""
         return self.forward_links.get(document, set())
 
     def get_backward_links(self, document: str) -> set[str]:
-        """Get documents that link to this document."""
         return self.backward_links.get(document, set())
 
     def get_broken_links(self, document: str) -> set[str]:
-        """Get broken wikilinks from this document."""
         return self.broken_links.get(document, set())
 
 class LinkTraversalService:
@@ -267,7 +256,6 @@ class LinkTraversalService:
         return forward_links
 
     def build_link_index(self) -> None:
-        """Build or rebuild the complete link graph index."""
         logger.info("Building link graph index")
         self.link_index = LinkGraphIndex()
 

@@ -67,13 +67,10 @@ class MCPService:
         return False
 
     def list_servers(self) -> list[MCPServerConfig]:
-        """Return all registered MCP servers."""
         return self._gateway.load().list_mcp_servers()
 
     def verify_server(self, server: MCPServerConfig) -> bool:
-        """Check whether the given MCP server is reachable."""
         return verify_mcp_server(server)
 
     def get_server(self, name: str) -> MCPServerConfig | None:
-        """Look up a server by name, returning None if not found."""
         return self._gateway.load().get_mcp_server(name)
