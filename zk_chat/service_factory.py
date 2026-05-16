@@ -8,7 +8,7 @@ from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
@@ -32,7 +32,7 @@ def build_service_registry(
     filesystem_gateway: MarkdownFilesystemGateway,
     tokenizer_gateway: TokenizerGateway,
     git_gateway: GitGateway,
-    console_service: ConsoleGateway,
+    console_gateway: ConsoleGateway,
 ) -> ServiceRegistry:
     """Build a fully-wired ServiceRegistry from injected gateways.
 
@@ -59,7 +59,7 @@ def build_service_registry(
         Gateway for token counting.
     git_gateway : GitGateway
         Gateway for git operations.
-    console_service : ConsoleGateway
+    console_gateway : ConsoleGateway
         Gateway for console output.
 
     Returns
@@ -110,7 +110,7 @@ def build_service_registry(
     registry.register_service(ServiceType.SMART_MEMORY, smart_memory)
 
     registry.register_service(ServiceType.GIT_GATEWAY, git_gateway)
-    registry.register_service(ServiceType.CONSOLE_SERVICE, console_service)
+    registry.register_service(ServiceType.CONSOLE_GATEWAY, console_gateway)
 
     mcp_service = MCPService(global_config_gateway)
     registry.register_service(ServiceType.MCP_SERVICE, mcp_service)
@@ -161,5 +161,5 @@ def build_service_registry_with_defaults(config: Config) -> ServiceRegistry:
         filesystem_gateway=create_default_filesystem_gateway(config.vault),
         tokenizer_gateway=create_default_tokenizer_gateway(),
         git_gateway=create_default_git_gateway(config.vault),
-        console_service=create_default_console_gateway(),
+        console_gateway=create_default_console_gateway(),
     )

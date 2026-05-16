@@ -1,6 +1,6 @@
 from unittest.mock import Mock
 
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 
 
 class DescribePrintBasicConfig:

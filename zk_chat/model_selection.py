@@ -9,7 +9,7 @@ not unit-tested because they are thin wrappers around interactive I/O.
 import os
 
 from zk_chat.config import ModelGateway
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 
 
 def get_available_models(

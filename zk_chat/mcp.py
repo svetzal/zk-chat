@@ -11,7 +11,7 @@ from typing import Any
 import structlog
 import yaml
 
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
@@ -38,7 +38,7 @@ class MCPServer:
         document_service: DocumentService,
         index_service: IndexService,
         smart_memory: SmartMemory,
-        console_service: ConsoleGateway,
+        console_gateway: ConsoleGateway,
         enable_unsafe_operations: bool = False,
     ) -> None:
         """
@@ -52,7 +52,7 @@ class MCPServer:
             IndexService instance needed for search-related tools
         smart_memory : SmartMemory
             SmartMemory instance needed for memory-related tools
-        console_service : ConsoleGateway
+        console_gateway : ConsoleGateway
             Console service for tool output
         enable_unsafe_operations : bool, optional
             Flag to enable potentially unsafe operations like document creation, by default False
@@ -61,7 +61,7 @@ class MCPServer:
         self.index_service = index_service
         self.smart_memory = smart_memory
         self.enable_unsafe_operations = enable_unsafe_operations
-        self.console_service = console_service
+        self.console_gateway = console_gateway
         self.tools = {}
 
         self._register_tools()
@@ -71,13 +71,13 @@ class MCPServer:
         Register the specific tools with appropriate dependencies.
         """
         self._register_tool(ReadZkDocument(self.document_service))
-        self._register_tool(FindExcerptsRelatedTo(self.index_service, self.console_service))
-        self._register_tool(FindZkDocumentsRelatedTo(self.index_service, self.console_service))
-        self._register_tool(RetrieveFromSmartMemory(self.smart_memory, self.console_service))
-        self._register_tool(StoreInSmartMemory(self.smart_memory, self.console_service))
+        self._register_tool(FindExcerptsRelatedTo(self.index_service, self.console_gateway))
+        self._register_tool(FindZkDocumentsRelatedTo(self.index_service, self.console_gateway))
+        self._register_tool(RetrieveFromSmartMemory(self.smart_memory, self.console_gateway))
+        self._register_tool(StoreInSmartMemory(self.smart_memory, self.console_gateway))
 
         if self.enable_unsafe_operations:
-            self._register_tool(CreateOrOverwriteZkDocument(self.document_service, self.console_service))
+            self._register_tool(CreateOrOverwriteZkDocument(self.document_service, self.console_gateway))
 
     def _register_tool(self, tool_instance: Any) -> None:
         """
@@ -196,7 +196,7 @@ def create_mcp_server(
     document_service: DocumentService,
     index_service: IndexService,
     smart_memory: SmartMemory,
-    console_service: ConsoleGateway,
+    console_gateway: ConsoleGateway,
     enable_unsafe_operations: bool = False,
 ) -> MCPServer:
     """
@@ -210,7 +210,7 @@ def create_mcp_server(
         IndexService instance for search-related tools
     smart_memory : SmartMemory
         SmartMemory instance for memory-related tools
-    console_service : ConsoleGateway
+    console_gateway : ConsoleGateway
         Console service for tool output
     enable_unsafe_operations : bool, optional
         Flag to enable potentially unsafe operations like document creation, by default False
@@ -224,6 +224,6 @@ def create_mcp_server(
         document_service=document_service,
         index_service=index_service,
         smart_memory=smart_memory,
-        console_service=console_service,
+        console_gateway=console_gateway,
         enable_unsafe_operations=enable_unsafe_operations,
     )

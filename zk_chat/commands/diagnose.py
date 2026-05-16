@@ -14,7 +14,7 @@ from rich.table import Table
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.commands.config_helpers import load_config_or_exit
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.service_factory import build_service_registry_with_defaults
 from zk_chat.services.diagnostic_service import (
     CollectionSamples,

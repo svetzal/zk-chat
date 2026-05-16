@@ -6,7 +6,7 @@ from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config_gateway import ConfigGateway
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.git_gateway import GitGateway

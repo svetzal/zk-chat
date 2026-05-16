@@ -35,7 +35,7 @@ class ServiceType(Enum):
 
     GIT_GATEWAY = "git_gateway"
 
-    CONSOLE_SERVICE = "console_service"
+    CONSOLE_GATEWAY = "console_gateway"
 
     CONFIG = "config"
     CONFIG_GATEWAY = "config_gateway"

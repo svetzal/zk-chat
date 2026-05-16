@@ -16,7 +16,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 from pydantic import BaseModel, ConfigDict
 
 from zk_chat.config import Config
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.service_factory import build_service_registry_with_defaults
@@ -64,7 +64,7 @@ def build_agent_tools(
     smart_memory: SmartMemory,
     git_gateway: GitGateway,
     gateway: OllamaGateway | OpenAIGateway,
-    console_service: ConsoleGateway,
+    console_gateway: ConsoleGateway,
 ) -> list[LLMTool]:
     """
     Assemble the complete list of tools for the ZK Chat agent.
@@ -89,8 +89,8 @@ def build_agent_tools(
         Gateway for git operations (may be a no-op implementation)
     gateway : OllamaGateway | OpenAIGateway
         Raw model gateway used to create a visual LLM broker
-    console_service : ConsoleGateway
-        Console service for tool status output
+    console_gateway : ConsoleGateway
+        Console gateway for tool status output
 
     Returns
     -------
@@ -102,20 +102,20 @@ def build_agent_tools(
         CurrentDateTimeTool(),
         ResolveDateTool(),
         ReadZkDocument(document_service),
-        ListZkDocuments(document_service, console_service),
-        ListZkImages(filesystem_gateway, console_service),
+        ListZkDocuments(document_service, console_gateway),
+        ListZkImages(filesystem_gateway, console_gateway),
         ResolveWikiLink(filesystem_gateway),
-        FindExcerptsRelatedTo(index_service, console_service),
-        FindZkDocumentsRelatedTo(index_service, console_service),
-        CreateOrOverwriteZkDocument(document_service, console_service),
+        FindExcerptsRelatedTo(index_service, console_gateway),
+        FindZkDocumentsRelatedTo(index_service, console_gateway),
+        CreateOrOverwriteZkDocument(document_service, console_gateway),
         RenameZkDocument(document_service, index_service),
-        DeleteZkDocument(document_service, index_service, console_service),
-        FindBacklinks(link_traversal_service, console_service),
-        FindForwardLinks(document_service, link_traversal_service, console_service),
-        StoreInSmartMemory(smart_memory, console_service),
-        RetrieveFromSmartMemory(smart_memory, console_service),
-        UncommittedChanges(config.vault, git_gateway, console_service),
-        CommitChanges(config.vault, llm, git_gateway, console_service),
+        DeleteZkDocument(document_service, index_service, console_gateway),
+        FindBacklinks(link_traversal_service, console_gateway),
+        FindForwardLinks(document_service, link_traversal_service, console_gateway),
+        StoreInSmartMemory(smart_memory, console_gateway),
+        RetrieveFromSmartMemory(smart_memory, console_gateway),
+        UncommittedChanges(config.vault, git_gateway, console_gateway),
+        CommitChanges(config.vault, llm, git_gateway, console_gateway),
     ]
 
     if config.visual_model:
@@ -168,7 +168,7 @@ def build_tools_from_config(
         smart_memory=provider.get_smart_memory(),
         git_gateway=provider.get_git_gateway(),
         gateway=provider.get_model_gateway(),
-        console_service=provider.get_console_service(),
+        console_gateway=provider.get_console_gateway(),
     )
 
     if system_prompt is None:

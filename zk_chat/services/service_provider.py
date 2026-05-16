@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from zk_chat.chroma_gateway import ChromaGateway
     from zk_chat.config import Config
     from zk_chat.config_gateway import ConfigGateway
-    from zk_chat.console_service import ConsoleGateway
+    from zk_chat.console_gateway import ConsoleGateway
     from zk_chat.global_config_gateway import GlobalConfigGateway
     from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
     from zk_chat.memory.smart_memory import SmartMemory
@@ -103,10 +103,10 @@ class ServiceProvider:
 
         return self._registry.get_service(ServiceType.LINK_TRAVERSAL_SERVICE, LinkTraversalService)
 
-    def get_console_service(self) -> "ConsoleGateway | None":
-        from zk_chat.console_service import ConsoleGateway
+    def get_console_gateway(self) -> "ConsoleGateway | None":
+        from zk_chat.console_gateway import ConsoleGateway
 
-        return self._registry.get_service(ServiceType.CONSOLE_SERVICE, ConsoleGateway)
+        return self._registry.get_service(ServiceType.CONSOLE_GATEWAY, ConsoleGateway)
 
     def get_mcp_service(self) -> "MCPService | None":
         return self._registry.get_service(ServiceType.MCP_SERVICE)

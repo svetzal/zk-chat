@@ -7,7 +7,7 @@ Manages vault bookmarks for quick access to your Zettelkasten vaults.
 import typer
 from rich.table import Table
 
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.vault_path import normalize_vault_path
 

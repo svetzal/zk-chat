@@ -5,7 +5,7 @@ from datetime import datetime
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.index_resolution import determine_reindex_strategy
 from zk_chat.model_selection import select_model
 from zk_chat.progress_tracker import IndexingProgressTracker

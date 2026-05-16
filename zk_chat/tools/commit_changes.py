@@ -3,7 +3,7 @@ from mojentic.llm import LLMBroker
 from mojentic.llm.gateways.models import LLMMessage
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.text_processing import strip_thinking
 from zk_chat.tools.git_gateway import GitGateway
 from zk_chat.tools.tool_helpers import build_descriptor
@@ -16,14 +16,14 @@ class CommitChanges(LLMTool):
     llm: LLMBroker
     git: GitGateway
 
-    def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway, console_service: ConsoleGateway) -> None:
+    def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway, console_gateway: ConsoleGateway) -> None:
         self.base_path = base_path
         self.llm = llm
         self.git = git
-        self.console_service = console_service
+        self.console_gateway = console_gateway
 
     def run(self) -> str:
-        self.console_service.tool_info("Committing changes in vault folder")
+        self.console_gateway.tool_info("Committing changes in vault folder")
 
         try:
             success, message = self.git.add_all_files()

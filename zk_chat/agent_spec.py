@@ -35,7 +35,7 @@ def _make_mock_provider():
     mock_provider.get_smart_memory.return_value = None
     mock_provider.get_git_gateway.return_value = None
     mock_provider.get_model_gateway.return_value = None
-    mock_provider.get_console_service.return_value = None
+    mock_provider.get_console_gateway.return_value = None
     return mock_provider
 
 
