@@ -11,7 +11,7 @@ from zk_chat.config_resolution import (
     resolve_vault_from_args,
     validate_gateway_selection,
 )
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.global_config import GlobalConfig
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.index import reindex
@@ -32,9 +32,9 @@ def get_version() -> str:
 
 
 def display_banner(
-    config, console_service: ConsoleGateway, title: str, unsafe=False, use_git=False, store_prompt=True
+    config, console_gateway: ConsoleGateway, title: str, unsafe=False, use_git=False, store_prompt=True
 ) -> None:
-    console = console_service.get_console()
+    console = console_gateway.get_console()
 
     console.print(f"\n[banner.title]{title} v{get_version()}[/]")
     console.print("[banner.copyright]Copyright (C) 2024-2025 Stacey Vetzal[/]\n")

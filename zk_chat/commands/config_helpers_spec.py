@@ -4,7 +4,7 @@ import pytest
 import typer
 
 from zk_chat.config_gateway import ConfigGateway
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 
 
 class DescribeLoadConfigOrExit:

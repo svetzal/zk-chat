@@ -2,7 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.link_traversal_service import ForwardLinkResult, LinkTraversalService
@@ -102,7 +102,7 @@ class DescribeFindForwardLinks:
     """
 
     @pytest.fixture
-    def mock_console_service(self):
+    def mock_console_gateway(self):
         return Mock(spec=ConsoleGateway)
 
     @pytest.fixture
@@ -133,25 +133,25 @@ class DescribeFindForwardLinks:
         return _make_services_for_forward_links(source, forward_link_results)
 
     @pytest.fixture
-    def forward_links_tool(self, services, mock_console_service):
+    def forward_links_tool(self, services, mock_console_gateway):
         document_service, link_service, _ = services
-        return FindForwardLinks(document_service, link_service, mock_console_service)
+        return FindForwardLinks(document_service, link_service, mock_console_gateway)
 
-    def should_be_instantiated_with_services_and_console_service(self, services, mock_console_service):
+    def should_be_instantiated_with_services_and_console_gateway(self, services, mock_console_gateway):
         document_service, link_service, _ = services
-        tool = FindForwardLinks(document_service, link_service, mock_console_service)
+        tool = FindForwardLinks(document_service, link_service, mock_console_gateway)
 
         assert isinstance(tool, FindForwardLinks)
         assert tool.document_service is document_service
         assert tool.link_service == link_service
-        assert tool.console_service == mock_console_service
+        assert tool.console_gateway == mock_console_gateway
 
-    def should_return_error_message_when_document_does_not_exist(self, mock_console_service):
+    def should_return_error_message_when_document_does_not_exist(self, mock_console_gateway):
         mock_filesystem = Mock(spec=MarkdownFilesystemGateway)
         mock_filesystem.path_exists.return_value = False
         document_service = DocumentService(mock_filesystem)
         link_service = LinkTraversalService(mock_filesystem)
-        tool = FindForwardLinks(document_service, link_service, mock_console_service)
+        tool = FindForwardLinks(document_service, link_service, mock_console_gateway)
         test_path = "nonexistent/document.md"
 
         result = tool.run(test_path)
@@ -167,13 +167,13 @@ class DescribeFindForwardLinks:
         assert "Complex Systems" in result
         assert "Feedback Loops" in result
 
-    def should_handle_source_with_no_forward_links(self, mock_console_service):
+    def should_handle_source_with_no_forward_links(self, mock_console_gateway):
         mock_filesystem = Mock(spec=MarkdownFilesystemGateway)
         mock_filesystem.path_exists.return_value = True
         mock_filesystem.read_markdown.return_value = ({}, "No wikilinks here.")
         document_service = DocumentService(mock_filesystem)
         link_service = LinkTraversalService(mock_filesystem)
-        tool = FindForwardLinks(document_service, link_service, mock_console_service)
+        tool = FindForwardLinks(document_service, link_service, mock_console_gateway)
 
         result = tool.run("isolated/document.md")
 
@@ -188,11 +188,11 @@ class DescribeFindForwardLinks:
         assert "line_number" in result
         assert "context_snippet" in result
 
-    def should_print_console_feedback_about_results_found(self, forward_links_tool, mock_console_service, source):
+    def should_print_console_feedback_about_results_found(self, forward_links_tool, mock_console_gateway, source):
         forward_links_tool.run(source)
 
-        mock_console_service.tool_info.assert_called_once()
-        call_args = mock_console_service.tool_info.call_args[0][0]
+        mock_console_gateway.tool_info.assert_called_once()
+        call_args = mock_console_gateway.tool_info.call_args[0][0]
         assert "Found 2 forward links" in call_args
         assert source in call_args
 

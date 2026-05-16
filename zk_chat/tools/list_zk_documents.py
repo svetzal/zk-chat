@@ -1,7 +1,7 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.tools.tool_helpers import build_descriptor
 
@@ -9,9 +9,9 @@ logger = structlog.get_logger()
 
 
 class ListZkDocuments(LLMTool):
-    def __init__(self, document_service: DocumentService, console_service: ConsoleGateway) -> None:
+    def __init__(self, document_service: DocumentService, console_gateway: ConsoleGateway) -> None:
         self.document_service = document_service
-        self.console_service = console_service
+        self.console_gateway = console_gateway
 
     def run(self) -> str:
         """
@@ -20,7 +20,7 @@ class ListZkDocuments(LLMTool):
         Returns:
             A simple list of all document paths.
         """
-        self.console_service.tool_info("Listing all available documents")
+        self.console_gateway.tool_info("Listing all available documents")
         paths = [document.relative_path for document in self.document_service.iterate_documents()]
         logger.info("Listed all available documents", paths=paths)
         return "\n".join(paths)

@@ -3,7 +3,7 @@ from unittest.mock import Mock
 from rich.console import Console
 from rich.theme import Theme
 
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 
 
 class DescribeConsoleGateway:

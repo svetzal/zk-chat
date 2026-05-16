@@ -4,7 +4,7 @@ import structlog
 import yaml
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.filename_utils import ensure_md_extension, sanitize_filename
 from zk_chat.models import ZkDocument
 from zk_chat.services.document_service import DocumentService
@@ -40,13 +40,13 @@ def prepare_document(title: str, content: str, metadata: dict[str, Any] | None =
 
 
 class CreateOrOverwriteZkDocument(LLMTool):
-    def __init__(self, document_service: DocumentService, console_service: ConsoleGateway) -> None:
+    def __init__(self, document_service: DocumentService, console_gateway: ConsoleGateway) -> None:
         self.document_service = document_service
-        self.console_service = console_service
+        self.console_gateway = console_gateway
 
     def run(self, title: str, content: str, metadata: dict[str, Any] | None = None) -> str:
         document = prepare_document(title, content, metadata)
-        self.console_service.tool_info(f"Writing document at {document.relative_path}")
+        self.console_gateway.tool_info(f"Writing document at {document.relative_path}")
         try:
             logger.info("writing file", relative_path=document.relative_path, metadata=document.metadata)
             self.document_service.write_document(document)

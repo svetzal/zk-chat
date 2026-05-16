@@ -36,5 +36,3 @@ class ConsoleGateway:
     def get_console(self) -> Console:
         return self.console
 
-
-RichConsoleService = ConsoleGateway

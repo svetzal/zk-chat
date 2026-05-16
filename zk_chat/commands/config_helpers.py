@@ -2,7 +2,7 @@ import typer
 
 from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 
 
 def load_config_or_exit(vault_path: str, config_gateway: ConfigGateway, console_gateway: ConsoleGateway) -> Config:

@@ -269,9 +269,9 @@ class IndexStats:
 
 Zk-chat provides a consistent, themed console experience using the Rich library.
 
-### RichConsoleService
+### ConsoleGateway
 
-Located in `zk_chat/console_service.py`, this service provides themed console output.
+Located in `zk_chat/console_gateway.py`, this gateway provides themed console output.
 
 #### Theme Configuration
 
@@ -293,19 +293,19 @@ theme = Theme({
 #### Usage
 
 ```python
-from zk_chat.console_service import RichConsoleService
+from zk_chat.console_gateway import ConsoleGateway
 
-console_service = RichConsoleService()
+console_gateway = ConsoleGateway()
 
 # Themed output
-console_service.print("[tool.info]Processing document...[/]")
-console_service.print("[banner.warning.unsafe]Warning: Unsafe mode enabled[/]")
+console_gateway.print("[tool.info]Processing document...[/]")
+console_gateway.print("[banner.warning.unsafe]Warning: Unsafe mode enabled[/]")
 
 # User input
-response = console_service.input("Enter your query: ")
+response = console_gateway.input("Enter your query: ")
 
 # Direct console access
-console = console_service.get_console()
+console = console_gateway.get_console()
 ```
 
 #### Print Statements

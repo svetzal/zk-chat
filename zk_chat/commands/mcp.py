@@ -9,7 +9,7 @@ from typing import Annotated
 import typer
 from rich.table import Table
 
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.global_config import MCPServerType
 from zk_chat.services.mcp_service import MCPService, MCPValidationError
 

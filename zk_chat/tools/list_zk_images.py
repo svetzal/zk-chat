@@ -1,7 +1,7 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.tool_helpers import build_descriptor
 
@@ -9,9 +9,9 @@ logger = structlog.get_logger()
 
 
 class ListZkImages(LLMTool):
-    def __init__(self, fs: MarkdownFilesystemGateway, console_service: ConsoleGateway) -> None:
+    def __init__(self, fs: MarkdownFilesystemGateway, console_gateway: ConsoleGateway) -> None:
         self.fs = fs
-        self.console_service = console_service
+        self.console_gateway = console_gateway
 
     def run(self, **kwargs) -> str:
         """
@@ -20,7 +20,7 @@ class ListZkImages(LLMTool):
         Returns:
             A simple list of all image file paths (jpg, jpeg, png).
         """
-        self.console_service.tool_info("Listing all available images")
+        self.console_gateway.tool_info("Listing all available images")
         image_extensions = [".jpg", ".jpeg", ".png"]
         paths = list(self.fs.iterate_files_by_extensions(image_extensions))
         logger.info("Listed all available images", paths=paths, count=len(paths))

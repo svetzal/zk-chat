@@ -8,7 +8,7 @@ from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.service_factory import build_service_registry
@@ -37,7 +37,7 @@ def registry(config, mock_model_gateway, mock_chroma_gateway):
         filesystem_gateway=Mock(spec=MarkdownFilesystemGateway),
         tokenizer_gateway=Mock(spec=TokenizerGateway),
         git_gateway=Mock(spec=GitGateway),
-        console_service=Mock(spec=ConsoleGateway),
+        console_gateway=Mock(spec=ConsoleGateway),
     )
 
 
@@ -86,7 +86,7 @@ class DescribeBuildServiceRegistry:
             filesystem_gateway=Mock(spec=MarkdownFilesystemGateway),
             tokenizer_gateway=Mock(spec=TokenizerGateway),
             git_gateway=Mock(spec=GitGateway),
-            console_service=Mock(spec=ConsoleGateway),
+            console_gateway=Mock(spec=ConsoleGateway),
         )
 
         assert registry.get_service(ServiceType.MODEL_GATEWAY) is mock_model_gateway

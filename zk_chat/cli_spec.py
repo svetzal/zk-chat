@@ -5,7 +5,7 @@ import pytest
 from zk_chat.cli import _handle_save, _resolve_vault_path, common_init
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_resolution import GatewayValidationResult
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.global_config import GlobalConfig
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.init_options import InitOptions

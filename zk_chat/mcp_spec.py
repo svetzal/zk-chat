@@ -67,7 +67,7 @@ def server(document_service, index_service, smart_memory, mock_console_gateway):
         document_service=document_service,
         index_service=index_service,
         smart_memory=smart_memory,
-        console_service=mock_console_gateway,
+        console_gateway=mock_console_gateway,
     )
 
 
@@ -78,7 +78,7 @@ def unsafe_server(document_service, index_service, smart_memory, mock_console_ga
         index_service=index_service,
         smart_memory=smart_memory,
         enable_unsafe_operations=True,
-        console_service=mock_console_gateway,
+        console_gateway=mock_console_gateway,
     )
 
 
@@ -93,7 +93,7 @@ class DescribeMCPServer:
                 document_service=document_service,
                 index_service=index_service,
                 smart_memory=smart_memory,
-                console_service=mock_console_gateway,
+                console_gateway=mock_console_gateway,
             )
 
             assert isinstance(srv, MCPServer)
@@ -240,7 +240,7 @@ class DescribeCreateMcpServer:
             document_service=document_service,
             index_service=index_service,
             smart_memory=smart_memory,
-            console_service=mock_console_gateway,
+            console_gateway=mock_console_gateway,
         )
 
         assert isinstance(srv, MCPServer)
@@ -252,7 +252,7 @@ class DescribeCreateMcpServer:
             document_service=document_service,
             index_service=index_service,
             smart_memory=smart_memory,
-            console_service=mock_console_gateway,
+            console_gateway=mock_console_gateway,
         )
 
         assert srv.enable_unsafe_operations is False

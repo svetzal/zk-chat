@@ -19,7 +19,7 @@ import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging befo
 from zk_chat.cli import common_init
 from zk_chat.commands.config_helpers import load_config_or_exit
 from zk_chat.config import Config
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.gateway_defaults import create_default_filesystem_gateway
 from zk_chat.init_options import InitOptions
 from zk_chat.vault_resolution import VaultResolutionError, resolve_vault_path

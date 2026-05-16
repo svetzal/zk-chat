@@ -1,7 +1,7 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.models import ZkQueryExcerptResult
 from zk_chat.services.index_service import IndexService
 from zk_chat.tools.tool_helpers import build_descriptor, format_model_results
@@ -10,20 +10,20 @@ logger = structlog.get_logger()
 
 
 class FindExcerptsRelatedTo(LLMTool):
-    def __init__(self, index_service: IndexService, console_service: ConsoleGateway) -> None:
+    def __init__(self, index_service: IndexService, console_gateway: ConsoleGateway) -> None:
         self.index_service = index_service
-        self.console_service = console_service
+        self.console_gateway = console_gateway
 
     def run(self, query: str) -> str:
-        self.console_service.tool_info(f"Querying excerpts related to {query}")
+        self.console_gateway.tool_info(f"Querying excerpts related to {query}")
         results: list[ZkQueryExcerptResult] = self.index_service.query_excerpts(query, max_distance=None)
-        self.console_service.tool_info(f"Found {len(results)} excerpts:")
+        self.console_gateway.tool_info(f"Found {len(results)} excerpts:")
         for result in results:
             title = result.excerpt.document_title
             distance = result.distance
-            self.console_service.tool_info(f"  {title} (distance: {distance:.4f})")
+            self.console_gateway.tool_info(f"  {title} (distance: {distance:.4f})")
             preview = result.excerpt.text[:100].replace("\n", " ")
-            self.console_service.tool_info(f"    {preview}...")
+            self.console_gateway.tool_info(f"    {preview}...")
         return format_model_results(results)
 
     @property

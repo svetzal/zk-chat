@@ -16,7 +16,7 @@ from mojentic.llm.tools.date_resolver import ResolveDateTool
 from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.config import Config, ModelGateway
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
@@ -78,7 +78,7 @@ def tools(mock_config, mock_ollama_gateway, mock_llm, mock_filesystem):
         smart_memory=SmartMemory(Mock(spec=ChromaGateway), mock_ollama_gateway),
         git_gateway=Mock(spec=GitGateway),
         gateway=mock_ollama_gateway,
-        console_service=Mock(spec=ConsoleGateway),
+        console_gateway=Mock(spec=ConsoleGateway),
     )
 
 
@@ -186,7 +186,7 @@ class DescribeBuildAgentTools:
                 smart_memory=SmartMemory(Mock(spec=ChromaGateway), mock_ollama_gateway),
                 git_gateway=Mock(spec=GitGateway),
                 gateway=mock_ollama_gateway,
-                console_service=Mock(spec=ConsoleGateway),
+                console_gateway=Mock(spec=ConsoleGateway),
             )
 
             tool_types = [type(t) for t in tools_without_visual]
@@ -216,7 +216,7 @@ def _make_mock_provider():
     mock_provider.get_smart_memory.return_value = None
     mock_provider.get_git_gateway.return_value = None
     mock_provider.get_model_gateway.return_value = None
-    mock_provider.get_console_service.return_value = None
+    mock_provider.get_console_gateway.return_value = None
     return mock_provider
 
 

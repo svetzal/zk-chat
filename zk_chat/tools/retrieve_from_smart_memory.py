@@ -1,7 +1,7 @@
 import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.tools.tool_helpers import build_descriptor
 
@@ -22,15 +22,15 @@ def format_memory_results(documents: list[list[str]], distances: list[list[float
 
 
 class RetrieveFromSmartMemory(LLMTool):
-    def __init__(self, smart_memory: SmartMemory, console_service: ConsoleGateway) -> None:
+    def __init__(self, smart_memory: SmartMemory, console_gateway: ConsoleGateway) -> None:
         self.memory = smart_memory
-        self.console_service = console_service
+        self.console_gateway = console_gateway
 
     def run(self, query: str) -> str:
-        self.console_service.tool_info(f"Checking memory for anything about {query}")
+        self.console_gateway.tool_info(f"Checking memory for anything about {query}")
         results = self.memory.retrieve(query, 10)
         information = format_memory_results(results["documents"], results["distances"])
-        self.console_service.tool_info(information)
+        self.console_gateway.tool_info(information)
         return information
 
     @property

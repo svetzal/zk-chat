@@ -2,7 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from zk_chat.console_service import ConsoleGateway
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.link_traversal_service import BacklinkResult, LinkTraversalService
 from zk_chat.tools.find_backlinks import FindBacklinks
@@ -98,7 +98,7 @@ class DescribeFindBacklinks:
     """
 
     @pytest.fixture
-    def mock_console_service(self):
+    def mock_console_gateway(self):
         return Mock(spec=ConsoleGateway)
 
     @pytest.fixture
@@ -129,15 +129,15 @@ class DescribeFindBacklinks:
         return _make_link_service_with_backlinks(target, backlink_results)
 
     @pytest.fixture
-    def backlinks_tool(self, link_service, mock_console_service):
-        return FindBacklinks(link_service, mock_console_service)
+    def backlinks_tool(self, link_service, mock_console_gateway):
+        return FindBacklinks(link_service, mock_console_gateway)
 
-    def should_be_instantiated_with_link_service_and_console_service(self, link_service, mock_console_service):
-        tool = FindBacklinks(link_service, mock_console_service)
+    def should_be_instantiated_with_link_service_and_console_gateway(self, link_service, mock_console_gateway):
+        tool = FindBacklinks(link_service, mock_console_gateway)
 
         assert isinstance(tool, FindBacklinks)
         assert tool.link_service == link_service
-        assert tool.console_service == mock_console_service
+        assert tool.console_gateway == mock_console_gateway
 
     def should_find_backlinks_to_target_document(self, backlinks_tool, target):
         result = backlinks_tool.run(target)
@@ -146,11 +146,11 @@ class DescribeFindBacklinks:
         assert "projects/analysis.md" in result
         assert "Systems Thinking" in result
 
-    def should_handle_target_with_no_backlinks(self, mock_console_service):
+    def should_handle_target_with_no_backlinks(self, mock_console_gateway):
         mock_filesystem = Mock(spec=MarkdownFilesystemGateway)
         mock_filesystem.iterate_markdown_files.return_value = []
         link_service = LinkTraversalService(mock_filesystem)
-        tool = FindBacklinks(link_service, mock_console_service)
+        tool = FindBacklinks(link_service, mock_console_gateway)
 
         result = tool.run("orphaned/document.md")
 
@@ -165,15 +165,15 @@ class DescribeFindBacklinks:
         assert "line_number" in result
         assert "context_snippet" in result
 
-    def should_print_console_feedback_about_results_found(self, backlinks_tool, mock_console_service, target):
+    def should_print_console_feedback_about_results_found(self, backlinks_tool, mock_console_gateway, target):
         backlinks_tool.run(target)
 
-        mock_console_service.tool_info.assert_called_once()
-        call_args = mock_console_service.tool_info.call_args[0][0]
+        mock_console_gateway.tool_info.assert_called_once()
+        call_args = mock_console_gateway.tool_info.call_args[0][0]
         assert "Found 2 backlinks" in call_args
         assert target in call_args
 
-    def should_handle_backlinks_with_context_snippets(self, mock_console_service):
+    def should_handle_backlinks_with_context_snippets(self, mock_console_gateway):
         target = "important-concept.md"
         contextual_results = [
             BacklinkResult(
@@ -185,7 +185,7 @@ class DescribeFindBacklinks:
             )
         ]
         link_service = _make_link_service_with_backlinks(target, contextual_results)
-        tool = FindBacklinks(link_service, mock_console_service)
+        tool = FindBacklinks(link_service, mock_console_gateway)
 
         result = tool.run(target)
 
