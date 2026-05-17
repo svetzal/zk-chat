@@ -92,8 +92,8 @@ class DescribeCommonInit:
             options = InitOptions(reindex=False)
 
             with patch("zk_chat.cli._run_upgraders"), patch("zk_chat.cli.validate_gateway_selection") as mock_validate:
-                mock_validate.return_value = Mock(
-                    spec=GatewayValidationResult, gateway=ModelGateway.OLLAMA, changed=False, error=None
+                mock_validate.return_value = GatewayValidationResult(
+                    gateway=ModelGateway.OLLAMA, changed=False, error=None
                 )
 
                 result = common_init(options, mock_global_config_gateway, mock_config_gateway, mock_console_gateway)
@@ -118,8 +118,8 @@ class DescribeCommonInit:
                 patch("zk_chat.cli.validate_gateway_selection") as mock_validate,
                 patch("zk_chat.cli._reset_smart_memory") as mock_reset,
             ):
-                mock_validate.return_value = Mock(
-                    spec=GatewayValidationResult, gateway=ModelGateway.OLLAMA, changed=False, error=None
+                mock_validate.return_value = GatewayValidationResult(
+                    gateway=ModelGateway.OLLAMA, changed=False, error=None
                 )
 
                 result = common_init(options, mock_global_config_gateway, mock_config_gateway, mock_console_gateway)
@@ -145,8 +145,8 @@ class DescribeCommonInit:
                 patch("zk_chat.cli.validate_gateway_selection") as mock_validate,
                 patch("zk_chat.cli.reindex") as mock_reindex,
             ):
-                mock_validate.return_value = Mock(
-                    spec=GatewayValidationResult, gateway=ModelGateway.OLLAMA, changed=False, error=None
+                mock_validate.return_value = GatewayValidationResult(
+                    gateway=ModelGateway.OLLAMA, changed=False, error=None
                 )
 
                 common_init(options, mock_global_config_gateway, mock_config_gateway, mock_console_gateway)

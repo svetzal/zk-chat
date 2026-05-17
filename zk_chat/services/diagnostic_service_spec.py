@@ -3,6 +3,7 @@
 from unittest.mock import Mock
 
 import pytest
+from mojentic.llm.gateways import OllamaGateway
 
 from zk_chat.chroma_gateway import ChromaGateway
 from zk_chat.services.diagnostic_service import (
@@ -109,7 +110,7 @@ class DescribeDiagnosticService:
 
     class DescribeTestEmbedding:
         def should_return_successful_result_when_embedding_generated(self, service):
-            mock_gateway = Mock()
+            mock_gateway = Mock(spec=OllamaGateway)
             mock_gateway.calculate_embeddings.return_value = [0.1, 0.2, 0.3, 0.4, 0.5]
 
             result = service.test_embedding(mock_gateway, "test text")
@@ -121,7 +122,7 @@ class DescribeDiagnosticService:
             assert result.error is None
 
         def should_return_failure_result_on_connection_error(self, service):
-            mock_gateway = Mock()
+            mock_gateway = Mock(spec=OllamaGateway)
             mock_gateway.calculate_embeddings.side_effect = ConnectionError("connection refused")
 
             result = service.test_embedding(mock_gateway, "test text")
@@ -131,7 +132,7 @@ class DescribeDiagnosticService:
             assert result.dimensions is None
 
         def should_return_failure_result_on_value_error(self, service):
-            mock_gateway = Mock()
+            mock_gateway = Mock(spec=OllamaGateway)
             mock_gateway.calculate_embeddings.side_effect = ValueError("bad input")
 
             result = service.test_embedding(mock_gateway, "test text")

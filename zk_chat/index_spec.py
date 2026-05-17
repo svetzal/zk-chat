@@ -1,6 +1,6 @@
 import io
 from datetime import datetime
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from mojentic.llm.gateways import OllamaGateway
@@ -16,6 +16,8 @@ from zk_chat.index_resolution import ReindexDecision
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.progress_tracker import IndexingProgressTracker
 from zk_chat.services.index_service import IndexService
+from zk_chat.services.service_provider import ServiceProvider
+from zk_chat.services.service_registry import ServiceRegistry, ServiceType
 from zk_chat.vector_database import VectorDatabase
 
 
@@ -170,26 +172,31 @@ class DescribeReindex:
         documents_db = VectorDatabase(mock_chroma, mock_ollama, ZkCollectionName.DOCUMENTS)
         return IndexService(mock_tokenizer, excerpts_db, documents_db, mock_fs)
 
+    def _make_provider(self, real_index_service):
+        registry = ServiceRegistry()
+        registry.register_service(ServiceType.INDEX_SERVICE, real_index_service)
+        return ServiceProvider(registry)
+
+    def _make_progress(self):
+        return IndexingProgressTracker(console=Console(file=io.StringIO()))
+
     def should_save_config_after_processing(
         self, config, mock_config_gateway, real_index_service, mock_console_gateway
     ):
         full_decision = ReindexDecision(strategy="full")
+        provider = self._make_provider(real_index_service)
 
         with (
             patch("zk_chat.index.build_service_registry_with_defaults"),
-            patch("zk_chat.index.ServiceProvider") as mock_provider_class,
             patch("zk_chat.index.determine_reindex_strategy", return_value=full_decision),
-            patch("zk_chat.index.IndexingProgressTracker") as mock_tracker_class,
         ):
-            mock_provider = mock_provider_class.return_value
-            mock_provider.get_index_service.return_value = real_index_service
-
-            mock_tracker = MagicMock()
-            mock_tracker.__enter__ = Mock(return_value=mock_tracker)
-            mock_tracker.__exit__ = Mock(return_value=False)
-            mock_tracker_class.return_value = mock_tracker
-
-            reindex(config, mock_config_gateway, console_gateway=mock_console_gateway)
+            reindex(
+                config,
+                mock_config_gateway,
+                console_gateway=mock_console_gateway,
+                _provider_factory=lambda r: provider,
+                _progress_factory=self._make_progress,
+            )
 
         mock_config_gateway.save.assert_called_once_with(config)
 
@@ -197,23 +204,20 @@ class DescribeReindex:
         self, config, mock_config_gateway, real_index_service, mock_console_gateway
     ):
         full_decision = ReindexDecision(strategy="full")
+        provider = self._make_provider(real_index_service)
 
         with (
             patch("zk_chat.index.build_service_registry_with_defaults"),
-            patch("zk_chat.index.ServiceProvider") as mock_provider_class,
             patch("zk_chat.index.determine_reindex_strategy", return_value=full_decision),
-            patch("zk_chat.index.IndexingProgressTracker") as mock_tracker_class,
             patch.object(Config, "set_last_indexed") as mock_set_last_indexed,
         ):
-            mock_provider = mock_provider_class.return_value
-            mock_provider.get_index_service.return_value = real_index_service
-
-            mock_tracker = MagicMock()
-            mock_tracker.__enter__ = Mock(return_value=mock_tracker)
-            mock_tracker.__exit__ = Mock(return_value=False)
-            mock_tracker_class.return_value = mock_tracker
-
-            reindex(config, mock_config_gateway, console_gateway=mock_console_gateway)
+            reindex(
+                config,
+                mock_config_gateway,
+                console_gateway=mock_console_gateway,
+                _provider_factory=lambda r: provider,
+                _progress_factory=self._make_progress,
+            )
 
         mock_set_last_indexed.assert_called_once()
         actual_timestamp = mock_set_last_indexed.call_args.args[0]
@@ -223,24 +227,21 @@ class DescribeReindex:
         self, config, mock_config_gateway, real_index_service, mock_console_gateway
     ):
         full_decision = ReindexDecision(strategy="full")
+        provider = self._make_provider(real_index_service)
 
         with (
             patch("zk_chat.index.build_service_registry_with_defaults"),
-            patch("zk_chat.index.ServiceProvider") as mock_provider_class,
             patch("zk_chat.index.determine_reindex_strategy", return_value=full_decision),
-            patch("zk_chat.index.IndexingProgressTracker") as mock_tracker_class,
             patch("zk_chat.index._full_reindex", return_value=(5, 5)) as mock_full_reindex,
             patch("zk_chat.index._incremental_reindex") as mock_incremental_reindex,
         ):
-            mock_provider = mock_provider_class.return_value
-            mock_provider.get_index_service.return_value = real_index_service
-
-            mock_tracker = MagicMock()
-            mock_tracker.__enter__ = Mock(return_value=mock_tracker)
-            mock_tracker.__exit__ = Mock(return_value=False)
-            mock_tracker_class.return_value = mock_tracker
-
-            reindex(config, mock_config_gateway, console_gateway=mock_console_gateway)
+            reindex(
+                config,
+                mock_config_gateway,
+                console_gateway=mock_console_gateway,
+                _provider_factory=lambda r: provider,
+                _progress_factory=self._make_progress,
+            )
 
         mock_full_reindex.assert_called_once()
         mock_incremental_reindex.assert_not_called()
@@ -250,24 +251,21 @@ class DescribeReindex:
     ):
         last_indexed = datetime(2024, 6, 1)
         incremental_decision = ReindexDecision(strategy="incremental", last_indexed=last_indexed)
+        provider = self._make_provider(real_index_service)
 
         with (
             patch("zk_chat.index.build_service_registry_with_defaults"),
-            patch("zk_chat.index.ServiceProvider") as mock_provider_class,
             patch("zk_chat.index.determine_reindex_strategy", return_value=incremental_decision),
-            patch("zk_chat.index.IndexingProgressTracker") as mock_tracker_class,
             patch("zk_chat.index._full_reindex") as mock_full_reindex,
             patch("zk_chat.index._incremental_reindex", return_value=(3, 3)) as mock_incremental_reindex,
         ):
-            mock_provider = mock_provider_class.return_value
-            mock_provider.get_index_service.return_value = real_index_service
-
-            mock_tracker = MagicMock()
-            mock_tracker.__enter__ = Mock(return_value=mock_tracker)
-            mock_tracker.__exit__ = Mock(return_value=False)
-            mock_tracker_class.return_value = mock_tracker
-
-            reindex(config, mock_config_gateway, console_gateway=mock_console_gateway)
+            reindex(
+                config,
+                mock_config_gateway,
+                console_gateway=mock_console_gateway,
+                _provider_factory=lambda r: provider,
+                _progress_factory=self._make_progress,
+            )
 
         mock_incremental_reindex.assert_called_once()
         mock_full_reindex.assert_not_called()
