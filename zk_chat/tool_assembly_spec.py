@@ -21,6 +21,7 @@ from zk_chat.memory.smart_memory import SmartMemory
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
 from zk_chat.services.link_traversal_service import LinkTraversalService
+from zk_chat.services.service_provider import ServiceProvider
 from zk_chat.services.service_registry import ServiceRegistry
 from zk_chat.tool_assembly import ChatSessionComponents, build_agent_tools, build_tools_from_config
 from zk_chat.tools.analyze_image import AnalyzeImage
@@ -207,7 +208,7 @@ class DescribeBuildAgentTools:
 def _make_mock_provider():
     """Build a mock ServiceProvider with minimal stubs for all services."""
     mock_llm = LLMBroker(model="test-model", gateway=Mock(spec=OllamaGateway))
-    mock_provider = Mock()
+    mock_provider = Mock(spec=ServiceProvider)
     mock_provider.get_filesystem_gateway.return_value = None
     mock_provider.get_document_service.return_value = None
     mock_provider.get_index_service.return_value = None

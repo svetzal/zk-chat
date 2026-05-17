@@ -1,8 +1,9 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from typer.testing import CliRunner
 
+from zk_chat.config import Config
 from zk_chat.main import app
 
 
@@ -107,7 +108,7 @@ class DescribeInteractiveCommand:
         assert captured_options[0].reindex is False
 
     def should_invoke_run_agent_when_config_is_returned(self, runner):
-        mock_config = MagicMock()
+        mock_config = Config(vault="/test/vault", model="llama2")
 
         with patch("zk_chat.main.common_init", return_value=mock_config):
             with patch("zk_chat.main.run_agent") as mock_run_agent:

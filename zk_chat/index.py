@@ -81,15 +81,18 @@ def reindex(
     force_full: bool = False,
     *,
     console_gateway: ConsoleGateway,
+    _provider_factory=None,
+    _progress_factory=None,
 ) -> None:
     """Reindex the Zettelkasten vault with progress tracking."""
     registry = build_service_registry_with_defaults(config)
-    provider = ServiceProvider(registry)
+    provider = _provider_factory(registry) if _provider_factory else ServiceProvider(registry)
     index_service = provider.get_index_service()
 
     decision = determine_reindex_strategy(force_full=force_full, last_indexed=config.get_last_indexed())
 
-    with IndexingProgressTracker() as progress:
+    progress_cls = _progress_factory or IndexingProgressTracker
+    with progress_cls() as progress:
         if decision.strategy == "full":
             files_processed, total_files = _full_reindex(config, index_service, progress, console_gateway)
         else:

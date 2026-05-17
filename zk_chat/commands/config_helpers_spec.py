@@ -1,8 +1,9 @@
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import pytest
 import typer
 
+from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway
 from zk_chat.console_gateway import ConsoleGateway
 
@@ -15,7 +16,7 @@ class DescribeLoadConfigOrExit:
 
         mock_gateway = Mock(spec=ConfigGateway)
         mock_console_gateway = Mock(spec=ConsoleGateway)
-        mock_config = MagicMock()
+        mock_config = Config(vault=str(tmp_path), model="test-model")
         mock_gateway.load.return_value = mock_config
 
         result = load_config_or_exit(str(tmp_path), mock_gateway, mock_console_gateway)

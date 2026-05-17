@@ -4,6 +4,7 @@ import pytest
 from typer.testing import CliRunner
 
 from zk_chat.commands.gui import gui_app
+from zk_chat.console_gateway import ConsoleGateway
 
 
 @pytest.fixture
@@ -13,7 +14,7 @@ def runner():
 
 @pytest.fixture
 def mock_console():
-    return Mock()
+    return Mock(spec=ConsoleGateway)
 
 
 @pytest.fixture

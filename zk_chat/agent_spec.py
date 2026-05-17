@@ -6,6 +6,9 @@ from mojentic.llm.gateways import OllamaGateway
 
 from zk_chat.agent import _create_agent
 from zk_chat.config import Config, ModelGateway
+from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
+from zk_chat.mcp_tool_wrapper import MCPClientManager
+from zk_chat.services.service_provider import ServiceProvider
 from zk_chat.services.service_registry import ServiceRegistry
 
 
@@ -16,7 +19,7 @@ def config():
 
 def _make_mcp_manager_context(mcp_tools=None):
     """Build a mock MCPClientManager that behaves as a context manager."""
-    mock_manager = MagicMock()
+    mock_manager = MagicMock(spec=MCPClientManager)
     mock_manager.__enter__ = Mock(return_value=mock_manager)
     mock_manager.__exit__ = Mock(return_value=False)
     mock_manager.get_tools.return_value = mcp_tools or []
@@ -26,7 +29,7 @@ def _make_mcp_manager_context(mcp_tools=None):
 def _make_mock_provider():
     """Build a mock ServiceProvider with minimal stubs for all services."""
     mock_llm = LLMBroker(model="test-model", gateway=Mock(spec=OllamaGateway))
-    mock_provider = Mock()
+    mock_provider = Mock(spec=ServiceProvider)
     mock_provider.get_filesystem_gateway.return_value = None
     mock_provider.get_document_service.return_value = None
     mock_provider.get_index_service.return_value = None
@@ -41,7 +44,7 @@ def _make_mock_provider():
 
 class DescribeCreateAgent:
     def should_yield_an_iterative_problem_solving_agent(self, config):
-        mock_agent = Mock()
+        mock_agent = Mock(spec=IterativeProblemSolvingAgent)
         mock_provider = _make_mock_provider()
 
         with _create_agent(
@@ -61,7 +64,7 @@ class DescribeCreateAgent:
 
         def capture_agent(**kwargs):
             captured_tools["available_tools"] = kwargs["available_tools"]
-            return Mock()
+            return Mock(spec=IterativeProblemSolvingAgent)
 
         with _create_agent(
             config,
@@ -81,7 +84,7 @@ class DescribeCreateAgent:
 
         def capture_agent(**kwargs):
             captured_kwargs.update(kwargs)
-            return Mock()
+            return Mock(spec=IterativeProblemSolvingAgent)
 
         with _create_agent(
             config,
@@ -98,7 +101,7 @@ class DescribeCreateAgent:
 
 class DescribeAgentSingleQuery:
     def should_return_result_of_solver_solve(self, config):
-        mock_agent = Mock()
+        mock_agent = Mock(spec=IterativeProblemSolvingAgent)
         mock_agent.solve.return_value = "the answer"
         mock_provider = _make_mock_provider()
 
@@ -115,7 +118,7 @@ class DescribeAgentSingleQuery:
         assert result == "the answer"
 
     def should_call_solve_with_the_provided_query(self, config):
-        mock_agent = Mock()
+        mock_agent = Mock(spec=IterativeProblemSolvingAgent)
         mock_agent.solve.return_value = "response"
         mock_provider = _make_mock_provider()
         test_query = "explain zettelkasten"
