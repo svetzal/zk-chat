@@ -22,7 +22,7 @@ from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
 from zk_chat.services.link_traversal_service import LinkTraversalService
 from zk_chat.services.service_provider import ServiceProvider
-from zk_chat.services.service_registry import ServiceRegistry
+from zk_chat.services.service_registry import ServiceRegistry, ServiceType
 from zk_chat.tool_assembly import ChatSessionComponents, build_agent_tools, build_tools_from_config
 from zk_chat.tools.analyze_image import AnalyzeImage
 from zk_chat.tools.commit_changes import CommitChanges
@@ -205,20 +205,12 @@ class DescribeBuildAgentTools:
             assert CommitChanges in tool_types
 
 
-def _make_mock_provider():
-    """Build a mock ServiceProvider with minimal stubs for all services."""
-    mock_llm = LLMBroker(model="test-model", gateway=Mock(spec=OllamaGateway))
-    mock_provider = Mock(spec=ServiceProvider)
-    mock_provider.get_filesystem_gateway.return_value = None
-    mock_provider.get_document_service.return_value = None
-    mock_provider.get_index_service.return_value = None
-    mock_provider.get_link_traversal_service.return_value = None
-    mock_provider.get_llm_broker.return_value = mock_llm
-    mock_provider.get_smart_memory.return_value = None
-    mock_provider.get_git_gateway.return_value = None
-    mock_provider.get_model_gateway.return_value = None
-    mock_provider.get_console_gateway.return_value = None
-    return mock_provider
+def _make_real_provider(llm=None):
+    registry = ServiceRegistry()
+    if llm is None:
+        llm = LLMBroker(model="test-model", gateway=Mock(spec=OllamaGateway))
+    registry.register_service(ServiceType.LLM_BROKER, llm)
+    return ServiceProvider(registry)
 
 
 class DescribeBuildToolsFromConfig:
@@ -230,7 +222,7 @@ class DescribeBuildToolsFromConfig:
 
     @pytest.fixture
     def mock_provider(self):
-        return _make_mock_provider()
+        return _make_real_provider()
 
     def should_return_chat_session_components(self, config, mock_provider):
         result = build_tools_from_config(
@@ -252,14 +244,14 @@ class DescribeBuildToolsFromConfig:
 
         assert result.system_prompt == "injected prompt"
 
-    def should_include_llm_broker_from_provider(self, config, mock_provider):
+    def should_include_llm_broker_from_provider(self, config):
         specific_llm = LLMBroker(model="specific-model", gateway=Mock(spec=OllamaGateway))
-        mock_provider.get_llm_broker.return_value = specific_llm
+        provider = _make_real_provider(llm=specific_llm)
 
         result = build_tools_from_config(
             config,
             registry_factory=lambda c: ServiceRegistry(),
-            provider_factory=lambda r: mock_provider,
+            provider_factory=lambda r: provider,
             system_prompt="test prompt",
         )
 
