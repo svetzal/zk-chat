@@ -13,7 +13,7 @@ classifiers = [
     'Operating System :: OS Independent',
 ]
 dependencies = [
-    "chromadb>=1.5.8",
+    "chromadb>=1.5.9",
     "pyyaml>=6.0.3",
     "mojentic>=1.4.0",
     "pyside6>=6.11.1",
