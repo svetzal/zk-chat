@@ -2,7 +2,7 @@
 Tests for the AnalyzeImage tool.
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 from mojentic.llm import LLMBroker
@@ -50,18 +50,18 @@ class DescribeAnalyzeImage:
 
         mock_gateway.complete.assert_not_called()
 
-    def should_return_llm_analysis_when_image_exists(self, analyze_tool, mock_filesystem, mock_gateway):
+    def should_return_llm_analysis_when_image_exists(self, mock_filesystem, mock_gateway):
         mock_filesystem.path_exists.return_value = True
         mock_filesystem.get_absolute_path_for_tool_access.return_value = "/abs/path/img.png"
         mock_gateway.complete.return_value = _response("A cat sitting on a desk")
 
-        # MessageBuilder reads the image from disk, so we patch it at the module boundary
-        # to avoid depending on a real image file in unit tests.
-        with patch("zk_chat.tools.analyze_image.MessageBuilder") as mock_builder_class:
-            mock_message = LLMMessage(role=MessageRole.User, content="describe image")
-            mock_builder_class.return_value.add_image.return_value.build.return_value = mock_message
+        mock_message = LLMMessage(role=MessageRole.User, content="describe image")
+        mock_builder = Mock()
+        mock_builder.return_value.add_image.return_value.build.return_value = mock_message
 
-            result = analyze_tool.run("img/photo.png")
+        llm = LLMBroker(model="test-vision", gateway=mock_gateway)
+        tool = AnalyzeImage(mock_filesystem, llm, _message_builder_factory=mock_builder)
+        result = tool.run("img/photo.png")
 
         assert result == "A cat sitting on a desk"
         mock_gateway.complete.assert_called_once()

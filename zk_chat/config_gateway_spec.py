@@ -6,9 +6,9 @@ for gateway tests, which should test the actual I/O behaviour rather than mockin
 """
 
 import os
-from unittest.mock import patch
 
 import pytest
+import structlog.testing
 
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
@@ -110,8 +110,9 @@ class DescribeConfigGateway:
         with open(config_path, "w") as f:
             f.write("not valid json {{{")
 
-        with patch("zk_chat.config_gateway.logger") as mock_logger:
+        with structlog.testing.capture_logs() as cap_logs:
             config_gateway.load(tmp_vault)
 
-        mock_logger.warning.assert_called_once()
-        assert "Corrupt" in mock_logger.warning.call_args.args[0]
+        warning_logs = [entry for entry in cap_logs if entry.get("log_level") == "warning"]
+        assert len(warning_logs) == 1
+        assert "Corrupt" in warning_logs[0]["event"]

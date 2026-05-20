@@ -160,15 +160,19 @@ def interactive(
     • [cyan]zk-chat interactive --unsafe --git[/] - Allow AI to edit files with git tracking
     • [cyan]zk-chat interactive --no-index[/] - Skip indexing new documents on startup
     """
+    _common_init = ctx.obj.get("common_init", common_init)
+    _run_agent = ctx.obj.get("run_agent", run_agent)
+    _display_banner = ctx.obj.get("display_banner", display_banner)
+
     options = _build_init_options(
         vault, save, gateway, model, visual_model, no_index, unsafe, git, store_prompt, reset_memory
     )
     global_config_gateway = ctx.obj["global_config_gateway"]
-    config = common_init(options, global_config_gateway, ctx.obj["config_gateway"], ctx.obj["console_gateway"])
+    config = _common_init(options, global_config_gateway, ctx.obj["config_gateway"], ctx.obj["console_gateway"])
     if not config:
         return
 
-    display_banner(
+    _display_banner(
         config,
         ctx.obj["console_gateway"],
         title="ZkChat Agent",
@@ -176,7 +180,7 @@ def interactive(
         use_git=git,
         store_prompt=store_prompt,
     )
-    run_agent(config, global_config_gateway)
+    _run_agent(config, global_config_gateway)
 
 
 @app.command()

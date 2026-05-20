@@ -9,9 +9,10 @@ logger = structlog.get_logger()
 
 
 class AnalyzeImage(LLMTool):
-    def __init__(self, fs: MarkdownFilesystemGateway, llm: LLMBroker) -> None:
+    def __init__(self, fs: MarkdownFilesystemGateway, llm: LLMBroker, _message_builder_factory=None) -> None:
         self.fs = fs
         self.llm = llm
+        self._message_builder_factory = _message_builder_factory or MessageBuilder
 
     def run(self, relative_path: str) -> str:
         logger.info("Analyzing image", relative_path=relative_path)
@@ -19,7 +20,7 @@ class AnalyzeImage(LLMTool):
             return f"Image not found at {relative_path}"
 
         message = (
-            MessageBuilder("Describe what you see in the image in plain text.")
+            self._message_builder_factory("Describe what you see in the image in plain text.")
             .add_image(self.fs.get_absolute_path_for_tool_access(relative_path))
             .build()
         )

@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+import structlog.testing
 from mojentic.llm import LLMBroker
 from mojentic.llm.gateways.models import LLMMessage, MessageRole
 
@@ -120,15 +121,16 @@ class DescribeCommitChanges:
         mock_git_gateway.commit.assert_called_once_with("Test commit message")
         assert result == "Successfully committed changes: 'Test commit message'"
 
-    def should_handle_os_errors(self, commit_changes, mock_git_gateway, mocker):
+    def should_handle_os_errors(self, commit_changes, mock_git_gateway):
         """Test that run handles OSError exceptions from git operations."""
         mock_git_gateway.add_all_files.side_effect = OSError("Unexpected error")
-        mock_logger = mocker.patch("zk_chat.tools.commit_changes.logger")
 
-        result = commit_changes.run()
+        with structlog.testing.capture_logs() as cap_logs:
+            result = commit_changes.run()
 
         mock_git_gateway.add_all_files.assert_called_once()
-        mock_logger.error.assert_called_once()
+        error_logs = [entry for entry in cap_logs if entry.get("log_level") == "error"]
+        assert len(error_logs) == 1
         assert result == "Unexpected error committing changes: Unexpected error"
 
     def should_have_correct_descriptor(self, commit_changes):

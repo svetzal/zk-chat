@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -62,8 +62,7 @@ class DescribeInteractiveCommand:
             captured_options.append(options)
             return None
 
-        with patch("zk_chat.main.common_init", side_effect=mock_common_init):
-            runner.invoke(app, ["interactive", "--vault", "/some/vault"])
+        runner.invoke(app, ["interactive", "--vault", "/some/vault"], obj={"common_init": mock_common_init})
 
         assert len(captured_options) == 1
         assert captured_options[0].vault == "/some/vault"
@@ -75,8 +74,7 @@ class DescribeInteractiveCommand:
             captured_options.append(options)
             return None
 
-        with patch("zk_chat.main.common_init", side_effect=mock_common_init):
-            runner.invoke(app, ["interactive", "--unsafe"])
+        runner.invoke(app, ["interactive", "--unsafe"], obj={"common_init": mock_common_init})
 
         assert len(captured_options) == 1
         assert captured_options[0].unsafe is True
@@ -88,8 +86,7 @@ class DescribeInteractiveCommand:
             captured_options.append(options)
             return None
 
-        with patch("zk_chat.main.common_init", side_effect=mock_common_init):
-            runner.invoke(app, ["interactive", "--git"])
+        runner.invoke(app, ["interactive", "--git"], obj={"common_init": mock_common_init})
 
         assert len(captured_options) == 1
         assert captured_options[0].git is True
@@ -101,27 +98,40 @@ class DescribeInteractiveCommand:
             captured_options.append(options)
             return None
 
-        with patch("zk_chat.main.common_init", side_effect=mock_common_init):
-            runner.invoke(app, ["interactive", "--no-index"])
+        runner.invoke(app, ["interactive", "--no-index"], obj={"common_init": mock_common_init})
 
         assert len(captured_options) == 1
         assert captured_options[0].reindex is False
 
     def should_invoke_run_agent_when_config_is_returned(self, runner):
         mock_config = Config(vault="/test/vault", model="llama2")
+        mock_run_agent = Mock()
+        mock_display_banner = Mock()
 
-        with patch("zk_chat.main.common_init", return_value=mock_config):
-            with patch("zk_chat.main.run_agent") as mock_run_agent:
-                with patch("zk_chat.main.display_banner"):
-                    runner.invoke(app, ["interactive"])
+        runner.invoke(
+            app,
+            ["interactive"],
+            obj={
+                "common_init": lambda *args, **kwargs: mock_config,
+                "run_agent": mock_run_agent,
+                "display_banner": mock_display_banner,
+            },
+        )
 
         assert mock_run_agent.called
         assert mock_run_agent.call_args.args[0] is mock_config
 
     def should_not_invoke_run_agent_when_config_is_none(self, runner):
-        with patch("zk_chat.main.common_init", return_value=None):
-            with patch("zk_chat.main.run_agent") as mock_run_agent:
-                runner.invoke(app, ["interactive"])
+        mock_run_agent = Mock()
+
+        runner.invoke(
+            app,
+            ["interactive"],
+            obj={
+                "common_init": lambda *args, **kwargs: None,
+                "run_agent": mock_run_agent,
+            },
+        )
 
         mock_run_agent.assert_not_called()
 

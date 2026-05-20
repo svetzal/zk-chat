@@ -24,8 +24,13 @@ ProgressCallback = Callable[[str, int, int], None]
 class ProgressTracker:
     """Progress tracker for CLI operations using Rich library."""
 
-    def __init__(self, console: Console | None = None) -> None:
+    def __init__(
+        self,
+        console: Console | None = None,
+        _progress_factory: Callable[..., Progress] | None = None,
+    ) -> None:
         self.console = console or Console()
+        self._progress_factory = _progress_factory
         self._progress: Progress | None = None
         self._main_task: TaskID | None = None
         self._current_operation = ""
@@ -35,7 +40,8 @@ class ProgressTracker:
             logger.warning("Progress already started, stopping previous session")
             self.stop_progress()
 
-        self._progress = Progress(
+        progress_cls = self._progress_factory or Progress
+        self._progress = progress_cls(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             TextColumn("{task.fields[current_file]:<30}", style="cyan"),  # Fixed width filename
@@ -111,8 +117,12 @@ class ProgressTracker:
 
 
 class IndexingProgressTracker(ProgressTracker):
-    def __init__(self, console: Console | None = None) -> None:
-        super().__init__(console=console)
+    def __init__(
+        self,
+        console: Console | None = None,
+        _progress_factory: Callable[..., Progress] | None = None,
+    ) -> None:
+        super().__init__(console=console, _progress_factory=_progress_factory)
         self._last_processed_count = 0
 
     def start_scanning(self, description: str = "Scanning vault for markdown files...") -> None:

@@ -5,9 +5,8 @@ These tests exercise real file I/O using a temporary file — this is correct
 for gateway tests, which should verify actual I/O behaviour rather than mocking it.
 """
 
-from unittest.mock import patch
-
 import pytest
+import structlog.testing
 
 from zk_chat.global_config import GlobalConfig, MCPServerConfig, MCPServerType
 from zk_chat.global_config_gateway import GlobalConfigGateway
@@ -69,22 +68,23 @@ class DescribeGlobalConfigGateway:
         with open(tmp_config_path, "w") as f:
             f.write("not valid json {{{")
 
-        with patch("zk_chat.global_config_gateway.logger") as mock_logger:
+        with structlog.testing.capture_logs() as cap_logs:
             global_config_gateway.load()
 
-        mock_logger.warning.assert_called_once()
-        call_kwargs = mock_logger.warning.call_args
-        assert "Corrupt" in call_kwargs.args[0]
+        warning_logs = [entry for entry in cap_logs if entry.get("log_level") == "warning"]
+        assert len(warning_logs) == 1
+        assert "Corrupt" in warning_logs[0]["event"]
 
     def should_log_warning_when_file_has_wrong_types(self, global_config_gateway, tmp_config_path):
         with open(tmp_config_path, "w") as f:
             f.write('{"bookmarks": "not-a-set", "last_opened_bookmark": 12345}')
 
-        with patch("zk_chat.global_config_gateway.logger") as mock_logger:
+        with structlog.testing.capture_logs() as cap_logs:
             result = global_config_gateway.load()
 
         assert isinstance(result, GlobalConfig)
-        mock_logger.warning.assert_called_once()
+        warning_logs = [entry for entry in cap_logs if entry.get("log_level") == "warning"]
+        assert len(warning_logs) == 1
 
     def should_round_trip_config_through_save_and_load(self, global_config_gateway):
         server = MCPServerConfig(
