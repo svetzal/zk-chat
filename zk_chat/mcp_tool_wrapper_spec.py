@@ -12,6 +12,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+import structlog.testing
 from fastmcp import Client
 
 from zk_chat.global_config import GlobalConfig, MCPServerConfig, MCPServerType
@@ -261,22 +262,17 @@ class DescribeMCPClientManagerConnectionTimeout:
         good_client.__aenter__.return_value = good_client
         good_client.list_tools.return_value = []
 
-        manager = MCPClientManager(two_server_gateway)
-        mock_logger = Mock()
+        client_factory = Mock(side_effect=[slow_client, good_client])
+        manager = MCPClientManager(two_server_gateway, _client_factory=client_factory, _timeout=0.05)
 
-        with (
-            patch("zk_chat.mcp_tool_wrapper.Client", side_effect=[slow_client, good_client]),
-            patch("zk_chat.mcp_tool_wrapper.MCP_TIMEOUT_SECONDS", 0.05),
-            patch("zk_chat.mcp_tool_wrapper.logger", mock_logger),
-        ):
+        with structlog.testing.capture_logs() as cap_logs:
             asyncio.run(manager.initialize())
 
         assert "slow-server" not in manager._clients
         assert "good-server" in manager._clients
         assert manager._initialized is True
-        mock_logger.warning.assert_called()
-        warning_calls_str = str(mock_logger.warning.call_args_list)
-        assert "slow-server" in warning_calls_str
+        warning_logs = [entry for entry in cap_logs if entry.get("log_level") == "warning"]
+        assert any("slow-server" in str(entry) for entry in warning_logs)
 
     def should_initialize_reachable_server_normally(self):
         mock_gateway = Mock(spec=GlobalConfigGateway)
@@ -289,10 +285,9 @@ class DescribeMCPClientManagerConnectionTimeout:
         good_client.__aenter__.return_value = good_client
         good_client.list_tools.return_value = [tool]
 
-        manager = MCPClientManager(mock_gateway)
-
-        with patch("zk_chat.mcp_tool_wrapper.Client", return_value=good_client):
-            asyncio.run(manager.initialize())
+        client_factory = Mock(return_value=good_client)
+        manager = MCPClientManager(mock_gateway, _client_factory=client_factory)
+        asyncio.run(manager.initialize())
 
         assert "my-server" in manager._clients
         assert len(manager.get_tools()) == 1

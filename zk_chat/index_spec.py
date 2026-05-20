@@ -186,17 +186,14 @@ class DescribeReindex:
         full_decision = ReindexDecision(strategy="full")
         provider = self._make_provider(real_index_service)
 
-        with (
-            patch("zk_chat.index.build_service_registry_with_defaults"),
-            patch("zk_chat.index.determine_reindex_strategy", return_value=full_decision),
-        ):
-            reindex(
-                config,
-                mock_config_gateway,
-                console_gateway=mock_console_gateway,
-                _provider_factory=lambda r: provider,
-                _progress_factory=self._make_progress,
-            )
+        reindex(
+            config,
+            mock_config_gateway,
+            console_gateway=mock_console_gateway,
+            _provider_factory=lambda r: provider,
+            _progress_factory=self._make_progress,
+            _strategy_factory=lambda **kwargs: full_decision,
+        )
 
         mock_config_gateway.save.assert_called_once_with(config)
 
@@ -206,17 +203,14 @@ class DescribeReindex:
         full_decision = ReindexDecision(strategy="full")
         provider = self._make_provider(real_index_service)
 
-        with (
-            patch("zk_chat.index.build_service_registry_with_defaults"),
-            patch("zk_chat.index.determine_reindex_strategy", return_value=full_decision),
-            patch.object(Config, "set_last_indexed") as mock_set_last_indexed,
-        ):
+        with patch.object(Config, "set_last_indexed") as mock_set_last_indexed:
             reindex(
                 config,
                 mock_config_gateway,
                 console_gateway=mock_console_gateway,
                 _provider_factory=lambda r: provider,
                 _progress_factory=self._make_progress,
+                _strategy_factory=lambda **kwargs: full_decision,
             )
 
         mock_set_last_indexed.assert_called_once()
@@ -230,10 +224,8 @@ class DescribeReindex:
         provider = self._make_provider(real_index_service)
 
         with (
-            patch("zk_chat.index.build_service_registry_with_defaults"),
-            patch("zk_chat.index.determine_reindex_strategy", return_value=full_decision),
-            patch("zk_chat.index._full_reindex", return_value=(5, 5)) as mock_full_reindex,
-            patch("zk_chat.index._incremental_reindex") as mock_incremental_reindex,
+            patch.object(real_index_service, "reindex_all", wraps=real_index_service.reindex_all) as spy_full,
+            patch.object(real_index_service, "update_index", wraps=real_index_service.update_index) as spy_incremental,
         ):
             reindex(
                 config,
@@ -241,10 +233,11 @@ class DescribeReindex:
                 console_gateway=mock_console_gateway,
                 _provider_factory=lambda r: provider,
                 _progress_factory=self._make_progress,
+                _strategy_factory=lambda **kwargs: full_decision,
             )
 
-        mock_full_reindex.assert_called_once()
-        mock_incremental_reindex.assert_not_called()
+        spy_full.assert_called_once()
+        spy_incremental.assert_not_called()
 
     def should_dispatch_to_incremental_reindex_when_strategy_is_incremental(
         self, config, mock_config_gateway, real_index_service, mock_console_gateway
@@ -254,10 +247,8 @@ class DescribeReindex:
         provider = self._make_provider(real_index_service)
 
         with (
-            patch("zk_chat.index.build_service_registry_with_defaults"),
-            patch("zk_chat.index.determine_reindex_strategy", return_value=incremental_decision),
-            patch("zk_chat.index._full_reindex") as mock_full_reindex,
-            patch("zk_chat.index._incremental_reindex", return_value=(3, 3)) as mock_incremental_reindex,
+            patch.object(real_index_service, "reindex_all", wraps=real_index_service.reindex_all) as spy_full,
+            patch.object(real_index_service, "update_index", wraps=real_index_service.update_index) as spy_incremental,
         ):
             reindex(
                 config,
@@ -265,7 +256,8 @@ class DescribeReindex:
                 console_gateway=mock_console_gateway,
                 _provider_factory=lambda r: provider,
                 _progress_factory=self._make_progress,
+                _strategy_factory=lambda **kwargs: incremental_decision,
             )
 
-        mock_incremental_reindex.assert_called_once()
-        mock_full_reindex.assert_not_called()
+        spy_incremental.assert_called_once()
+        spy_full.assert_not_called()

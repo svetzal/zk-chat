@@ -1,4 +1,5 @@
 import pytest
+import structlog.testing
 
 from zk_chat.tools.git_gateway import GitGateway
 from zk_chat.tools.uncommitted_changes import UncommittedChanges
@@ -68,15 +69,16 @@ class DescribeUncommittedChanges:
         mock_git_gateway.get_diff.assert_called_once()
         assert result == ("Uncommitted changes in the vault folder:\ndiff --git a/file.txt b/file.txt")
 
-    def should_handle_os_errors(self, uncommitted_changes, mock_git_gateway, mocker):
+    def should_handle_os_errors(self, uncommitted_changes, mock_git_gateway):
         """Test that run handles OSError exceptions from git operations."""
         mock_git_gateway.add_all_files.side_effect = OSError("Unexpected error")
-        mock_logger = mocker.patch("zk_chat.tools.uncommitted_changes.logger")
 
-        result = uncommitted_changes.run()
+        with structlog.testing.capture_logs() as cap_logs:
+            result = uncommitted_changes.run()
 
         mock_git_gateway.add_all_files.assert_called_once()
-        mock_logger.error.assert_called_once()
+        error_logs = [entry for entry in cap_logs if entry.get("log_level") == "error"]
+        assert len(error_logs) == 1
         assert result == "Unexpected error getting uncommitted changes: Unexpected error"
 
     def should_have_correct_descriptor(self, uncommitted_changes):

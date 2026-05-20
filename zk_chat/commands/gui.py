@@ -37,8 +37,10 @@ def launch(
     • [cyan]zk-chat gui launch --vault ~/notes[/] - Launch with specific vault
     """
     console_gateway = ctx.obj["console_gateway"]
+    run_gui = ctx.obj.get("run_gui")
     try:
-        from zk_chat.qt import main as run_gui
+        if run_gui is None:
+            from zk_chat.qt import main as run_gui
 
         console_gateway.print("[yellow]⚠️  [bold]Experimental Feature[/][/]")
         console_gateway.print("[dim]The GUI is experimental and may not work as expected.[/]")

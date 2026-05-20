@@ -1,10 +1,9 @@
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
 from zk_chat.cli import _handle_save, _resolve_vault_path, common_init
 from zk_chat.config import Config, ModelGateway
-from zk_chat.config_resolution import GatewayValidationResult
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.global_config import GlobalConfig
 from zk_chat.global_config_gateway import GlobalConfigGateway
@@ -91,12 +90,14 @@ class DescribeCommonInit:
             mock_config_gateway.load.return_value = existing_config
             options = InitOptions(reindex=False)
 
-            with patch("zk_chat.cli._run_upgraders"), patch("zk_chat.cli.validate_gateway_selection") as mock_validate:
-                mock_validate.return_value = GatewayValidationResult(
-                    gateway=ModelGateway.OLLAMA, changed=False, error=None
-                )
-
-                result = common_init(options, mock_global_config_gateway, mock_config_gateway, mock_console_gateway)
+            result = common_init(
+                options,
+                mock_global_config_gateway,
+                mock_config_gateway,
+                mock_console_gateway,
+                _run_upgraders_fn=lambda *a, **k: None,
+                _gateway_selection_fn=lambda *a, **k: (ModelGateway.OLLAMA, False),
+            )
 
             assert result is existing_config
 
@@ -112,17 +113,17 @@ class DescribeCommonInit:
             mock_global_config_gateway.load.return_value = global_config
             mock_config_gateway.load.return_value = existing_config
             options = InitOptions(reset_memory=True, reindex=False)
+            mock_reset = Mock()
 
-            with (
-                patch("zk_chat.cli._run_upgraders"),
-                patch("zk_chat.cli.validate_gateway_selection") as mock_validate,
-                patch("zk_chat.cli._reset_smart_memory") as mock_reset,
-            ):
-                mock_validate.return_value = GatewayValidationResult(
-                    gateway=ModelGateway.OLLAMA, changed=False, error=None
-                )
-
-                result = common_init(options, mock_global_config_gateway, mock_config_gateway, mock_console_gateway)
+            result = common_init(
+                options,
+                mock_global_config_gateway,
+                mock_config_gateway,
+                mock_console_gateway,
+                _run_upgraders_fn=lambda *a, **k: None,
+                _gateway_selection_fn=lambda *a, **k: (ModelGateway.OLLAMA, False),
+                _reset_memory_fn=mock_reset,
+            )
 
             assert result is None
             mock_reset.assert_called_once()
@@ -139,17 +140,17 @@ class DescribeCommonInit:
             mock_global_config_gateway.load.return_value = global_config
             mock_config_gateway.load.return_value = existing_config
             options = InitOptions(reindex=True, full=False)
+            mock_reindex = Mock()
 
-            with (
-                patch("zk_chat.cli._run_upgraders"),
-                patch("zk_chat.cli.validate_gateway_selection") as mock_validate,
-                patch("zk_chat.cli.reindex") as mock_reindex,
-            ):
-                mock_validate.return_value = GatewayValidationResult(
-                    gateway=ModelGateway.OLLAMA, changed=False, error=None
-                )
-
-                common_init(options, mock_global_config_gateway, mock_config_gateway, mock_console_gateway)
+            common_init(
+                options,
+                mock_global_config_gateway,
+                mock_config_gateway,
+                mock_console_gateway,
+                _run_upgraders_fn=lambda *a, **k: None,
+                _gateway_selection_fn=lambda *a, **k: (ModelGateway.OLLAMA, False),
+                _reindex_fn=mock_reindex,
+            )
 
             mock_reindex.assert_called_once_with(
                 existing_config, mock_config_gateway, force_full=False, console_gateway=mock_console_gateway
@@ -164,8 +165,13 @@ class DescribeCommonInit:
             mock_config_gateway.load.return_value = None
             options = InitOptions()
 
-            with patch("zk_chat.cli._initialize_config", return_value=None):
-                result = common_init(options, mock_global_config_gateway, mock_config_gateway, mock_console_gateway)
+            result = common_init(
+                options,
+                mock_global_config_gateway,
+                mock_config_gateway,
+                mock_console_gateway,
+                _initialize_config_fn=lambda *a, **k: None,
+            )
 
             assert result is None
 
@@ -181,12 +187,16 @@ class DescribeCommonInit:
             mock_global_config_gateway.load.return_value = global_config
             mock_config_gateway.load.return_value = None
             options = InitOptions()
+            mock_reindex = Mock()
 
-            with (
-                patch("zk_chat.cli._initialize_config", return_value=existing_config),
-                patch("zk_chat.cli.reindex") as mock_reindex,
-            ):
-                result = common_init(options, mock_global_config_gateway, mock_config_gateway, mock_console_gateway)
+            result = common_init(
+                options,
+                mock_global_config_gateway,
+                mock_config_gateway,
+                mock_console_gateway,
+                _initialize_config_fn=lambda *a, **k: existing_config,
+                _reindex_fn=mock_reindex,
+            )
 
             assert result is existing_config
             mock_reindex.assert_called_once_with(

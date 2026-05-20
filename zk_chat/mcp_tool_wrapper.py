@@ -125,8 +125,16 @@ class MCPClientManager:
     - Runs a persistent event loop in a background thread
     """
 
-    def __init__(self, global_config_gateway: GlobalConfigGateway) -> None:
+    def __init__(
+        self,
+        global_config_gateway: GlobalConfigGateway,
+        *,
+        _client_factory=None,
+        _timeout: float | None = None,
+    ) -> None:
         self._global_config_gateway = global_config_gateway
+        self._client_factory = _client_factory if _client_factory is not None else Client
+        self._timeout = _timeout if _timeout is not None else MCP_TIMEOUT_SECONDS
         self._clients: dict[str, Client] = {}
         self._tools: list[MCPToolWrapper] = []
         self._initialized = False
@@ -184,7 +192,7 @@ class MCPClientManager:
             future = asyncio.run_coroutine_threadsafe(self.cleanup(), self._loop)
 
             try:
-                future.result(timeout=MCP_TIMEOUT_SECONDS)
+                future.result(timeout=self._timeout)
             except concurrent.futures.TimeoutError:
                 logger.error("Timeout waiting for MCP client cleanup")
 
@@ -221,7 +229,7 @@ class MCPClientManager:
                 logger.warning(
                     "MCP server connection timed out",
                     server_name=server_config.name,
-                    timeout=MCP_TIMEOUT_SECONDS,
+                    timeout=self._timeout,
                 )
             except (ValueError, ConnectionError, OSError) as e:
                 logger.error("Failed to connect to MCP server", server_name=server_config.name, error=str(e))
@@ -248,14 +256,14 @@ class MCPClientManager:
             client_config = {
                 "mcpServers": {server_config.name: {"command": server_config.command, "args": server_config.args or []}}
             }
-            client = Client(client_config)
+            client = self._client_factory(client_config)
         elif server_config.server_type == MCPServerType.HTTP:
             # For HTTP, can pass URL directly
-            client = Client(server_config.url)
+            client = self._client_factory(server_config.url)
         else:
             raise ValueError(f"Unsupported server type: {server_config.server_type}")
 
-        await asyncio.wait_for(client.__aenter__(), timeout=MCP_TIMEOUT_SECONDS)
+        await asyncio.wait_for(client.__aenter__(), timeout=self._timeout)
         self._clients[server_config.name] = client
 
         logger.info("Connected to MCP server", server_name=server_config.name)
@@ -276,7 +284,7 @@ class MCPClientManager:
         logger.info("Discovering tools from MCP server", server_name=server_config.name)
 
         try:
-            tools = await asyncio.wait_for(client.list_tools(), timeout=MCP_TIMEOUT_SECONDS)
+            tools = await asyncio.wait_for(client.list_tools(), timeout=self._timeout)
 
             for tool in tools:
                 tool_dict = {"name": tool.name, "description": tool.description, "inputSchema": tool.inputSchema}
