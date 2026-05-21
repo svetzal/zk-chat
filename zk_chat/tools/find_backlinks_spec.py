@@ -2,7 +2,6 @@ from unittest.mock import Mock
 
 import pytest
 
-from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.link_traversal_service import BacklinkResult, LinkTraversalService
 from zk_chat.tools.find_backlinks import FindBacklinks
@@ -96,10 +95,6 @@ class DescribeFindBacklinks:
     """
     Tests for the FindBacklinks tool which finds documents that link to a target document.
     """
-
-    @pytest.fixture
-    def mock_console_gateway(self):
-        return Mock(spec=ConsoleGateway)
 
     @pytest.fixture
     def backlink_results(self):

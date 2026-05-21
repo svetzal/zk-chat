@@ -6,10 +6,8 @@ from unittest.mock import Mock
 
 import pytest
 from mojentic.llm import LLMBroker
-from mojentic.llm.gateways import OllamaGateway
 from mojentic.llm.gateways.models import LLMMessage, MessageRole
 
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.analyze_image import AnalyzeImage
 
 
@@ -19,14 +17,6 @@ def _response(content: str) -> LLMMessage:
 
 class DescribeAnalyzeImage:
     """Tests for the AnalyzeImage LLM tool."""
-
-    @pytest.fixture
-    def mock_gateway(self):
-        return Mock(spec=OllamaGateway)
-
-    @pytest.fixture
-    def mock_filesystem(self):
-        return Mock(spec=MarkdownFilesystemGateway)
 
     @pytest.fixture
     def llm(self, mock_gateway):

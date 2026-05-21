@@ -1,8 +1,6 @@
-from unittest.mock import Mock
-
 import pytest
 
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway, WikiLink
+from zk_chat.markdown.markdown_filesystem_gateway import WikiLink
 from zk_chat.services.link_traversal_service import LinkGraphIndex, LinkTraversalService, WikiLinkReference
 
 
@@ -10,10 +8,6 @@ class DescribeLinkTraversalService:
     """
     Tests for the LinkTraversalService which handles wikilink analysis and graph traversal.
     """
-
-    @pytest.fixture
-    def mock_filesystem(self):
-        return Mock(spec=MarkdownFilesystemGateway)
 
     @pytest.fixture
     def link_service(self, mock_filesystem):
