@@ -2,20 +2,13 @@
 Tests for the ResolveWikiLink tool.
 """
 
-from unittest.mock import Mock
-
 import pytest
 
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.resolve_wikilink import ResolveWikiLink
 
 
 class DescribeResolveWikiLink:
     """Tests for the ResolveWikiLink LLM tool."""
-
-    @pytest.fixture
-    def mock_filesystem(self):
-        return Mock(spec=MarkdownFilesystemGateway)
 
     @pytest.fixture
     def resolve_tool(self, mock_filesystem):

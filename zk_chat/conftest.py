@@ -64,3 +64,8 @@ def mock_global_config_gateway():
 @pytest.fixture
 def mock_git_gateway():
     return Mock(spec=GitGateway)
+
+
+@pytest.fixture
+def mock_gateway():
+    return Mock(spec=OllamaGateway)

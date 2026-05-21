@@ -2,21 +2,14 @@
 Tests for the DocumentService which handles document lifecycle operations in a Zettelkasten.
 """
 
-from unittest.mock import Mock
-
 import pytest
 
-from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.models import ZkDocument
 from zk_chat.services.document_service import DocumentService
 
 
 class DescribeDocumentService:
     """Tests for the DocumentService component which handles document CRUD operations."""
-
-    @pytest.fixture
-    def mock_filesystem(self):
-        return Mock(spec=MarkdownFilesystemGateway)
 
     @pytest.fixture
     def document_service(self, mock_filesystem):
