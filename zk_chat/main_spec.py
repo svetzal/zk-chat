@@ -105,8 +105,8 @@ class DescribeInteractiveCommand:
 
     def should_invoke_run_agent_when_config_is_returned(self, runner):
         mock_config = Config(vault="/test/vault", model="llama2")
-        mock_run_agent = Mock()
-        mock_display_banner = Mock()
+        mock_run_agent = Mock()  # Intentionally unspec'd: bare callable, not a class instance
+        mock_display_banner = Mock()  # Intentionally unspec'd: bare callable, not a class instance
 
         runner.invoke(
             app,
@@ -122,7 +122,7 @@ class DescribeInteractiveCommand:
         assert mock_run_agent.call_args.args[0] is mock_config
 
     def should_not_invoke_run_agent_when_config_is_none(self, runner):
-        mock_run_agent = Mock()
+        mock_run_agent = Mock()  # Intentionally unspec'd: bare callable, not a class instance
 
         runner.invoke(
             app,

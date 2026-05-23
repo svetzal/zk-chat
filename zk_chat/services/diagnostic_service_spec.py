@@ -3,6 +3,7 @@
 from unittest.mock import Mock
 
 import pytest
+from chromadb import Collection
 from mojentic.llm.gateways import OllamaGateway
 
 from zk_chat.chroma_gateway import ChromaGateway
@@ -34,7 +35,7 @@ class DescribeDiagnosticService:
 
     class DescribeGetCollectionStatuses:
         def should_return_ok_status_for_non_empty_collection(self, service, mock_chroma):
-            mock_collection = Mock()
+            mock_collection = Mock(spec=Collection)
             mock_collection.count.return_value = 42
             mock_chroma.get_collection.return_value = mock_collection
 
@@ -46,7 +47,7 @@ class DescribeDiagnosticService:
             assert all("OK" in s.status for s in statuses)
 
         def should_return_empty_status_for_empty_collection(self, service, mock_chroma):
-            mock_collection = Mock()
+            mock_collection = Mock(spec=Collection)
             mock_collection.count.return_value = 0
             mock_chroma.get_collection.return_value = mock_collection
 
@@ -66,7 +67,7 @@ class DescribeDiagnosticService:
 
     class DescribeGetSampleDocuments:
         def should_return_samples_for_non_empty_collections(self, service, mock_chroma):
-            mock_collection = Mock()
+            mock_collection = Mock(spec=Collection)
             mock_collection.count.return_value = 5
             mock_collection.get.return_value = {
                 "ids": ["id1", "id2"],
@@ -84,7 +85,7 @@ class DescribeDiagnosticService:
             assert samples[0].entries[0].title == "Doc One"
 
         def should_return_empty_entries_for_empty_collection(self, service, mock_chroma):
-            mock_collection = Mock()
+            mock_collection = Mock(spec=Collection)
             mock_collection.count.return_value = 0
             mock_chroma.get_collection.return_value = mock_collection
 
@@ -95,7 +96,7 @@ class DescribeDiagnosticService:
 
         def should_truncate_content_preview_to_100_chars(self, service, mock_chroma):
             long_content = "x" * 200
-            mock_collection = Mock()
+            mock_collection = Mock(spec=Collection)
             mock_collection.count.return_value = 1
             mock_collection.get.return_value = {
                 "ids": ["id1"],

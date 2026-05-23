@@ -113,7 +113,7 @@ class DescribeCommonInit:
             mock_global_config_gateway.load.return_value = global_config
             mock_config_gateway.load.return_value = existing_config
             options = InitOptions(reset_memory=True, reindex=False)
-            mock_reset = Mock()
+            mock_reset = Mock()  # Intentionally unspec'd: bare callable, not a class instance
 
             result = common_init(
                 options,
@@ -140,7 +140,7 @@ class DescribeCommonInit:
             mock_global_config_gateway.load.return_value = global_config
             mock_config_gateway.load.return_value = existing_config
             options = InitOptions(reindex=True, full=False)
-            mock_reindex = Mock()
+            mock_reindex = Mock()  # Intentionally unspec'd: bare callable, not a class instance
 
             common_init(
                 options,
@@ -187,7 +187,7 @@ class DescribeCommonInit:
             mock_global_config_gateway.load.return_value = global_config
             mock_config_gateway.load.return_value = None
             options = InitOptions()
-            mock_reindex = Mock()
+            mock_reindex = Mock()  # Intentionally unspec'd: bare callable, not a class instance
 
             result = common_init(
                 options,

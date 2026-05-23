@@ -180,7 +180,7 @@ class DescribeMCPToolWrapperRun:
 
         with (
             patch("asyncio.run_coroutine_threadsafe", return_value=mock_future),
-            patch.object(wrapper, "_async_run", new=Mock()),
+            patch.object(wrapper, "_async_run", new=Mock()),  # Intentionally unspec'd: replaces bound method
         ):
             result = wrapper.run(param="value")
 
@@ -189,7 +189,7 @@ class DescribeMCPToolWrapperRun:
     def should_use_60_second_timeout(self, wrapper, mock_future):
         with (
             patch("asyncio.run_coroutine_threadsafe", return_value=mock_future),
-            patch.object(wrapper, "_async_run", new=Mock()),
+            patch.object(wrapper, "_async_run", new=Mock()),  # Intentionally unspec'd: replaces bound method
         ):
             wrapper.run(param="value")
 
@@ -200,7 +200,7 @@ class DescribeMCPToolWrapperRun:
 
         with (
             patch("asyncio.run_coroutine_threadsafe", return_value=mock_future),
-            patch.object(wrapper, "_async_run", new=Mock()),
+            patch.object(wrapper, "_async_run", new=Mock()),  # Intentionally unspec'd: replaces bound method
         ):
             result = wrapper.run(param="value")
 
@@ -212,7 +212,7 @@ class DescribeMCPToolWrapperRun:
 
         with (
             patch("asyncio.run_coroutine_threadsafe", return_value=mock_future),
-            patch.object(wrapper, "_async_run", new=Mock()),
+            patch.object(wrapper, "_async_run", new=Mock()),  # Intentionally unspec'd: replaces bound method
         ):
             result = wrapper.run(param="value")
 
@@ -255,14 +255,14 @@ class DescribeMCPClientManagerConnectionTimeout:
         async def hang():
             await asyncio.sleep(3600)
 
-        slow_client = AsyncMock()
+        slow_client = AsyncMock()  # Intentionally unspec'd: async context manager stub, not a class instance
         slow_client.__aenter__.side_effect = hang
 
-        good_client = AsyncMock()
+        good_client = AsyncMock()  # Intentionally unspec'd: async context manager stub, not a class instance
         good_client.__aenter__.return_value = good_client
         good_client.list_tools.return_value = []
 
-        client_factory = Mock(side_effect=[slow_client, good_client])
+        client_factory = Mock(side_effect=[slow_client, good_client])  # Intentionally unspec'd: bare callable
         manager = MCPClientManager(two_server_gateway, _client_factory=client_factory, _timeout=0.05)
 
         with structlog.testing.capture_logs() as cap_logs:
@@ -281,11 +281,11 @@ class DescribeMCPClientManagerConnectionTimeout:
         mock_gateway.load.return_value = config
 
         tool = SimpleNamespace(name="t", description="d", inputSchema={})
-        good_client = AsyncMock()
+        good_client = AsyncMock()  # Intentionally unspec'd: async context manager stub, not a class instance
         good_client.__aenter__.return_value = good_client
         good_client.list_tools.return_value = [tool]
 
-        client_factory = Mock(return_value=good_client)
+        client_factory = Mock(return_value=good_client)  # Intentionally unspec'd: bare callable, not a class instance
         manager = MCPClientManager(mock_gateway, _client_factory=client_factory)
         asyncio.run(manager.initialize())
 
