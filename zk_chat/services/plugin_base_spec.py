@@ -169,7 +169,7 @@ class DescribeZkChatPlugin:
                 assert "llm_broker" in str(e)
 
         def should_return_service_when_registered(self):
-            mock_service = Mock()
+            mock_service = Mock()  # Intentionally unspec'd: testing generic registry contract
             registry = _make_registry({ServiceType.LLM_BROKER: mock_service})
             plugin = ZkChatPlugin(ServiceProvider(registry))
 

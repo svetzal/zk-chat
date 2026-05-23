@@ -4,6 +4,7 @@ import io
 from unittest.mock import MagicMock
 
 from rich.console import Console
+from rich.progress import Progress
 
 from zk_chat.progress_tracker import IndexingProgressTracker, ProgressTracker
 
@@ -30,7 +31,7 @@ class DescribeProgressTracker:
         assert isinstance(tracker.console, Console)
 
     def should_start_progress_and_return_task_id(self):
-        mock_progress = MagicMock()
+        mock_progress = MagicMock(spec=Progress)
         mock_progress.add_task.return_value = 42
         tracker = ProgressTracker(_progress_factory=lambda *args, **kwargs: mock_progress)
 
@@ -41,8 +42,8 @@ class DescribeProgressTracker:
         mock_progress.add_task.assert_called_once_with("Processing", total=10, current_file="")
 
     def should_stop_previous_session_when_starting_new_one(self):
-        first_progress = MagicMock()
-        second_progress = MagicMock()
+        first_progress = MagicMock(spec=Progress)
+        second_progress = MagicMock(spec=Progress)
         side_effects = [first_progress, second_progress]
         first_progress.add_task.return_value = 1
         second_progress.add_task.return_value = 2
@@ -61,7 +62,7 @@ class DescribeProgressTracker:
         assert tracker._progress is None
 
     def should_update_progress_with_advance(self):
-        mock_progress = MagicMock()
+        mock_progress = MagicMock(spec=Progress)
         mock_progress.add_task.return_value = 1
         tracker = ProgressTracker(_progress_factory=lambda *args, **kwargs: mock_progress)
 
@@ -72,7 +73,7 @@ class DescribeProgressTracker:
         assert call_kwargs["advance"] == 1
 
     def should_update_progress_with_completed(self):
-        mock_progress = MagicMock()
+        mock_progress = MagicMock(spec=Progress)
         mock_progress.add_task.return_value = 1
         tracker = ProgressTracker(_progress_factory=lambda *args, **kwargs: mock_progress)
 
@@ -83,7 +84,7 @@ class DescribeProgressTracker:
         assert call_kwargs["completed"] == 50
 
     def should_set_total_on_active_progress(self):
-        mock_progress = MagicMock()
+        mock_progress = MagicMock(spec=Progress)
         mock_progress.add_task.return_value = 1
         tracker = ProgressTracker(_progress_factory=lambda *args, **kwargs: mock_progress)
 
@@ -100,7 +101,7 @@ class DescribeProgressTracker:
         assert tracker._progress is None
 
     def should_stop_progress_and_reset_state(self):
-        mock_progress = MagicMock()
+        mock_progress = MagicMock(spec=Progress)
         mock_progress.add_task.return_value = 1
         tracker = ProgressTracker(_progress_factory=lambda *args, **kwargs: mock_progress)
 
@@ -112,7 +113,7 @@ class DescribeProgressTracker:
         assert tracker._main_task is None
 
     def should_work_as_context_manager(self):
-        mock_progress = MagicMock()
+        mock_progress = MagicMock(spec=Progress)
         mock_progress.add_task.return_value = 1
         tracker = ProgressTracker(_progress_factory=lambda *args, **kwargs: mock_progress)
 
@@ -134,7 +135,7 @@ class DescribeProgressTrackerCreateCallback:
         assert callable(callback)
 
     def should_set_total_on_first_file(self):
-        mock_progress = MagicMock()
+        mock_progress = MagicMock(spec=Progress)
         mock_progress.add_task.return_value = 1
         tracker = ProgressTracker(_progress_factory=lambda *args, **kwargs: mock_progress)
 
@@ -147,7 +148,7 @@ class DescribeProgressTrackerCreateCallback:
         assert total_calls[0].kwargs["total"] == 50
 
     def should_not_set_total_after_first_file(self):
-        mock_progress = MagicMock()
+        mock_progress = MagicMock(spec=Progress)
         mock_progress.add_task.return_value = 1
         tracker = ProgressTracker(_progress_factory=lambda *args, **kwargs: mock_progress)
 
@@ -162,7 +163,7 @@ class DescribeProgressTrackerCreateCallback:
         assert len(total_setting_calls) == 1
 
     def should_advance_by_one_for_processed_files(self):
-        mock_progress = MagicMock()
+        mock_progress = MagicMock(spec=Progress)
         mock_progress.add_task.return_value = 1
         tracker = ProgressTracker(_progress_factory=lambda *args, **kwargs: mock_progress)
 
@@ -183,7 +184,7 @@ class DescribeIndexingProgressTracker:
         assert tracker._last_processed_count == 0
 
     def should_start_scanning_with_indeterminate_total(self):
-        mock_progress = MagicMock()
+        mock_progress = MagicMock(spec=Progress)
         mock_progress.add_task.return_value = 1
         tracker = IndexingProgressTracker(_progress_factory=lambda *args, **kwargs: mock_progress)
 
@@ -194,7 +195,7 @@ class DescribeIndexingProgressTracker:
         )
 
     def should_transition_from_scanning_to_processing(self):
-        mock_progress = MagicMock()
+        mock_progress = MagicMock(spec=Progress)
         mock_progress.add_task.return_value = 1
         tracker = IndexingProgressTracker(_progress_factory=lambda *args, **kwargs: mock_progress)
 
@@ -210,7 +211,7 @@ class DescribeIndexingProgressTracker:
         )
 
     def should_reset_last_processed_count_on_finish_scanning(self):
-        mock_progress = MagicMock()
+        mock_progress = MagicMock(spec=Progress)
         mock_progress.add_task.return_value = 1
         tracker = IndexingProgressTracker(_progress_factory=lambda *args, **kwargs: mock_progress)
         tracker._last_processed_count = 5
@@ -221,7 +222,7 @@ class DescribeIndexingProgressTracker:
         assert tracker._last_processed_count == 0
 
     def should_update_file_processing_with_correct_advance(self):
-        mock_progress = MagicMock()
+        mock_progress = MagicMock(spec=Progress)
         mock_progress.add_task.return_value = 1
         tracker = IndexingProgressTracker(_progress_factory=lambda *args, **kwargs: mock_progress)
         tracker._last_processed_count = 2
@@ -234,7 +235,7 @@ class DescribeIndexingProgressTracker:
         assert advance_calls[0].kwargs["advance"] == 3
 
     def should_track_last_processed_count(self):
-        mock_progress = MagicMock()
+        mock_progress = MagicMock(spec=Progress)
         mock_progress.add_task.return_value = 1
         tracker = IndexingProgressTracker(_progress_factory=lambda *args, **kwargs: mock_progress)
 

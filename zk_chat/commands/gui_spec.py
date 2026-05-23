@@ -26,7 +26,7 @@ class DescribeLaunch:
     """Tests for the launch command."""
 
     def should_print_warning_when_vault_argument_provided(self, runner, mock_console, obj):
-        obj["run_gui"] = Mock()
+        obj["run_gui"] = Mock()  # Intentionally unspec'd: bare callable, not a class instance
         runner.invoke(gui_app, ["launch", "--vault", "/some/vault"], obj=obj)
 
         mock_console.print.assert_any_call(
@@ -34,7 +34,7 @@ class DescribeLaunch:
         )
 
     def should_call_run_gui_when_launch_succeeds(self, runner, obj):
-        mock_run_gui = Mock()
+        mock_run_gui = Mock()  # Intentionally unspec'd: bare callable, not a class instance
         obj["run_gui"] = mock_run_gui
         runner.invoke(gui_app, ["launch"], obj=obj)
 
@@ -77,7 +77,7 @@ class DescribeGuiDefault:
     """Tests for the gui_default callback."""
 
     def should_invoke_launch_when_launch_subcommand_given(self, runner, obj):
-        mock_run_gui = Mock()
+        mock_run_gui = Mock()  # Intentionally unspec'd: bare callable, not a class instance
         obj["run_gui"] = mock_run_gui
         runner.invoke(gui_app, ["launch"], obj=obj)
 

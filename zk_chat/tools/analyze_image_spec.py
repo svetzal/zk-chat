@@ -46,7 +46,7 @@ class DescribeAnalyzeImage:
         mock_gateway.complete.return_value = _response("A cat sitting on a desk")
 
         mock_message = LLMMessage(role=MessageRole.User, content="describe image")
-        mock_builder = Mock()
+        mock_builder = Mock()  # Intentionally unspec'd: used as a factory callable, not a class instance
         mock_builder.return_value.add_image.return_value.build.return_value = mock_message
 
         llm = LLMBroker(model="test-vision", gateway=mock_gateway)
