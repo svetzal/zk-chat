@@ -7,6 +7,7 @@ Manages vault bookmarks for quick access to your Zettelkasten vaults.
 import typer
 from rich.table import Table
 
+from zk_chat.commands.config_helpers import show_help_if_no_subcommand
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.vault_path import normalize_vault_path
@@ -57,11 +58,10 @@ def bookmarks_default(ctx: typer.Context) -> None:
     Bookmarks allow you to quickly switch between multiple Zettelkasten vaults
     without specifying the full path each time.
     """
-    ctx.ensure_object(dict)
-    if ctx.invoked_subcommand is None:
-        console = ctx.obj["console_gateway"]
-        console.print(ctx.get_help())
-        console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat bookmarks list[/] to see your bookmarked vaults.")
+    show_help_if_no_subcommand(
+        ctx,
+        "\n[yellow]💡 Tip:[/] Use [cyan]zk-chat bookmarks list[/] to see your bookmarked vaults.",
+    )
 
 
 @bookmarks_app.command()

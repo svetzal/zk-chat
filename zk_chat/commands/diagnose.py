@@ -13,7 +13,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
-from zk_chat.commands.config_helpers import load_config_or_exit
+from zk_chat.commands.config_helpers import resolve_vault_and_load_config
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.service_factory import build_service_registry_with_defaults
 from zk_chat.services.diagnostic_service import (
@@ -23,7 +23,6 @@ from zk_chat.services.diagnostic_service import (
     EmbeddingTestResult,
 )
 from zk_chat.services.service_provider import ServiceProvider
-from zk_chat.vault_resolution import VaultResolutionError, resolve_vault_path
 
 diagnose_app = typer.Typer(name="diagnose", help="🔬 Diagnose index and search issues", rich_markup_mode="rich")
 
@@ -135,17 +134,10 @@ def index(
 ) -> None:
     """Diagnose the search index to identify why queries aren't returning results."""
     console_gateway = ctx.obj["console_gateway"]
-    global_config_gateway = ctx.obj["global_config_gateway"]
-    config_gateway = ctx.obj["config_gateway"]
-
-    try:
-        vault_path = resolve_vault_path(vault, global_config_gateway)
-    except VaultResolutionError as e:
-        console_gateway.print(f"[red]❌ Error:[/] {e}")
-        console_gateway.print("[yellow]Use:[/] [cyan]zk-chat diagnose index --vault /path/to/vault[/]")
-        raise typer.Exit(1) from e
-
-    config = load_config_or_exit(vault_path, config_gateway, console_gateway)
+    vault_path, config = resolve_vault_and_load_config(
+        vault, ctx.obj["global_config_gateway"], ctx.obj["config_gateway"],
+        console_gateway, "zk-chat diagnose index --vault /path/to/vault"
+    )
     console_gateway.print(Panel(f"[bold cyan]Index Diagnostics[/] - {vault_path}", expand=False))
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     if not os.path.exists(db_dir):

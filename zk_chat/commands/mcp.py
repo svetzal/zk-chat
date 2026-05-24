@@ -9,6 +9,7 @@ from typing import Annotated
 import typer
 from rich.table import Table
 
+from zk_chat.commands.config_helpers import show_help_if_no_subcommand
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.global_config import MCPServerType
 from zk_chat.services.mcp_service import MCPService, MCPValidationError
@@ -28,13 +29,11 @@ def mcp_default(ctx: typer.Context) -> None:
     """
     ctx.ensure_object(dict)
     ctx.obj["mcp_service"] = MCPService(ctx.obj["global_config_gateway"])
-    if ctx.invoked_subcommand is None:
-        console = ctx.obj["console_gateway"]
-        console.print(ctx.get_help())
-        console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat mcp --help[/] to see available commands.")
-        console.print(
-            "Most common: [cyan]zk-chat mcp add[/], [cyan]zk-chat mcp list[/], or [cyan]zk-chat mcp verify[/]"
-        )
+    show_help_if_no_subcommand(
+        ctx,
+        "\n[yellow]💡 Tip:[/] Use [cyan]zk-chat mcp --help[/] to see available commands.",
+        "Most common: [cyan]zk-chat mcp add[/], [cyan]zk-chat mcp list[/], or [cyan]zk-chat mcp verify[/]",
+    )
 
 
 @mcp_app.command()
