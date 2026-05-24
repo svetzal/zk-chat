@@ -17,12 +17,11 @@ import typer
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.cli import common_init
-from zk_chat.commands.config_helpers import load_config_or_exit
+from zk_chat.commands.config_helpers import resolve_vault_and_load_config, show_help_if_no_subcommand
 from zk_chat.config import Config
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.gateway_defaults import create_default_filesystem_gateway
 from zk_chat.init_options import InitOptions
-from zk_chat.vault_resolution import VaultResolutionError, resolve_vault_path
 
 index_app = typer.Typer(name="index", help="🔍 Manage your Zettelkasten search index", rich_markup_mode="rich")
 
@@ -35,12 +34,11 @@ def index_default(ctx: typer.Context) -> None:
     The index enables fast semantic search across your notes.
     Use [cyan]update[/] to refresh it and [cyan]status[/] to check its health.
     """
-    ctx.ensure_object(dict)
-    if ctx.invoked_subcommand is None:
-        console = ctx.obj["console_gateway"]
-        console.print(ctx.get_help())
-        console.print("\n[yellow]💡 Tip:[/] Use [cyan]zk-chat index --help[/] to see available commands.")
-        console.print("Most common: [cyan]zk-chat index update[/] or [cyan]zk-chat index status[/]")
+    show_help_if_no_subcommand(
+        ctx,
+        "\n[yellow]💡 Tip:[/] Use [cyan]zk-chat index --help[/] to see available commands.",
+        "Most common: [cyan]zk-chat index update[/] or [cyan]zk-chat index status[/]",
+    )
 
 
 @index_app.command()
@@ -150,16 +148,12 @@ def status(
 ) -> None:
     """Show the current status of your Zettelkasten index."""
     console_gateway = ctx.obj["console_gateway"]
-    try:
-        vault_path = resolve_vault_path(vault, ctx.obj["global_config_gateway"])
-    except VaultResolutionError as e:
-        console_gateway.print(f"[red]❌ Error:[/] {e}")
-        console_gateway.print("[yellow]Use:[/] [cyan]zk-chat index status --vault /path/to/vault[/]")
-        raise typer.Exit(1) from e
+    vault_path, config = resolve_vault_and_load_config(
+        vault, ctx.obj["global_config_gateway"], ctx.obj["config_gateway"],
+        console_gateway, "zk-chat index status --vault /path/to/vault"
+    )
 
     from zk_chat.services.vault_status_service import VaultStatusService
-
-    config = load_config_or_exit(vault_path, ctx.obj["config_gateway"], console_gateway)
     filesystem_gateway = create_default_filesystem_gateway(vault_path)
     vault_status = VaultStatusService(filesystem_gateway)
     console_gateway.print(f"[bold cyan]Index Status[/] - {vault_path}")
