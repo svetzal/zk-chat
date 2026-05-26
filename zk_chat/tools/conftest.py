@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from unittest.mock import Mock
 
 import pytest
@@ -11,7 +12,7 @@ from zk_chat.services.index_service import IndexService
 from zk_chat.vector_database import VectorDatabase
 
 
-def _make_index_service(chroma_excerpts=None, chroma_documents=None, filesystem=None):
+def _make_index_service(chroma_excerpts=None, chroma_documents=None, filesystem=None) -> IndexService:
     """Build a real IndexService with gateway mocks."""
     gateway = Mock(spec=OllamaGateway)
     gateway.calculate_embeddings.return_value = [0.1, 0.2, 0.3]
@@ -32,6 +33,6 @@ def _make_index_service(chroma_excerpts=None, chroma_documents=None, filesystem=
 
 
 @pytest.fixture
-def make_index_service():
+def make_index_service() -> Callable:
     """Pytest fixture that returns the _make_index_service factory function."""
     return _make_index_service

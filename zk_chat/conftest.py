@@ -15,57 +15,57 @@ STUB_EMBEDDING = [0.1, 0.2, 0.3]
 
 
 @pytest.fixture
-def mock_filesystem():
+def mock_filesystem() -> Mock:
     return Mock(spec=MarkdownFilesystemGateway)
 
 
 @pytest.fixture
-def mock_console_gateway():
+def mock_console_gateway() -> Mock:
     return Mock(spec=ConsoleGateway)
 
 
 @pytest.fixture
-def mock_chroma_gateway():
+def mock_chroma_gateway() -> Mock:
     return Mock(spec=ChromaGateway)
 
 
 @pytest.fixture
-def mock_chroma_excerpts():
+def mock_chroma_excerpts() -> Mock:
     return Mock(spec=ChromaGateway)
 
 
 @pytest.fixture
-def mock_chroma_documents():
+def mock_chroma_documents() -> Mock:
     return Mock(spec=ChromaGateway)
 
 
 @pytest.fixture
-def mock_tokenizer():
+def mock_tokenizer() -> Mock:
     return Mock(spec=TokenizerGateway)
 
 
 @pytest.fixture
-def mock_ollama_gateway():
+def mock_ollama_gateway() -> Mock:
     gateway = Mock(spec=OllamaGateway)
     gateway.calculate_embeddings.return_value = STUB_EMBEDDING
     return gateway
 
 
 @pytest.fixture
-def mock_config_gateway():
+def mock_config_gateway() -> Mock:
     return Mock(spec=ConfigGateway)
 
 
 @pytest.fixture
-def mock_global_config_gateway():
+def mock_global_config_gateway() -> Mock:
     return Mock(spec=GlobalConfigGateway)
 
 
 @pytest.fixture
-def mock_git_gateway():
+def mock_git_gateway() -> Mock:
     return Mock(spec=GitGateway)
 
 
 @pytest.fixture
-def mock_gateway():
+def mock_gateway() -> Mock:
     return Mock(spec=OllamaGateway)
