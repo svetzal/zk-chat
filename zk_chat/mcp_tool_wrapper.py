@@ -148,11 +148,11 @@ class MCPClientManager:
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.cleanup_sync()
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Self:
         await self.initialize()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         await self.cleanup()
 
     def _start_event_loop(self) -> None:
@@ -198,7 +198,7 @@ class MCPClientManager:
 
         self._stop_event_loop()
 
-    async def initialize(self):
+    async def initialize(self) -> None:
         """
         Initialize connections to all registered MCP servers.
 
@@ -309,7 +309,7 @@ class MCPClientManager:
         except (ConnectionError, OSError, TimeoutError) as e:
             logger.error("Failed to discover tools from MCP server", server_name=server_config.name, error=str(e))
 
-    async def cleanup(self):
+    async def cleanup(self) -> None:
         """Cleanup all client connections."""
         if not self._initialized:
             return
