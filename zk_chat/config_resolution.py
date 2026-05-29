@@ -10,6 +10,15 @@ from pydantic import BaseModel, ConfigDict
 
 from zk_chat.config import ModelGateway
 
+OPENAI_KEY_MISSING_ERROR = "OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway."
+
+
+def check_openai_key_required(gateway: ModelGateway, openai_key_present: bool) -> str | None:
+    """Return an error message if gateway is OpenAI and the key is missing, else None."""
+    if gateway == ModelGateway.OPENAI and not openai_key_present:
+        return OPENAI_KEY_MISSING_ERROR
+    return None
+
 
 class InitConfigAction(BaseModel):
     """
@@ -89,12 +98,9 @@ def validate_gateway_selection(
             error=f"Invalid gateway '{requested}'. Valid options are: {', '.join(g.value for g in ModelGateway)}",
         )
 
-    if new_gateway == ModelGateway.OPENAI and not openai_key_present:
-        return GatewayValidationResult(
-            gateway=current_gateway,
-            changed=False,
-            error="OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.",
-        )
+    error = check_openai_key_required(new_gateway, openai_key_present)
+    if error:
+        return GatewayValidationResult(gateway=current_gateway, changed=False, error=error)
 
     changed = new_gateway != current_gateway
     return GatewayValidationResult(gateway=new_gateway, changed=changed)
@@ -152,11 +158,9 @@ def determine_init_config_action(
 ) -> InitConfigAction:
     """Pure function — encodes all branching logic for gateway/chat/visual model without I/O."""
     gateway = ModelGateway(gateway_arg) if gateway_arg else ModelGateway.OLLAMA
-    if gateway == ModelGateway.OPENAI and not openai_key_present:
-        return InitConfigAction(
-            gateway=ModelGateway.OLLAMA,
-            error="Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.",
-        )
+    error = check_openai_key_required(gateway, openai_key_present)
+    if error:
+        return InitConfigAction(gateway=ModelGateway.OLLAMA, error=error)
 
     needs_chat_model_selection = model_arg is None or model_arg == "choose"
     chat_model_name = None if needs_chat_model_selection else model_arg
