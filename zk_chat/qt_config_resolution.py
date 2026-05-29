@@ -9,10 +9,13 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict
 
 from zk_chat.config import Config, ModelGateway
-from zk_chat.config_resolution import resolve_visual_model_selection
+from zk_chat.config_resolution import (
+    OPENAI_KEY_MISSING_ERROR,
+    check_openai_key_required,
+    resolve_visual_model_selection,
+)
 
 NONE_SENTINEL = "None - Disable Visual Analysis"
-_OPENAI_API_KEY_ERROR = "OPENAI_API_KEY environment variable is not set"
 
 
 class ModelListResolution(BaseModel):
@@ -63,14 +66,15 @@ def resolve_model_list_update(
     ModelListResolution
         All items and selection indices needed to populate the combos.
     """
-    if gateway == ModelGateway.OPENAI and not api_key_present:
+    error = check_openai_key_required(gateway, api_key_present)
+    if error:
         return ModelListResolution(
-            chat_model_items=[_OPENAI_API_KEY_ERROR],
+            chat_model_items=[OPENAI_KEY_MISSING_ERROR],
             chat_model_selected_index=0,
-            visual_model_items=[_OPENAI_API_KEY_ERROR],
+            visual_model_items=[OPENAI_KEY_MISSING_ERROR],
             visual_model_selected_index=0,
             is_error_state=True,
-            error_message=_OPENAI_API_KEY_ERROR,
+            error_message=OPENAI_KEY_MISSING_ERROR,
         )
 
     if current_chat_model in available_models:

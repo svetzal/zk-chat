@@ -5,6 +5,7 @@ from datetime import datetime
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
+from zk_chat.config_resolution import check_openai_key_required
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.index_resolution import determine_reindex_strategy
 from zk_chat.model_selection import select_model
@@ -138,8 +139,9 @@ def main(config_gateway: ConfigGateway, console_gateway: ConsoleGateway) -> None
 
     gateway = ModelGateway(args.gateway)
 
-    if gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
-        console_gateway.print("Error: OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway.")
+    error = check_openai_key_required(gateway, bool(os.environ.get("OPENAI_API_KEY")))
+    if error:
+        console_gateway.print(error)
         return
 
     config = config_gateway.load(vault_path)

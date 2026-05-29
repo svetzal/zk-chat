@@ -9,6 +9,7 @@ not unit-tested because they are thin wrappers around interactive I/O.
 import os
 
 from zk_chat.config import ModelGateway
+from zk_chat.config_resolution import check_openai_key_required
 from zk_chat.console_gateway import ConsoleGateway
 
 
@@ -33,9 +34,10 @@ def get_available_models(
     """
     from zk_chat.gateway_factory import create_model_gateway
 
-    if gateway == ModelGateway.OPENAI and not os.environ.get("OPENAI_API_KEY"):
+    error = check_openai_key_required(gateway, bool(os.environ.get("OPENAI_API_KEY")))
+    if error:
         if console_gateway is not None:
-            console_gateway.print("Error: OPENAI_API_KEY environment variable is not set.")
+            console_gateway.print(error)
         return []
     try:
         g = create_model_gateway(gateway)
