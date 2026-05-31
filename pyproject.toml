@@ -26,6 +26,7 @@ dependencies = [
 dev = [
     "ruff",
     "pytest",
+    "pytest-qt",
     "pytest-spec",
     "pytest-cov",
     "pytest-mock",
