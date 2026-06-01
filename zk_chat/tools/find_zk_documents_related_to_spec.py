@@ -2,10 +2,8 @@ import json
 
 import pytest
 
-from zk_chat.models import ZkDocument, ZkQueryDocumentResult
 from zk_chat.tools.conftest import _make_index_service
 from zk_chat.tools.find_zk_documents_related_to import FindZkDocumentsRelatedTo
-from zk_chat.tools.tool_helpers import format_model_results
 
 
 @pytest.fixture
@@ -16,50 +14,6 @@ def index_service(mock_chroma_documents, mock_filesystem):
 @pytest.fixture
 def tool(index_service, mock_console_gateway):
     return FindZkDocumentsRelatedTo(index_service, mock_console_gateway)
-
-
-class DescribeFormatDocumentResults:
-    """Tests for the format_model_results function with ZkQueryDocumentResult objects."""
-
-    def should_return_empty_json_array_for_no_results(self):
-        result = format_model_results([])
-
-        parsed = json.loads(result)
-        assert parsed == []
-
-    def should_serialize_single_result_to_json(self):
-        results = [
-            ZkQueryDocumentResult(
-                document=ZkDocument(relative_path="notes/doc.md", metadata={}, content="Content"),
-                distance=0.5,
-            )
-        ]
-
-        result = format_model_results(results)
-
-        parsed = json.loads(result)
-        assert len(parsed) == 1
-        assert parsed[0]["document"]["relative_path"] == "notes/doc.md"
-        assert parsed[0]["distance"] == 0.5
-
-    def should_serialize_multiple_results_preserving_order(self):
-        results = [
-            ZkQueryDocumentResult(
-                document=ZkDocument(relative_path="doc1", metadata={}, content="First"),
-                distance=0.8,
-            ),
-            ZkQueryDocumentResult(
-                document=ZkDocument(relative_path="doc2", metadata={}, content="Second"),
-                distance=0.7,
-            ),
-        ]
-
-        result = format_model_results(results)
-
-        parsed = json.loads(result)
-        assert len(parsed) == 2
-        assert parsed[0]["document"]["relative_path"] == "doc1"
-        assert parsed[1]["document"]["relative_path"] == "doc2"
 
 
 class DescribeFindZkDocumentsRelatedTo:
