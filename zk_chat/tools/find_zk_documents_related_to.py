@@ -1,26 +1,17 @@
-import structlog
-from mojentic.llm.tools.llm_tool import LLMTool
-
-from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.models import ZkQueryDocumentResult
-from zk_chat.services.index_service import IndexService
-from zk_chat.tools.tool_helpers import build_descriptor, format_model_results
-
-logger = structlog.get_logger()
+from zk_chat.tools.query_tool import QueryTool
+from zk_chat.tools.tool_helpers import build_descriptor
 
 
-class FindZkDocumentsRelatedTo(LLMTool):
-    def __init__(self, index_service: IndexService, console_gateway: ConsoleGateway) -> None:
-        self.index_service = index_service
-        self.console_gateway = console_gateway
-
-    def run(self, query: str) -> str:
+class FindZkDocumentsRelatedTo(QueryTool):
+    def _query(self, query: str) -> list[ZkQueryDocumentResult]:
         self.console_gateway.tool_info(f"Querying documents related to {query}")
-        document_results: list[ZkQueryDocumentResult] = self.index_service.query_documents(query)
-        self.console_gateway.tool_info(f"Found {len(document_results)} documents related to the query:")
-        for result in document_results:
+        return self.index_service.query_documents(query)
+
+    def _report(self, results: list[ZkQueryDocumentResult]) -> None:
+        self.console_gateway.tool_info(f"Found {len(results)} documents related to the query:")
+        for result in results:
             self.console_gateway.tool_info(f"  {result.document.title} (distance: {result.distance:.4f})")
-        return format_model_results(document_results)
 
     @property
     def descriptor(self) -> dict:
