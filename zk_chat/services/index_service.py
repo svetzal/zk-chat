@@ -61,13 +61,7 @@ class IndexService:
 
         logger.info("Starting reindex", total_files=total_files)
 
-        for i, relative_path in enumerate(all_files):
-            if progress_callback:
-                progress_callback(relative_path, i + 1, total_files)
-
-            self._index_document(relative_path, excerpt_size, excerpt_overlap)
-
-        self._last_indexed = datetime.now()
+        self._index_files(all_files, excerpt_size, excerpt_overlap, progress_callback)
         logger.info("Reindex completed", processed_files=total_files)
 
     def update_index(
@@ -99,13 +93,7 @@ class IndexService:
         total_files = len(files_to_process)
         logger.info("Starting incremental update", total_files=total_files, since=since)
 
-        for i, relative_path in enumerate(files_to_process):
-            if progress_callback:
-                progress_callback(relative_path, i + 1, total_files)
-
-            self._index_document(relative_path, excerpt_size, excerpt_overlap)
-
-        self._last_indexed = datetime.now()
+        self._index_files(files_to_process, excerpt_size, excerpt_overlap, progress_callback)
         logger.info("Incremental update completed", processed_files=total_files)
 
     def index_document(self, relative_path: str, excerpt_size: int = 500, excerpt_overlap: int = 100) -> None:
@@ -193,6 +181,20 @@ class IndexService:
             if query_result is not None:
                 results.append(query_result)
         return results
+
+    def _index_files(
+        self,
+        files: list[str],
+        excerpt_size: int,
+        excerpt_overlap: int,
+        progress_callback: ProgressCallback | None,
+    ) -> None:
+        total = len(files)
+        for i, relative_path in enumerate(files):
+            if progress_callback:
+                progress_callback(relative_path, i + 1, total)
+            self._index_document(relative_path, excerpt_size, excerpt_overlap)
+        self._last_indexed = datetime.now()
 
     def _index_document(self, relative_path: str, excerpt_size: int, excerpt_overlap: int) -> None:
         """Index a single document by reading and processing it."""
