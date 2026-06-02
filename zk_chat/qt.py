@@ -146,6 +146,14 @@ class ChatWorker(QThread):
         self.response_ready.emit(response)
 
 
+def _add_labeled_field(parent_layout: QVBoxLayout, label_text: str, *widgets: QWidget) -> None:
+    field_layout = QVBoxLayout()
+    field_layout.addWidget(QLabel(label_text))
+    for widget in widgets:
+        field_layout.addWidget(widget)
+    parent_layout.addLayout(field_layout)
+
+
 class SettingsDialog(QDialog):
     def __init__(
         self, config: Config, config_gateway: ConfigGateway, global_config_gateway: GlobalConfigGateway, parent=None
@@ -159,43 +167,25 @@ class SettingsDialog(QDialog):
 
         layout = QVBoxLayout()
 
-        folder_layout = QVBoxLayout()
-        folder_label = QLabel("Zettelkasten Folder:")
         self.folder_edit = QLineEdit(self.config.vault)
         browse_button = QPushButton("Browse...")
         browse_button.clicked.connect(self.browse_folder)
-        folder_layout.addWidget(folder_label)
-        folder_layout.addWidget(self.folder_edit)
-        folder_layout.addWidget(browse_button)
-        layout.addLayout(folder_layout)
+        _add_labeled_field(layout, "Zettelkasten Folder:", self.folder_edit, browse_button)
 
-        gateway_layout = QVBoxLayout()
-        gateway_label = QLabel("Model Gateway:")
         self.gateway_combo = QComboBox()
         self.gateway_combo.addItems([gateway.value for gateway in ModelGateway])
         current_gateway_index = self.gateway_combo.findText(self.config.gateway.value)
         if current_gateway_index >= 0:
             self.gateway_combo.setCurrentIndex(current_gateway_index)
         self.gateway_combo.currentIndexChanged.connect(self.update_model_list)
-        gateway_layout.addWidget(gateway_label)
-        gateway_layout.addWidget(self.gateway_combo)
-        layout.addLayout(gateway_layout)
+        _add_labeled_field(layout, "Model Gateway:", self.gateway_combo)
 
-        chat_model_layout = QVBoxLayout()
-        chat_model_label = QLabel("Chat Model:")
         self.chat_model_combo = QComboBox()
-        chat_model_layout.addWidget(chat_model_label)
-        chat_model_layout.addWidget(self.chat_model_combo)
-        layout.addLayout(chat_model_layout)
+        _add_labeled_field(layout, "Chat Model:", self.chat_model_combo)
 
-        visual_model_layout = QVBoxLayout()
-        visual_model_label = QLabel("Visual Analysis Model (optional):")
         self.visual_model_combo = QComboBox()
-        # Add a "None" option to disable visual analysis
         self.visual_model_combo.addItem("None - Disable Visual Analysis")
-        visual_model_layout.addWidget(visual_model_label)
-        visual_model_layout.addWidget(self.visual_model_combo)
-        layout.addLayout(visual_model_layout)
+        _add_labeled_field(layout, "Visual Analysis Model (optional):", self.visual_model_combo)
 
         self.update_model_list()
 
