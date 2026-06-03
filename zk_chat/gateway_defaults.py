@@ -18,6 +18,7 @@ from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.gateway_factory import create_model_gateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
+from zk_chat.mcp_tool_wrapper import MCPClientManager
 from zk_chat.tools.git_gateway import GitGateway
 
 
@@ -52,3 +53,7 @@ def create_default_tokenizer_gateway() -> TokenizerGateway:
 
 def create_default_git_gateway(vault: str) -> GitGateway:
     return GitGateway(vault)
+
+
+def create_default_mcp_client_manager(global_config_gateway: GlobalConfigGateway) -> MCPClientManager:
+    return MCPClientManager(global_config_gateway)

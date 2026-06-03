@@ -59,7 +59,7 @@ def _create_agent(
         )
 
 
-def agent(config: Config, global_config_gateway: GlobalConfigGateway) -> None:
+def agent(config: Config, global_config_gateway: GlobalConfigGateway, mcp_manager: MCPClientManager) -> None:
     global_config = global_config_gateway.load()
     if global_config.list_mcp_servers():
         print("Verifying MCP server availability...")
@@ -71,7 +71,7 @@ def agent(config: Config, global_config_gateway: GlobalConfigGateway) -> None:
             print("\nYou can continue, but these servers will not be accessible during the session.")
             print("Use 'zk-chat mcp verify' to check server status or 'zk-chat mcp list' to see all servers.\n")
 
-    with _create_agent(config, _mcp_manager=MCPClientManager(global_config_gateway)) as solver:
+    with _create_agent(config, _mcp_manager=mcp_manager) as solver:
         while True:
             query = input("Agent request: ")
             if not query:
@@ -81,7 +81,7 @@ def agent(config: Config, global_config_gateway: GlobalConfigGateway) -> None:
                 print(response)
 
 
-def agent_single_query(config: Config, query: str, global_config_gateway: GlobalConfigGateway) -> str:
+def agent_single_query(config: Config, query: str, mcp_manager: MCPClientManager) -> str:
     """
     Execute a single query using the agent and return the response.
 
@@ -91,13 +91,13 @@ def agent_single_query(config: Config, query: str, global_config_gateway: Global
         Configuration object
     query : str
         The query string to process
-    global_config_gateway : GlobalConfigGateway
-        Gateway for loading global configuration and MCP server settings
+    mcp_manager : MCPClientManager
+        MCP client manager for loading MCP tool integrations
 
     Returns
     -------
     str
         The agent's response as a string
     """
-    with _create_agent(config, _mcp_manager=MCPClientManager(global_config_gateway)) as solver:
+    with _create_agent(config, _mcp_manager=mcp_manager) as solver:
         return solver.solve(query)
