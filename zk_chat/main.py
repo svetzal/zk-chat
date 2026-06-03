@@ -27,7 +27,9 @@ from zk_chat.commands.mcp import mcp_app
 from zk_chat.gateway_defaults import (
     create_default_config_gateway,
     create_default_console_gateway,
+    create_default_filesystem_gateway,
     create_default_global_config_gateway,
+    create_default_mcp_client_manager,
 )
 from zk_chat.init_options import InitOptions
 
@@ -114,6 +116,7 @@ def main(
     ctx.obj["console_gateway"] = create_default_console_gateway()
     ctx.obj["global_config_gateway"] = create_default_global_config_gateway()
     ctx.obj["config_gateway"] = create_default_config_gateway()
+    ctx.obj["filesystem_gateway_factory"] = create_default_filesystem_gateway
 
     if version:
         from importlib.metadata import PackageNotFoundError
@@ -180,7 +183,8 @@ def interactive(
         use_git=git,
         store_prompt=store_prompt,
     )
-    _run_agent(config, global_config_gateway)
+    mcp_manager = create_default_mcp_client_manager(global_config_gateway)
+    _run_agent(config, global_config_gateway, mcp_manager)
 
 
 @app.command()
@@ -254,7 +258,8 @@ def query(
     console_gateway.print(f"[bold cyan]Query:[/] {prompt}")
     console_gateway.print("[dim]Using agent for autonomous problem solving...[/]\n")
 
-    result = agent_single_query(config, prompt, global_config_gateway)
+    mcp_manager = create_default_mcp_client_manager(global_config_gateway)
+    result = agent_single_query(config, prompt, mcp_manager)
     console_gateway.print(f"\n[bold green]Response:[/]\n{result}")
 
 

@@ -154,7 +154,7 @@ def status(
     )
 
     from zk_chat.services.vault_status_service import VaultStatusService
-    filesystem_gateway = create_default_filesystem_gateway(vault_path)
+    filesystem_gateway = ctx.obj.get("filesystem_gateway_factory", create_default_filesystem_gateway)(vault_path)
     vault_status = VaultStatusService(filesystem_gateway)
     console_gateway.print(f"[bold cyan]Index Status[/] - {vault_path}")
     _print_basic_config(config, console_gateway)
