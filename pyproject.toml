@@ -18,8 +18,8 @@ dependencies = [
     "mojentic>=1.5.0",
     "pyside6>=6.11.1",
     "rich>=15.0.0",
-    "typer>=0.25.0",
-    "fastmcp>=3.3.1,<4.0.0",
+    "typer>=0.26.7",
+    "fastmcp>=3.4.0,<4.0.0",
 ]
 
 [project.optional-dependencies]
