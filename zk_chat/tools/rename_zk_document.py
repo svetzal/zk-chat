@@ -4,7 +4,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 from zk_chat.filename_utils import ensure_md_extension, sanitize_filename
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
-from zk_chat.tools.tool_helpers import build_descriptor
+from zk_chat.tools.tool_helpers import build_descriptor, log_and_return_error
 
 logger = structlog.get_logger()
 
@@ -27,17 +27,14 @@ class RenameZkDocument(LLMTool):
 
             return f"Successfully renamed document from '{source_path}' to '{target_path}'"
         except FileNotFoundError as e:
-            error_message = f"Failed to rename document: {str(e)}"
-            logger.error(error_message)
-            return error_message
+            return log_and_return_error(logger, f"Failed to rename document: {str(e)}")
         except OSError as e:
-            error_message = (
+            return log_and_return_error(
+                logger,
                 f"Failed to rename document from '{source_path}' to '{target_path}': "
                 f"{str(e)}. This could be due to insufficient permissions, "
-                f"the target file already existing, or other filesystem issues."
+                f"the target file already existing, or other filesystem issues.",
             )
-            logger.error(error_message)
-            return error_message
 
     @property
     def descriptor(self) -> dict:

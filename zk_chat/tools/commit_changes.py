@@ -6,7 +6,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.text_processing import strip_thinking
 from zk_chat.tools.git_gateway import GitGateway
-from zk_chat.tools.tool_helpers import build_descriptor
+from zk_chat.tools.tool_helpers import GitToolError, build_descriptor, checked
 
 logger = structlog.get_logger()
 
@@ -26,28 +26,19 @@ class CommitChanges(LLMTool):
         self.console_gateway.tool_info("Committing changes in vault folder")
 
         try:
-            success, message = self.git.add_all_files()
-            if not success:
-                return f"Error adding files: {message}"
-
-            success, status_output = self.git.get_status()
-            if not success:
-                return f"Error checking status: {status_output}"
+            checked(self.git.add_all_files(), "Error adding files")
+            status_output = checked(self.git.get_status(), "Error checking status")
 
             if not status_output.strip():
                 return "No changes to commit in the vault folder."
 
-            success, diff_output = self.git.get_diff()
-            if not success:
-                return f"Error getting diff: {diff_output}"
-
+            diff_output = checked(self.git.get_diff(), "Error getting diff")
             commit_message = self._generate_commit_message(diff_output)
-
-            success, commit_output = self.git.commit(commit_message)
-            if not success:
-                return f"Error committing changes: {commit_output}"
+            checked(self.git.commit(commit_message), "Error committing changes")
 
             return f"Successfully committed changes: '{commit_message}'"
+        except GitToolError as e:
+            return str(e)
         except (OSError, ConnectionError) as e:
             logger.error("Unexpected error", error=str(e))
             return f"Unexpected error committing changes: {str(e)}"

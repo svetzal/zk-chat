@@ -1,8 +1,25 @@
 import json
+import logging
 
 from pydantic import BaseModel
 
 from zk_chat.services.document_service import DocumentService
+
+
+class GitToolError(Exception):
+    pass
+
+
+def checked(result: tuple[bool, str], error_prefix: str) -> str:
+    success, payload = result
+    if not success:
+        raise GitToolError(f"{error_prefix}: {payload}")
+    return payload
+
+
+def log_and_return_error(logger: logging.Logger, message: str) -> str:
+    logger.error(message)
+    return message
 
 
 def build_descriptor(
