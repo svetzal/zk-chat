@@ -1,16 +1,48 @@
 import json
 from unittest.mock import Mock
 
+import pytest
 from pydantic import BaseModel
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.document_service import DocumentService
-from zk_chat.tools.tool_helpers import build_descriptor, check_document_exists, format_model_results
+from zk_chat.tools.tool_helpers import (
+    GitToolError,
+    build_descriptor,
+    check_document_exists,
+    checked,
+    format_model_results,
+    log_and_return_error,
+)
 
 
 class SimpleModel(BaseModel):
     name: str
     value: int
+
+
+class DescribeChecked:
+    def should_return_payload_on_success(self):
+        result = checked((True, "ok"), "Error prefix")
+
+        assert result == "ok"
+
+    def should_raise_git_tool_error_on_failure(self):
+        with pytest.raises(GitToolError) as exc_info:
+            checked((False, "boom"), "Error getting diff")
+
+        assert str(exc_info.value) == "Error getting diff: boom"
+
+
+class DescribeLogAndReturnError:
+    def should_call_logger_error_and_return_message(self):
+        mock_logger = Mock()
+        message = "Something went wrong"
+
+        result = log_and_return_error(mock_logger, message)
+
+        mock_logger.error.assert_called_once_with(message)
+        assert result == message
 
 
 class DescribeBuildDescriptor:

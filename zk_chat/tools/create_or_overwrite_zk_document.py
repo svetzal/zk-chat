@@ -8,7 +8,7 @@ from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.filename_utils import ensure_md_extension, sanitize_filename
 from zk_chat.models import ZkDocument
 from zk_chat.services.document_service import DocumentService
-from zk_chat.tools.tool_helpers import build_descriptor
+from zk_chat.tools.tool_helpers import build_descriptor, log_and_return_error
 
 logger = structlog.get_logger()
 
@@ -52,20 +52,18 @@ class CreateOrOverwriteZkDocument(LLMTool):
             self.document_service.write_document(document)
             return f"Successfully wrote to {document.relative_path}\n{document.model_dump_json()}"
         except OSError as e:
-            error_message = (
+            return log_and_return_error(
+                logger,
                 f"Failed to write document to {document.relative_path}: {str(e)}. This could "
                 f"be due to insufficient permissions, disk space issues, "
-                f"or the directory being read-only."
+                f"or the directory being read-only.",
             )
-            logger.error(error_message)
-            return error_message
         except yaml.YAMLError as e:
-            error_message = (
+            return log_and_return_error(
+                logger,
                 f"Failed to serialize metadata for document {document.relative_path}: {str(e)}. Please check if "
-                f"the metadata contains valid YAML content."
+                f"the metadata contains valid YAML content.",
             )
-            logger.error(error_message)
-            return error_message
 
     @property
     def descriptor(self) -> dict:

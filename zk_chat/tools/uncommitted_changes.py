@@ -3,7 +3,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.tools.git_gateway import GitGateway
-from zk_chat.tools.tool_helpers import build_descriptor
+from zk_chat.tools.tool_helpers import GitToolError, build_descriptor, checked
 
 logger = structlog.get_logger()
 
@@ -18,18 +18,15 @@ class UncommittedChanges(LLMTool):
         self.console_gateway.tool_info("Getting uncommitted changes in vault folder")
 
         try:
-            success, message = self.git.add_all_files()
-            if not success:
-                return f"Error adding files: {message}"
-
-            success, diff_output = self.git.get_diff()
-            if not success:
-                return f"Error getting diff: {diff_output}"
+            checked(self.git.add_all_files(), "Error adding files")
+            diff_output = checked(self.git.get_diff(), "Error getting diff")
 
             if not diff_output.strip():
                 return "No uncommitted changes in the vault folder."
 
             return f"Uncommitted changes in the vault folder:\n{diff_output}"
+        except GitToolError as e:
+            return str(e)
         except OSError as e:
             logger.error("Unexpected error", error=str(e))
             return f"Unexpected error getting uncommitted changes: {str(e)}"
