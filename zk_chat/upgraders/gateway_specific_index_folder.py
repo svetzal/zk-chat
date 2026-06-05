@@ -11,23 +11,30 @@ from zk_chat.config import Config, ModelGateway
 
 
 class Upgrader:
+    """Base class for one-time migration steps applied to a vault on startup."""
+
     def should_run(self) -> bool:
+        """Return ``True`` when this upgrader's preconditions are met and migration is needed."""
         return False
 
     def run(self) -> None:
-        pass
+        """Execute the migration; called only when ``should_run`` returns ``True``."""
 
 
 class GatewaySpecificIndexFolder(Upgrader):
+    """Migrate a flat ``.zk_chat_db`` directory to a per-gateway subdirectory layout."""
+
     def __init__(self, config: Config) -> None:
         self.config = config
 
     @property
     def db_dir(self) -> Path:
+        """Absolute path to the vault's ``.zk_chat_db`` root directory."""
         return Path(self.config.vault) / ".zk_chat_db"
 
     @property
     def index_dir(self) -> Path:
+        """Absolute path to the gateway-specific subdirectory inside ``db_dir``."""
         return self.db_dir / self.config.gateway.value
 
     @override

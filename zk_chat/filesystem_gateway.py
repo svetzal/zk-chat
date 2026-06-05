@@ -82,6 +82,7 @@ class FilesystemGateway:
         return self._get_full_path(relative_path)
 
     def iterate_files_by_extensions(self, extensions: list[str]) -> Iterator[str]:
+        """Yield relative paths for every file under ``root_path`` whose extension is in ``extensions``."""
         import os
 
         for root, _dirs, files in os.walk(self.root_path):

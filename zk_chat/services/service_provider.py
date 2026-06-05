@@ -118,12 +118,46 @@ class ServiceProvider:
         return self._registry.get_service(ServiceType.DIAGNOSTIC_SERVICE)
 
     def get_service(self, service_type: ServiceType, expected_type: type[T] | None = None) -> T | None:
+        """Look up a service by type, optionally asserting its concrete type.
+
+        Parameters
+        ----------
+        service_type : ServiceType
+            The registry key identifying the desired service.
+        expected_type : type[T] | None
+            When provided, the returned value is cast to this type for static analysis.
+
+        Returns
+        -------
+        T | None
+            The registered service instance, or ``None`` if not registered.
+        """
         return self._registry.get_service(service_type, expected_type)
 
     def has_service(self, service_type: ServiceType) -> bool:
+        """Return ``True`` if the given service type is registered, ``False`` otherwise."""
         return self._registry.has_service(service_type)
 
     def require_service(self, service_type: ServiceType, expected_type: type[T] | None = None) -> T:
+        """Look up a service, raising ``RuntimeError`` when it is not registered.
+
+        Parameters
+        ----------
+        service_type : ServiceType
+            The registry key identifying the desired service.
+        expected_type : type[T] | None
+            When provided, the returned value is cast to this type for static analysis.
+
+        Returns
+        -------
+        T
+            The registered service instance.
+
+        Raises
+        ------
+        RuntimeError
+            If the service has not been registered in the underlying registry.
+        """
         service = self._registry.get_service(service_type, expected_type)
         if service is None:
             raise RuntimeError(f"Required service {service_type.value} is not available")

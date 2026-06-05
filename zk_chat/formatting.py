@@ -28,6 +28,7 @@ class VaultHealth(BaseModel):
 
 
 def format_file_size(size_bytes: int) -> str:
+    """Format a byte count as a human-readable KB/MB/GB string."""
     if size_bytes < 1024 * 1024:
         return f"{size_bytes / 1024:.1f} KB"
     if size_bytes < 1024 * 1024 * 1024:
@@ -56,6 +57,7 @@ def categorize_index_age(last_indexed: datetime, now: datetime) -> IndexAge:
 
 
 def assess_vault_health(last_indexed: datetime | None, markdown_count: int) -> VaultHealth:
+    """Derive a ``VaultHealth`` summary from index recency and the number of markdown files."""
     if markdown_count == 0:
         return VaultHealth(status="no_files", message="No markdown files found in vault")
     if last_indexed is not None:
@@ -78,6 +80,13 @@ def calculate_advance(current_count: int, last_count: int) -> int:
 
 
 def validate_progress_params(advance: int | None, completed: int | None) -> tuple[int | None, int | None]:
+    """Ensure exactly one of ``advance`` / ``completed`` is set, defaulting ``advance`` to 1 when both are ``None``.
+
+    Raises
+    ------
+    ValueError
+        If both ``advance`` and ``completed`` are provided simultaneously.
+    """
     if advance is not None and completed is not None:
         raise ValueError("Cannot specify both 'advance' and 'completed' parameters")
     if advance is None and completed is None:

@@ -41,6 +41,8 @@ from zk_chat.vault_path import normalize_vault_path
 
 
 class LoadingSpinnerWidget(QWidget):
+    """An indeterminate progress bar used to indicate a pending async operation."""
+
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         layout = QHBoxLayout(self)
@@ -57,6 +59,8 @@ class LoadingSpinnerWidget(QWidget):
 
 
 class ChatMessageWidget(QWidget):
+    """A single chat message row displaying a role label alongside formatted content."""
+
     def __init__(self, role: str, content: str = "", loading: bool = False, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.role = role
@@ -134,6 +138,8 @@ class ChatMessageWidget(QWidget):
 
 
 class ChatWorker(QThread):
+    """Background thread that sends a query to the chat session and emits the response."""
+
     response_ready = Signal(str)
 
     def __init__(self, chat_session: ChatSession, query: str) -> None:
@@ -142,6 +148,7 @@ class ChatWorker(QThread):
         self.query = query
 
     def run(self) -> None:
+        """Send the query to the chat session and emit ``response_ready`` with the result."""
         response = self.chat_session.send(self.query)
         self.response_ready.emit(response)
 
@@ -155,6 +162,8 @@ def _add_labeled_field(parent_layout: QVBoxLayout, label_text: str, *widgets: QW
 
 
 class SettingsDialog(QDialog):
+    """Modal dialog for editing vault path, model gateway, and model selections."""
+
     def __init__(
         self, config: Config, config_gateway: ConfigGateway, global_config_gateway: GlobalConfigGateway, parent=None
     ) -> None:
@@ -201,6 +210,7 @@ class SettingsDialog(QDialog):
             self.folder_edit.setText(folder)
 
     def update_model_list(self) -> None:
+        """Refresh the chat and visual model combo boxes for the currently selected gateway."""
         gateway = ModelGateway(self.gateway_combo.currentText())
         api_key_present = bool(os.environ.get("OPENAI_API_KEY"))
         available_models = get_available_models(gateway)
@@ -222,6 +232,7 @@ class SettingsDialog(QDialog):
         self.visual_model_combo.setCurrentIndex(resolution.visual_model_selected_index)
 
     def save_settings(self) -> None:
+        """Persist dialog selections to config and global config, then close the dialog."""
         new_vault_path = normalize_vault_path(self.folder_edit.text())
         new_gateway = ModelGateway(self.gateway_combo.currentText())
         new_chat_model = self.chat_model_combo.currentText()
@@ -252,6 +263,8 @@ class SettingsDialog(QDialog):
 
 
 class MainWindow(QMainWindow):
+    """Primary application window containing the chat history and message input."""
+
     def __init__(self, config_gateway: ConfigGateway, global_config_gateway: GlobalConfigGateway) -> None:
         super().__init__()
         self.config_gateway = config_gateway
@@ -336,6 +349,7 @@ class MainWindow(QMainWindow):
         splitter.setSizes([400, 200])
 
     def initialize_chat_session(self) -> None:
+        """Build a fresh ``ChatSession`` from the current vault config, replacing any prior session."""
         components = build_tools_from_config(self.config)
         self.chat_session = ChatSession(
             components.llm_broker,
@@ -350,6 +364,22 @@ class MainWindow(QMainWindow):
             self.initialize_chat_session()
 
     def append_message(self, role: str, content: str = "", loading: bool = False) -> ChatMessageWidget:
+        """Add a new message widget to the chat history and scroll to it.
+
+        Parameters
+        ----------
+        role : str
+            Display label for the message sender (e.g. ``"User"`` or ``"Assistant"``).
+        content : str
+            Markdown-formatted message body (ignored when ``loading`` is ``True``).
+        loading : bool
+            When ``True``, show a spinner instead of content until updated.
+
+        Returns
+        -------
+        ChatMessageWidget
+            The newly added widget, which callers can later update via ``set_content``.
+        """
         if self.messages_layout.count() > 0:
             stretch_item = self.messages_layout.itemAt(self.messages_layout.count() - 1)
             if stretch_item.spacerItem():
@@ -368,6 +398,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def send_message(self) -> None:
+        """Read the input field, display the user message, and start a background ``ChatWorker``."""
         message = self.chat_input.toPlainText().strip()
         if not message:
             return
@@ -382,6 +413,7 @@ class MainWindow(QMainWindow):
         self.worker.start()
 
     def update_assistant_response(self, widget: ChatMessageWidget, response: str) -> None:
+        """Replace the loading spinner on ``widget`` with the LLM response text."""
         widget.set_loading(False)
         widget.set_content(response)
         # Ensure we scroll to see the complete response
@@ -391,6 +423,7 @@ class MainWindow(QMainWindow):
 
 
 def main() -> None:
+    """Application entry point: create the Qt app, build the main window, and start the event loop."""
     app = QApplication(sys.argv)
     config_gateway = create_default_config_gateway()
     global_config_gateway = create_default_global_config_gateway()

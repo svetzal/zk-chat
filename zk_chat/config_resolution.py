@@ -58,6 +58,8 @@ class ModelUpdateAction(BaseModel):
 
 
 class GatewayValidationResult(BaseModel):
+    """Outcome of validating a requested gateway switch, including error details if invalid."""
+
     model_config = ConfigDict(frozen=True)
 
     gateway: ModelGateway
@@ -66,6 +68,8 @@ class GatewayValidationResult(BaseModel):
 
 
 class VaultResolutionResult(BaseModel):
+    """Resolved vault path with the source that provided it (argument, bookmark, or none)."""
+
     model_config = ConfigDict(frozen=True)
 
     vault_path: str | None
@@ -74,6 +78,8 @@ class VaultResolutionResult(BaseModel):
 
 
 class ModelActionResult(BaseModel):
+    """Decision about which model to use, including whether interactive selection is needed."""
+
     model_config = ConfigDict(frozen=True)
 
     model_name: str | None
@@ -86,6 +92,11 @@ def validate_gateway_selection(
     current_gateway: ModelGateway,
     openai_key_present: bool,
 ) -> GatewayValidationResult:
+    """Validate a requested gateway string and return the result of the switch.
+
+    Returns the current gateway unchanged (with ``changed=False``) when ``requested``
+    is ``None``, unknown, or would require a missing OpenAI API key.
+    """
     if not requested:
         return GatewayValidationResult(gateway=current_gateway, changed=False)
 
@@ -111,6 +122,10 @@ def resolve_vault_from_args(
     bookmarks: list[str],
     last_opened: str | None,
 ) -> VaultResolutionResult:
+    """Resolve which vault to open from CLI arguments or bookmark history.
+
+    Priority: explicit ``arg_vault`` > ``last_opened`` bookmark > error (no vault available).
+    """
     if arg_vault:
         return VaultResolutionResult(vault_path=arg_vault, source="argument")
 
@@ -128,6 +143,11 @@ def determine_model_action(
     model_arg: str | None,
     available_models: list[str],
 ) -> ModelActionResult:
+    """Decide whether to use ``model_arg`` directly or prompt the user interactively.
+
+    ``None`` or ``"choose"`` always triggers interactive selection.
+    An unrecognised model name also triggers interactive selection with an error message.
+    """
     if model_arg is None or model_arg == "choose":
         return ModelActionResult(model_name=None, needs_interactive_selection=True)
 
@@ -145,6 +165,7 @@ def resolve_visual_model_selection(
     selected_text: str,
     none_sentinel: str = "None - Disable Visual Analysis",
 ) -> str | None:
+    """Convert a combo-box selection to a model name, returning ``None`` for the disable sentinel."""
     if selected_text == none_sentinel:
         return None
     return selected_text
@@ -200,6 +221,7 @@ def determine_model_update_action(
     visual_model_arg: str | None,
     has_existing_visual_model: bool,
 ) -> ModelUpdateAction:
+    """Determine which model fields to update when an existing vault config is present."""
     update_chat_model = model_arg is not None
     chat_model_name = None if model_arg in (None, "choose") else model_arg
 
