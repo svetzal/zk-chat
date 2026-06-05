@@ -26,6 +26,7 @@ class ChromaGateway:
         self._collections: dict[ZkCollectionName, Collection] = {}
 
     def get_collection(self, collection_name: ZkCollectionName) -> Collection:
+        """Return the named ChromaDB collection, creating it if it does not yet exist."""
         if collection_name not in self._collections:
             self._collections[collection_name] = self.chroma_client.get_or_create_collection(
                 name=collection_name.value,
@@ -41,6 +42,7 @@ class ChromaGateway:
         embeddings: list[list[float]],
         collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN,
     ) -> None:
+        """Upsert documents with their embeddings into the specified collection."""
         collection = self.get_collection(collection_name)
         collection.upsert(
             ids=ids,
@@ -55,10 +57,12 @@ class ChromaGateway:
         ids: list[str] | None = None,
         where: dict | None = None,
     ) -> None:
+        """Remove documents from a collection by id list or metadata filter."""
         collection = self.get_collection(collection_name)
         collection.delete(ids=ids, where=where)
 
     def reset_indexes(self, collection_name: ZkCollectionName | None = None) -> None:
+        """Drop and recreate the specified collection, or reset the entire database when ``None``."""
         if collection_name:
             try:
                 self.chroma_client.delete_collection(collection_name.value)
@@ -77,5 +81,6 @@ class ChromaGateway:
         n_results: int,
         collection_name: ZkCollectionName = ZkCollectionName.ZETTELKASTEN,
     ) -> dict:
+        """Run a nearest-neighbour search and return the raw ChromaDB result dict."""
         collection = self.get_collection(collection_name)
         return collection.query(query_embeddings=query_embeddings, n_results=n_results)

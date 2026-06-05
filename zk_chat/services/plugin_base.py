@@ -99,11 +99,14 @@ class ZkChatPlugin(LLMTool):
 
     @property
     def vault_path(self) -> str | None:
+        """Absolute path to the current vault, or ``None`` when no vault config is loaded."""
         config = self.config
         return config.vault if config else None
 
     def require_service(self, service_type: ServiceType) -> Any:
+        """Return the requested service, raising ``RuntimeError`` if it is not registered."""
         return self._service_provider.require_service(service_type)
 
     def has_service(self, service_type: ServiceType) -> bool:
+        """Return ``True`` if the given service type is registered, ``False`` otherwise."""
         return self._service_provider.has_service(service_type)

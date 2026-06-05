@@ -27,18 +27,23 @@ class GitGateway:
             return False, str(e)
 
     def add_all_files(self) -> tuple[bool, str]:
+        """Stage all changes in the working tree (``git add --all``)."""
         return self._run_git_command(["git", "add", "--all"])
 
     def get_status(self) -> tuple[bool, str]:
+        """Return the porcelain status output listing modified and untracked files."""
         return self._run_git_command(["git", "status", "--porcelain"])
 
     def get_diff(self) -> tuple[bool, str]:
+        """Return the unified diff of all changes since the last commit."""
         return self._run_git_command(["git", "diff", "HEAD"])
 
     def commit(self, message: str) -> tuple[bool, str]:
+        """Create a commit with the given message; returns ``(False, stderr)`` on failure."""
         return self._run_git_command(["git", "commit", "-m", message])
 
     def setup(self) -> None:
+        """Initialise a git repository in the vault if one does not already exist."""
         gitignore_path = os.path.join(self.base_path, ".gitignore")
         if not os.path.exists(gitignore_path):
             with open(gitignore_path, "w") as f:

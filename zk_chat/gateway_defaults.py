@@ -39,6 +39,7 @@ def create_default_model_gateway(gateway_type: ModelGateway) -> OllamaGateway | 
 
 
 def create_default_chroma_gateway(config: Config) -> ChromaGateway:
+    """Create a ``ChromaGateway`` whose database is stored in ``<vault>/.zk_chat_db``."""
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     return ChromaGateway(config.gateway, db_dir=db_dir)
 
@@ -56,4 +57,5 @@ def create_default_git_gateway(vault: str) -> GitGateway:
 
 
 def create_default_mcp_client_manager(global_config_gateway: GlobalConfigGateway) -> MCPClientManager:
+    """Create an ``MCPClientManager`` wired to the provided global config gateway."""
     return MCPClientManager(global_config_gateway)

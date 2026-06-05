@@ -36,6 +36,20 @@ class ProgressTracker:
         self._current_operation = ""
 
     def start_progress(self, description: str = "Processing", total: int | None = None) -> TaskID:
+        """Start a new Rich progress display and return the task ID.
+
+        Parameters
+        ----------
+        description : str
+            Label shown next to the progress bar.
+        total : int | None
+            Known item count; pass ``None`` for an indeterminate (spinner-only) bar.
+
+        Returns
+        -------
+        TaskID
+            The Rich task identifier, usable with ``update_progress`` and ``set_total``.
+        """
         if self._progress is not None:
             logger.warning("Progress already started, stopping previous session")
             self.stop_progress()
@@ -67,6 +81,11 @@ class ProgressTracker:
         description: str | None = None,
         current_file: str | None = None,
     ) -> None:
+        """Advance or set the progress bar position and update display fields.
+
+        Exactly one of ``advance`` or ``completed`` may be provided; if neither is
+        given the bar advances by 1.
+        """
         if self._progress is None or self._main_task is None:
             logger.warning("Progress not started, cannot update")
             return
@@ -87,6 +106,7 @@ class ProgressTracker:
         self._progress.update(self._main_task, **update_kwargs)
 
     def set_total(self, total: int) -> None:
+        """Update the known total item count after the progress bar has already started."""
         if self._progress is None or self._main_task is None:
             logger.warning("Progress not started, cannot set total")
             return
@@ -102,6 +122,11 @@ class ProgressTracker:
             logger.info("Stopped progress tracking")
 
     def create_callback(self) -> ProgressCallback:
+        """Return a callback suitable for passing to indexing operations.
+
+        The returned callable has signature ``(current_file: str, processed: int, total: int) -> None``.
+        On the first call (``processed == 1``) it sets the bar total; subsequent calls advance it by 1.
+        """
         def callback(current_file: str, processed: int, total: int) -> None:
             if processed == 1:  # First file, set total if not already set
                 self.set_total(total)
@@ -117,6 +142,8 @@ class ProgressTracker:
 
 
 class IndexingProgressTracker(ProgressTracker):
+    """Specialised progress tracker with two-phase display: scanning then indexing."""
+
     def __init__(
         self,
         console: Console | None = None,
@@ -126,10 +153,12 @@ class IndexingProgressTracker(ProgressTracker):
         self._last_processed_count = 0
 
     def start_scanning(self, description: str = "Scanning vault for markdown files...") -> None:
+        """Begin the indeterminate scanning phase before the file count is known."""
         self.start_progress(description, total=None)
         self._last_processed_count = 0
 
     def finish_scanning(self, file_count: int) -> None:
+        """Transition from scanning to indexing phase by setting the known file count as the bar total."""
         if self._progress and self._main_task is not None:
             self._progress.update(
                 self._main_task,
@@ -141,6 +170,7 @@ class IndexingProgressTracker(ProgressTracker):
             self._last_processed_count = 0
 
     def update_file_processing(self, filename: str, processed_count: int) -> None:
+        """Advance the progress bar by the delta between ``processed_count`` and the last recorded count."""
         from zk_chat.formatting import calculate_advance, extract_display_name
 
         display_name = extract_display_name(filename)
