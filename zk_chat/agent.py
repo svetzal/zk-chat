@@ -4,6 +4,7 @@ from typing import Any
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config
+from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
 from zk_chat.mcp_client import verify_all_mcp_servers
@@ -59,26 +60,33 @@ def _create_agent(
         )
 
 
-def agent(config: Config, global_config_gateway: GlobalConfigGateway, mcp_manager: MCPClientManager) -> None:
+def agent(
+    config: Config,
+    global_config_gateway: GlobalConfigGateway,
+    mcp_manager: MCPClientManager,
+    console_gateway: ConsoleGateway,
+) -> None:
     global_config = global_config_gateway.load()
     if global_config.list_mcp_servers():
-        print("Verifying MCP server availability...")
+        console_gateway.print("Verifying MCP server availability...")
         unavailable = verify_all_mcp_servers(global_config_gateway)
         if unavailable:
-            print("\nWarning: The following MCP servers are unavailable:")
+            console_gateway.print("\nWarning: The following MCP servers are unavailable:")
             for name in unavailable:
-                print(f"  - {name}")
-            print("\nYou can continue, but these servers will not be accessible during the session.")
-            print("Use 'zk-chat mcp verify' to check server status or 'zk-chat mcp list' to see all servers.\n")
+                console_gateway.print(f"  - {name}")
+            console_gateway.print("\nYou can continue, but these servers will not be accessible during the session.")
+            console_gateway.print(
+                "Use 'zk-chat mcp verify' to check server status or 'zk-chat mcp list' to see all servers.\n"
+            )
 
     with _create_agent(config, _mcp_manager=mcp_manager) as solver:
         while True:
-            query = input("Agent request: ")
+            query = console_gateway.input("Agent request: ")
             if not query:
                 break
             else:
                 response = solver.solve(query)
-                print(response)
+                console_gateway.print(response)
 
 
 def agent_single_query(config: Config, query: str, mcp_manager: MCPClientManager) -> str:

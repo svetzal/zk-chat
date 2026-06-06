@@ -1,13 +1,14 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 from mojentic.llm import LLMBroker
 from mojentic.llm.gateways import OllamaGateway
 from mojentic.llm.gateways.models import LLMMessage, MessageRole
 
-from zk_chat.agent import _create_agent
+from zk_chat.agent import _create_agent, agent
 from zk_chat.config import Config, ModelGateway
-from zk_chat.global_config import GlobalConfig
+from zk_chat.console_gateway import ConsoleGateway
+from zk_chat.global_config import GlobalConfig, MCPServerConfig
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
 from zk_chat.mcp_tool_wrapper import MCPClientManager
@@ -136,3 +137,42 @@ class DescribeAgentSingleQuery:
 
         all_messages = [m for call in mock_gateway.complete.call_args_list for m in call.kwargs.get("messages", [])]
         assert any(test_query in m.content for m in all_messages)
+
+
+class DescribeAgent:
+    def should_print_mcp_warning_when_servers_unavailable(self, config):
+        mock_global_config_gateway = Mock(spec=GlobalConfigGateway)
+        mock_global_config = GlobalConfig()
+        mock_global_config.mcp_servers = {
+            "test-server": MCPServerConfig(name="test-server", server_type="stdio", command="echo")
+        }
+        mock_global_config_gateway.load.return_value = mock_global_config
+        mock_mcp_manager = _make_real_mcp_manager()
+        mock_console_gateway = Mock(spec=ConsoleGateway)
+        mock_console_gateway.input.return_value = ""
+        mock_solver = Mock()
+        mock_solver.__enter__ = Mock(return_value=mock_solver)
+        mock_solver.__exit__ = Mock(return_value=False)
+
+        with patch("zk_chat.agent.verify_all_mcp_servers", return_value=["test-server"]):
+            with patch("zk_chat.agent._create_agent", return_value=mock_solver):
+                agent(config, mock_global_config_gateway, mock_mcp_manager, mock_console_gateway)
+
+        print_calls = [str(call) for call in mock_console_gateway.print.call_args_list]
+        assert any("Warning" in c for c in print_calls)
+        assert any("test-server" in c for c in print_calls)
+
+    def should_exit_loop_on_empty_input(self, config):
+        mock_global_config_gateway = Mock(spec=GlobalConfigGateway)
+        mock_global_config_gateway.load.return_value = GlobalConfig()
+        mock_mcp_manager = _make_real_mcp_manager()
+        mock_console_gateway = Mock(spec=ConsoleGateway)
+        mock_console_gateway.input.return_value = ""
+        mock_solver = Mock()
+        mock_solver.__enter__ = Mock(return_value=mock_solver)
+        mock_solver.__exit__ = Mock(return_value=False)
+
+        with patch("zk_chat.agent._create_agent", return_value=mock_solver):
+            agent(config, mock_global_config_gateway, mock_mcp_manager, mock_console_gateway)
+
+        mock_console_gateway.input.assert_called_once()
