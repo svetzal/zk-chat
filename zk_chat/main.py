@@ -184,7 +184,7 @@ def interactive(
         store_prompt=store_prompt,
     )
     mcp_manager = create_default_mcp_client_manager(global_config_gateway)
-    _run_agent(config, global_config_gateway, mcp_manager)
+    _run_agent(config, global_config_gateway, mcp_manager, ctx.obj["console_gateway"])
 
 
 @app.command()

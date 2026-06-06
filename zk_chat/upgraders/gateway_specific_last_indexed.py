@@ -5,9 +5,13 @@ if sys.version_info >= (3, 12):
 else:
     from typing_extensions import override
 
+import structlog
+
 from zk_chat.config import Config
 from zk_chat.config_gateway import ConfigGateway
 from zk_chat.upgraders.gateway_specific_index_folder import Upgrader
+
+logger = structlog.get_logger()
 
 
 class GatewaySpecificLastIndexed(Upgrader):
@@ -29,5 +33,5 @@ class GatewaySpecificLastIndexed(Upgrader):
         # Migrate the last_indexed value to the gateway-specific dictionary
         if self.config.last_indexed is not None:
             self.config.set_last_indexed(self.config.last_indexed)
-            print(f"Migrated last_indexed value to gateway-specific storage for {self.config.gateway.value}")
+            logger.info("Migrated last_indexed to gateway-specific storage", gateway=self.config.gateway.value)
             self.config_gateway.save(self.config)

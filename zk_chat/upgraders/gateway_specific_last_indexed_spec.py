@@ -60,7 +60,7 @@ class DescribeGatewaySpecificLastIndexed:
             assert upgrader.should_run() is False
 
     class DescribeRun:
-        def should_migrate_last_indexed_to_gateway_specific_storage(self, config, mock_config_gateway):
+        def should_migrate_last_indexed_to_gateway_specific_storage(self, config, mock_config_gateway, capsys):
             test_timestamp = datetime(2024, 6, 15, 12, 0, 0)
             config.last_indexed = test_timestamp
             upgrader = GatewaySpecificLastIndexed(config, mock_config_gateway)
@@ -68,6 +68,7 @@ class DescribeGatewaySpecificLastIndexed:
             upgrader.run()
 
             assert config.gateway_last_indexed[ModelGateway.OLLAMA.value] == test_timestamp
+            assert capsys.readouterr().out == ""
 
         def should_save_config_via_gateway_after_migration(self, config, mock_config_gateway):
             config.last_indexed = datetime(2024, 6, 15)
