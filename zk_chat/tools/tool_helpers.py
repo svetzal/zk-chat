@@ -1,6 +1,6 @@
 import json
-import logging
 
+import structlog
 from pydantic import BaseModel
 
 from zk_chat.services.document_service import DocumentService
@@ -36,7 +36,7 @@ def checked(result: tuple[bool, str], error_prefix: str) -> str:
     return payload
 
 
-def log_and_return_error(logger: logging.Logger, message: str) -> str:
+def log_and_return_error(logger: structlog.stdlib.BoundLogger, message: str) -> str:
     """Log ``message`` at ERROR level and return it, for inline use in tool ``run`` methods."""
     logger.error(message)
     return message

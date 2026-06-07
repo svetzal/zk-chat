@@ -48,23 +48,19 @@ def get_available_models(
     return g.get_available_models()
 
 
-def _prompt_input(prompt: str, console_gateway: ConsoleGateway | None) -> str:
-    if console_gateway is not None:
-        return console_gateway.input(prompt)
-    return input(prompt)
+def _prompt_input(prompt: str, console_gateway: ConsoleGateway) -> str:
+    return console_gateway.input(prompt)
 
 
-def _print_message(message: str, console_gateway: ConsoleGateway | None) -> None:
-    if console_gateway is not None:
-        console_gateway.print(message)
-    else:
-        print(message)
+def _print_message(message: str, console_gateway: ConsoleGateway) -> None:
+    console_gateway.print(message)
 
 
 def select_model(
     gateway: ModelGateway = ModelGateway.OLLAMA,
     is_visual: bool = False,
-    console_gateway: ConsoleGateway | None = None,
+    *,
+    console_gateway: ConsoleGateway,
 ) -> str:
     """
     Interactively prompt the user to select a model from available options.
@@ -75,8 +71,8 @@ def select_model(
         Gateway to query for available models.
     is_visual : bool
         If True, the prompt describes visual analysis model selection.
-    console_gateway : ConsoleGateway | None
-        Console gateway for interactive I/O. If None, falls back to bare input/print.
+    console_gateway : ConsoleGateway
+        Console gateway for interactive I/O.
 
     Returns
     -------
