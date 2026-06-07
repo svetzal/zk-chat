@@ -10,11 +10,15 @@ logger = structlog.get_logger()
 
 
 class RenameZkDocument(LLMTool):
+    """LLM tool that renames a document in the vault and updates the search index."""
+
     def __init__(self, document_service: DocumentService, index_service: IndexService) -> None:
+        """Store the document service and index service used during rename operations."""
         self.document_service = document_service
         self.index_service = index_service
 
     def run(self, source_title: str, target_title: str) -> str:
+        """Rename a document from ``source_title`` to ``target_title``, updating the index."""
         source_path = ensure_md_extension(sanitize_filename(source_title))
         target_path = ensure_md_extension(sanitize_filename(target_title))
 
@@ -38,6 +42,7 @@ class RenameZkDocument(LLMTool):
 
     @property
     def descriptor(self) -> dict:
+        """Return the OpenAI-style function descriptor for the ``rename_document`` tool."""
         return build_descriptor(
             name="rename_document",
             description="Change the name or path of an existing document in the Zettelkasten knowledge base. "

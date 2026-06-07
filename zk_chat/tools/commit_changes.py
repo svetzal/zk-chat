@@ -12,17 +12,21 @@ logger = structlog.get_logger()
 
 
 class CommitChanges(LLMTool):
+    """LLM tool that stages all vault changes, generates a commit message via LLM, and commits."""
+
     base_path: str
     llm: LLMBroker
     git: GitGateway
 
     def __init__(self, base_path: str, llm: LLMBroker, git: GitGateway, console_gateway: ConsoleGateway) -> None:
+        """Store the vault path, LLM broker, git gateway, and console gateway for commit operations."""
         self.base_path = base_path
         self.llm = llm
         self.git = git
         self.console_gateway = console_gateway
 
     def run(self) -> str:
+        """Stage all changes, generate an LLM commit message, commit, and return a status string."""
         self.console_gateway.tool_info("Committing changes in vault folder")
 
         try:
@@ -77,6 +81,7 @@ Output only the commit message, no other text, do not put it in code fences.
 
     @property
     def descriptor(self) -> dict:
+        """Return the OpenAI-style function descriptor for the ``commit_changes`` tool."""
         return build_descriptor(
             name="commit_changes",
             description="Save all changes made to the Zettelkasten knowledge base by "

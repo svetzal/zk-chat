@@ -4,11 +4,15 @@ from zk_chat.tools.tool_helpers import build_descriptor
 
 
 class FindExcerptsRelatedTo(QueryTool):
+    """LLM tool that retrieves semantically similar excerpt chunks from the index."""
+
     def _query(self, query: str) -> list[ZkQueryExcerptResult]:
+        """Query the excerpt index and return ranked ``ZkQueryExcerptResult`` objects."""
         self.console_gateway.tool_info(f"Querying excerpts related to {query}")
         return self.index_service.query_excerpts(query, max_distance=None)
 
     def _report(self, results: list[ZkQueryExcerptResult]) -> None:
+        """Emit a tool-info summary of each excerpt result including title, distance, and preview."""
         self.console_gateway.tool_info(f"Found {len(results)} excerpts:")
         for result in results:
             title = result.excerpt.document_title
@@ -19,6 +23,7 @@ class FindExcerptsRelatedTo(QueryTool):
 
     @property
     def descriptor(self) -> dict:
+        """Return the OpenAI-style function descriptor for the ``find_excerpts`` tool."""
         return build_descriptor(
             name="find_excerpts",
             description="Search for specific passages or excerpts within documents in the "

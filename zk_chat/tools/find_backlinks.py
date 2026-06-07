@@ -9,7 +9,10 @@ logger = structlog.get_logger()
 
 
 class FindBacklinks(LLMTool):
+    """LLM tool that finds all documents in the vault that link to a given target document."""
+
     def __init__(self, link_service: LinkTraversalService, console_gateway: ConsoleGateway) -> None:
+        """Store the link traversal service and console gateway used to discover backlinks."""
         self.link_service = link_service
         self.console_gateway = console_gateway
 
@@ -34,6 +37,7 @@ class FindBacklinks(LLMTool):
 
     @property
     def descriptor(self) -> dict:
+        """Return the OpenAI-style function descriptor for the ``find_backlinks`` tool."""
         return build_descriptor(
             name="find_backlinks",
             description=(

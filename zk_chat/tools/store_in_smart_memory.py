@@ -9,17 +9,22 @@ logger = structlog.get_logger()
 
 
 class StoreInSmartMemory(LLMTool):
+    """LLM tool that persists a fact or context snippet into the vector-backed smart memory."""
+
     def __init__(self, smart_memory: SmartMemory, console_gateway: ConsoleGateway) -> None:
+        """Store the smart memory service and console gateway used during write operations."""
         self.memory = smart_memory
         self.console_gateway = console_gateway
 
     def run(self, information: str) -> str:
+        """Store ``information`` in smart memory and return a confirmation string."""
         self.console_gateway.tool_info(f"Storing information to memory: {information}")
         self.memory.store(information)
         return "Information stored in long term memory."
 
     @property
     def descriptor(self) -> dict:
+        """Return the OpenAI-style function descriptor for the ``store_in_smart_memory`` tool."""
         return build_descriptor(
             name="store_in_smart_memory",
             description="Store important facts and contextual information about the user "
