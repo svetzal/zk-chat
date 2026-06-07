@@ -10,12 +10,15 @@ logger = structlog.get_logger()
 
 
 class FindForwardLinks(LLMTool):
+    """LLM tool that finds all documents linked from a source document via wikilinks."""
+
     def __init__(
         self,
         document_service: DocumentService,
         link_service: LinkTraversalService,
         console_gateway: ConsoleGateway,
     ) -> None:
+        """Store the services needed to verify existence and traverse forward links."""
         self.document_service = document_service
         self.link_service = link_service
         self.console_gateway = console_gateway
@@ -44,6 +47,7 @@ class FindForwardLinks(LLMTool):
 
     @property
     def descriptor(self) -> dict:
+        """Return the OpenAI-style function descriptor for the ``find_forward_links`` tool."""
         return build_descriptor(
             name="find_forward_links",
             description=(

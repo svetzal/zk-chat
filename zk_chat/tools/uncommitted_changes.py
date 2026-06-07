@@ -9,12 +9,16 @@ logger = structlog.get_logger()
 
 
 class UncommittedChanges(LLMTool):
+    """LLM tool that shows all staged-but-uncommitted changes in the vault as a git diff."""
+
     def __init__(self, base_path: str, git: GitGateway, console_gateway: ConsoleGateway) -> None:
+        """Store the vault path, git gateway, and console gateway used to inspect changes."""
         self.base_path = base_path
         self.git = git
         self.console_gateway = console_gateway
 
     def run(self) -> str:
+        """Stage all files and return the current git diff, or a no-changes message."""
         self.console_gateway.tool_info("Getting uncommitted changes in vault folder")
 
         try:
@@ -33,6 +37,7 @@ class UncommittedChanges(LLMTool):
 
     @property
     def descriptor(self) -> dict:
+        """Return the OpenAI-style function descriptor for the ``get_uncommitted_changes`` tool."""
         return build_descriptor(
             name="get_uncommitted_changes",
             description="View all changes made to the Zettelkasten knowledge base that "

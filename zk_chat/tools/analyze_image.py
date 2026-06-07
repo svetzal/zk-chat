@@ -9,12 +9,16 @@ logger = structlog.get_logger()
 
 
 class AnalyzeImage(LLMTool):
+    """LLM tool that submits a vault image to the visual LLM and returns a plain-text description."""
+
     def __init__(self, fs: MarkdownFilesystemGateway, llm: LLMBroker, _message_builder_factory=None) -> None:
+        """Store the filesystem gateway, LLM broker, and optional message-builder factory."""
         self.fs = fs
         self.llm = llm
         self._message_builder_factory = _message_builder_factory or MessageBuilder
 
     def run(self, relative_path: str) -> str:
+        """Analyze the image at ``relative_path`` and return a plain-text description from the LLM."""
         logger.info("Analyzing image", relative_path=relative_path)
         if not self.fs.path_exists(relative_path):
             return f"Image not found at {relative_path}"
@@ -30,6 +34,7 @@ class AnalyzeImage(LLMTool):
 
     @property
     def descriptor(self) -> dict:
+        """Return the OpenAI-style function descriptor for the ``analyze_image`` tool."""
         return build_descriptor(
             name="analyze_image",
             description="Analyze the contents of an image, returning a full description of "

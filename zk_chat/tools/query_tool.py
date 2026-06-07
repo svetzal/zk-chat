@@ -14,10 +14,12 @@ class QueryTool(LLMTool):
     """Base for tools that query the index and return JSON-serialized results."""
 
     def __init__(self, index_service: IndexService, console_gateway: ConsoleGateway) -> None:
+        """Store the index service and console gateway for use by subclass implementations."""
         self.index_service = index_service
         self.console_gateway = console_gateway
 
     def run(self, query: str) -> str:
+        """Execute the query, emit console feedback, and return JSON-serialized results."""
         results = self._query(query)
         self._report(results)
         return format_model_results(results)

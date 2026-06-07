@@ -40,11 +40,15 @@ def prepare_document(title: str, content: str, metadata: dict[str, Any] | None =
 
 
 class CreateOrOverwriteZkDocument(LLMTool):
+    """LLM tool that creates a new document or completely replaces an existing one."""
+
     def __init__(self, document_service: DocumentService, console_gateway: ConsoleGateway) -> None:
+        """Store the document service and console gateway used during write operations."""
         self.document_service = document_service
         self.console_gateway = console_gateway
 
     def run(self, title: str, content: str, metadata: dict[str, Any] | None = None) -> str:
+        """Write a document to the vault, creating or replacing it, and return a status message."""
         document = prepare_document(title, content, metadata)
         self.console_gateway.tool_info(f"Writing document at {document.relative_path}")
         try:
@@ -67,6 +71,7 @@ class CreateOrOverwriteZkDocument(LLMTool):
 
     @property
     def descriptor(self) -> dict:
+        """Return the OpenAI-style function descriptor for the ``create_or_overwrite_document`` tool."""
         return build_descriptor(
             name="create_or_overwrite_document",
             description="Create a new document or update an existing document in the Zettelkasten knowledge "

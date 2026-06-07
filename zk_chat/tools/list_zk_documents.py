@@ -9,7 +9,10 @@ logger = structlog.get_logger()
 
 
 class ListZkDocuments(LLMTool):
+    """LLM tool that lists all document paths in the Zettelkasten vault."""
+
     def __init__(self, document_service: DocumentService, console_gateway: ConsoleGateway) -> None:
+        """Store the document service and console gateway used to enumerate documents."""
         self.document_service = document_service
         self.console_gateway = console_gateway
 
@@ -27,6 +30,7 @@ class ListZkDocuments(LLMTool):
 
     @property
     def descriptor(self) -> dict:
+        """Return the OpenAI-style function descriptor for the ``list_documents`` tool."""
         return build_descriptor(
             name="list_documents",
             description="List all document paths in the Zettelkasten knowledge base. Use "

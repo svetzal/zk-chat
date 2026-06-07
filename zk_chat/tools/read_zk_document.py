@@ -8,10 +8,14 @@ logger = structlog.get_logger()
 
 
 class ReadZkDocument(LLMTool):
+    """LLM tool that reads and returns the full content of a Zettelkasten document."""
+
     def __init__(self, document_service: DocumentService) -> None:
+        """Store the document service used to fetch document content."""
         self.document_service = document_service
 
     def run(self, relative_path: str) -> str:
+        """Read a document by its relative path and return its JSON-serialized content."""
         logger.info("Reading document", relative_path=relative_path)
         error = check_document_exists(self.document_service, relative_path)
         if error:
@@ -22,6 +26,7 @@ class ReadZkDocument(LLMTool):
 
     @property
     def descriptor(self) -> dict:
+        """Return the OpenAI-style function descriptor for the ``read_document`` tool."""
         return build_descriptor(
             name="read_document",
             description="Retrieve and read the full content of a specific document from "

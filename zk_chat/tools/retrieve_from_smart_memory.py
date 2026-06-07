@@ -9,6 +9,7 @@ logger = structlog.get_logger()
 
 
 def format_memory_results(documents: list[list[str]], distances: list[list[float]]) -> str:
+    """Format ChromaDB query results into a ranked, human-readable relevance string."""
     formatted_results = []
     for i, (doc, distance) in enumerate(zip(documents, distances, strict=False), 1):
         if len(distance) > 0:
@@ -22,11 +23,15 @@ def format_memory_results(documents: list[list[str]], distances: list[list[float
 
 
 class RetrieveFromSmartMemory(LLMTool):
+    """LLM tool that retrieves relevant facts from vector-backed smart memory by semantic query."""
+
     def __init__(self, smart_memory: SmartMemory, console_gateway: ConsoleGateway) -> None:
+        """Store the smart memory service and console gateway used during retrieval."""
         self.memory = smart_memory
         self.console_gateway = console_gateway
 
     def run(self, query: str) -> str:
+        """Query smart memory for facts related to ``query`` and return a formatted string."""
         self.console_gateway.tool_info(f"Checking memory for anything about {query}")
         results = self.memory.retrieve(query, 10)
         information = format_memory_results(results["documents"], results["distances"])
@@ -35,6 +40,7 @@ class RetrieveFromSmartMemory(LLMTool):
 
     @property
     def descriptor(self) -> dict:
+        """Return the OpenAI-style function descriptor for the ``retrieve_from_smart_memory`` tool."""
         return build_descriptor(
             name="retrieve_from_smart_memory",
             description="Search for stored facts and context about the user that might "

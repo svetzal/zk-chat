@@ -9,7 +9,10 @@ logger = structlog.get_logger()
 
 
 class ListZkImages(LLMTool):
+    """LLM tool that lists all image files (JPG, JPEG, PNG) in the Zettelkasten vault."""
+
     def __init__(self, fs: MarkdownFilesystemGateway, console_gateway: ConsoleGateway) -> None:
+        """Store the filesystem gateway and console gateway used to enumerate images."""
         self.fs = fs
         self.console_gateway = console_gateway
 
@@ -28,6 +31,7 @@ class ListZkImages(LLMTool):
 
     @property
     def descriptor(self) -> dict:
+        """Return the OpenAI-style function descriptor for the ``list_images`` tool."""
         return build_descriptor(
             name="list_images",
             description="List all image file paths in the Zettelkasten vault. Returns "

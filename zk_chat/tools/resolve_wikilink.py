@@ -8,12 +8,16 @@ logger = structlog.get_logger()
 
 
 class ResolveWikiLink(LLMTool):
+    """LLM tool that resolves a wikilink string to its corresponding vault relative path."""
+
     fs: MarkdownFilesystemGateway
 
     def __init__(self, fs: MarkdownFilesystemGateway) -> None:
+        """Store the filesystem gateway used to walk the vault and match wikilink titles."""
         self.fs = fs
 
     def run(self, wikilink: str) -> str:
+        """Resolve ``wikilink`` to a relative path, or return an error if unresolvable."""
         logger.info("Resolving wikilink", wikilink=wikilink)
 
         try:
@@ -24,6 +28,7 @@ class ResolveWikiLink(LLMTool):
 
     @property
     def descriptor(self) -> dict:
+        """Return the OpenAI-style function descriptor for the ``resolve_wikilink`` tool."""
         return build_descriptor(
             name="resolve_wikilink",
             description="Determine if a wikilink is valid (eg [[link title]]), and if so "
