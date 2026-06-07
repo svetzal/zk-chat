@@ -37,84 +37,102 @@ class ServiceProvider:
     """
 
     def __init__(self, registry: ServiceRegistry) -> None:
+        """Wrap a ``ServiceRegistry`` to provide typed, convenience accessors."""
         self._registry = registry
         self._logger = logger
 
     def get_filesystem_gateway(self) -> "MarkdownFilesystemGateway | None":
+        """Return the registered ``MarkdownFilesystemGateway``, or ``None`` if not registered."""
         from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 
         return self._registry.get_service(ServiceType.FILESYSTEM_GATEWAY, MarkdownFilesystemGateway)
 
     def get_llm_broker(self) -> "LLMBroker | None":
+        """Return the registered ``LLMBroker``, or ``None`` if not registered."""
         from mojentic.llm import LLMBroker
 
         return self._registry.get_service(ServiceType.LLM_BROKER, LLMBroker)
 
     def get_smart_memory(self) -> "SmartMemory | None":
+        """Return the registered ``SmartMemory`` service, or ``None`` if not registered."""
         from zk_chat.memory.smart_memory import SmartMemory
 
         return self._registry.get_service(ServiceType.SMART_MEMORY, SmartMemory)
 
     def get_chroma_gateway(self) -> "ChromaGateway | None":
+        """Return the registered ``ChromaGateway``, or ``None`` if not registered."""
         from zk_chat.chroma_gateway import ChromaGateway
 
         return self._registry.get_service(ServiceType.CHROMA_GATEWAY, ChromaGateway)
 
     def get_model_gateway(self) -> Any | None:
+        """Return the registered model gateway (Ollama or OpenAI), or ``None`` if not registered."""
         return self._registry.get_service(ServiceType.MODEL_GATEWAY)
 
     def get_tokenizer_gateway(self) -> "TokenizerGateway | None":
+        """Return the registered ``TokenizerGateway``, or ``None`` if not registered."""
         from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 
         return self._registry.get_service(ServiceType.TOKENIZER_GATEWAY, TokenizerGateway)
 
     def get_git_gateway(self) -> "GitGateway | None":
+        """Return the registered ``GitGateway``, or ``None`` if git integration is disabled."""
         from zk_chat.tools.git_gateway import GitGateway
 
         return self._registry.get_service(ServiceType.GIT_GATEWAY, GitGateway)
 
     def get_config(self) -> "Config | None":
+        """Return the registered vault ``Config``, or ``None`` if not registered."""
         from zk_chat.config import Config
 
         return self._registry.get_service(ServiceType.CONFIG, Config)
 
     def get_config_gateway(self) -> "ConfigGateway | None":
+        """Return the registered ``ConfigGateway``, or ``None`` if not registered."""
         from zk_chat.config_gateway import ConfigGateway
 
         return self._registry.get_service(ServiceType.CONFIG_GATEWAY, ConfigGateway)
 
     def get_global_config_gateway(self) -> "GlobalConfigGateway | None":
+        """Return the registered ``GlobalConfigGateway``, or ``None`` if not registered."""
         from zk_chat.global_config_gateway import GlobalConfigGateway
 
         return self._registry.get_service(ServiceType.GLOBAL_CONFIG_GATEWAY, GlobalConfigGateway)
 
     def get_document_service(self) -> "DocumentService | None":
+        """Return the registered ``DocumentService``, or ``None`` if not registered."""
         from zk_chat.services.document_service import DocumentService
 
         return self._registry.get_service(ServiceType.DOCUMENT_SERVICE, DocumentService)
 
     def get_index_service(self) -> "IndexService | None":
+        """Return the registered ``IndexService``, or ``None`` if not registered."""
         from zk_chat.services.index_service import IndexService
 
         return self._registry.get_service(ServiceType.INDEX_SERVICE, IndexService)
 
     def get_link_traversal_service(self) -> "LinkTraversalService | None":
+        """Return the registered ``LinkTraversalService``, or ``None`` if not registered."""
         from zk_chat.services.link_traversal_service import LinkTraversalService
 
         return self._registry.get_service(ServiceType.LINK_TRAVERSAL_SERVICE, LinkTraversalService)
 
     def get_console_gateway(self) -> "ConsoleGateway | None":
+        """Return the registered ``ConsoleGateway``, or ``None`` if not registered."""
         from zk_chat.console_gateway import ConsoleGateway
 
         return self._registry.get_service(ServiceType.CONSOLE_GATEWAY, ConsoleGateway)
 
     def get_mcp_service(self) -> "MCPService | None":
+        """Return the registered ``MCPService``, or ``None`` if MCP is not configured."""
         return self._registry.get_service(ServiceType.MCP_SERVICE)
 
     def get_vault_status_service(self) -> "VaultStatusService | None":
+        """Return the registered ``VaultStatusService``, or ``None`` if not registered."""
         return self._registry.get_service(ServiceType.VAULT_STATUS_SERVICE)
 
     def get_diagnostic_service(self) -> "DiagnosticService | None":
+        """Return the registered ``DiagnosticService``, or ``None`` if not registered."""
         return self._registry.get_service(ServiceType.DIAGNOSTIC_SERVICE)
 
     def get_service(self, service_type: ServiceType, expected_type: type[T] | None = None) -> T | None:
