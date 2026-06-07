@@ -25,6 +25,7 @@ class GatewaySpecificIndexFolder(Upgrader):
     """Migrate a flat ``.zk_chat_db`` directory to a per-gateway subdirectory layout."""
 
     def __init__(self, config: Config) -> None:
+        """Store the vault config used to determine database and gateway paths."""
         self.config = config
 
     @property
@@ -39,6 +40,7 @@ class GatewaySpecificIndexFolder(Upgrader):
 
     @override
     def should_run(self) -> bool:
+        """Return ``True`` when the db dir exists but the gateway-specific sub-directory does not."""
         if self.db_dir.exists():
             if not self.index_dir.exists():
                 return True
@@ -46,6 +48,7 @@ class GatewaySpecificIndexFolder(Upgrader):
 
     @override
     def run(self) -> None:
+        """Move all non-gateway items from ``db_dir`` into ``index_dir`` to complete the migration."""
         sqlite_file = self.db_dir / "chroma.sqlite3"
         if not self.index_dir.exists() or sqlite_file.exists():
             self.index_dir.mkdir(parents=True, exist_ok=True)

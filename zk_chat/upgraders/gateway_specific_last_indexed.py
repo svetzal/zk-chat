@@ -20,17 +20,18 @@ class GatewaySpecificLastIndexed(Upgrader):
     """
 
     def __init__(self, config: Config, config_gateway: ConfigGateway) -> None:
+        """Store the vault config and config gateway used to read and persist the migration."""
         self.config = config
         self.config_gateway = config_gateway
 
     @override
     def should_run(self) -> bool:
-        # Run if we have a last_indexed value but no gateway-specific values
+        """Return ``True`` when a legacy ``last_indexed`` value exists with no gateway-specific entries."""
         return self.config.last_indexed is not None and not self.config.gateway_last_indexed
 
     @override
     def run(self) -> None:
-        # Migrate the last_indexed value to the gateway-specific dictionary
+        """Copy ``last_indexed`` into the gateway-specific store and persist the updated config."""
         if self.config.last_indexed is not None:
             self.config.set_last_indexed(self.config.last_indexed)
             logger.info("Migrated last_indexed to gateway-specific storage", gateway=self.config.gateway.value)
