@@ -8,25 +8,31 @@ class FilesystemGateway:
     """Gateway for filesystem operations to abstract OS dependencies."""
 
     def __init__(self, root_path: str) -> None:
+        """Anchor all path operations to ``root_path`` as the vault root."""
         self.root_path = root_path
 
     def join_paths(self, *paths: str) -> str:
+        """Join path components using the OS separator, delegating to ``os.path.join``."""
         return os.path.join(*paths)
 
     def path_exists(self, relative_path: str) -> bool:
+        """Return ``True`` if the file or directory at ``relative_path`` exists on disk."""
         full_path = self._get_full_path(relative_path)
         return os.path.exists(full_path)
 
     def get_modified_time(self, relative_path: str) -> datetime:
+        """Return the last-modified ``datetime`` for the file at ``relative_path``."""
         full_path = self._get_full_path(relative_path)
         return datetime.fromtimestamp(os.path.getmtime(full_path))
 
     def get_directory_path(self, relative_path: str) -> str:
+        """Return the relative directory path containing the file at ``relative_path``."""
         full_path = self._get_full_path(relative_path)
         full_dir_path = os.path.dirname(full_path)
         return self._get_relative_path(full_dir_path)
 
     def create_directory(self, relative_path: str) -> None:
+        """Create the directory at ``relative_path`` (and any missing parents) inside the vault."""
         full_path = self._get_full_path(relative_path)
         os.makedirs(full_path)
 
@@ -37,11 +43,13 @@ class FilesystemGateway:
         return self.join_paths(self.root_path, relative_path)
 
     def read_file(self, relative_path: str) -> str:
+        """Read and return the full text content of the file at ``relative_path``."""
         full_path = self._get_full_path(relative_path)
         with open(full_path) as f:
             return f.read()
 
     def write_file(self, relative_path: str, content: str) -> None:
+        """Write ``content`` to the file at ``relative_path``, creating or replacing it."""
         full_path = self._get_full_path(relative_path)
         with open(full_path, "w") as f:
             f.write(content)

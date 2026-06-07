@@ -8,13 +8,20 @@ from zk_chat.markdown.markdown_utilities import MarkdownUtilities
 
 
 class WikiLink(BaseModel):
+    """Parsed representation of an Obsidian-style ``[[title|caption]]`` wikilink."""
+
     title: str
     caption: str | None
 
     @classmethod
     def parse(cls, value: str) -> "WikiLink":
-        # parse incoming value according to [[title|caption]] where the caption is optional
-        # Use a regex
+        """Parse ``value`` in ``[[title]]`` or ``[[title|caption]]`` format into a ``WikiLink``.
+
+        Raises
+        ------
+        ValueError
+            If ``value`` does not match the expected wikilink format.
+        """
         pattern = r"\[\[(.*?)(?:\|(.*?))?\]\]"
         match = re.match(pattern, value)
 
@@ -27,6 +34,7 @@ class WikiLink(BaseModel):
         return WikiLink(title=title, caption=caption)
 
     def __str__(self) -> str:
+        """Render the wikilink back to ``[[title]]`` or ``[[title|caption]]`` syntax."""
         result = self.title
         if self.caption:
             result += f"|{self.caption}"
@@ -38,6 +46,13 @@ class MarkdownFilesystemGateway(FilesystemGateway):
     handling."""
 
     def resolve_wikilink(self, wikilink: str) -> str:
+        """Resolve a wikilink string to a relative vault path by scanning the filesystem.
+
+        Raises
+        ------
+        ValueError
+            If no file matching the wikilink title is found in the vault.
+        """
         link = WikiLink.parse(wikilink)
         for root, _, files in self._walk_filesystem():
             for file in files:

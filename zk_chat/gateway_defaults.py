@@ -23,18 +23,22 @@ from zk_chat.tools.git_gateway import GitGateway
 
 
 def create_default_global_config_gateway() -> GlobalConfigGateway:
+    """Create a ``GlobalConfigGateway`` reading from the default ``~/.zk_chat`` location."""
     return GlobalConfigGateway()
 
 
 def create_default_config_gateway() -> ConfigGateway:
+    """Create a ``ConfigGateway`` reading vault config from the default ``.zk_chat`` file."""
     return ConfigGateway()
 
 
 def create_default_console_gateway() -> ConsoleGateway:
+    """Create a ``ConsoleGateway`` with the application-wide Rich theme applied."""
     return ConsoleGateway()
 
 
 def create_default_model_gateway(gateway_type: ModelGateway) -> OllamaGateway | OpenAIGateway:
+    """Create the appropriate model gateway (Ollama or OpenAI) for the given ``gateway_type``."""
     return create_model_gateway(gateway_type)
 
 
@@ -45,14 +49,17 @@ def create_default_chroma_gateway(config: Config) -> ChromaGateway:
 
 
 def create_default_filesystem_gateway(vault: str) -> MarkdownFilesystemGateway:
+    """Create a ``MarkdownFilesystemGateway`` rooted at the given ``vault`` directory."""
     return MarkdownFilesystemGateway(vault)
 
 
 def create_default_tokenizer_gateway() -> TokenizerGateway:
+    """Create a ``TokenizerGateway`` using the default tokenizer configuration."""
     return TokenizerGateway()
 
 
 def create_default_git_gateway(vault: str) -> GitGateway:
+    """Create a ``GitGateway`` operating on the git repository at ``vault``."""
     return GitGateway(vault)
 
 
