@@ -6,6 +6,7 @@ Manages MCP (Model Context Protocol) server connections.
 
 from typing import Annotated
 
+import structlog
 import typer
 from rich.table import Table
 
@@ -13,6 +14,8 @@ from zk_chat.commands.config_helpers import show_help_if_no_subcommand
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.global_config import MCPServerType
 from zk_chat.services.mcp_service import MCPService, MCPValidationError
+
+logger = structlog.get_logger()
 
 mcp_app = typer.Typer(
     name="mcp", help="🔌 Manage MCP (Model Context Protocol) server connections", rich_markup_mode="rich"
@@ -62,6 +65,7 @@ def add(
 
     [bold yellow]💡 Tip:[/] Use --no-verify to skip availability check during registration.
     """
+    logger.info("mcp add command invoked", name=name, server_type=server_type)
     console_gateway = ctx.obj["console_gateway"]
     service = ctx.obj["mcp_service"]
     args_list = [arg.strip() for arg in args.split(",") if arg.strip()] if args else []
@@ -69,6 +73,7 @@ def add(
     try:
         server_config = service.register_server(name, server_type, command, url, args_list)
     except MCPValidationError as e:
+        logger.error("MCP server registration failed", name=name, error=str(e))
         console_gateway.print(f"[red]❌ Error:[/] {e}")
         raise typer.Exit(1) from e
 

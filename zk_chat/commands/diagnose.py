@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from typing import Annotated
 
+import structlog
 import typer
 from rich.panel import Panel
 from rich.table import Table
@@ -23,6 +24,8 @@ from zk_chat.services.diagnostic_service import (
     EmbeddingTestResult,
 )
 from zk_chat.services.service_provider import ServiceProvider
+
+logger = structlog.get_logger()
 
 diagnose_app = typer.Typer(name="diagnose", help="🔬 Diagnose index and search issues", rich_markup_mode="rich")
 
@@ -133,6 +136,7 @@ def index(
     query: Annotated[str | None, typer.Option("--query", "-q", help="Test query to run")] = None,
 ) -> None:
     """Diagnose the search index to identify why queries aren't returning results."""
+    logger.info("diagnose index command invoked", vault=str(vault) if vault else None, query=query)
     console_gateway = ctx.obj["console_gateway"]
     vault_path, config = resolve_vault_and_load_config(
         vault, ctx.obj["global_config_gateway"], ctx.obj["config_gateway"],
@@ -141,6 +145,7 @@ def index(
     console_gateway.print(Panel(f"[bold cyan]Index Diagnostics[/] - {vault_path}", expand=False))
     db_dir = os.path.join(config.vault, ".zk_chat_db")
     if not os.path.exists(db_dir):
+        logger.warning("Database directory does not exist", db_dir=db_dir)
         console_gateway.print("\n[red]❌ Database directory does not exist![/]")
         console_gateway.print(f"[dim]Expected: {db_dir}[/]")
         console_gateway.print("\n[yellow]Run:[/] [cyan]zk-chat index update[/] to create the index")

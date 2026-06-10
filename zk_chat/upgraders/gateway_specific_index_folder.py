@@ -7,7 +7,11 @@ if sys.version_info >= (3, 12):
 else:
     from typing_extensions import override
 
+import structlog
+
 from zk_chat.config import Config, ModelGateway
+
+logger = structlog.get_logger()
 
 
 class Upgrader:
@@ -49,6 +53,7 @@ class GatewaySpecificIndexFolder(Upgrader):
     @override
     def run(self) -> None:
         """Move all non-gateway items from ``db_dir`` into ``index_dir`` to complete the migration."""
+        logger.info("Migrating to gateway-specific index folder", gateway=self.config.gateway.value)
         sqlite_file = self.db_dir / "chroma.sqlite3"
         if not self.index_dir.exists() or sqlite_file.exists():
             self.index_dir.mkdir(parents=True, exist_ok=True)

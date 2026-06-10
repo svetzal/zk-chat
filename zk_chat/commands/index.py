@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Annotated
 if TYPE_CHECKING:
     from zk_chat.services.vault_status_service import DbInfo
 
+import structlog
 import typer
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
@@ -22,6 +23,8 @@ from zk_chat.config import Config
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.gateway_defaults import create_default_filesystem_gateway
 from zk_chat.init_options import InitOptions
+
+logger = structlog.get_logger()
 
 index_app = typer.Typer(name="index", help="🔍 Manage your Zettelkasten search index", rich_markup_mode="rich")
 
@@ -66,6 +69,7 @@ def update(
     [bold yellow]💡 Tip:[/] Incremental update is fast and happens automatically on startup.
     Use --full after major changes or for troubleshooting.
     """
+    logger.info("index update command invoked", vault=str(vault) if vault else None, full=full)
     console_gateway = ctx.obj["console_gateway"]
     options = InitOptions(
         vault=str(vault) if vault else None,

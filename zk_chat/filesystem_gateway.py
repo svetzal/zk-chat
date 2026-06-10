@@ -3,6 +3,10 @@ from collections.abc import Iterator
 from datetime import datetime
 from typing import Any
 
+import structlog
+
+logger = structlog.get_logger()
+
 
 class FilesystemGateway:
     """Gateway for filesystem operations to abstract OS dependencies."""
@@ -50,6 +54,7 @@ class FilesystemGateway:
 
     def write_file(self, relative_path: str, content: str) -> None:
         """Write ``content`` to the file at ``relative_path``, creating or replacing it."""
+        logger.debug("Writing file", path=relative_path)
         full_path = self._get_full_path(relative_path)
         with open(full_path, "w") as f:
             f.write(content)
@@ -58,6 +63,7 @@ class FilesystemGateway:
         """Creates target directory if it does not exist."""
         import os
 
+        logger.debug("Renaming file", source=source_path, target=target_path)
         full_source_path = self._get_full_path(source_path)
         full_target_path = self._get_full_path(target_path)
 
@@ -74,8 +80,10 @@ class FilesystemGateway:
         full_path = self._get_full_path(relative_path)
 
         if not os.path.exists(full_path):
+            logger.warning("File not found during delete", path=relative_path)
             raise FileNotFoundError(f"File {relative_path} does not exist")
 
+        logger.debug("Deleting file", path=relative_path)
         os.remove(full_path)
 
     def get_absolute_path_for_tool_access(self, relative_path: str) -> str:
