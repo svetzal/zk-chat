@@ -1,6 +1,8 @@
 import os
 from importlib.metadata import PackageNotFoundError, version
 
+import structlog
+
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
@@ -22,6 +24,8 @@ from zk_chat.services.service_provider import ServiceProvider
 from zk_chat.upgraders.gateway_specific_index_folder import GatewaySpecificIndexFolder
 from zk_chat.upgraders.gateway_specific_last_indexed import GatewaySpecificLastIndexed
 from zk_chat.vault_path import normalize_vault_path
+
+logger = structlog.get_logger()
 
 
 def get_version() -> str:
@@ -304,6 +308,14 @@ def common_init(
     _initialize_config_fn=None,
     _reindex_fn=None,
 ) -> Config | None:
+    logger.info(
+        "Initializing session",
+        vault=options.vault,
+        gateway=options.gateway,
+        model=options.model,
+        unsafe=options.unsafe,
+        use_git=options.git,
+    )
     global_config = global_config_gateway.load()
 
     if _handle_save(options, global_config, global_config_gateway, console_gateway):

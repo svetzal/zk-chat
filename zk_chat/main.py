@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 from typing import Annotated
 
+import structlog
 import typer
 from rich.panel import Panel
 
@@ -32,6 +33,8 @@ from zk_chat.gateway_defaults import (
     create_default_mcp_client_manager,
 )
 from zk_chat.init_options import InitOptions
+
+logger = structlog.get_logger()
 
 app = typer.Typer(
     name="zk-chat",
@@ -163,6 +166,7 @@ def interactive(
     • [cyan]zk-chat interactive --unsafe --git[/] - Allow AI to edit files with git tracking
     • [cyan]zk-chat interactive --no-index[/] - Skip indexing new documents on startup
     """
+    logger.info("interactive command invoked", vault=str(vault) if vault else None, unsafe=unsafe, git=git)
     _common_init = ctx.obj.get("common_init", common_init)
     _run_agent = ctx.obj.get("run_agent", run_agent)
     _display_banner = ctx.obj.get("display_banner", display_banner)
@@ -221,6 +225,7 @@ def query(
     • [cyan]zk-chat query "Update my notes" --unsafe --git[/]
     """
 
+    logger.info("query command invoked", vault=str(vault) if vault else None, unsafe=unsafe, git=git)
     console_gateway = ctx.obj["console_gateway"]
     if prompt is None:
         if sys.stdin.isatty():

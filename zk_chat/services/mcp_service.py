@@ -1,8 +1,12 @@
 """Service layer for MCP server management."""
 
+import structlog
+
 from zk_chat.global_config import MCPServerConfig, MCPServerType
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.mcp_client import verify_mcp_server
+
+logger = structlog.get_logger()
 
 
 class MCPValidationError(Exception):
@@ -50,6 +54,7 @@ class MCPService:
         global_config = self._gateway.load()
         global_config.add_mcp_server(config)
         self._gateway.save(global_config)
+        logger.info("MCP server registered", name=name, server_type=srv_type.value)
         return config
 
     def remove_server(self, name: str) -> bool:
@@ -70,7 +75,10 @@ class MCPService:
         return self._gateway.load().list_mcp_servers()
 
     def verify_server(self, server: MCPServerConfig) -> bool:
-        return verify_mcp_server(server)
+        result = verify_mcp_server(server)
+        if not result:
+            logger.warning("MCP server unavailable", name=server.name, server_type=server.server_type.value)
+        return result
 
     def get_server(self, name: str) -> MCPServerConfig | None:
         return self._gateway.load().get_mcp_server(name)

@@ -1,4 +1,5 @@
 import pytest
+import structlog.testing
 
 from zk_chat.config import Config, ModelGateway
 from zk_chat.upgraders.gateway_specific_index_folder import GatewaySpecificIndexFolder, Upgrader
@@ -102,3 +103,13 @@ class DescribeGatewaySpecificIndexFolder:
             upgrader.run()
 
             assert (tmp_path / ".zk_chat_db" / "ollama").is_dir()
+
+        def should_log_info_when_migration_runs(self, upgrader, tmp_path):
+            db_dir = tmp_path / ".zk_chat_db"
+            db_dir.mkdir()
+
+            with structlog.testing.capture_logs() as cap_logs:
+                upgrader.run()
+
+            info_logs = [e for e in cap_logs if e.get("log_level") == "info"]
+            assert any("Migrating to gateway-specific index folder" in e["event"] for e in info_logs)

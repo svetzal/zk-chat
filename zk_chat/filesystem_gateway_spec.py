@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 
+import structlog.testing
 from pytest import fixture
 
 from zk_chat.filesystem_gateway import FilesystemGateway
@@ -76,3 +77,21 @@ class DescribeFilesystemGateway:
 
         assert new_dir.exists()
         assert new_dir.is_dir()
+
+    def should_log_warning_when_deleting_nonexistent_file(self, gateway):
+        import pytest
+
+        with structlog.testing.capture_logs() as cap_logs:
+            with pytest.raises(FileNotFoundError):
+                gateway.delete_file("nonexistent.md")
+
+        warning_logs = [e for e in cap_logs if e.get("log_level") == "warning"]
+        assert len(warning_logs) == 1
+        assert "not found" in warning_logs[0]["event"]
+
+    def should_log_debug_when_writing_file(self, gateway, temp_dir):
+        with structlog.testing.capture_logs() as cap_logs:
+            gateway.write_file("new_file.md", "content")
+
+        debug_logs = [e for e in cap_logs if e.get("log_level") == "debug"]
+        assert any("Writing file" in e["event"] for e in debug_logs)

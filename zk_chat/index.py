@@ -2,6 +2,8 @@ import argparse
 import os
 from datetime import datetime
 
+import structlog
+
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
@@ -14,6 +16,8 @@ from zk_chat.service_factory import build_service_registry_with_defaults
 from zk_chat.services.index_service import IndexService
 from zk_chat.services.service_provider import ServiceProvider
 from zk_chat.vault_path import normalize_vault_path
+
+logger = structlog.get_logger()
 
 
 def _full_reindex(
@@ -87,6 +91,7 @@ def reindex(
     _strategy_factory=None,
 ) -> None:
     """Reindex the Zettelkasten vault with progress tracking."""
+    logger.info("Starting reindex", vault=config.vault, gateway=config.gateway.value, force_full=force_full)
     if _provider_factory:
         provider = _provider_factory(None)
     else:
@@ -115,6 +120,7 @@ def reindex(
                 f"\n✓ Successfully processed {files_processed} document{'s' if files_processed != 1 else ''}"
             )
 
+    logger.info("Reindex complete", vault=config.vault, files_processed=files_processed, total_files=total_files)
     config.set_last_indexed(datetime.now())
     config_gateway.save(config)
 

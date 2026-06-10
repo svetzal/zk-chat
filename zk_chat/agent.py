@@ -2,6 +2,8 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from typing import Any
 
+import structlog
+
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
 from zk_chat.config import Config
 from zk_chat.console_gateway import ConsoleGateway
@@ -10,6 +12,8 @@ from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
 from zk_chat.mcp_client import verify_all_mcp_servers
 from zk_chat.mcp_tool_wrapper import MCPClientManager
 from zk_chat.tool_assembly import build_tools_from_config
+
+logger = structlog.get_logger()
 
 
 @contextmanager
@@ -66,6 +70,7 @@ def agent(
     mcp_manager: MCPClientManager,
     console_gateway: ConsoleGateway,
 ) -> None:
+    logger.info("Starting interactive agent session", model=config.model, gateway=config.gateway.value)
     global_config = global_config_gateway.load()
     if global_config.list_mcp_servers():
         console_gateway.print("Verifying MCP server availability...")
@@ -107,5 +112,6 @@ def agent_single_query(config: Config, query: str, mcp_manager: MCPClientManager
     str
         The agent's response as a string
     """
+    logger.info("Starting single-query agent session", model=config.model, gateway=config.gateway.value)
     with _create_agent(config, _mcp_manager=mcp_manager) as solver:
         return solver.solve(query)

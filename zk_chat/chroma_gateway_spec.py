@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
+import structlog.testing
 from chromadb.api.models.Collection import Collection
 
 from zk_chat.chroma_collections import ZkCollectionName
@@ -178,3 +179,45 @@ class DescribeChromaGateway:
                 n_results=5,
             )
             assert result == expected_results
+
+    class DescribeLogging:
+        def should_log_debug_when_adding_items(self, chroma_gateway, mock_chroma_client, mock_collection):
+            mock_chroma_client.get_or_create_collection.return_value = mock_collection
+
+            with structlog.testing.capture_logs() as cap_logs:
+                chroma_gateway.add_items(
+                    ids=["id1", "id2"],
+                    documents=["doc1", "doc2"],
+                    metadatas=[{}, {}],
+                    embeddings=[[0.1], [0.2]],
+                    collection_name=ZkCollectionName.EXCERPTS,
+                )
+
+            debug_logs = [e for e in cap_logs if e.get("log_level") == "debug"]
+            assert any("Adding items" in e["event"] for e in debug_logs)
+
+        def should_log_debug_when_collection_missing_during_reset(
+            self, chroma_gateway, mock_chroma_client, mock_collection
+        ):
+            mock_chroma_client.delete_collection.side_effect = ValueError("not found")
+            mock_chroma_client.get_or_create_collection.return_value = mock_collection
+
+            with structlog.testing.capture_logs() as cap_logs:
+                chroma_gateway.reset_indexes(ZkCollectionName.EXCERPTS)
+
+            debug_logs = [e for e in cap_logs if e.get("log_level") == "debug"]
+            assert any("did not exist" in e["event"] for e in debug_logs)
+
+        def should_log_debug_when_querying(self, chroma_gateway, mock_chroma_client, mock_collection):
+            mock_chroma_client.get_or_create_collection.return_value = mock_collection
+            mock_collection.query.return_value = {"ids": [["id1"]], "documents": [["doc1"]]}
+
+            with structlog.testing.capture_logs() as cap_logs:
+                chroma_gateway.query(
+                    query_embeddings=[[0.1, 0.2]],
+                    n_results=3,
+                    collection_name=ZkCollectionName.EXCERPTS,
+                )
+
+            debug_logs = [e for e in cap_logs if e.get("log_level") == "debug"]
+            assert any("Querying collection" in e["event"] for e in debug_logs)

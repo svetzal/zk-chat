@@ -3,6 +3,7 @@ from datetime import datetime
 from unittest.mock import Mock, patch
 
 import pytest
+import structlog.testing
 from mojentic.llm.gateways import OllamaGateway
 from mojentic.llm.gateways.tokenizer_gateway import TokenizerGateway
 from rich.console import Console
@@ -261,3 +262,41 @@ class DescribeReindex:
 
         spy_incremental.assert_called_once()
         spy_full.assert_not_called()
+
+    def should_log_info_at_start_of_reindex(
+        self, config, mock_config_gateway, real_index_service, mock_console_gateway
+    ):
+        full_decision = ReindexDecision(strategy="full")
+        provider = self._make_provider(real_index_service)
+
+        with structlog.testing.capture_logs() as cap_logs:
+            reindex(
+                config,
+                mock_config_gateway,
+                console_gateway=mock_console_gateway,
+                _provider_factory=lambda r: provider,
+                _progress_factory=self._make_progress,
+                _strategy_factory=lambda **kwargs: full_decision,
+            )
+
+        info_logs = [e for e in cap_logs if e.get("log_level") == "info"]
+        assert any("Starting reindex" in e["event"] for e in info_logs)
+
+    def should_log_info_on_reindex_complete(
+        self, config, mock_config_gateway, real_index_service, mock_console_gateway
+    ):
+        full_decision = ReindexDecision(strategy="full")
+        provider = self._make_provider(real_index_service)
+
+        with structlog.testing.capture_logs() as cap_logs:
+            reindex(
+                config,
+                mock_config_gateway,
+                console_gateway=mock_console_gateway,
+                _provider_factory=lambda r: provider,
+                _progress_factory=self._make_progress,
+                _strategy_factory=lambda **kwargs: full_decision,
+            )
+
+        info_logs = [e for e in cap_logs if e.get("log_level") == "info"]
+        assert any("Reindex complete" in e["event"] for e in info_logs)
