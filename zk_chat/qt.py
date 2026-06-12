@@ -270,32 +270,7 @@ class MainWindow(QMainWindow):
         self.config_gateway = config_gateway
         self.global_config_gateway = global_config_gateway
 
-        global_config = self.global_config_gateway.load()
-        last_opened = global_config.get_last_opened_bookmark_path()
-
-        user_selected = None
-        if not last_opened:
-            user_selected = QFileDialog.getExistingDirectory(
-                self, "Select Your Zettelkasten Vault Directory", os.path.expanduser("~")
-            )
-            if not user_selected:
-                sys.exit(0)
-            user_selected = normalize_vault_path(user_selected)
-
-        vault_init = resolve_gui_vault_init(last_opened, user_selected)
-
-        if vault_init.needs_bookmark_update:
-            global_config.add_bookmark(vault_init.vault_path)
-            global_config.set_last_opened_bookmark(vault_init.vault_path)
-            self.global_config_gateway.save(global_config)
-
-        loaded_config = self.config_gateway.load(vault_init.vault_path)
-        self.config, was_created = resolve_config_for_vault(loaded_config, vault_init.vault_path)
-        if was_created:
-            self.config_gateway.save(self.config)
-
-        self.chat_session = None
-        self.initialize_chat_session()
+        self._load_startup_config()
 
         self.setWindowTitle("Zk-Chat")
         self.setMinimumSize(800, 600)
@@ -347,6 +322,34 @@ class MainWindow(QMainWindow):
         splitter.addWidget(bottom_widget)
 
         splitter.setSizes([400, 200])
+
+    def _load_startup_config(self) -> None:
+        global_config = self.global_config_gateway.load()
+        last_opened = global_config.get_last_opened_bookmark_path()
+
+        user_selected = None
+        if not last_opened:
+            user_selected = QFileDialog.getExistingDirectory(
+                self, "Select Your Zettelkasten Vault Directory", os.path.expanduser("~")
+            )
+            if not user_selected:
+                sys.exit(0)
+            user_selected = normalize_vault_path(user_selected)
+
+        vault_init = resolve_gui_vault_init(last_opened, user_selected)
+
+        if vault_init.needs_bookmark_update:
+            global_config.add_bookmark(vault_init.vault_path)
+            global_config.set_last_opened_bookmark(vault_init.vault_path)
+            self.global_config_gateway.save(global_config)
+
+        loaded_config = self.config_gateway.load(vault_init.vault_path)
+        self.config, was_created = resolve_config_for_vault(loaded_config, vault_init.vault_path)
+        if was_created:
+            self.config_gateway.save(self.config)
+
+        self.chat_session = None
+        self.initialize_chat_session()
 
     def initialize_chat_session(self) -> None:
         """Build a fresh ``ChatSession`` from the current vault config, replacing any prior session."""
