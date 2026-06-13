@@ -1,6 +1,7 @@
 """Progress tracking for long-running operations using Rich library."""
 
 from collections.abc import Callable
+from types import TracebackType
 from typing import Self
 
 import structlog
@@ -137,7 +138,9 @@ class ProgressTracker:
     def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
+    ) -> None:
         self.stop_progress()
 
 
