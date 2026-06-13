@@ -1,5 +1,7 @@
 import os
+from collections.abc import Callable
 from importlib.metadata import PackageNotFoundError, version
+from typing import Any
 
 import structlog
 
@@ -36,7 +38,12 @@ def get_version() -> str:
 
 
 def display_banner(
-    config, console_gateway: ConsoleGateway, title: str, unsafe=False, use_git=False, store_prompt=True
+    config: Config,
+    console_gateway: ConsoleGateway,
+    title: str,
+    unsafe: bool = False,
+    use_git: bool = False,
+    store_prompt: bool = True,
 ) -> None:
     console = console_gateway.get_console()
 
@@ -262,10 +269,10 @@ def _handle_existing_config(
     global_config_gateway: GlobalConfigGateway,
     console_gateway: ConsoleGateway,
     *,
-    _run_upgraders_fn=None,
-    _gateway_selection_fn=None,
-    _reset_memory_fn=None,
-    _reindex_fn=None,
+    _run_upgraders_fn: Callable[..., Any] | None = None,
+    _gateway_selection_fn: Callable[..., Any] | None = None,
+    _reset_memory_fn: Callable[..., Any] | None = None,
+    _reindex_fn: Callable[..., Any] | None = None,
 ) -> Config | None:
     (_run_upgraders_fn or _run_upgraders)(config, config_gateway)
     gateway_sel = _gateway_selection_fn or _maybe_select_gateway
@@ -286,8 +293,8 @@ def _handle_new_config(
     config_gateway: ConfigGateway,
     console_gateway: ConsoleGateway,
     *,
-    _initialize_config_fn=None,
-    _reindex_fn=None,
+    _initialize_config_fn: Callable[..., Any] | None = None,
+    _reindex_fn: Callable[..., Any] | None = None,
 ) -> Config | None:
     config = (_initialize_config_fn or _initialize_config)(vault_path, options, config_gateway, console_gateway)
     if not config:
@@ -302,11 +309,11 @@ def common_init(
     config_gateway: ConfigGateway,
     console_gateway: ConsoleGateway,
     *,
-    _run_upgraders_fn=None,
-    _gateway_selection_fn=None,
-    _reset_memory_fn=None,
-    _initialize_config_fn=None,
-    _reindex_fn=None,
+    _run_upgraders_fn: Callable[..., Any] | None = None,
+    _gateway_selection_fn: Callable[..., Any] | None = None,
+    _reset_memory_fn: Callable[..., Any] | None = None,
+    _initialize_config_fn: Callable[..., Any] | None = None,
+    _reindex_fn: Callable[..., Any] | None = None,
 ) -> Config | None:
     logger.info(
         "Initializing session",

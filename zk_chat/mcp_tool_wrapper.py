@@ -1,4 +1,5 @@
 import asyncio
+from types import TracebackType
 from typing import Any, Self
 
 import structlog
@@ -145,14 +146,18 @@ class MCPClientManager:
         self.initialize_sync()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
+    ) -> None:
         self.cleanup_sync()
 
     async def __aenter__(self) -> Self:
         await self.initialize()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
+    ) -> None:
         await self.cleanup()
 
     def _start_event_loop(self) -> None:
