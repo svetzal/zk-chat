@@ -219,6 +219,18 @@ class DescribeMCPToolWrapperRun:
         assert "Error executing MCP tool" in result
         assert "connection lost" in result
 
+    def should_return_error_message_on_unexpected_tool_error(self, wrapper, mock_future):
+        mock_future.result.side_effect = RuntimeError("tool crashed")
+
+        with (
+            patch("asyncio.run_coroutine_threadsafe", return_value=mock_future),
+            patch.object(wrapper, "_async_run", new=Mock()),  # Intentionally unspec'd: replaces bound method
+        ):
+            result = wrapper.run(param="value")
+
+        assert "Error executing MCP tool" in result
+        assert "tool crashed" in result
+
     def should_coerce_integer_types_before_execution(self, mock_future):
         mock_client = Mock(spec=Client)
         mock_loop = Mock()  # Intentionally unspec'd: loop is only passed to the patched run_coroutine_threadsafe

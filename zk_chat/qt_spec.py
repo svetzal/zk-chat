@@ -64,6 +64,21 @@ class DescribeChatWorker:
 
         assert received == ["test response"]
 
+    def should_emit_error_occurred_when_send_raises(self, qtbot):
+        mock_session = Mock(spec=ChatSession)
+        mock_session.send.side_effect = RuntimeError("LLM unreachable")
+        worker = ChatWorker(mock_session, "test query")
+        errors = []
+        responses = []
+        worker.error_occurred.connect(lambda m: errors.append(m))
+        worker.response_ready.connect(lambda r: responses.append(r))
+
+        worker.run()
+
+        assert len(errors) == 1
+        assert "LLM unreachable" in errors[0]
+        assert responses == []
+
 
 class DescribeSettingsDialog:
     @pytest.fixture
@@ -166,3 +181,21 @@ class DescribeMainWindow:
             main_window.send_message()
 
         mock_worker_instance.start.assert_called_once()
+
+    def should_connect_error_occurred_signal_on_worker(self, main_window):
+        main_window.chat_input.setText("test message")
+        with patch("zk_chat.qt.ChatWorker") as mock_worker_class:
+            mock_worker_instance = Mock()
+            mock_worker_class.return_value = mock_worker_instance
+
+            main_window.send_message()
+
+        mock_worker_instance.error_occurred.connect.assert_called_once()
+
+    def should_stop_spinner_and_show_error_on_show_assistant_error(self, qtbot, main_window):
+        widget = main_window.append_message("Assistant", loading=True)
+
+        main_window.show_assistant_error(widget, "LLM unreachable")
+
+        assert not widget.spinner.isVisible()
+        assert "Error" in widget.content_browser.toMarkdown()
