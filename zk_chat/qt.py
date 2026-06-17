@@ -1,6 +1,7 @@
 import os
 import sys
 
+import structlog
 from mojentic.llm import ChatSession
 from PySide6.QtCore import Qt, QThread, QTimer, Signal, Slot
 from PySide6.QtWidgets import (
@@ -38,6 +39,8 @@ from zk_chat.qt_config_resolution import (
 )
 from zk_chat.tool_assembly import build_tools_from_config
 from zk_chat.vault_path import normalize_vault_path
+
+logger = structlog.get_logger()
 
 
 class LoadingSpinnerWidget(QWidget):
@@ -141,6 +144,7 @@ class ChatWorker(QThread):
     """Background thread that sends a query to the chat session and emits the response."""
 
     response_ready = Signal(str)
+    error_occurred = Signal(str)
 
     def __init__(self, chat_session: ChatSession, query: str) -> None:
         super().__init__()
@@ -149,8 +153,12 @@ class ChatWorker(QThread):
 
     def run(self) -> None:
         """Send the query to the chat session and emit ``response_ready`` with the result."""
-        response = self.chat_session.send(self.query)
-        self.response_ready.emit(response)
+        try:
+            response = self.chat_session.send(self.query)
+            self.response_ready.emit(response)
+        except Exception as e:
+            logger.error("Chat session send failed", error=str(e))
+            self.error_occurred.emit(f"Error communicating with LLM: {str(e)}")
 
 
 def _add_labeled_field(parent_layout: QVBoxLayout, label_text: str, *widgets: QWidget) -> None:
@@ -413,6 +421,7 @@ class MainWindow(QMainWindow):
 
         self.worker = ChatWorker(self.chat_session, message)
         self.worker.response_ready.connect(lambda response: self.update_assistant_response(assistant_widget, response))
+        self.worker.error_occurred.connect(lambda message: self.show_assistant_error(assistant_widget, message))
         self.worker.start()
 
     def update_assistant_response(self, widget: ChatMessageWidget, response: str) -> None:
@@ -420,6 +429,14 @@ class MainWindow(QMainWindow):
         widget.set_loading(False)
         widget.set_content(response)
         # Ensure we scroll to see the complete response
+        QTimer.singleShot(
+            1, lambda: self.scroll_area.verticalScrollBar().setValue(self.scroll_area.verticalScrollBar().maximum())
+        )
+
+    def show_assistant_error(self, widget: ChatMessageWidget, message: str) -> None:
+        """Stop the loading spinner on ``widget`` and display an error message."""
+        widget.set_loading(False)
+        widget.set_content(f"**Error:** {message}")
         QTimer.singleShot(
             1, lambda: self.scroll_area.verticalScrollBar().setValue(self.scroll_area.verticalScrollBar().maximum())
         )

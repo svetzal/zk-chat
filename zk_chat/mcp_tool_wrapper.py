@@ -87,7 +87,7 @@ class MCPToolWrapper(LLMTool):
                 result=result_str,
             )
             return result_str
-        except (TimeoutError, asyncio.CancelledError, ConnectionError, OSError) as e:
+        except Exception as e:
             error_msg = f"Error executing MCP tool {self.tool_name}: {str(e)}"
             logger.error(
                 "MCP tool execution failed", server_name=self.server_name, tool_name=self.tool_name, error=str(e)
