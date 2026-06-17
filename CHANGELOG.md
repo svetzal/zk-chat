@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **CVE-2026-45829 (ChromaToast) — acknowledged, not exploitable in this deployment**: ChromaDB ≤1.5.9
+  contains a pre-authentication remote code execution vulnerability in its FastAPI server component
+  (`chromadb.server`), triggered when an attacker sends a crafted collection-creation request that loads
+  a remote embedding model before authentication is checked. zk-chat is not affected because it uses
+  `chromadb.PersistentClient` (the embedded, in-process client — no HTTP server is started) and
+  supplies externally computed embeddings rather than ChromaDB's built-in embedding functions. No
+  patched release exists on PyPI as of 2026-06-17; pass `--ignore-vuln CVE-2026-45829` to
+  `pip-audit` until an upstream fix is released. Tracked in:
+  https://www.bleepingcomputer.com/news/security/max-severity-flaw-in-chromadb-for-ai-apps-allows-server-hijacking/
+
 ### Changed
 
 - **Unified `max_distance` semantics**: `IndexService.query_excerpts` and `query_documents` now both treat `max_distance=None` as "no distance filtering" and any non-`None` value as a real threshold; the previous `0.0`-means-no-filter sentinel in `query_documents` has been removed. Behavior is unchanged for existing callers.
