@@ -9,7 +9,7 @@ from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
 from zk_chat.global_config import GlobalConfig
 from zk_chat.global_config_gateway import GlobalConfigGateway
-from zk_chat.qt import ChatWorker, MainWindow, SettingsDialog
+from zk_chat.qt import ChatWorker, MainWindow, SettingsDialog, resolve_startup_config
 from zk_chat.vault_path import normalize_vault_path
 
 TEST_VAULT = normalize_vault_path("/tmp/zk_test_vault")
@@ -112,49 +112,89 @@ class DescribeSettingsDialog:
         mock_config_gateway.save.assert_called_once()
 
 
-class DescribeMainWindow:
-    @pytest.fixture
-    def main_window(self, qtbot, mock_config_gateway, mock_global_config_gateway):
-        with patch("zk_chat.qt.build_tools_from_config") as mock_build, patch("zk_chat.qt.ChatSession"):
-            mock_build.return_value = Mock(llm_broker=Mock(), system_prompt="", tools=[])
-            window = MainWindow(mock_config_gateway, mock_global_config_gateway)
-            qtbot.addWidget(window)
-            return window
+class DescribeResolveStartupConfig:
+    def should_return_config_from_last_opened_bookmark(
+        self, test_config, mock_config_gateway, mock_global_config_gateway
+    ):
+        result = resolve_startup_config(mock_config_gateway, mock_global_config_gateway, lambda: None)
 
-    def should_load_global_config_on_init(self, qtbot, mock_config_gateway, mock_global_config_gateway):
-        with patch("zk_chat.qt.build_tools_from_config") as mock_build, patch("zk_chat.qt.ChatSession"):
-            mock_build.return_value = Mock(llm_broker=Mock(), system_prompt="", tools=[])
-            window = MainWindow(mock_config_gateway, mock_global_config_gateway)
-            qtbot.addWidget(window)
-
-        mock_global_config_gateway.load.assert_called()
-
-    def should_load_vault_config_on_init(self, qtbot, mock_config_gateway, mock_global_config_gateway):
-        with patch("zk_chat.qt.build_tools_from_config") as mock_build, patch("zk_chat.qt.ChatSession"):
-            mock_build.return_value = Mock(llm_broker=Mock(), system_prompt="", tools=[])
-            window = MainWindow(mock_config_gateway, mock_global_config_gateway)
-            qtbot.addWidget(window)
-
+        assert result == test_config
+        mock_global_config_gateway.load.assert_called_once()
         mock_config_gateway.load.assert_called_once_with(TEST_VAULT)
 
-    def should_save_config_when_vault_config_is_new(self, qtbot, mock_config_gateway, mock_global_config_gateway):
+    def should_not_save_global_config_when_bookmark_already_exists(
+        self, test_config, mock_config_gateway, mock_global_config_gateway
+    ):
+        resolve_startup_config(mock_config_gateway, mock_global_config_gateway, lambda: None)
+
+        mock_global_config_gateway.save.assert_not_called()
+
+    def should_prompt_for_vault_when_no_bookmark_exists(self, test_config, mock_config_gateway):
+        gc = GlobalConfig()
+        gateway = Mock(spec=GlobalConfigGateway)
+        gateway.load.return_value = gc
+        mock_config_gateway.load.return_value = test_config
+        prompt = Mock(return_value=TEST_VAULT)
+
+        result = resolve_startup_config(mock_config_gateway, gateway, prompt)
+
+        prompt.assert_called_once()
+        assert result == test_config
+
+    def should_save_global_config_when_vault_selected_by_user(self, test_config, mock_config_gateway):
+        gc = GlobalConfig()
+        gateway = Mock(spec=GlobalConfigGateway)
+        gateway.load.return_value = gc
+        mock_config_gateway.load.return_value = test_config
+
+        resolve_startup_config(mock_config_gateway, gateway, lambda: TEST_VAULT)
+
+        gateway.save.assert_called_once()
+
+    def should_return_none_when_user_cancels_vault_prompt(self, mock_config_gateway):
+        gc = GlobalConfig()
+        gateway = Mock(spec=GlobalConfigGateway)
+        gateway.load.return_value = gc
+
+        result = resolve_startup_config(mock_config_gateway, gateway, lambda: None)
+
+        assert result is None
+
+    def should_save_vault_config_when_config_is_new(self, mock_config_gateway, mock_global_config_gateway):
         mock_config_gateway.load.return_value = None
-        with patch("zk_chat.qt.build_tools_from_config") as mock_build, patch("zk_chat.qt.ChatSession"):
-            mock_build.return_value = Mock(llm_broker=Mock(), system_prompt="", tools=[])
-            window = MainWindow(mock_config_gateway, mock_global_config_gateway)
-            qtbot.addWidget(window)
+
+        resolve_startup_config(mock_config_gateway, mock_global_config_gateway, lambda: None)
 
         mock_config_gateway.save.assert_called_once()
 
-    def should_not_save_config_when_vault_config_already_exists(
-        self, qtbot, mock_config_gateway, mock_global_config_gateway
+    def should_not_save_vault_config_when_config_already_exists(
+        self, test_config, mock_config_gateway, mock_global_config_gateway
     ):
-        with patch("zk_chat.qt.build_tools_from_config") as mock_build, patch("zk_chat.qt.ChatSession"):
-            mock_build.return_value = Mock(llm_broker=Mock(), system_prompt="", tools=[])
-            window = MainWindow(mock_config_gateway, mock_global_config_gateway)
-            qtbot.addWidget(window)
+        resolve_startup_config(mock_config_gateway, mock_global_config_gateway, lambda: None)
 
         mock_config_gateway.save.assert_not_called()
+
+
+class DescribeMainWindow:
+    @pytest.fixture
+    def mock_chat_session(self):
+        return Mock(spec=ChatSession)
+
+    @pytest.fixture
+    def main_window(self, qtbot, test_config, mock_chat_session, mock_config_gateway, mock_global_config_gateway):
+        window = MainWindow(test_config, mock_chat_session, mock_config_gateway, mock_global_config_gateway)
+        qtbot.addWidget(window)
+        return window
+
+    def should_be_constructible_with_resolved_inputs(
+        self, qtbot, test_config, mock_chat_session, mock_config_gateway, mock_global_config_gateway
+    ):
+        window = MainWindow(test_config, mock_chat_session, mock_config_gateway, mock_global_config_gateway)
+        qtbot.addWidget(window)
+
+        assert hasattr(window, "chat_input")
+        assert hasattr(window, "scroll_area")
+        assert window.chat_session is mock_chat_session
 
     def should_return_early_when_message_is_empty(self, main_window):
         main_window.chat_input.clear()
