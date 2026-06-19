@@ -270,15 +270,75 @@ class SettingsDialog(QDialog):
         self.accept()
 
 
+def prompt_for_vault_directory() -> str | None:
+    """Open a directory picker and return the normalized path, or None if cancelled."""
+    selected = QFileDialog.getExistingDirectory(
+        None, "Select Your Zettelkasten Vault Directory", os.path.expanduser("~")
+    )
+    if not selected:
+        return None
+    return normalize_vault_path(selected)
+
+
+def resolve_startup_config(
+    config_gateway: ConfigGateway,
+    global_config_gateway: GlobalConfigGateway,
+    prompt_for_vault,
+) -> "Config | None":
+    """
+    Resolve config at application startup, performing all necessary I/O.
+
+    Returns the resolved Config, or None if the user cancelled vault selection.
+    """
+    global_config = global_config_gateway.load()
+    last_opened = global_config.get_last_opened_bookmark_path()
+
+    user_selected = None
+    if not last_opened:
+        user_selected = prompt_for_vault()
+        if user_selected is None:
+            return None
+
+    vault_init = resolve_gui_vault_init(last_opened, user_selected)
+
+    if vault_init.needs_bookmark_update:
+        global_config.add_bookmark(vault_init.vault_path)
+        global_config.set_last_opened_bookmark(vault_init.vault_path)
+        global_config_gateway.save(global_config)
+
+    loaded_config = config_gateway.load(vault_init.vault_path)
+    config, was_created = resolve_config_for_vault(loaded_config, vault_init.vault_path)
+    if was_created:
+        config_gateway.save(config)
+
+    return config
+
+
+def build_chat_session(config: "Config") -> ChatSession:
+    """Construct a ChatSession from the given vault config."""
+    components = build_tools_from_config(config)
+    return ChatSession(
+        components.llm_broker,
+        system_prompt=components.system_prompt,
+        tools=components.tools,
+    )
+
+
 class MainWindow(QMainWindow):
     """Primary application window containing the chat history and message input."""
 
-    def __init__(self, config_gateway: ConfigGateway, global_config_gateway: GlobalConfigGateway) -> None:
+    def __init__(
+        self,
+        config: "Config",
+        chat_session: ChatSession,
+        config_gateway: ConfigGateway,
+        global_config_gateway: GlobalConfigGateway,
+    ) -> None:
         super().__init__()
+        self.config = config
+        self.chat_session = chat_session
         self.config_gateway = config_gateway
         self.global_config_gateway = global_config_gateway
-
-        self._load_startup_config()
 
         self.setWindowTitle("Zk-Chat")
         self.setMinimumSize(800, 600)
@@ -313,60 +373,27 @@ class MainWindow(QMainWindow):
 
         bottom_widget = QWidget()
         bottom_layout = QHBoxLayout(bottom_widget)
-        bottom_layout.setSpacing(10)  # Add spacing between elements
+        bottom_layout.setSpacing(10)
 
         self.chat_input = QTextEdit()
         self.chat_input.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         send_button = QPushButton("Send")
-        send_button.setMinimumWidth(80)  # Set minimum width
+        send_button.setMinimumWidth(80)
         send_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         send_button.clicked.connect(self.send_message)
 
         bottom_layout.addWidget(self.chat_input)
-        bottom_layout.addWidget(send_button, alignment=Qt.AlignVCenter)  # Align vertically
+        bottom_layout.addWidget(send_button, alignment=Qt.AlignVCenter)
         bottom_layout.setContentsMargins(0, 0, 0, 0)
 
         splitter.addWidget(bottom_widget)
 
         splitter.setSizes([400, 200])
 
-    def _load_startup_config(self) -> None:
-        global_config = self.global_config_gateway.load()
-        last_opened = global_config.get_last_opened_bookmark_path()
-
-        user_selected = None
-        if not last_opened:
-            user_selected = QFileDialog.getExistingDirectory(
-                self, "Select Your Zettelkasten Vault Directory", os.path.expanduser("~")
-            )
-            if not user_selected:
-                sys.exit(0)
-            user_selected = normalize_vault_path(user_selected)
-
-        vault_init = resolve_gui_vault_init(last_opened, user_selected)
-
-        if vault_init.needs_bookmark_update:
-            global_config.add_bookmark(vault_init.vault_path)
-            global_config.set_last_opened_bookmark(vault_init.vault_path)
-            self.global_config_gateway.save(global_config)
-
-        loaded_config = self.config_gateway.load(vault_init.vault_path)
-        self.config, was_created = resolve_config_for_vault(loaded_config, vault_init.vault_path)
-        if was_created:
-            self.config_gateway.save(self.config)
-
-        self.chat_session = None
-        self.initialize_chat_session()
-
     def initialize_chat_session(self) -> None:
         """Build a fresh ``ChatSession`` from the current vault config, replacing any prior session."""
-        components = build_tools_from_config(self.config)
-        self.chat_session = ChatSession(
-            components.llm_broker,
-            system_prompt=components.system_prompt,
-            tools=components.tools,
-        )
+        self.chat_session = build_chat_session(self.config)
 
     def show_settings(self) -> None:
         dialog = SettingsDialog(self.config, self.config_gateway, self.global_config_gateway, self)
@@ -447,7 +474,11 @@ def main() -> None:
     app = QApplication(sys.argv)
     config_gateway = create_default_config_gateway()
     global_config_gateway = create_default_global_config_gateway()
-    window = MainWindow(config_gateway, global_config_gateway)
+    config = resolve_startup_config(config_gateway, global_config_gateway, prompt_for_vault_directory)
+    if config is None:
+        sys.exit(0)
+    chat_session = build_chat_session(config)
+    window = MainWindow(config, chat_session, config_gateway, global_config_gateway)
     window.show()
     sys.exit(app.exec())
 
