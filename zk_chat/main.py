@@ -120,6 +120,7 @@ def main(
     ctx.obj["global_config_gateway"] = create_default_global_config_gateway()
     ctx.obj["config_gateway"] = create_default_config_gateway()
     ctx.obj["filesystem_gateway_factory"] = create_default_filesystem_gateway
+    ctx.obj["mcp_client_manager"] = create_default_mcp_client_manager(ctx.obj["global_config_gateway"])
 
     if version:
         from importlib.metadata import PackageNotFoundError
@@ -187,7 +188,7 @@ def interactive(
         use_git=git,
         store_prompt=store_prompt,
     )
-    mcp_manager = create_default_mcp_client_manager(global_config_gateway)
+    mcp_manager = ctx.obj["mcp_client_manager"]
     _run_agent(config, global_config_gateway, mcp_manager, ctx.obj["console_gateway"])
 
 
@@ -263,7 +264,7 @@ def query(
     console_gateway.print(f"[bold cyan]Query:[/] {prompt}")
     console_gateway.print("[dim]Using agent for autonomous problem solving...[/]\n")
 
-    mcp_manager = create_default_mcp_client_manager(global_config_gateway)
+    mcp_manager = ctx.obj["mcp_client_manager"]
     result = agent_single_query(config, prompt, mcp_manager)
     console_gateway.print(f"\n[bold green]Response:[/]\n{result}")
 
