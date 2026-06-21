@@ -24,3 +24,10 @@ class DescribeListZkDocuments:
 
         expected = "doc1.md\ndoc2.md\ndoc3.md"
         assert result == expected
+
+    def should_return_error_message_when_iteration_fails(self, tool, mock_filesystem):
+        mock_filesystem.iterate_markdown_files.side_effect = OSError("boom")
+
+        result = tool.run()
+
+        assert "Error listing documents" in result

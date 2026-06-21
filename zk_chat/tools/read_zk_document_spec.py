@@ -34,3 +34,12 @@ class DescribeReadZkDocument:
         mock_filesystem.path_exists.assert_called_once_with(relative_path)
         mock_filesystem.read_markdown.assert_not_called()
         assert result == f"Document not found at {relative_path}"
+
+    def should_return_error_message_when_read_fails(self, read_tool, mock_filesystem):
+        relative_path = "test/path.md"
+        mock_filesystem.path_exists.return_value = True
+        mock_filesystem.read_markdown.side_effect = OSError("boom")
+
+        result = read_tool.run(relative_path=relative_path)
+
+        assert f"Error reading document at {relative_path}" in result

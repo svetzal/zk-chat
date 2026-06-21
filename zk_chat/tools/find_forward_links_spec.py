@@ -191,6 +191,18 @@ class DescribeFindForwardLinks:
         assert "Found 2 forward links" in call_args
         assert source in call_args
 
+    def should_return_error_message_when_traversal_fails(self, mock_console_gateway):
+        mock_filesystem = Mock(spec=MarkdownFilesystemGateway)
+        # First call (check_document_exists) returns True; second call (inside service) raises
+        mock_filesystem.path_exists.side_effect = [True, OSError("boom")]
+        document_service = DocumentService(mock_filesystem)
+        link_service = LinkTraversalService(mock_filesystem)
+        tool = FindForwardLinks(document_service, link_service, mock_console_gateway)
+
+        result = tool.run("some/document.md")
+
+        assert "Error finding forward links from some/document.md" in result
+
     def should_have_correct_descriptor_for_llm_integration(self, forward_links_tool):
         descriptor = forward_links_tool.descriptor
 

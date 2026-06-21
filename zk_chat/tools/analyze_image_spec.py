@@ -61,3 +61,19 @@ class DescribeAnalyzeImage:
 
     def should_require_relative_path_parameter_in_descriptor(self, analyze_tool):
         assert "relative_path" in analyze_tool.descriptor["function"]["parameters"]["required"]
+
+    def should_return_error_message_when_analysis_fails(self, mock_filesystem, mock_gateway):
+        mock_filesystem.path_exists.return_value = True
+        mock_filesystem.get_absolute_path_for_tool_access.return_value = "/abs/path/img.png"
+        mock_gateway.complete.side_effect = ConnectionError("connection failed")
+
+        mock_message = LLMMessage(role=MessageRole.User, content="describe image")
+        mock_builder = Mock()
+        mock_builder.return_value.add_image.return_value.build.return_value = mock_message
+
+        llm = LLMBroker(model="test-vision", gateway=mock_gateway)
+        tool = AnalyzeImage(mock_filesystem, llm, _message_builder_factory=mock_builder)
+
+        result = tool.run("img/photo.png")
+
+        assert "Error analyzing image at img/photo.png" in result
