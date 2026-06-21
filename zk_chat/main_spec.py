@@ -145,3 +145,49 @@ class DescribeQueryCommand:
             result = runner.invoke(app, ["query"])
 
         assert result.exit_code == 1
+
+
+class DescribeMcpClientManagerWiring:
+    """Tests verifying MCP client manager is built once in the composition root and injected."""
+
+    def should_build_mcp_manager_once_in_composition_root(self, runner):
+        with patch("zk_chat.main.create_default_mcp_client_manager") as mock_factory:
+            runner.invoke(
+                app,
+                ["interactive"],
+                obj={"common_init": lambda *a, **k: None},
+            )
+
+        mock_factory.assert_called_once()
+
+    def should_inject_mcp_manager_into_interactive_from_ctx(self, runner):
+        mock_config = Config(vault="/test/vault", model="llama2")
+        mock_run_agent = Mock()
+        sentinel_manager = object()
+
+        with patch("zk_chat.main.create_default_mcp_client_manager", return_value=sentinel_manager):
+            runner.invoke(
+                app,
+                ["interactive"],
+                obj={
+                    "common_init": lambda *a, **k: mock_config,
+                    "run_agent": mock_run_agent,
+                    "display_banner": Mock(),
+                },
+            )
+
+        assert mock_run_agent.call_args.args[2] is sentinel_manager
+
+    def should_inject_mcp_manager_into_query_from_ctx(self, runner):
+        mock_config = Config(vault="/test/vault", model="llama2")
+        mock_agent_query = Mock(return_value="answer")
+        sentinel_manager = object()
+
+        with (
+            patch("zk_chat.main.create_default_mcp_client_manager", return_value=sentinel_manager),
+            patch("zk_chat.main.common_init", return_value=mock_config),
+            patch("zk_chat.main.agent_single_query", mock_agent_query),
+        ):
+            runner.invoke(app, ["query", "test question"])
+
+        assert mock_agent_query.call_args.args[2] is sentinel_manager
