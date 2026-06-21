@@ -188,6 +188,16 @@ class DescribeFindBacklinks:
         assert "thoroughly" in result
         assert "Important Concept" in result
 
+    def should_return_error_message_when_traversal_fails(self, mock_console_gateway):
+        mock_filesystem = Mock(spec=MarkdownFilesystemGateway)
+        mock_filesystem.iterate_markdown_files.side_effect = OSError("boom")
+        link_service = LinkTraversalService(mock_filesystem)
+        tool = FindBacklinks(link_service, mock_console_gateway)
+
+        result = tool.run("some/document.md")
+
+        assert "Error finding backlinks to some/document.md" in result
+
     def should_have_correct_descriptor_for_llm_integration(self, backlinks_tool):
         descriptor = backlinks_tool.descriptor
 

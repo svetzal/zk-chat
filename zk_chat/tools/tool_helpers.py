@@ -1,3 +1,11 @@
+"""
+Utility helpers for LLM tool development.
+
+Boundary policy: every LLM tool's ``run`` method must catch the exceptions its
+service/gateway calls can plausibly raise and return a recoverable error string
+via ``log_and_return_error``.  Raw exceptions must never propagate to the agent loop.
+"""
+
 import json
 
 import structlog

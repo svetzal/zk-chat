@@ -1,8 +1,9 @@
 import structlog
+import yaml
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.services.document_service import DocumentService
-from zk_chat.tools.tool_helpers import build_descriptor, check_document_exists
+from zk_chat.tools.tool_helpers import build_descriptor, check_document_exists, log_and_return_error
 
 logger = structlog.get_logger()
 
@@ -21,8 +22,11 @@ class ReadZkDocument(LLMTool):
         if error:
             return error
 
-        document = self.document_service.read_document(relative_path)
-        return document.model_dump_json()
+        try:
+            document = self.document_service.read_document(relative_path)
+            return document.model_dump_json()
+        except (OSError, yaml.YAMLError) as e:
+            return log_and_return_error(logger, f"Error reading document at {relative_path}: {str(e)}")
 
     @property
     def descriptor(self) -> dict:

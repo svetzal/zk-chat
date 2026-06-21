@@ -3,7 +3,7 @@ from mojentic.llm import LLMBroker, MessageBuilder
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
-from zk_chat.tools.tool_helpers import build_descriptor
+from zk_chat.tools.tool_helpers import build_descriptor, log_and_return_error
 
 logger = structlog.get_logger()
 
@@ -23,14 +23,16 @@ class AnalyzeImage(LLMTool):
         if not self.fs.path_exists(relative_path):
             return f"Image not found at {relative_path}"
 
-        message = (
-            self._message_builder_factory("Describe what you see in the image in plain text.")
-            .add_image(self.fs.get_absolute_path_for_tool_access(relative_path))
-            .build()
-        )
-        analysis = self.llm.generate([message])
-
-        return analysis
+        try:
+            message = (
+                self._message_builder_factory("Describe what you see in the image in plain text.")
+                .add_image(self.fs.get_absolute_path_for_tool_access(relative_path))
+                .build()
+            )
+            analysis = self.llm.generate([message])
+            return analysis
+        except (OSError, ConnectionError) as e:
+            return log_and_return_error(logger, f"Error analyzing image at {relative_path}: {str(e)}")
 
     @property
     def descriptor(self) -> dict:

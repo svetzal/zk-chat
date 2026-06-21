@@ -26,3 +26,11 @@ class DescribeStoreInSmartMemory:
         mock_chroma_gateway.add_items.assert_called_once()
         call_kwargs = mock_chroma_gateway.add_items.call_args.kwargs
         assert call_kwargs["documents"] == [test_info]
+
+    def should_return_error_message_when_store_fails(self, smart_memory, mock_chroma_gateway, mock_console_gateway):
+        mock_chroma_gateway.add_items.side_effect = Exception("storage failed")
+        tool = StoreInSmartMemory(smart_memory, mock_console_gateway)
+
+        result = tool.run("some information")
+
+        assert "Error storing information in memory" in result

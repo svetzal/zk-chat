@@ -90,3 +90,13 @@ class DescribeRetrieveFromSmartMemory:
 
         mock_chroma_gateway.query.assert_called_once()
         assert result == "No relevant information found in memory."
+
+    def should_return_error_message_when_retrieve_fails(
+        self, smart_memory, mock_chroma_gateway, mock_console_gateway
+    ):
+        mock_chroma_gateway.query.side_effect = Exception("retrieval failed")
+        tool = RetrieveFromSmartMemory(smart_memory, mock_console_gateway)
+
+        result = tool.run("some query")
+
+        assert "Error retrieving information from memory" in result

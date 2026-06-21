@@ -4,7 +4,12 @@ from mojentic.llm.tools.llm_tool import LLMTool
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.link_traversal_service import LinkTraversalService
-from zk_chat.tools.tool_helpers import build_descriptor, check_document_exists, format_model_results
+from zk_chat.tools.tool_helpers import (
+    build_descriptor,
+    check_document_exists,
+    format_model_results,
+    log_and_return_error,
+)
 
 logger = structlog.get_logger()
 
@@ -39,11 +44,12 @@ class FindForwardLinks(LLMTool):
         if error:
             return error
 
-        forward_link_results = self.link_service.find_forward_links(source_document)
-
-        self.console_gateway.tool_info(f"Found {len(forward_link_results)} forward links from {source_document}")
-
-        return format_model_results(forward_link_results)
+        try:
+            forward_link_results = self.link_service.find_forward_links(source_document)
+            self.console_gateway.tool_info(f"Found {len(forward_link_results)} forward links from {source_document}")
+            return format_model_results(forward_link_results)
+        except OSError as e:
+            return log_and_return_error(logger, f"Error finding forward links from {source_document}: {str(e)}")
 
     @property
     def descriptor(self) -> dict:

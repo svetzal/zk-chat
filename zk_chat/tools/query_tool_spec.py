@@ -6,6 +6,18 @@ from zk_chat.tools.conftest import _make_index_service
 from zk_chat.tools.query_tool import QueryTool
 
 
+class ErrorQueryTool(QueryTool):
+    def _query(self, query: str) -> list:
+        raise RuntimeError("index unavailable")
+
+    def _report(self, results: list) -> None:
+        pass
+
+    @property
+    def descriptor(self) -> dict:
+        return {}
+
+
 class ConcreteQueryTool(QueryTool):
     def __init__(self, index_service, console_gateway, query_results):
         super().__init__(index_service, console_gateway)
@@ -64,3 +76,10 @@ class DescribeQueryTool:
 
         assert t.index_service is index_service
         assert t.console_gateway is mock_console_gateway
+
+    def should_return_error_message_when_query_fails(self, index_service, mock_console_gateway):
+        tool = ErrorQueryTool(index_service, mock_console_gateway)
+
+        result = tool.run("test query")
+
+        assert "Error querying the index" in result
