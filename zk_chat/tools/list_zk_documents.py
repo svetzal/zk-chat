@@ -4,7 +4,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.services.document_service import DocumentService
-from zk_chat.tools.tool_helpers import build_descriptor, log_and_return_error
+from zk_chat.tools.tool_helpers import build_descriptor, tool_boundary
 
 logger = structlog.get_logger()
 
@@ -17,6 +17,7 @@ class ListZkDocuments(LLMTool):
         self.document_service = document_service
         self.console_gateway = console_gateway
 
+    @tool_boundary((OSError, yaml.YAMLError), "Error listing documents")
     def run(self) -> str:
         """
         List all document paths in the Zettelkasten.
@@ -25,12 +26,9 @@ class ListZkDocuments(LLMTool):
             A simple list of all document paths.
         """
         self.console_gateway.tool_info("Listing all available documents")
-        try:
-            paths = [document.relative_path for document in self.document_service.iterate_documents()]
-            logger.info("Listed all available documents", paths=paths)
-            return "\n".join(paths)
-        except (OSError, yaml.YAMLError) as e:
-            return log_and_return_error(logger, f"Error listing documents: {str(e)}")
+        paths = [document.relative_path for document in self.document_service.iterate_documents()]
+        logger.info("Listed all available documents", paths=paths)
+        return "\n".join(paths)
 
     @property
     def descriptor(self) -> dict:

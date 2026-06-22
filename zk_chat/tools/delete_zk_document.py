@@ -4,7 +4,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
-from zk_chat.tools.tool_helpers import build_descriptor, check_document_exists, log_and_return_error
+from zk_chat.tools.tool_helpers import build_descriptor, check_document_exists, tool_boundary
 
 logger = structlog.get_logger()
 
@@ -20,6 +20,10 @@ class DeleteZkDocument(LLMTool):
         self.index_service = index_service
         self.console_gateway = console_gateway
 
+    @tool_boundary(
+        (FileNotFoundError, OSError),
+        lambda self, relative_path: f"Error deleting document at {relative_path}",
+    )
     def run(self, relative_path: str) -> str:
         """Delete the document at ``relative_path`` from the vault and its index entry."""
         self.console_gateway.tool_info(f"Deleting document at {relative_path}")
@@ -27,12 +31,9 @@ class DeleteZkDocument(LLMTool):
         if error:
             return error
 
-        try:
-            self.document_service.delete_document(relative_path)
-            self.index_service.remove_document_from_index(relative_path)
-            return f"Document successfully deleted at {relative_path}"
-        except (FileNotFoundError, OSError) as e:
-            return log_and_return_error(logger, f"Error deleting document at {relative_path}: {str(e)}")
+        self.document_service.delete_document(relative_path)
+        self.index_service.remove_document_from_index(relative_path)
+        return f"Document successfully deleted at {relative_path}"
 
     @property
     def descriptor(self) -> dict:

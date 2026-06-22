@@ -6,12 +6,15 @@ service/gateway calls can plausibly raise and return a recoverable error string
 via ``log_and_return_error``.  Raw exceptions must never propagate to the agent loop.
 """
 
+import functools
 import json
 
 import structlog
 from pydantic import BaseModel
 
 from zk_chat.services.document_service import DocumentService
+
+_logger = structlog.get_logger()
 
 
 class GitToolError(Exception):
@@ -85,3 +88,26 @@ def check_document_exists(document_service: DocumentService, relative_path: str)
     if not document_service.document_exists(relative_path):
         return f"Document not found at {relative_path}"
     return None
+
+
+def tool_boundary(exception_types, prefix):
+    """Decorator for LLM tool ``run`` methods that catches exceptions and returns error strings.
+
+    Parameters
+    ----------
+    exception_types : type | tuple[type, ...]
+        Exception types to catch.
+    prefix : str | callable
+        Static string prefix, or a callable with the same signature as the decorated method
+        that returns the context-specific prefix given the runtime arguments.
+    """
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            try:
+                return fn(*args, **kwargs)
+            except exception_types as e:
+                p = prefix(*args, **kwargs) if callable(prefix) else prefix
+                return log_and_return_error(_logger, f"{p}: {e}")
+        return wrapper
+    return decorator

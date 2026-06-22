@@ -13,6 +13,7 @@ from zk_chat.tools.tool_helpers import (
     checked,
     format_model_results,
     log_and_return_error,
+    tool_boundary,
 )
 
 
@@ -107,6 +108,42 @@ class DescribeFormatModelResults:
         assert len(parsed) == 2
         assert parsed[0]["name"] == "first"
         assert parsed[1]["name"] == "second"
+
+
+class DescribeToolBoundary:
+    def should_pass_through_return_value_on_success(self):
+        @tool_boundary(OSError, "Error doing thing")
+        def run():
+            return "ok"
+
+        assert run() == "ok"
+
+    def should_return_error_string_when_exception_raised(self):
+        @tool_boundary(OSError, "Error doing thing")
+        def run():
+            raise OSError("boom")
+
+        result = run()
+
+        assert "Error doing thing" in result
+        assert "boom" in result
+
+    def should_use_callable_prefix_with_runtime_args(self):
+        @tool_boundary(OSError, lambda self, name: f"Error processing {name}")
+        def run(self, name):
+            raise OSError("failed")
+
+        result = run(object(), "doc.md")
+
+        assert "Error processing doc.md" in result
+
+    def should_not_catch_unspecified_exception_types(self):
+        @tool_boundary(OSError, "Error")
+        def run():
+            raise ValueError("unrelated")
+
+        with pytest.raises(ValueError):
+            run()
 
 
 class DescribeCheckDocumentExists:

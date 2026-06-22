@@ -3,7 +3,7 @@ import yaml
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.services.document_service import DocumentService
-from zk_chat.tools.tool_helpers import build_descriptor, check_document_exists, log_and_return_error
+from zk_chat.tools.tool_helpers import build_descriptor, check_document_exists, tool_boundary
 
 logger = structlog.get_logger()
 
@@ -15,6 +15,7 @@ class ReadZkDocument(LLMTool):
         """Store the document service used to fetch document content."""
         self.document_service = document_service
 
+    @tool_boundary((OSError, yaml.YAMLError), lambda self, relative_path: f"Error reading document at {relative_path}")
     def run(self, relative_path: str) -> str:
         """Read a document by its relative path and return its JSON-serialized content."""
         logger.info("Reading document", relative_path=relative_path)
@@ -22,11 +23,8 @@ class ReadZkDocument(LLMTool):
         if error:
             return error
 
-        try:
-            document = self.document_service.read_document(relative_path)
-            return document.model_dump_json()
-        except (OSError, yaml.YAMLError) as e:
-            return log_and_return_error(logger, f"Error reading document at {relative_path}: {str(e)}")
+        document = self.document_service.read_document(relative_path)
+        return document.model_dump_json()
 
     @property
     def descriptor(self) -> dict:

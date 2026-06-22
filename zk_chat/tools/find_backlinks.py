@@ -3,7 +3,7 @@ from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.services.link_traversal_service import LinkTraversalService
-from zk_chat.tools.tool_helpers import build_descriptor, format_model_results, log_and_return_error
+from zk_chat.tools.tool_helpers import build_descriptor, format_model_results, tool_boundary
 
 logger = structlog.get_logger()
 
@@ -16,6 +16,7 @@ class FindBacklinks(LLMTool):
         self.link_service = link_service
         self.console_gateway = console_gateway
 
+    @tool_boundary(OSError, lambda self, target_document: f"Error finding backlinks to {target_document}")
     def run(self, target_document: str) -> str:
         """
         Find all documents that contain wikilinks pointing to the target document.
@@ -29,12 +30,9 @@ class FindBacklinks(LLMTool):
         """
         logger.info("Finding backlinks to document", target_document=target_document)
 
-        try:
-            backlink_results = self.link_service.find_backlinks(target_document)
-            self.console_gateway.tool_info(f"Found {len(backlink_results)} backlinks to {target_document}")
-            return format_model_results(backlink_results)
-        except OSError as e:
-            return log_and_return_error(logger, f"Error finding backlinks to {target_document}: {str(e)}")
+        backlink_results = self.link_service.find_backlinks(target_document)
+        self.console_gateway.tool_info(f"Found {len(backlink_results)} backlinks to {target_document}")
+        return format_model_results(backlink_results)
 
     @property
     def descriptor(self) -> dict:
