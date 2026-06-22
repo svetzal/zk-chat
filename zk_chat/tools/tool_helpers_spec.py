@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.services.document_service import DocumentService
 from zk_chat.tools.tool_helpers import (
+    PASSTHROUGH,
     GitToolError,
     build_descriptor,
     check_document_exists,
@@ -144,6 +145,25 @@ class DescribeToolBoundary:
 
         with pytest.raises(ValueError):
             run()
+
+    def should_support_mapping_form_with_passthrough_for_specific_exception(self):
+        @tool_boundary({GitToolError: PASSTHROUGH, OSError: "Error doing thing"})
+        def run():
+            raise GitToolError("git error message")
+
+        result = run()
+
+        assert result == "git error message"
+
+    def should_support_mapping_form_with_prefix_for_other_exception(self):
+        @tool_boundary({GitToolError: PASSTHROUGH, OSError: "Error doing thing"})
+        def run():
+            raise OSError("boom")
+
+        result = run()
+
+        assert "Error doing thing" in result
+        assert "boom" in result
 
 
 class DescribeCheckDocumentExists:

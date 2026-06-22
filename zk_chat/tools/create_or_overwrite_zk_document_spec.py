@@ -1,4 +1,5 @@
 import pytest
+import yaml
 
 from zk_chat.models import ZkDocument
 from zk_chat.services.document_service import DocumentService
@@ -111,3 +112,17 @@ class DescribeCreateOrOverwriteZkDocument:
         assert call_args[0] == f"{title}.md"
         assert call_args[1] == {"reviewed": False}
         assert call_args[2] == content
+
+    def should_return_error_message_when_filesystem_raises_os_error(self, write_tool, mock_filesystem):
+        mock_filesystem.write_markdown.side_effect = OSError("Permission denied")
+
+        result = write_tool.run(title="My Doc", content="content")
+
+        assert "Failed to write document for 'My Doc'" in result
+
+    def should_return_error_message_when_yaml_serialization_fails(self, write_tool, mock_filesystem):
+        mock_filesystem.write_markdown.side_effect = yaml.YAMLError("bad yaml")
+
+        result = write_tool.run(title="My Doc", content="content")
+
+        assert "Failed to write document for 'My Doc'" in result

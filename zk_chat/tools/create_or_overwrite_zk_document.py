@@ -8,7 +8,7 @@ from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.filename_utils import ensure_md_extension, sanitize_filename
 from zk_chat.models import ZkDocument
 from zk_chat.services.document_service import DocumentService
-from zk_chat.tools.tool_helpers import build_descriptor, log_and_return_error
+from zk_chat.tools.tool_helpers import build_descriptor, tool_boundary
 
 logger = structlog.get_logger()
 
@@ -47,27 +47,17 @@ class CreateOrOverwriteZkDocument(LLMTool):
         self.document_service = document_service
         self.console_gateway = console_gateway
 
+    @tool_boundary(
+        (OSError, yaml.YAMLError),
+        lambda self, title, content, metadata=None: f"Failed to write document for '{title}'"
+    )
     def run(self, title: str, content: str, metadata: dict[str, Any] | None = None) -> str:
         """Write a document to the vault, creating or replacing it, and return a status message."""
         document = prepare_document(title, content, metadata)
         self.console_gateway.tool_info(f"Writing document at {document.relative_path}")
-        try:
-            logger.info("writing file", relative_path=document.relative_path, metadata=document.metadata)
-            self.document_service.write_document(document)
-            return f"Successfully wrote to {document.relative_path}\n{document.model_dump_json()}"
-        except OSError as e:
-            return log_and_return_error(
-                logger,
-                f"Failed to write document to {document.relative_path}: {str(e)}. This could "
-                f"be due to insufficient permissions, disk space issues, "
-                f"or the directory being read-only.",
-            )
-        except yaml.YAMLError as e:
-            return log_and_return_error(
-                logger,
-                f"Failed to serialize metadata for document {document.relative_path}: {str(e)}. Please check if "
-                f"the metadata contains valid YAML content.",
-            )
+        logger.info("writing file", relative_path=document.relative_path, metadata=document.metadata)
+        self.document_service.write_document(document)
+        return f"Successfully wrote to {document.relative_path}\n{document.model_dump_json()}"
 
     @property
     def descriptor(self) -> dict:

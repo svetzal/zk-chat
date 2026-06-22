@@ -1,11 +1,8 @@
-import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.memory.smart_memory import SmartMemory
-from zk_chat.tools.tool_helpers import build_descriptor, log_and_return_error
-
-logger = structlog.get_logger()
+from zk_chat.tools.tool_helpers import build_descriptor, tool_boundary
 
 
 def format_memory_results(documents: list[list[str]], distances: list[list[float]]) -> str:
@@ -30,16 +27,14 @@ class RetrieveFromSmartMemory(LLMTool):
         self.memory = smart_memory
         self.console_gateway = console_gateway
 
+    @tool_boundary(Exception, "Error retrieving information from memory")
     def run(self, query: str) -> str:
         """Query smart memory for facts related to ``query`` and return a formatted string."""
         self.console_gateway.tool_info(f"Checking memory for anything about {query}")
-        try:
-            results = self.memory.retrieve(query, 10)
-            information = format_memory_results(results["documents"], results["distances"])
-            self.console_gateway.tool_info(information)
-            return information
-        except Exception as e:  # broad catch: LLM trust boundary over opaque ChromaDB backend
-            return log_and_return_error(logger, f"Error retrieving information from memory: {str(e)}")
+        results = self.memory.retrieve(query, 10)
+        information = format_memory_results(results["documents"], results["distances"])
+        self.console_gateway.tool_info(information)
+        return information
 
     @property
     def descriptor(self) -> dict:

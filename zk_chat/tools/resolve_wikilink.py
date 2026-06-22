@@ -23,7 +23,7 @@ class ResolveWikiLink(LLMTool):
         try:
             relative_path = self.fs.resolve_wikilink(wikilink)
             return "relative_path: " + relative_path
-        except ValueError:
+        except ValueError:  # intentional domain control flow: no match is a valid result, not a backend failure
             return "There is no document currently present matching the wikilink provided."
 
     @property

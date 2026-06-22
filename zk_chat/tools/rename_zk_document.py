@@ -4,9 +4,15 @@ from mojentic.llm.tools.llm_tool import LLMTool
 from zk_chat.filename_utils import ensure_md_extension, sanitize_filename
 from zk_chat.services.document_service import DocumentService
 from zk_chat.services.index_service import IndexService
-from zk_chat.tools.tool_helpers import build_descriptor, log_and_return_error
+from zk_chat.tools.tool_helpers import build_descriptor, tool_boundary
 
 logger = structlog.get_logger()
+
+
+def _rename_error_prefix(self, source_title, target_title):
+    src = ensure_md_extension(sanitize_filename(source_title))
+    tgt = ensure_md_extension(sanitize_filename(target_title))
+    return f"Failed to rename document from '{src}' to '{tgt}'"
 
 
 class RenameZkDocument(LLMTool):
@@ -17,28 +23,16 @@ class RenameZkDocument(LLMTool):
         self.document_service = document_service
         self.index_service = index_service
 
+    @tool_boundary(OSError, _rename_error_prefix)
     def run(self, source_title: str, target_title: str) -> str:
         """Rename a document from ``source_title`` to ``target_title``, updating the index."""
         source_path = ensure_md_extension(sanitize_filename(source_title))
         target_path = ensure_md_extension(sanitize_filename(target_title))
-
-        try:
-            logger.info("renaming document", source_path=source_path, target_path=target_path)
-
-            self.document_service.rename_document(source_path, target_path)
-            self.index_service.remove_document_from_index(source_path)
-            self.index_service.index_document(target_path)
-
-            return f"Successfully renamed document from '{source_path}' to '{target_path}'"
-        except FileNotFoundError as e:
-            return log_and_return_error(logger, f"Failed to rename document: {str(e)}")
-        except OSError as e:
-            return log_and_return_error(
-                logger,
-                f"Failed to rename document from '{source_path}' to '{target_path}': "
-                f"{str(e)}. This could be due to insufficient permissions, "
-                f"the target file already existing, or other filesystem issues.",
-            )
+        logger.info("renaming document", source_path=source_path, target_path=target_path)
+        self.document_service.rename_document(source_path, target_path)
+        self.index_service.remove_document_from_index(source_path)
+        self.index_service.index_document(target_path)
+        return f"Successfully renamed document from '{source_path}' to '{target_path}'"
 
     @property
     def descriptor(self) -> dict:

@@ -1,11 +1,8 @@
-import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.tools.git_gateway import GitGateway
-from zk_chat.tools.tool_helpers import GitToolError, build_descriptor, checked
-
-logger = structlog.get_logger()
+from zk_chat.tools.tool_helpers import PASSTHROUGH, GitToolError, build_descriptor, checked, tool_boundary
 
 
 class UncommittedChanges(LLMTool):
@@ -17,23 +14,17 @@ class UncommittedChanges(LLMTool):
         self.git = git
         self.console_gateway = console_gateway
 
+    @tool_boundary({GitToolError: PASSTHROUGH, OSError: "Unexpected error getting uncommitted changes"})
     def run(self) -> str:
         """Stage all files and return the current git diff, or a no-changes message."""
         self.console_gateway.tool_info("Getting uncommitted changes in vault folder")
+        checked(self.git.add_all_files(), "Error adding files")
+        diff_output = checked(self.git.get_diff(), "Error getting diff")
 
-        try:
-            checked(self.git.add_all_files(), "Error adding files")
-            diff_output = checked(self.git.get_diff(), "Error getting diff")
+        if not diff_output.strip():
+            return "No uncommitted changes in the vault folder."
 
-            if not diff_output.strip():
-                return "No uncommitted changes in the vault folder."
-
-            return f"Uncommitted changes in the vault folder:\n{diff_output}"
-        except GitToolError as e:
-            return str(e)
-        except OSError as e:
-            logger.error("Unexpected error", error=str(e))
-            return f"Unexpected error getting uncommitted changes: {str(e)}"
+        return f"Uncommitted changes in the vault folder:\n{diff_output}"
 
     @property
     def descriptor(self) -> dict:
