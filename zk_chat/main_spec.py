@@ -183,11 +183,15 @@ class DescribeMcpClientManagerWiring:
         mock_agent_query = Mock(return_value="answer")
         sentinel_manager = object()
 
-        with (
-            patch("zk_chat.main.create_default_mcp_client_manager", return_value=sentinel_manager),
-            patch("zk_chat.main.common_init", return_value=mock_config),
-            patch("zk_chat.main.agent_single_query", mock_agent_query),
-        ):
-            runner.invoke(app, ["query", "test question"])
+        with patch("zk_chat.main.create_default_mcp_client_manager", return_value=sentinel_manager):
+            runner.invoke(
+                app,
+                ["query", "test question"],
+                obj={
+                    "common_init": lambda *a, **k: mock_config,
+                    "agent_single_query": mock_agent_query,
+                    "display_banner": Mock(),
+                },
+            )
 
         assert mock_agent_query.call_args.args[2] is sentinel_manager

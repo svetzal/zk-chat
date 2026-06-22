@@ -83,6 +83,16 @@ def _build_init_options(
         reset_memory=reset_memory,
     )
 
+
+def _resolve_config(ctx: typer.Context, options: InitOptions):
+    _common_init = ctx.obj.get("common_init", common_init)
+    return _common_init(
+        options,
+        ctx.obj["global_config_gateway"],
+        ctx.obj["config_gateway"],
+        ctx.obj["console_gateway"],
+    )
+
 app.add_typer(gui_app, name="gui")
 app.add_typer(index_app, name="index")
 app.add_typer(mcp_app, name="mcp")
@@ -168,15 +178,13 @@ def interactive(
     • [cyan]zk-chat interactive --no-index[/] - Skip indexing new documents on startup
     """
     logger.info("interactive command invoked", vault=str(vault) if vault else None, unsafe=unsafe, git=git)
-    _common_init = ctx.obj.get("common_init", common_init)
     _run_agent = ctx.obj.get("run_agent", run_agent)
     _display_banner = ctx.obj.get("display_banner", display_banner)
 
     options = _build_init_options(
         vault, save, gateway, model, visual_model, no_index, unsafe, git, store_prompt, reset_memory
     )
-    global_config_gateway = ctx.obj["global_config_gateway"]
-    config = _common_init(options, global_config_gateway, ctx.obj["config_gateway"], ctx.obj["console_gateway"])
+    config = _resolve_config(ctx, options)
     if not config:
         return
 
@@ -188,6 +196,7 @@ def interactive(
         use_git=git,
         store_prompt=store_prompt,
     )
+    global_config_gateway = ctx.obj["global_config_gateway"]
     mcp_manager = ctx.obj["mcp_client_manager"]
     _run_agent(config, global_config_gateway, mcp_manager, ctx.obj["console_gateway"])
 
@@ -246,13 +255,15 @@ def query(
     options = _build_init_options(
         vault, save, gateway, model, visual_model, no_index, unsafe, git, store_prompt, reset_memory
     )
-    global_config_gateway = ctx.obj["global_config_gateway"]
-    config = common_init(options, global_config_gateway, ctx.obj["config_gateway"], ctx.obj["console_gateway"])
+    config = _resolve_config(ctx, options)
     if not config:
         return
 
+    _display_banner = ctx.obj.get("display_banner", display_banner)
+    _agent_single_query = ctx.obj.get("agent_single_query", agent_single_query)
+
     if unsafe or git:
-        display_banner(
+        _display_banner(
             config,
             console_gateway,
             title="ZkChat Query",
@@ -265,7 +276,7 @@ def query(
     console_gateway.print("[dim]Using agent for autonomous problem solving...[/]\n")
 
     mcp_manager = ctx.obj["mcp_client_manager"]
-    result = agent_single_query(config, prompt, mcp_manager)
+    result = _agent_single_query(config, prompt, mcp_manager)
     console_gateway.print(f"\n[bold green]Response:[/]\n{result}")
 
 
