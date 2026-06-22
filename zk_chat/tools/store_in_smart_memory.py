@@ -1,11 +1,8 @@
-import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.memory.smart_memory import SmartMemory
-from zk_chat.tools.tool_helpers import build_descriptor, log_and_return_error
-
-logger = structlog.get_logger()
+from zk_chat.tools.tool_helpers import build_descriptor, tool_boundary
 
 
 class StoreInSmartMemory(LLMTool):
@@ -16,14 +13,12 @@ class StoreInSmartMemory(LLMTool):
         self.memory = smart_memory
         self.console_gateway = console_gateway
 
+    @tool_boundary(Exception, "Error storing information in memory")
     def run(self, information: str) -> str:
         """Store ``information`` in smart memory and return a confirmation string."""
         self.console_gateway.tool_info(f"Storing information to memory: {information}")
-        try:
-            self.memory.store(information)
-            return "Information stored in long term memory."
-        except Exception as e:  # broad catch: LLM trust boundary over opaque ChromaDB backend
-            return log_and_return_error(logger, f"Error storing information in memory: {str(e)}")
+        self.memory.store(information)
+        return "Information stored in long term memory."
 
     @property
     def descriptor(self) -> dict:

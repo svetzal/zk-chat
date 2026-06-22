@@ -1,13 +1,10 @@
 from abc import abstractmethod
 
-import structlog
 from mojentic.llm.tools.llm_tool import LLMTool
 
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.services.index_service import IndexService
-from zk_chat.tools.tool_helpers import format_model_results, log_and_return_error
-
-logger = structlog.get_logger()
+from zk_chat.tools.tool_helpers import format_model_results, tool_boundary
 
 
 class QueryTool(LLMTool):
@@ -18,14 +15,12 @@ class QueryTool(LLMTool):
         self.index_service = index_service
         self.console_gateway = console_gateway
 
+    @tool_boundary(Exception, "Error querying the index")
     def run(self, query: str) -> str:
         """Execute the query, emit console feedback, and return JSON-serialized results."""
-        try:
-            results = self._query(query)
-            self._report(results)
-            return format_model_results(results)
-        except Exception as e:  # broad catch: LLM trust boundary over opaque vector backend
-            return log_and_return_error(logger, f"Error querying the index: {str(e)}")
+        results = self._query(query)
+        self._report(results)
+        return format_model_results(results)
 
     @abstractmethod
     def _query(self, query: str) -> list:

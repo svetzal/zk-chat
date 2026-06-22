@@ -1,9 +1,12 @@
 """
 Utility helpers for LLM tool development.
 
-Boundary policy: every LLM tool's ``run`` method must catch the exceptions its
-service/gateway calls can plausibly raise and return a recoverable error string
-via ``log_and_return_error``.  Raw exceptions must never propagate to the agent loop.
+Boundary policy: ``tool_boundary`` is the canonical idiom for every LLM tool's ``run``
+method — catch exceptions the service/gateway calls can plausibly raise and return a
+recoverable error string.  ``checked()`` is its complement for git ``(success, payload)``
+tuple-returns.  Domain "not found" / expected-result returns (e.g. ``ResolveWikiLink``)
+are explicitly out of scope: they represent valid control flow, not backend-failure guards,
+and must not use this decorator.
 """
 
 import functools
@@ -15,6 +18,9 @@ from pydantic import BaseModel
 from zk_chat.services.document_service import DocumentService
 
 _logger = structlog.get_logger()
+
+PASSTHROUGH = object()
+"""Sentinel for the ``tool_boundary`` mapping form: return ``str(e)`` unchanged, without logging."""
 
 
 class GitToolError(Exception):
@@ -90,17 +96,59 @@ def check_document_exists(document_service: DocumentService, relative_path: str)
     return None
 
 
-def tool_boundary(exception_types, prefix):
+def _tool_boundary_mapping(mapping):
+    """Build a ``tool_boundary`` decorator from an ``{ExceptionType: prefix}`` mapping."""
+    exception_tuple = tuple(mapping.keys())
+
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            try:
+                return fn(*args, **kwargs)
+            except exception_tuple as e:
+                for exc_cls, exc_prefix in mapping.items():
+                    if isinstance(e, exc_cls):
+                        if exc_prefix is PASSTHROUGH:
+                            return str(e)
+                        p = exc_prefix(*args, **kwargs) if callable(exc_prefix) else exc_prefix
+                        return log_and_return_error(_logger, f"{p}: {e}")
+                return log_and_return_error(_logger, str(e))
+        return wrapper
+    return decorator
+
+
+def tool_boundary(exception_types_or_mapping, prefix=None):
     """Decorator for LLM tool ``run`` methods that catches exceptions and returns error strings.
+
+    Accepts two call signatures:
+
+    **Simple form** (single exception type or tuple)::
+
+        @tool_boundary(OSError, "Error writing document")
+        def run(self, ...):
+            ...
+
+    **Mapping form** (per-type handling, supports ``PASSTHROUGH`` sentinel)::
+
+        @tool_boundary({GitToolError: PASSTHROUGH, OSError: "Unexpected error"})
+        def run(self, ...):
+            ...
 
     Parameters
     ----------
-    exception_types : type | tuple[type, ...]
-        Exception types to catch.
-    prefix : str | callable
-        Static string prefix, or a callable with the same signature as the decorated method
-        that returns the context-specific prefix given the runtime arguments.
+    exception_types_or_mapping : type | tuple[type, ...] | dict
+        Exception types to catch.  When a dict, keys are exception types and values are
+        string prefixes, callables, or the ``PASSTHROUGH`` sentinel (return ``str(e)``
+        unchanged without logging).
+    prefix : str | callable | None
+        Used only in the simple form.  Static string, or a callable with the same signature
+        as the decorated method that returns the context-specific prefix at runtime.
     """
+    if isinstance(exception_types_or_mapping, dict):
+        return _tool_boundary_mapping(exception_types_or_mapping)
+
+    exception_types = exception_types_or_mapping
+
     def decorator(fn):
         @functools.wraps(fn)
         def wrapper(*args, **kwargs):
