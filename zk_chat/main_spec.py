@@ -55,83 +55,77 @@ class DescribeMain:
 class DescribeInteractiveCommand:
     """Tests for the interactive command's argument handling."""
 
-    def should_construct_init_options_with_vault_argument(self, runner):
+    def should_construct_init_options_with_vault_argument(self, runner, monkeypatch):
         captured_options = []
 
         def mock_common_init(options, global_config_gateway, config_gateway, console_gateway):
             captured_options.append(options)
             return None
 
-        runner.invoke(app, ["interactive", "--vault", "/some/vault"], obj={"common_init": mock_common_init})
+        monkeypatch.setattr("zk_chat.main.common_init", mock_common_init)
+        runner.invoke(app, ["interactive", "--vault", "/some/vault"])
 
         assert len(captured_options) == 1
         assert captured_options[0].vault == "/some/vault"
 
-    def should_construct_init_options_with_unsafe_flag(self, runner):
+    def should_construct_init_options_with_unsafe_flag(self, runner, monkeypatch):
         captured_options = []
 
         def mock_common_init(options, global_config_gateway, config_gateway, console_gateway):
             captured_options.append(options)
             return None
 
-        runner.invoke(app, ["interactive", "--unsafe"], obj={"common_init": mock_common_init})
+        monkeypatch.setattr("zk_chat.main.common_init", mock_common_init)
+        runner.invoke(app, ["interactive", "--unsafe"])
 
         assert len(captured_options) == 1
         assert captured_options[0].unsafe is True
 
-    def should_construct_init_options_with_git_flag(self, runner):
+    def should_construct_init_options_with_git_flag(self, runner, monkeypatch):
         captured_options = []
 
         def mock_common_init(options, global_config_gateway, config_gateway, console_gateway):
             captured_options.append(options)
             return None
 
-        runner.invoke(app, ["interactive", "--git"], obj={"common_init": mock_common_init})
+        monkeypatch.setattr("zk_chat.main.common_init", mock_common_init)
+        runner.invoke(app, ["interactive", "--git"])
 
         assert len(captured_options) == 1
         assert captured_options[0].git is True
 
-    def should_construct_init_options_with_no_index_flag(self, runner):
+    def should_construct_init_options_with_no_index_flag(self, runner, monkeypatch):
         captured_options = []
 
         def mock_common_init(options, global_config_gateway, config_gateway, console_gateway):
             captured_options.append(options)
             return None
 
-        runner.invoke(app, ["interactive", "--no-index"], obj={"common_init": mock_common_init})
+        monkeypatch.setattr("zk_chat.main.common_init", mock_common_init)
+        runner.invoke(app, ["interactive", "--no-index"])
 
         assert len(captured_options) == 1
         assert captured_options[0].reindex is False
 
-    def should_invoke_run_agent_when_config_is_returned(self, runner):
+    def should_invoke_run_agent_when_config_is_returned(self, runner, monkeypatch):
         mock_config = Config(vault="/test/vault", model="llama2")
         mock_run_agent = Mock()  # Intentionally unspec'd: bare callable, not a class instance
         mock_display_banner = Mock()  # Intentionally unspec'd: bare callable, not a class instance
 
-        runner.invoke(
-            app,
-            ["interactive"],
-            obj={
-                "common_init": lambda *args, **kwargs: mock_config,
-                "run_agent": mock_run_agent,
-                "display_banner": mock_display_banner,
-            },
-        )
+        monkeypatch.setattr("zk_chat.main.common_init", lambda *args, **kwargs: mock_config)
+        monkeypatch.setattr("zk_chat.main.run_agent", mock_run_agent)
+        monkeypatch.setattr("zk_chat.main.display_banner", mock_display_banner)
+        runner.invoke(app, ["interactive"])
 
         assert mock_run_agent.called
         assert mock_run_agent.call_args.args[0] is mock_config
 
-    def should_not_invoke_run_agent_when_config_is_none(self, runner):
+    def should_not_invoke_run_agent_when_config_is_none(self, runner, monkeypatch):
         mock_run_agent = Mock()  # Intentionally unspec'd: bare callable, not a class instance
 
-        runner.invoke(
-            app,
-            ["interactive"],
-            obj={
-                "common_init": lambda *args, **kwargs: None,
-                "run_agent": mock_run_agent,
-            },
-        )
+        monkeypatch.setattr("zk_chat.main.common_init", lambda *args, **kwargs: None)
+        monkeypatch.setattr("zk_chat.main.run_agent", mock_run_agent)
+        runner.invoke(app, ["interactive"])
 
         mock_run_agent.assert_not_called()
 
@@ -150,48 +144,35 @@ class DescribeQueryCommand:
 class DescribeMcpClientManagerWiring:
     """Tests verifying MCP client manager is built once in the composition root and injected."""
 
-    def should_build_mcp_manager_once_in_composition_root(self, runner):
+    def should_build_mcp_manager_once_in_composition_root(self, runner, monkeypatch):
+        monkeypatch.setattr("zk_chat.main.common_init", lambda *a, **k: None)
         with patch("zk_chat.main.create_default_mcp_client_manager") as mock_factory:
-            runner.invoke(
-                app,
-                ["interactive"],
-                obj={"common_init": lambda *a, **k: None},
-            )
+            runner.invoke(app, ["interactive"])
 
         mock_factory.assert_called_once()
 
-    def should_inject_mcp_manager_into_interactive_from_ctx(self, runner):
+    def should_inject_mcp_manager_into_interactive_from_ctx(self, runner, monkeypatch):
         mock_config = Config(vault="/test/vault", model="llama2")
         mock_run_agent = Mock()
         sentinel_manager = object()
 
+        monkeypatch.setattr("zk_chat.main.common_init", lambda *a, **k: mock_config)
+        monkeypatch.setattr("zk_chat.main.run_agent", mock_run_agent)
+        monkeypatch.setattr("zk_chat.main.display_banner", Mock())
         with patch("zk_chat.main.create_default_mcp_client_manager", return_value=sentinel_manager):
-            runner.invoke(
-                app,
-                ["interactive"],
-                obj={
-                    "common_init": lambda *a, **k: mock_config,
-                    "run_agent": mock_run_agent,
-                    "display_banner": Mock(),
-                },
-            )
+            runner.invoke(app, ["interactive"])
 
         assert mock_run_agent.call_args.args[2] is sentinel_manager
 
-    def should_inject_mcp_manager_into_query_from_ctx(self, runner):
+    def should_inject_mcp_manager_into_query_from_ctx(self, runner, monkeypatch):
         mock_config = Config(vault="/test/vault", model="llama2")
         mock_agent_query = Mock(return_value="answer")
         sentinel_manager = object()
 
+        monkeypatch.setattr("zk_chat.main.common_init", lambda *a, **k: mock_config)
+        monkeypatch.setattr("zk_chat.main.agent_single_query", mock_agent_query)
+        monkeypatch.setattr("zk_chat.main.display_banner", Mock())
         with patch("zk_chat.main.create_default_mcp_client_manager", return_value=sentinel_manager):
-            runner.invoke(
-                app,
-                ["query", "test question"],
-                obj={
-                    "common_init": lambda *a, **k: mock_config,
-                    "agent_single_query": mock_agent_query,
-                    "display_banner": Mock(),
-                },
-            )
+            runner.invoke(app, ["query", "test question"])
 
         assert mock_agent_query.call_args.args[2] is sentinel_manager

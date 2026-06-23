@@ -1,7 +1,5 @@
 import os
-from collections.abc import Callable
 from importlib.metadata import PackageNotFoundError, version
-from typing import Any
 
 import structlog
 
@@ -268,22 +266,16 @@ def _handle_existing_config(
     config_gateway: ConfigGateway,
     global_config_gateway: GlobalConfigGateway,
     console_gateway: ConsoleGateway,
-    *,
-    _run_upgraders_fn: Callable[..., Any] | None = None,
-    _gateway_selection_fn: Callable[..., Any] | None = None,
-    _reset_memory_fn: Callable[..., Any] | None = None,
-    _reindex_fn: Callable[..., Any] | None = None,
 ) -> Config | None:
-    (_run_upgraders_fn or _run_upgraders)(config, config_gateway)
-    gateway_sel = _gateway_selection_fn or _maybe_select_gateway
-    gateway, changed = gateway_sel(options, config.gateway, console_gateway)
+    _run_upgraders(config, config_gateway)
+    gateway, changed = _maybe_select_gateway(options, config.gateway, console_gateway)
     if changed or options.model is not None:
         _maybe_update_models(options, config, gateway, config_gateway, console_gateway)
     if options.reset_memory:
-        (_reset_memory_fn or _reset_smart_memory)(config, console_gateway)
+        _reset_smart_memory(config, console_gateway)
         return None
     if options.reindex:
-        (_reindex_fn or reindex)(config, config_gateway, force_full=options.full, console_gateway=console_gateway)
+        reindex(config, config_gateway, force_full=options.full, console_gateway=console_gateway)
     return config
 
 
@@ -292,14 +284,11 @@ def _handle_new_config(
     vault_path: str,
     config_gateway: ConfigGateway,
     console_gateway: ConsoleGateway,
-    *,
-    _initialize_config_fn: Callable[..., Any] | None = None,
-    _reindex_fn: Callable[..., Any] | None = None,
 ) -> Config | None:
-    config = (_initialize_config_fn or _initialize_config)(vault_path, options, config_gateway, console_gateway)
+    config = _initialize_config(vault_path, options, config_gateway, console_gateway)
     if not config:
         return None
-    (_reindex_fn or reindex)(config, config_gateway, force_full=True, console_gateway=console_gateway)
+    reindex(config, config_gateway, force_full=True, console_gateway=console_gateway)
     return config
 
 
@@ -308,12 +297,6 @@ def common_init(
     global_config_gateway: GlobalConfigGateway,
     config_gateway: ConfigGateway,
     console_gateway: ConsoleGateway,
-    *,
-    _run_upgraders_fn: Callable[..., Any] | None = None,
-    _gateway_selection_fn: Callable[..., Any] | None = None,
-    _reset_memory_fn: Callable[..., Any] | None = None,
-    _initialize_config_fn: Callable[..., Any] | None = None,
-    _reindex_fn: Callable[..., Any] | None = None,
 ) -> Config | None:
     logger.info(
         "Initializing session",
@@ -335,15 +318,7 @@ def common_init(
     config = config_gateway.load(vault_path)
     if config:
         return _handle_existing_config(
-            options, vault_path, config, config_gateway, global_config_gateway, console_gateway,
-            _run_upgraders_fn=_run_upgraders_fn,
-            _gateway_selection_fn=_gateway_selection_fn,
-            _reset_memory_fn=_reset_memory_fn,
-            _reindex_fn=_reindex_fn,
+            options, vault_path, config, config_gateway, global_config_gateway, console_gateway
         )
     else:
-        return _handle_new_config(
-            options, vault_path, config_gateway, console_gateway,
-            _initialize_config_fn=_initialize_config_fn,
-            _reindex_fn=_reindex_fn,
-        )
+        return _handle_new_config(options, vault_path, config_gateway, console_gateway)
