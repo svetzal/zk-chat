@@ -79,6 +79,7 @@ class DescribeCommonInit:
     class DescribeWithExistingConfig:
         def should_return_config_when_vault_exists_with_config(
             self,
+            monkeypatch,
             mock_global_config_gateway,
             mock_config_gateway,
             mock_console_gateway,
@@ -89,20 +90,21 @@ class DescribeCommonInit:
             mock_global_config_gateway.load.return_value = global_config
             mock_config_gateway.load.return_value = existing_config
             options = InitOptions(reindex=False)
+            monkeypatch.setattr("zk_chat.cli._run_upgraders", lambda *a, **k: None)
+            monkeypatch.setattr("zk_chat.cli._maybe_select_gateway", lambda *a, **k: (ModelGateway.OLLAMA, False))
 
             result = common_init(
                 options,
                 mock_global_config_gateway,
                 mock_config_gateway,
                 mock_console_gateway,
-                _run_upgraders_fn=lambda *a, **k: None,
-                _gateway_selection_fn=lambda *a, **k: (ModelGateway.OLLAMA, False),
             )
 
             assert result is existing_config
 
         def should_return_none_when_reset_memory_is_true(
             self,
+            monkeypatch,
             mock_global_config_gateway,
             mock_config_gateway,
             mock_console_gateway,
@@ -114,15 +116,15 @@ class DescribeCommonInit:
             mock_config_gateway.load.return_value = existing_config
             options = InitOptions(reset_memory=True, reindex=False)
             mock_reset = Mock()  # Intentionally unspec'd: bare callable, not a class instance
+            monkeypatch.setattr("zk_chat.cli._run_upgraders", lambda *a, **k: None)
+            monkeypatch.setattr("zk_chat.cli._maybe_select_gateway", lambda *a, **k: (ModelGateway.OLLAMA, False))
+            monkeypatch.setattr("zk_chat.cli._reset_smart_memory", mock_reset)
 
             result = common_init(
                 options,
                 mock_global_config_gateway,
                 mock_config_gateway,
                 mock_console_gateway,
-                _run_upgraders_fn=lambda *a, **k: None,
-                _gateway_selection_fn=lambda *a, **k: (ModelGateway.OLLAMA, False),
-                _reset_memory_fn=mock_reset,
             )
 
             assert result is None
@@ -130,6 +132,7 @@ class DescribeCommonInit:
 
         def should_trigger_reindex_when_reindex_is_true(
             self,
+            monkeypatch,
             mock_global_config_gateway,
             mock_config_gateway,
             mock_console_gateway,
@@ -141,15 +144,15 @@ class DescribeCommonInit:
             mock_config_gateway.load.return_value = existing_config
             options = InitOptions(reindex=True, full=False)
             mock_reindex = Mock()  # Intentionally unspec'd: bare callable, not a class instance
+            monkeypatch.setattr("zk_chat.cli._run_upgraders", lambda *a, **k: None)
+            monkeypatch.setattr("zk_chat.cli._maybe_select_gateway", lambda *a, **k: (ModelGateway.OLLAMA, False))
+            monkeypatch.setattr("zk_chat.cli.reindex", mock_reindex)
 
             common_init(
                 options,
                 mock_global_config_gateway,
                 mock_config_gateway,
                 mock_console_gateway,
-                _run_upgraders_fn=lambda *a, **k: None,
-                _gateway_selection_fn=lambda *a, **k: (ModelGateway.OLLAMA, False),
-                _reindex_fn=mock_reindex,
             )
 
             mock_reindex.assert_called_once_with(
@@ -158,25 +161,26 @@ class DescribeCommonInit:
 
     class DescribeWithNewVault:
         def should_return_none_when_config_init_fails(
-            self, mock_global_config_gateway, mock_config_gateway, mock_console_gateway, tmp_path
+            self, monkeypatch, mock_global_config_gateway, mock_config_gateway, mock_console_gateway, tmp_path
         ):
             global_config = GlobalConfig(bookmarks={str(tmp_path)}, last_opened_bookmark=str(tmp_path))
             mock_global_config_gateway.load.return_value = global_config
             mock_config_gateway.load.return_value = None
             options = InitOptions()
+            monkeypatch.setattr("zk_chat.cli._initialize_config", lambda *a, **k: None)
 
             result = common_init(
                 options,
                 mock_global_config_gateway,
                 mock_config_gateway,
                 mock_console_gateway,
-                _initialize_config_fn=lambda *a, **k: None,
             )
 
             assert result is None
 
         def should_return_config_after_initial_reindex(
             self,
+            monkeypatch,
             mock_global_config_gateway,
             mock_config_gateway,
             mock_console_gateway,
@@ -188,14 +192,14 @@ class DescribeCommonInit:
             mock_config_gateway.load.return_value = None
             options = InitOptions()
             mock_reindex = Mock()  # Intentionally unspec'd: bare callable, not a class instance
+            monkeypatch.setattr("zk_chat.cli._initialize_config", lambda *a, **k: existing_config)
+            monkeypatch.setattr("zk_chat.cli.reindex", mock_reindex)
 
             result = common_init(
                 options,
                 mock_global_config_gateway,
                 mock_config_gateway,
                 mock_console_gateway,
-                _initialize_config_fn=lambda *a, **k: existing_config,
-                _reindex_fn=mock_reindex,
             )
 
             assert result is existing_config
