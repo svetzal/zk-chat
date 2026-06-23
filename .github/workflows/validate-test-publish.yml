@@ -31,6 +31,15 @@ jobs:
           python -m pip install -e ".[dev]"
 
 
+      - name: Audit dependencies for vulnerabilities
+        shell: bash
+        run: |
+          python -m pip install pip-audit
+          # CVE-2026-45829: pre-auth RCE in ChromaDB's FastAPI HTTP server.
+          # zk-chat uses PersistentClient (embedded, no HTTP server), so this
+          # attack surface does not exist here. Remove once chromadb >=1.6.0 ships.
+          pip-audit --ignore-vuln CVE-2026-45829
+
       - name: Lint with Ruff
         shell: bash
         run: |
