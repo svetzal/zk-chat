@@ -5,7 +5,7 @@ aiofile==3.11.1
     # via py-key-value-aio
 aiohappyeyeballs==2.6.2
     # via aiohttp
-aiohttp==3.13.5
+aiohttp==3.14.1
     # via kubernetes
 aiosignal==1.4.0
     # via aiohttp
@@ -13,9 +13,9 @@ annotated-doc==0.0.4
     # via typer
 annotated-types==0.7.0
     # via pydantic
-anthropic==0.105.2
+anthropic==0.111.0
     # via mojentic
-anyio==4.13.0
+anyio==4.14.0
     # via
     #   anthropic
     #   httpx
@@ -46,7 +46,7 @@ cachetools==7.1.4
     # via py-key-value-aio
 caio==0.9.25
     # via aiofile
-certifi==2026.5.20
+certifi==2026.6.17
     # via
     #   httpcore
     #   httpx
@@ -68,13 +68,13 @@ colorama==0.4.6
     #   tqdm
     #   typer
     #   uvicorn
-cryptography==48.0.0
+cryptography==49.0.0
     # via
     #   authlib
     #   joserfc
     #   pyjwt
     #   secretstorage
-cyclopts==4.16.1
+cyclopts==4.19.0
     # via fastmcp-slim
 distro==1.9.0
     # via
@@ -92,11 +92,11 @@ email-validator==2.3.0
     # via pydantic
 exceptiongroup==1.3.1
     # via fastmcp-slim
-fastmcp==3.3.1
+fastmcp==3.4.2
     # via zk-chat
-fastmcp-slim==3.3.1
+fastmcp-slim==3.4.2
     # via fastmcp
-filelock==3.29.0
+filelock==3.29.4
     # via
     #   huggingface-hub
     #   mojentic
@@ -106,13 +106,13 @@ frozenlist==1.8.0
     # via
     #   aiohttp
     #   aiosignal
-fsspec==2026.4.0
+fsspec==2026.6.0
     # via huggingface-hub
 googleapis-common-protos==1.75.0
     # via opentelemetry-exporter-otlp-proto-grpc
-griffelib==2.0.2
+griffelib==2.1.0
     # via fastmcp-slim
-grpcio==1.81.0
+grpcio==1.81.1
     # via
     #   chromadb
     #   opentelemetry-exporter-otlp-proto-grpc
@@ -120,7 +120,7 @@ h11==0.16.0
     # via
     #   httpcore
     #   uvicorn
-hf-xet==1.5.0 ; platform_machine == 'AMD64' or platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'arm64' or platform_machine == 'x86_64'
+hf-xet==1.5.1 ; platform_machine == 'AMD64' or platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'arm64' or platform_machine == 'x86_64'
     # via huggingface-hub
 httpcore==1.0.9
     # via httpx
@@ -139,7 +139,7 @@ httpx-sse==0.4.3
     # via mcp
 huggingface-hub==1.16.1
     # via tokenizers
-idna==3.17
+idna==3.18
     # via
     #   anyio
     #   email-validator
@@ -164,8 +164,10 @@ jiter==0.15.0
     # via
     #   anthropic
     #   openai
-joserfc==1.6.8
-    # via authlib
+joserfc==1.7.1
+    # via
+    #   authlib
+    #   fastmcp-slim
 jsonref==1.1.0
     # via fastmcp-slim
 jsonschema==4.26.0
@@ -178,11 +180,11 @@ jsonschema-specifications==2025.9.1
     # via jsonschema
 keyring==25.7.0
     # via py-key-value-aio
-kubernetes==36.0.1
+kubernetes==36.0.2
     # via chromadb
 markdown-it-py==4.2.0
     # via rich
-mcp==1.27.2
+mcp==1.28.0
     # via fastmcp-slim
 mdurl==0.1.2
     # via markdown-it-py
@@ -198,7 +200,12 @@ multidict==6.7.1
     # via
     #   aiohttp
     #   yarl
-numpy==2.4.6
+numpy==2.4.6 ; python_full_version < '3.12'
+    # via
+    #   chromadb
+    #   mojentic
+    #   onnxruntime
+numpy==2.5.0 ; python_full_version >= '3.12'
     # via
     #   chromadb
     #   mojentic
@@ -207,9 +214,9 @@ oauthlib==3.3.1
     # via requests-oauthlib
 ollama==0.6.2
     # via mojentic
-onnxruntime==1.26.0
+onnxruntime==1.27.0
     # via chromadb
-openai==2.38.0
+openai==2.43.0
     # via mojentic
 openapi-pydantic==0.5.1
     # via fastmcp-slim
@@ -278,7 +285,7 @@ pydantic==2.13.4
     #   pydantic-settings
 pydantic-core==2.46.4
     # via pydantic
-pydantic-settings==2.14.1
+pydantic-settings==2.14.2
     # via
     #   chromadb
     #   fastmcp-slim
@@ -310,13 +317,13 @@ python-dotenv==1.2.2
     #   fastmcp-slim
     #   pydantic-settings
     #   uvicorn
-python-multipart==0.0.30
+python-multipart==0.0.32
     # via
     #   fastmcp-slim
     #   mcp
 pytz==2026.2
     # via mojentic
-pywin32==311 ; sys_platform == 'win32'
+pywin32==312 ; sys_platform == 'win32'
     # via mcp
 pywin32-ctypes==0.2.3 ; sys_platform == 'win32'
     # via keyring
@@ -377,13 +384,14 @@ sniffio==1.3.1
     # via
     #   anthropic
     #   openai
-sse-starlette==3.4.4
+sse-starlette==3.4.5
     # via mcp
-starlette==1.2.1
+starlette==1.3.1
     # via
+    #   fastmcp-slim
     #   mcp
     #   sse-starlette
-structlog==25.5.0
+structlog==26.1.0
     # via mojentic
 tenacity==9.1.4
     # via chromadb
@@ -391,18 +399,19 @@ tiktoken==0.13.0
     # via mojentic
 tokenizers==0.23.1
     # via chromadb
-tqdm==4.67.3
+tqdm==4.68.3
     # via
     #   chromadb
     #   huggingface-hub
     #   openai
-typer==0.26.4
+typer==0.26.7
     # via
     #   chromadb
     #   huggingface-hub
     #   zk-chat
 typing-extensions==4.15.0
     # via
+    #   aiohttp
     #   aiosignal
     #   anthropic
     #   anyio
@@ -435,7 +444,7 @@ urllib3==2.7.0
     #   kubernetes
     #   mojentic
     #   requests
-uvicorn==0.48.0
+uvicorn==0.49.0
     # via
     #   chromadb
     #   fastmcp-slim
