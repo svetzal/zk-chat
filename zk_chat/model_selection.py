@@ -2,8 +2,9 @@
 Interactive model selection for CLI usage.
 
 These functions belong in the imperative shell: they call input()/print() and
-interact with external gateways to fetch model lists. They are intentionally
-not unit-tested because they are thin wrappers around interactive I/O.
+interact with external gateways to fetch model lists. The interactive
+selection/parsing/bounds-checking logic is unit-tested via the injected
+ConsoleGateway; only the underlying gateway network I/O is out of scope.
 """
 
 import os
