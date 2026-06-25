@@ -32,6 +32,7 @@ from zk_chat.gateway_defaults import create_default_config_gateway, create_defau
 from zk_chat.global_config_gateway import GlobalConfigGateway
 from zk_chat.model_selection import get_available_models
 from zk_chat.qt_config_resolution import (
+    NONE_SENTINEL,
     resolve_config_for_vault,
     resolve_gui_vault_init,
     resolve_model_list_update,
@@ -201,7 +202,7 @@ class SettingsDialog(QDialog):
         _add_labeled_field(layout, "Chat Model:", self.chat_model_combo)
 
         self.visual_model_combo = QComboBox()
-        self.visual_model_combo.addItem("None - Disable Visual Analysis")
+        self.visual_model_combo.addItem(NONE_SENTINEL)
         _add_labeled_field(layout, "Visual Analysis Model (optional):", self.visual_model_combo)
 
         self.update_model_list()

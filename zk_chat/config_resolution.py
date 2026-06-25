@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict
 from zk_chat.config import ModelGateway
 
 OPENAI_KEY_MISSING_ERROR = "OPENAI_API_KEY environment variable is not set. Cannot use OpenAI gateway."
+VISUAL_MODEL_NONE_SENTINEL = "None - Disable Visual Analysis"
 
 
 def check_openai_key_required(gateway: ModelGateway, openai_key_present: bool) -> str | None:
@@ -163,7 +164,7 @@ def determine_model_action(
 
 def resolve_visual_model_selection(
     selected_text: str,
-    none_sentinel: str = "None - Disable Visual Analysis",
+    none_sentinel: str = VISUAL_MODEL_NONE_SENTINEL,
 ) -> str | None:
     """Convert a combo-box selection to a model name, returning ``None`` for the disable sentinel."""
     if selected_text == none_sentinel:
