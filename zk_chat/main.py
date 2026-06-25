@@ -92,6 +92,38 @@ def _resolve_config(ctx: typer.Context, options: InitOptions):
         ctx.obj["console_gateway"],
     )
 
+
+def _resolve_session_config(
+    ctx: typer.Context,
+    vault: Path | None,
+    save: bool,
+    gateway: str | None,
+    model: str | None,
+    visual_model: str | None,
+    no_index: bool,
+    unsafe: bool,
+    git: bool,
+    store_prompt: bool,
+    reset_memory: bool,
+):
+    options = _build_init_options(
+        vault, save, gateway, model, visual_model, no_index, unsafe, git, store_prompt, reset_memory
+    )
+    return _resolve_config(ctx, options)
+
+
+def _display_session_banner(
+    ctx: typer.Context, config, title: str, *, unsafe: bool, use_git: bool, store_prompt: bool
+) -> None:
+    display_banner(
+        config,
+        ctx.obj["console_gateway"],
+        title=title,
+        unsafe=unsafe,
+        use_git=use_git,
+        store_prompt=store_prompt,
+    )
+
 app.add_typer(gui_app, name="gui")
 app.add_typer(index_app, name="index")
 app.add_typer(mcp_app, name="mcp")
@@ -178,21 +210,13 @@ def interactive(
     """
     logger.info("interactive command invoked", vault=str(vault) if vault else None, unsafe=unsafe, git=git)
 
-    options = _build_init_options(
-        vault, save, gateway, model, visual_model, no_index, unsafe, git, store_prompt, reset_memory
+    config = _resolve_session_config(
+        ctx, vault, save, gateway, model, visual_model, no_index, unsafe, git, store_prompt, reset_memory
     )
-    config = _resolve_config(ctx, options)
     if not config:
         return
 
-    display_banner(
-        config,
-        ctx.obj["console_gateway"],
-        title="ZkChat Agent",
-        unsafe=unsafe,
-        use_git=git,
-        store_prompt=store_prompt,
-    )
+    _display_session_banner(ctx, config, "ZkChat Agent", unsafe=unsafe, use_git=git, store_prompt=store_prompt)
     global_config_gateway = ctx.obj["global_config_gateway"]
     mcp_manager = ctx.obj["mcp_client_manager"]
     run_agent(config, global_config_gateway, mcp_manager, ctx.obj["console_gateway"])
@@ -249,22 +273,14 @@ def query(
                 console_gateway.print("[red]Error:[/] No input received from STDIN.")
                 raise typer.Exit(1)
 
-    options = _build_init_options(
-        vault, save, gateway, model, visual_model, no_index, unsafe, git, store_prompt, reset_memory
+    config = _resolve_session_config(
+        ctx, vault, save, gateway, model, visual_model, no_index, unsafe, git, store_prompt, reset_memory
     )
-    config = _resolve_config(ctx, options)
     if not config:
         return
 
     if unsafe or git:
-        display_banner(
-            config,
-            console_gateway,
-            title="ZkChat Query",
-            unsafe=unsafe,
-            use_git=git,
-            store_prompt=store_prompt,
-        )
+        _display_session_banner(ctx, config, "ZkChat Query", unsafe=unsafe, use_git=git, store_prompt=store_prompt)
 
     console_gateway.print(f"[bold cyan]Query:[/] {prompt}")
     console_gateway.print("[dim]Using agent for autonomous problem solving...[/]\n")

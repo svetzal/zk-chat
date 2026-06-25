@@ -11,11 +11,12 @@ from pydantic import BaseModel, ConfigDict
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_resolution import (
     OPENAI_KEY_MISSING_ERROR,
+    VISUAL_MODEL_NONE_SENTINEL,
     check_openai_key_required,
     resolve_visual_model_selection,
 )
 
-NONE_SENTINEL = "None - Disable Visual Analysis"
+NONE_SENTINEL = VISUAL_MODEL_NONE_SENTINEL
 
 
 class ModelListResolution(BaseModel):
@@ -139,7 +140,7 @@ def resolve_settings_change(
     new_chat_model: str,
     visual_model_text: str,
     loaded_config_for_new_vault: Config | None = None,
-    none_sentinel: str = "None - Disable Visual Analysis",
+    none_sentinel: str = NONE_SENTINEL,
 ) -> SettingsChangeResult:
     """
     Determine all changes to persist when the user saves the settings dialog.
