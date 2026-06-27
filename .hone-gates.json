@@ -9,6 +9,11 @@
       "name": "test",
       "command": "source .venv/bin/activate && pytest",
       "required": true
+    },
+    {
+      "name": "audit",
+      "command": "source .venv/bin/activate && pip-audit --ignore-vuln CVE-2026-45829",
+      "required": false
     }
   ]
 }
