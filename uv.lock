@@ -4505,7 +4505,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rich", specifier = ">=15.0.0" },
     { name = "ruff", marker = "extra == 'dev'" },
-    { name = "typer", specifier = ">=0.26.7" },
+    { name = "typer", specifier = ">=0.26.8" },
 ]
 provides-extras = ["dev"]
 
