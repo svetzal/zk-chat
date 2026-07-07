@@ -19,7 +19,7 @@ dependencies = [
     "pyside6>=6.11.1",
     "rich>=15.0.0",
     "typer>=0.26.8",
-    "fastmcp>=3.4.2,<4.0.0",
+    "fastmcp>=3.4.3,<4.0.0",
 ]
 
 [project.optional-dependencies]
