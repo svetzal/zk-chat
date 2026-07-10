@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "allowed": [
+    {
+      "cve": "PYSEC-2026-311",
+      "reason": "ChromaDB HTTP-server RCE is unreachable: zk-chat uses only the embedded PersistentClient and does not start chromadb.server.",
+      "expires": "2026-08-09"
+    }
+  ]
+}
