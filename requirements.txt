@@ -11,9 +11,9 @@ aiosignal==1.4.0
     # via aiohttp
 annotated-doc==0.0.4
     # via typer
-annotated-types==0.7.0
+annotated-types==0.8.0
     # via pydantic
-anthropic==0.118.0
+anthropic==0.120.0
     # via mojentic
 anyio==4.14.2
     # via
@@ -42,7 +42,7 @@ beartype==0.22.9
     # via py-key-value-aio
 build==1.5.0
     # via chromadb
-cachetools==7.1.5
+cachetools==7.1.6
     # via py-key-value-aio
 caio==0.9.25
     # via aiofile
@@ -75,7 +75,7 @@ cryptography==49.0.0
     #   joserfc
     #   pyjwt
     #   secretstorage
-cyclopts==4.22.1
+cyclopts==4.22.2
     # via fastmcp-slim
 distro==1.9.0
     # via
@@ -113,7 +113,7 @@ googleapis-common-protos==1.75.0
     # via opentelemetry-exporter-otlp-proto-grpc
 griffelib==2.1.0
     # via fastmcp-slim
-grpcio==1.82.1
+grpcio==1.83.0
     # via
     #   chromadb
     #   opentelemetry-exporter-otlp-proto-grpc
@@ -215,9 +215,9 @@ oauthlib==3.3.1
     # via requests-oauthlib
 ollama==0.6.2
     # via mojentic
-onnxruntime==1.27.0
+onnxruntime==1.28.0
     # via chromadb
-openai==2.47.0
+openai==2.48.0
     # via mojentic
 openapi-pydantic==0.5.1
     # via fastmcp-slim
@@ -400,7 +400,7 @@ tiktoken==0.13.0
     # via mojentic
 tokenizers==0.23.1
     # via chromadb
-tqdm==4.69.0
+tqdm==4.69.1
     # via
     #   chromadb
     #   huggingface-hub
