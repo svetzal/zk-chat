@@ -322,7 +322,7 @@ python-multipart==0.0.32
     # via
     #   fastmcp-slim
     #   mcp
-pytz==2026.2
+pytz==2026.3.post1
     # via mojentic
 pywin32==312 ; sys_platform == 'win32'
     # via mcp
