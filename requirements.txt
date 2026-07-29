@@ -9,11 +9,11 @@ aiohttp==3.14.3
     # via kubernetes
 aiosignal==1.4.0
     # via aiohttp
-annotated-doc==0.0.4
+annotated-doc==0.0.5
     # via typer
 annotated-types==0.8.0
     # via pydantic
-anthropic==0.120.0
+anthropic==0.120.2
     # via mojentic
 anyio==4.14.2
     # via
@@ -107,7 +107,7 @@ frozenlist==1.8.0
     # via
     #   aiohttp
     #   aiosignal
-fsspec==2026.6.0
+fsspec==2026.7.0
     # via huggingface-hub
 googleapis-common-protos==1.75.0
     # via opentelemetry-exporter-otlp-proto-grpc
@@ -185,7 +185,7 @@ kubernetes==36.0.3
     # via chromadb
 markdown-it-py==4.2.0
     # via rich
-mcp==1.28.1
+mcp==1.29.0
     # via fastmcp-slim
 mdurl==0.1.2
     # via markdown-it-py
@@ -217,7 +217,7 @@ ollama==0.6.2
     # via mojentic
 onnxruntime==1.28.0
     # via chromadb
-openai==2.49.0
+openai==2.50.0
     # via mojentic
 openapi-pydantic==0.5.1
     # via fastmcp-slim
