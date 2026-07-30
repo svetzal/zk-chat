@@ -97,7 +97,7 @@ fastmcp==3.4.5
     # via zk-chat
 fastmcp-slim==3.4.5
     # via fastmcp
-filelock==3.32.0
+filelock==3.32.2
     # via
     #   huggingface-hub
     #   mojentic
@@ -444,7 +444,7 @@ urllib3==2.7.0
     #   kubernetes
     #   mojentic
     #   requests
-uvicorn==0.51.0
+uvicorn==0.52.0
     # via
     #   chromadb
     #   fastmcp-slim
@@ -457,7 +457,7 @@ watchfiles==1.2.0
     #   uvicorn
 websocket-client==1.9.0
     # via kubernetes
-websockets==16.1.1
+websockets==17.0
     # via
     #   fastmcp-slim
     #   mojentic
