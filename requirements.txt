@@ -69,13 +69,13 @@ colorama==0.4.6
     #   mojentic
     #   tqdm
     #   typer
-cryptography==49.0.0
+cryptography==50.0.0
     # via
     #   authlib
     #   joserfc
     #   pyjwt
     #   secretstorage
-cyclopts==4.22.2
+cyclopts==4.22.3
     # via fastmcp-slim
 distro==1.9.0
     # via
@@ -138,7 +138,7 @@ httpx==0.28.1
     #   openai
 httpx-sse==0.4.3
     # via mcp
-huggingface-hub==1.25.1
+huggingface-hub==1.26.0
     # via tokenizers
 idna==3.18
     # via
@@ -217,7 +217,7 @@ ollama==0.6.2
     # via mojentic
 onnxruntime==1.28.0
     # via chromadb
-openai==2.50.0
+openai==2.52.0
     # via mojentic
 openapi-pydantic==0.5.1
     # via fastmcp-slim
@@ -457,7 +457,7 @@ watchfiles==1.2.0
     #   uvicorn
 websocket-client==1.9.0
     # via kubernetes
-websockets==17.0
+websockets==17.0.1
     # via
     #   fastmcp-slim
     #   mojentic
