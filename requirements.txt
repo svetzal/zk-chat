@@ -138,7 +138,7 @@ httpx==0.28.1
     #   openai
 httpx-sse==0.4.3
     # via mcp
-huggingface-hub==1.26.0
+huggingface-hub==1.26.1
     # via tokenizers
 idna==3.18
     # via
