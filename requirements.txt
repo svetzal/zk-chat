@@ -13,7 +13,7 @@ annotated-doc==0.0.5
     # via typer
 annotated-types==0.8.0
     # via pydantic
-anthropic==0.120.2
+anthropic==0.121.0
     # via mojentic
 anyio==4.14.2
     # via
@@ -138,7 +138,7 @@ httpx==0.28.1
     #   openai
 httpx-sse==0.4.3
     # via mcp
-huggingface-hub==1.26.1
+huggingface-hub==1.27.0
     # via tokenizers
 idna==3.18
     # via
@@ -256,7 +256,7 @@ parsedatetime==2.6
     # via mojentic
 pathable==0.6.0
     # via jsonschema-path
-platformdirs==4.11.0
+platformdirs==4.11.1
     # via fastmcp-slim
 propcache==0.5.2
     # via
@@ -286,7 +286,7 @@ pydantic==2.13.4
     #   pydantic-settings
 pydantic-core==2.46.4
     # via pydantic
-pydantic-settings==2.14.2
+pydantic-settings==2.15.0
     # via
     #   chromadb
     #   fastmcp-slim
