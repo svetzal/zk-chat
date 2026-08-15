@@ -225,7 +225,7 @@ ollama==0.6.2
     # via mojentic
 onnxruntime==1.28.0
     # via chromadb
-openai==3.0.0
+openai==3.1.0
     # via mojentic
 openapi-pydantic==0.5.1
     # via fastmcp-slim
@@ -250,7 +250,7 @@ opentelemetry-sdk==1.44.0
     #   opentelemetry-exporter-otlp-proto-grpc
 opentelemetry-semantic-conventions==0.65b0
     # via opentelemetry-sdk
-orjson==3.11.9
+orjson==3.12.0
     # via chromadb
 overrides==7.7.0
     # via chromadb
@@ -376,7 +376,7 @@ rpds-py==2026.6.3
     #   referencing
 secretstorage==3.5.0 ; sys_platform == 'linux'
     # via keyring
-serpapi==1.0.2
+serpapi==1.1.0
     # via mojentic
 shellingham==1.5.4
     # via typer
