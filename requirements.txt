@@ -55,7 +55,7 @@ certifi==2026.7.22
     #   requests
 cffi==2.1.1 ; platform_python_implementation != 'PyPy'
     # via cryptography
-charset-normalizer==3.5.0
+charset-normalizer==3.5.1
     # via requests
 chromadb==1.5.9
     # via zk-chat
@@ -76,7 +76,7 @@ cryptography==50.0.0
     #   joserfc
     #   pyjwt
     #   secretstorage
-cyclopts==4.22.5
+cyclopts==4.23.0
     # via fastmcp-slim
 distro==1.9.0
     # via
@@ -112,7 +112,7 @@ fsspec==2026.7.0
     # via huggingface-hub
 googleapis-common-protos==1.75.1
     # via opentelemetry-exporter-otlp-proto-grpc
-griffelib==2.1.0
+griffelib==2.2.0
     # via fastmcp-slim
 grpcio==1.83.0
     # via
@@ -127,7 +127,7 @@ hf-xet==1.6.0 ; platform_machine == 'AMD64' or platform_machine == 'aarch64' or 
     # via huggingface-hub
 httpcore==1.0.9
     # via httpx
-httpcore2==2.10.0 ; sys_platform != 'emscripten'
+httpcore2==2.12.0 ; sys_platform != 'emscripten'
     # via httpx2
 httptools==0.8.0
     # via uvicorn
@@ -141,13 +141,13 @@ httpx==0.28.1
     #   ollama
 httpx-sse==0.4.3
     # via mcp
-httpx2==2.10.0
+httpx2==2.12.0
     # via openai
 httpx2-jsfetch==1.0 ; python_full_version >= '3.12' and sys_platform == 'emscripten'
     # via httpx2
-huggingface-hub==1.27.0
+huggingface-hub==1.28.0
     # via tokenizers
-idna==3.18
+idna==3.19
     # via
     #   anyio
     #   email-validator
@@ -223,9 +223,9 @@ oauthlib==3.3.1
     # via requests-oauthlib
 ollama==0.6.2
     # via mojentic
-onnxruntime==1.28.0
+onnxruntime==1.29.0
     # via chromadb
-openai==3.1.0
+openai==3.3.0
     # via mojentic
 openapi-pydantic==0.5.1
     # via fastmcp-slim
@@ -299,7 +299,7 @@ pydantic-settings==2.15.0
     #   chromadb
     #   fastmcp-slim
     #   mcp
-pygments==2.20.0
+pygments==2.21.0
     # via
     #   rich
     #   rich-rst
@@ -311,17 +311,17 @@ pypika==0.51.1
     # via chromadb
 pyproject-hooks==1.2.0
     # via build
-pyside6==6.11.1
+pyside6==6.11.2
     # via zk-chat
-pyside6-addons==6.11.1
+pyside6-addons==6.11.2
     # via pyside6
-pyside6-essentials==6.11.1
+pyside6-essentials==6.11.2
     # via
     #   pyside6
     #   pyside6-addons
 python-dateutil==2.9.0.post0
     # via kubernetes
-python-dotenv==1.2.2
+python-dotenv==1.2.3
     # via
     #   fastmcp-slim
     #   pydantic-settings
@@ -380,7 +380,7 @@ serpapi==1.1.0
     # via mojentic
 shellingham==1.5.4
     # via typer
-shiboken6==6.11.1
+shiboken6==6.11.2
     # via
     #   pyside6
     #   pyside6-addons
@@ -404,7 +404,7 @@ structlog==26.1.0
     # via mojentic
 tenacity==9.1.4
     # via chromadb
-tiktoken==0.13.0
+tiktoken==0.14.0
     # via mojentic
 tokenizers==0.23.1
     # via chromadb
@@ -412,7 +412,6 @@ tqdm==4.70.0
     # via
     #   chromadb
     #   huggingface-hub
-    #   openai
 truststore==0.10.4 ; sys_platform != 'emscripten'
     # via
     #   httpcore2
@@ -457,7 +456,7 @@ urllib3==2.7.0
     #   kubernetes
     #   mojentic
     #   requests
-uvicorn==0.52.3
+uvicorn==0.52.4
     # via
     #   chromadb
     #   fastmcp-slim
