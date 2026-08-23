@@ -3,8 +3,8 @@
   "allowed": [
     {
       "cve": "PYSEC-2026-311",
-      "reason": "ChromaDB HTTP-server RCE is unreachable: zk-chat uses only the embedded PersistentClient and does not start chromadb.server. Re-verified 2026-07-29: chromadb 1.5.9 remains the latest PyPI release and no fixed version has been published upstream yet (see chroma-core/chroma advisory GHSA-f4j7-r4q5-qw2c).",
-      "expires": "2026-08-28"
+      "reason": "ChromaDB HTTP-server RCE is unreachable: zk-chat uses only the embedded PersistentClient and does not start chromadb.server. Re-verified 2026-08-23: chromadb 1.5.9 remains the latest PyPI release (confirmed via `pip index versions chromadb` and `pip-audit`) and no fixed version has been published upstream yet (see chroma-core/chroma advisory GHSA-f4j7-r4q5-qw2c).",
+      "expires": "2026-09-22"
     }
   ]
 }
