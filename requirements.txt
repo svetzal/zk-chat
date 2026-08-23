@@ -76,7 +76,7 @@ cryptography==50.0.0
     #   joserfc
     #   pyjwt
     #   secretstorage
-cyclopts==4.23.1
+cyclopts==4.23.2
     # via fastmcp-slim
 dnspython==2.8.0
     # via email-validator
