@@ -18,8 +18,8 @@ dependencies = [
     "mojentic>=1.5.0",
     "pyside6>=6.11.2",
     "rich>=15.0.0",
-    "typer>=0.27.0",
-    "fastmcp>=3.4.4,<4.0.0",
+    "typer>=0.27.1",
+    "fastmcp>=3.4.7,<4.0.0",
 ]
 
 [project.optional-dependencies]
@@ -121,5 +121,5 @@ combine_as_imports = true
 
 [dependency-groups]
 dev = [
-    "pip-audit>=2.10.0",
+    "pip-audit>=2.10.1",
 ]
