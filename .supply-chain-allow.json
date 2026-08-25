@@ -5,6 +5,21 @@
       "cve": "PYSEC-2026-311",
       "reason": "ChromaDB HTTP-server RCE is unreachable: zk-chat uses only the embedded PersistentClient and does not start chromadb.server. Re-verified 2026-08-23: chromadb 1.5.9 remains the latest PyPI release (confirmed via `pip index versions chromadb` and `pip-audit`) and no fixed version has been published upstream yet (see chroma-core/chroma advisory GHSA-f4j7-r4q5-qw2c).",
       "expires": "2026-09-22"
+    },
+    {
+      "cve": "CVE-2026-45830",
+      "reason": "Cross-tenant authorization bypass requires an authenticated ChromaDB HTTP server with multi-tenant RBAC enabled. zk-chat uses only the embedded PersistentClient and never starts chromadb.server, so this attack surface does not exist. Verified 2026-08-25: chromadb 1.5.9 remains the latest PyPI release and no fixed version has been published upstream yet (see chroma-core/chroma advisory GHSA-2wm9-hf6c-p5cr).",
+      "expires": "2026-09-24"
+    },
+    {
+      "cve": "CVE-2026-45833",
+      "reason": "Code injection via a malicious model repository requires the ChromaDB HTTP server, an authenticated attacker with UPDATE_COLLECTION permission, and trust_remote_code=true. zk-chat uses only the embedded PersistentClient, never starts chromadb.server, and never sets trust_remote_code. Verified 2026-08-25: chromadb 1.5.9 remains the latest PyPI release and no fixed version has been published upstream yet (see chroma-core/chroma advisory GHSA-36p7-vc44-83pf).",
+      "expires": "2026-09-24"
+    },
+    {
+      "cve": "CVE-2026-45831",
+      "reason": "SimpleRBACAuthorizationProvider's missing tenant/database/collection scoping is only exploitable against an authenticated ChromaDB HTTP server with RBAC enabled. zk-chat uses only the embedded PersistentClient and never starts chromadb.server, so this attack surface does not exist. Verified 2026-08-25: chromadb 1.5.9 remains the latest PyPI release and no fixed version has been published upstream yet (see chroma-core/chroma advisory GHSA-xph7-9rjv-w5fr).",
+      "expires": "2026-09-24"
     }
   ]
 }
