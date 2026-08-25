@@ -36,9 +36,14 @@ jobs:
         run: |
           python -m pip install pip-audit
           # CVE-2026-45829: pre-auth RCE in ChromaDB's FastAPI HTTP server.
-          # zk-chat uses PersistentClient (embedded, no HTTP server), so this
-          # attack surface does not exist here. Remove once chromadb >=1.6.0 ships.
-          pip-audit --ignore-vuln CVE-2026-45829
+          # CVE-2026-45830, CVE-2026-45831, CVE-2026-45833: authorization/RBAC
+          # and code-injection flaws in ChromaDB's authenticated HTTP server.
+          # zk-chat uses PersistentClient (embedded, no HTTP server, no auth,
+          # no trust_remote_code), so these attack surfaces do not exist here.
+          # See .supply-chain-allow.json for full justification and expiry.
+          # Remove once chromadb >=1.6.0 ships with fixes.
+          pip-audit --ignore-vuln CVE-2026-45829 --ignore-vuln CVE-2026-45830 \
+            --ignore-vuln CVE-2026-45831 --ignore-vuln CVE-2026-45833
 
       - name: Lint with Ruff
         shell: bash
