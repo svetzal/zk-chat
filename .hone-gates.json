@@ -2,17 +2,17 @@
   "gates": [
     {
       "name": "lint",
-      "command": "source .venv/bin/activate && ruff check .",
+      "command": "uv run --extra dev ruff check .",
       "required": true
     },
     {
       "name": "test",
-      "command": "source .venv/bin/activate && pytest",
+      "command": "uv run --extra dev pytest",
       "required": true
     },
     {
       "name": "audit",
-      "command": "source .venv/bin/activate && pip-audit --ignore-vuln CVE-2026-45829",
+      "command": "uv run --group dev pip-audit --ignore-vuln CVE-2026-45829",
       "required": false
     }
   ]
