@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   patched release exists on PyPI as of 2026-06-17; pass `--ignore-vuln CVE-2026-45829` to
   `pip-audit` until an upstream fix is released. Tracked in:
   https://www.bleepingcomputer.com/news/security/max-severity-flaw-in-chromadb-for-ai-apps-allows-server-hijacking/
+- **PYSEC-2026-3813, PYSEC-2026-3814, PYSEC-2026-3815 — acknowledged, not exploitable in this deployment**:
+  ChromaDB 1.5.9 (latest on PyPI, no fixed release) has cross-tenant authorization flaws in its server's
+  RBAC provider and a `trust_remote_code` code-injection path in the server's collection-update API. All
+  three require the ChromaDB HTTP server with authentication enabled; zk-chat uses the embedded
+  `chromadb.PersistentClient` and never starts that server.
 
 ### Changed
 
