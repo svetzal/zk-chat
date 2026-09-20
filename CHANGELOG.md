@@ -15,8 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a remote embedding model before authentication is checked. zk-chat is not affected because it uses
   `chromadb.PersistentClient` (the embedded, in-process client — no HTTP server is started) and
   supplies externally computed embeddings rather than ChromaDB's built-in embedding functions. No
-  patched release exists on PyPI as of 2026-06-17; pass `--ignore-vuln CVE-2026-45829` to
-  `pip-audit` until an upstream fix is released. Tracked in:
+  patched release exists on PyPI as of 2026-09-20 (1.5.9 is still the latest release and OSV records
+  it as `last_affected`); pass `--ignore-vuln CVE-2026-45829` to `pip-audit` until an upstream fix is
+  released. Tracked in:
   https://www.bleepingcomputer.com/news/security/max-severity-flaw-in-chromadb-for-ai-apps-allows-server-hijacking/
 - **PYSEC-2026-3813, PYSEC-2026-3814, PYSEC-2026-3815 — acknowledged, not exploitable in this deployment**:
   ChromaDB 1.5.9 (latest on PyPI, no fixed release) has cross-tenant authorization flaws in its server's
