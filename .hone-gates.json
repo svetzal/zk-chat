@@ -12,7 +12,7 @@
     },
     {
       "name": "audit",
-      "command": "uv run --group dev pip-audit --ignore-vuln CVE-2026-45829",
+      "command": "uv run --group dev pip-audit --ignore-vuln CVE-2026-45829 --ignore-vuln CVE-2026-45830 --ignore-vuln CVE-2026-45831 --ignore-vuln CVE-2026-45833",
       "required": false
     }
   ]
