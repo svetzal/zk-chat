@@ -292,7 +292,7 @@ class MCPClientManager:
             tools = await asyncio.wait_for(client.list_tools(), timeout=self._timeout)
 
             for tool in tools:
-                tool_dict = {"name": tool.name, "description": tool.description, "inputSchema": tool.inputSchema}
+                tool_dict = {"name": tool.name, "description": tool.description, "inputSchema": tool.input_schema}
 
                 wrapper = MCPToolWrapper(
                     client=client,

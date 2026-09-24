@@ -27,6 +27,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **fastmcp upgraded to 4.x** (`>=4.0.8,<5.0.0`, pulling in MCP SDK `mcp` 2.x): the previous
+  `<4.0.0` cap was precautionary rather than a known incompatibility. MCP SDK v2 renamed the tool
+  descriptor field `Tool.inputSchema` to `Tool.input_schema`, so tool discovery now reads
+  `input_schema`; zk-chat's own internal descriptor dict keeps its `inputSchema` key, so the
+  `MCPToolWrapper` contract is unchanged. STDIO (`mcpServers` dict) and HTTP (URL) client
+  construction, tool discovery, argument coercion, and `call_tool` were verified end-to-end against
+  a live fastmcp 4 server.
+- Refreshed locked dependencies to their latest compatible versions (cyclopts 5.0.0, filelock 4.0.3,
+  httpcore2/httpx2 2.13.1, openai 3.19.2, pyjwt 2.15.0, pytz 2026.4, starlette 1.7.0).
+
 - **Unified `max_distance` semantics**: `IndexService.query_excerpts` and `query_documents` now both treat `max_distance=None` as "no distance filtering" and any non-`None` value as a real threshold; the previous `0.0`-means-no-filter sentinel in `query_documents` has been removed. Behavior is unchanged for existing callers.
 
 ### Fixed

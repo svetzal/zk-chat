@@ -240,7 +240,7 @@ zk_rag_plugins = { my_plugin = "my_plugin:MyPlugin" }
 - **chromadb**: Vector database for semantic search (>=1.5.9)
 - **PySide6**: Qt-based GUI framework (>=6.11.2)
 - **typer**: CLI framework with rich output support (>=0.27.1)
-- **fastmcp**: Model Context Protocol support (>=3.4.7,<4.0.0)
+- **fastmcp**: Model Context Protocol support (>=4.0.8,<5.0.0)
 - **rich**: Terminal formatting and UI (>=15.0.0)
 - **pyyaml**: Configuration file parsing (>=6.0.3)
 

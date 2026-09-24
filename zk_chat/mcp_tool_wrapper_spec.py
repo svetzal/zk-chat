@@ -292,7 +292,7 @@ class DescribeMCPClientManagerConnectionTimeout:
         config.add_mcp_server(MCPServerConfig(name="my-server", server_type=MCPServerType.STDIO, command="my"))
         mock_gateway.load.return_value = config
 
-        tool = SimpleNamespace(name="t", description="d", inputSchema={})
+        tool = SimpleNamespace(name="t", description="d", input_schema={})
         good_client = AsyncMock()  # Intentionally unspec'd: async context manager stub, not a class instance
         good_client.__aenter__.return_value = good_client
         good_client.list_tools.return_value = [tool]
