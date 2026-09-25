@@ -35,7 +35,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   construction, tool discovery, argument coercion, and `call_tool` were verified end-to-end against
   a live fastmcp 4 server.
 - Refreshed locked dependencies to their latest compatible versions (cyclopts 5.0.0, filelock 4.0.3,
-  httpcore2/httpx2 2.13.1, openai 3.19.2, pyjwt 2.15.0, pytz 2026.4, starlette 1.7.0).
+  httpcore2/httpx2 2.13.1, openai 3.19.2, pyjwt 2.15.0, pytz 2026.4, starlette 1.7.0, fastmcp 4.0.9,
+  googleapis-common-protos 1.75.4, huggingface-hub 1.33.0, platformdirs 4.11.13, ruff 0.16.9,
+  uvicorn 0.54.0). `huggingface-hub` stays on 1.x (capped by `tokenizers`) and `pydantic-core` on
+  2.46.5 (pinned exactly by `pydantic`); both are at their latest compatible versions.
+- Regenerated `requirements.txt` from the lockfile; the checked-in export had drifted and still
+  listed fastmcp 3.4.7 alongside other stale transitive pins.
 
 - **Unified `max_distance` semantics**: `IndexService.query_excerpts` and `query_documents` now both treat `max_distance=None` as "no distance filtering" and any non-`None` value as a real threshold; the previous `0.0`-means-no-filter sentinel in `query_documents` has been removed. Behavior is unchanged for existing callers.
 
