@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **PYSEC-2026-4114 (CVE-2026-49265) — fixed**: upgraded transitive dependency `oauthlib` (via
+  `requests-oauthlib` ← `kubernetes` ← `chromadb`) from 3.3.1 to 4.0.0, which uses constant-time
+  comparison for PKCE `code_verifier` checks.
 - **CVE-2026-45829 (ChromaToast) — acknowledged, not exploitable in this deployment**: ChromaDB ≤1.5.9
   contains a pre-authentication remote code execution vulnerability in its FastAPI server component
   (`chromadb.server`), triggered when an attacker sends a crafted collection-creation request that loads

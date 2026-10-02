@@ -89,9 +89,9 @@ email-validator==2.3.0
     # via pydantic
 exceptiongroup==1.3.1
     # via fastmcp-slim
-fastmcp==4.0.9
+fastmcp==4.0.10
     # via zk-chat
-fastmcp-slim==4.0.9
+fastmcp-slim==4.0.10
     # via fastmcp
 filelock==4.0.3
     # via
@@ -217,7 +217,7 @@ numpy==2.5.3 ; python_full_version >= '3.12'
     #   chromadb
     #   mojentic
     #   onnxruntime
-oauthlib==3.3.1
+oauthlib==4.0.0
     # via requests-oauthlib
 ollama==0.6.2
     # via mojentic
