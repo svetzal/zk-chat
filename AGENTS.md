@@ -236,7 +236,7 @@ zk_rag_plugins = { my_plugin = "my_plugin:MyPlugin" }
 
 ## Key Dependencies
 
-- **mojentic**: LLM broker and gateway abstraction (>=1.5.0)
+- **mojentic**: LLM broker and gateway abstraction (>=2.1.0)
 - **chromadb**: Vector database for semantic search (>=1.5.9)
 - **PySide6**: Qt-based GUI framework (>=6.11.2)
 - **typer**: CLI framework with rich output support (>=0.27.1)

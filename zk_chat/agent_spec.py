@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 from mojentic.llm import LLMBroker
 from mojentic.llm.gateways import OllamaGateway
-from mojentic.llm.gateways.models import LLMMessage, MessageRole
+from mojentic.llm.gateways.models import LLMGatewayResponse
 
 from zk_chat.agent import _create_agent, agent
 from zk_chat.config import Config, ModelGateway
@@ -21,8 +21,8 @@ def config():
     return Config(vault="/test/vault", model="llama2", gateway=ModelGateway.OLLAMA)
 
 
-def _response(content: str) -> LLMMessage:
-    return LLMMessage(role=MessageRole.Assistant, content=content)
+def _response(content: str) -> LLMGatewayResponse:
+    return LLMGatewayResponse(content=content)
 
 
 def _make_real_mcp_manager():

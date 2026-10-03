@@ -2140,12 +2140,13 @@ wheels = [
 
 [[package]]
 name = "mojentic"
-version = "1.5.0"
+version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anthropic" },
     { name = "colorama" },
     { name = "filelock" },
+    { name = "httpx" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "ollama" },
@@ -2159,9 +2160,9 @@ dependencies = [
     { name = "urllib3" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fe/62/01fe0663150d06ee1bfef3566a444b4551e91564cbeba6d000714b4ac644/mojentic-1.5.0.tar.gz", hash = "sha256:716693dde4ae88b402e8766650d9f6d3d0bcff823aa986953f4e702da2beae34", size = 155416, upload-time = "2026-05-22T00:06:14.795Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3e/c7/eb2715dd7cd06ea48cb8d803252b5caadf50ef368d157b3c3c811afee724/mojentic-2.1.0.tar.gz", hash = "sha256:3707f207c5c284414788d54c93c1039fc3664d06cf29cf0c932157b27334ad23", size = 190379, upload-time = "2026-09-30T23:28:20.735Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/07/04/a350cf8792d8fd144827e23625e789f134ea8ccf018802d1f7c7e089876d/mojentic-1.5.0-py3-none-any.whl", hash = "sha256:1d55f91aabbc20ae10d2b984cea90a0ab34c1079dc1bf95703311ca8c6cd84bb", size = 225399, upload-time = "2026-05-22T00:06:13.296Z" },
+    { url = "https://files.pythonhosted.org/packages/6d/19/810aa00663e5174b3a8c1e6c8885a2d3e2b2eab2e2fdc745ffd72ac9a4f1/mojentic-2.1.0-py3-none-any.whl", hash = "sha256:47acb529505268abe95f9e3c97c76472aa08d3d081f54aaddaaa31f3709e4712", size = 269090, upload-time = "2026-09-30T23:28:19.38Z" },
 ]
 
 [[package]]
@@ -4916,7 +4917,7 @@ requires-dist = [
     { name = "fastmcp", specifier = ">=4.0.8,<5.0.0" },
     { name = "mkdocs", marker = "extra == 'dev'" },
     { name = "mkdocs-material", marker = "extra == 'dev'" },
-    { name = "mojentic", specifier = ">=1.5.0" },
+    { name = "mojentic", specifier = ">=2.1.0" },
     { name = "pymdown-extensions", marker = "extra == 'dev'" },
     { name = "pyside6", specifier = ">=6.11.2" },
     { name = "pytest", marker = "extra == 'dev'" },
