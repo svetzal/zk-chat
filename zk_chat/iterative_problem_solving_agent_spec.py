@@ -6,13 +6,13 @@ Tests for the strip_thinking utility function live in text_processing_spec.py.
 
 import pytest
 from mojentic.llm import LLMBroker
-from mojentic.llm.gateways.models import LLMMessage, MessageRole
+from mojentic.llm.gateways.models import LLMGatewayResponse
 
 from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
 
 
-def _response(content: str) -> LLMMessage:
-    return LLMMessage(role=MessageRole.Assistant, content=content)
+def _response(content: str) -> LLMGatewayResponse:
+    return LLMGatewayResponse(content=content)
 
 
 class DescribeIterativeProblemSolvingAgent:

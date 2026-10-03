@@ -3,14 +3,14 @@ from unittest.mock import Mock
 import pytest
 import structlog.testing
 from mojentic.llm import LLMBroker
-from mojentic.llm.gateways.models import LLMMessage, MessageRole
+from mojentic.llm.gateways.models import LLMGatewayResponse
 
 from zk_chat.tools.commit_changes import CommitChanges
 from zk_chat.tools.git_gateway import GitGateway
 
 
-def _response(content: str) -> LLMMessage:
-    return LLMMessage(role=MessageRole.Assistant, content=content)
+def _response(content: str) -> LLMGatewayResponse:
+    return LLMGatewayResponse(content=content)
 
 
 @pytest.fixture

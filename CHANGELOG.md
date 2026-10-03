@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded `mojentic` from 1.5.0 to 2.1.0. Test doubles for LLM gateways now return
+  `LLMGatewayResponse` (the gateway's declared return type) instead of `LLMMessage`.
+
 ### Security
 
 - **PYSEC-2026-4114 (CVE-2026-49265) — fixed**: upgraded transitive dependency `oauthlib` (via
