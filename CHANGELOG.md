@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Upgraded `mojentic` from 1.5.0 to 2.1.0. Test doubles for LLM gateways now return
   `LLMGatewayResponse` (the gateway's declared return type) instead of `LLMMessage`.
+- Upgraded dev dependency `ruff` from 0.16.10 to 0.17.0 (no code changes required).
 
 ### Security
 
