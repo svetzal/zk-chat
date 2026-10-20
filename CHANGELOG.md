@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **CVE-2026-111064, CVE-2026-111063, GHSA-2g87-pp6c-29x5 — fixed**: upgraded transitive dependency
+  `aiohttp` from 3.14.3 to 3.14.5 (fixed in 3.14.4). Also regenerated the stale `requirements.txt`
+  export so it matches `uv.lock`.
 - **PYSEC-2026-4114 (CVE-2026-49265) — fixed**: upgraded transitive dependency `oauthlib` (via
   `requests-oauthlib` ← `kubernetes` ← `chromadb`) from 3.3.1 to 4.0.0, which uses constant-time
   comparison for PKCE `code_verifier` checks.

@@ -5,7 +5,7 @@ aiofile==3.12.3
     # via py-key-value-aio
 aiohappyeyeballs==2.7.1
     # via aiohttp
-aiohttp==3.14.3
+aiohttp==3.14.5
     # via kubernetes
 aiosignal==1.4.0
     # via aiohttp
@@ -39,8 +39,12 @@ backports-tarfile==1.2.0 ; python_full_version < '3.12'
     # via jaraco-context
 bcrypt==5.0.0
     # via chromadb
-beartype==0.22.9
+beartype==0.22.9 ; python_full_version < '3.15'
     # via py-key-value-aio
+beartype==0.23.0rc2 ; python_full_version >= '3.15'
+    # via
+    #   fastmcp-slim
+    #   py-key-value-aio
 build==1.6.1
     # via chromadb
 cachetools==7.2.0
@@ -89,9 +93,9 @@ email-validator==2.3.0
     # via pydantic
 exceptiongroup==1.3.1
     # via fastmcp-slim
-fastmcp==4.0.10
+fastmcp==4.1.1
     # via zk-chat
-fastmcp-slim==4.0.10
+fastmcp-slim==4.1.1
     # via fastmcp
 filelock==4.0.3
     # via
@@ -130,6 +134,7 @@ httpx==0.28.1
     # via
     #   chromadb
     #   huggingface-hub
+    #   mojentic
     #   ollama
 httpx2==2.13.1
     # via
@@ -197,7 +202,7 @@ mdurl==0.1.2
     # via markdown-it-py
 mmh3==5.3.0
     # via chromadb
-mojentic==1.5.0
+mojentic==2.1.0
     # via zk-chat
 more-itertools==11.1.0
     # via
@@ -310,14 +315,21 @@ pypika==0.51.1
     # via chromadb
 pyproject-hooks==1.3.3
     # via build
-pyside6==6.11.2
+pyside6==6.12.0
     # via zk-chat
-pyside6-addons==6.11.2
-    # via pyside6
-pyside6-essentials==6.11.2
+pyside6-addons==6.12.0
+    # via
+    #   pyside6
+    #   pyside6-webengine
+pyside6-essentials==6.12.0
     # via
     #   pyside6
     #   pyside6-addons
+    #   pyside6-pdf
+pyside6-pdf==6.12.0.140
+    # via pyside6
+pyside6-webengine==6.12.0.140
+    # via pyside6
 python-dateutil==2.9.0.post0
     # via kubernetes
 python-dotenv==1.2.3
@@ -379,11 +391,8 @@ serpapi==1.1.2
     # via mojentic
 shellingham==1.5.4
     # via typer
-shiboken6==6.11.2
-    # via
-    #   pyside6
-    #   pyside6-addons
-    #   pyside6-essentials
+shiboken6==6.12.0
+    # via pyside6-essentials
 six==1.17.0
     # via
     #   kubernetes
@@ -415,7 +424,7 @@ truststore==0.10.4 ; sys_platform != 'emscripten'
     # via
     #   httpcore2
     #   httpx2
-typer==0.27.2
+typer==0.27.3
     # via
     #   chromadb
     #   zk-chat
