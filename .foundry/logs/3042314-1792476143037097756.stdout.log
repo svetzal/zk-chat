@@ -1,0 +1,104 @@
+[31mF[0m[31m                                                                        [100%][0m
+=================================== FAILURES ===================================
+[31m[1m__________ DescribeImageAnalysis.should_analyze_architecture_diagram ___________[0m
+[1m[31mintegration_tests/image_operations_integration.py[0m:26: in should_analyze_architecture_diagram
+    [0m[94massert[39;49;00m result.execution_result.success, \
+[1m[31mE   AssertionError: Execution failed: Traceback (most recent call last):[0m
+[1m[31mE       File "<frozen runpy>", line 203, in _run_module_as_main[0m
+[1m[31mE       File "<frozen runpy>", line 88, in _run_code[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/zk_chat/main.py", line 294, in <module>[0m
+[1m[31mE         app()[0m
+[1m[31mE         ~~~^^[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/.venv/lib/python3.13/site-packages/typer/main.py", line 1154, in __call__[0m
+[1m[31mE         raise e[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/.venv/lib/python3.13/site-packages/typer/main.py", line 1137, in __call__[0m
+[1m[31mE         return get_command(self)(*args, **kwargs)[0m
+[1m[31mE                ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/.venv/lib/python3.13/site-packages/typer/_click/core.py", line 802, in __call__[0m
+[1m[31mE         return self.main(*args, **kwargs)[0m
+[1m[31mE                ~~~~~~~~~^^^^^^^^^^^^^^^^^[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/.venv/lib/python3.13/site-packages/typer/core.py", line 1197, in main[0m
+[1m[31mE         return _main([0m
+[1m[31mE             self,[0m
+[1m[31mE         ...<6 lines>...[0m
+[1m[31mE             **extra,[0m
+[1m[31mE         )[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/.venv/lib/python3.13/site-packages/typer/core.py", line 187, in _main[0m
+[1m[31mE         rv = self.invoke(ctx)[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/.venv/lib/python3.13/site-packages/typer/core.py", line 1119, in invoke[0m
+[1m[31mE         return _process_result(sub_ctx.command.invoke(sub_ctx))[0m
+[1m[31mE                                ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/.venv/lib/python3.13/site-packages/typer/_click/core.py", line 741, in invoke[0m
+[1m[31mE         return ctx.invoke(self.callback, **ctx.params)[0m
+[1m[31mE                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/.venv/lib/python3.13/site-packages/typer/_click/core.py", line 483, in invoke[0m
+[1m[31mE         return callback(*args, **kwargs)[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/.venv/lib/python3.13/site-packages/typer/main.py", line 1524, in wrapper[0m
+[1m[31mE         return callback(**use_params)[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/zk_chat/main.py", line 276, in query[0m
+[1m[31mE         config = _resolve_session_config([0m
+[1m[31mE             ctx, vault, save, gateway, model, visual_model, no_index, unsafe, git, store_prompt, reset_memory[0m
+[1m[31mE         )[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/zk_chat/main.py", line 112, in _resolve_session_config[0m
+[1m[31mE         return _resolve_config(ctx, options)[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/zk_chat/main.py", line 88, in _resolve_config[0m
+[1m[31mE         return common_init([0m
+[1m[31mE             options,[0m
+[1m[31mE         ...<2 lines>...[0m
+[1m[31mE             ctx.obj["console_gateway"],[0m
+[1m[31mE         )[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/zk_chat/cli.py", line 324, in common_init[0m
+[1m[31mE         return _handle_new_config(options, vault_path, config_gateway, console_gateway)[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/zk_chat/cli.py", line 291, in _handle_new_config[0m
+[1m[31mE         reindex(config, config_gateway, force_full=True, console_gateway=console_gateway)[0m
+[1m[31mE         ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/zk_chat/index.py", line 110, in reindex[0m
+[1m[31mE         files_processed, total_files = _full_reindex(config, index_service, progress, console_gateway)[0m
+[1m[31mE                                        ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/zk_chat/index.py", line 42, in _full_reindex[0m
+[1m[31mE         index_service.reindex_all([0m
+[1m[31mE         ~~~~~~~~~~~~~~~~~~~~~~~~~^[0m
+[1m[31mE             excerpt_size=config.chunk_size,[0m
+[1m[31mE             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1m[31mE             excerpt_overlap=config.chunk_overlap,[0m
+[1m[31mE             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1m[31mE             progress_callback=progress_callback,[0m
+[1m[31mE             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1m[31mE         )[0m
+[1m[31mE         ^[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/zk_chat/services/index_service.py", line 56, in reindex_all[0m
+[1m[31mE         self.excerpts_db.reset()[0m
+[1m[31mE         ~~~~~~~~~~~~~~~~~~~~~~^^[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/zk_chat/vector_database.py", line 64, in reset[0m
+[1m[31mE         self.chroma_gateway.reset_indexes(collection_name=self.collection_name)[0m
+[1m[31mE         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/zk_chat/chroma_gateway.py", line 80, in reset_indexes[0m
+[1m[31mE         self.chroma_client.delete_collection(collection_name.value)[0m
+[1m[31mE         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/.venv/lib/python3.13/site-packages/chromadb/api/client.py", line 405, in delete_collection[0m
+[1m[31mE         return self._server.delete_collection([0m
+[1m[31mE                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^[0m
+[1m[31mE             name=name,[0m
+[1m[31mE             ^^^^^^^^^^[0m
+[1m[31mE             tenant=self.tenant,[0m
+[1m[31mE             ^^^^^^^^^^^^^^^^^^^[0m
+[1m[31mE             database=self.database,[0m
+[1m[31mE             ^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1m[31mE         )[0m
+[1m[31mE         ^[0m
+[1m[31mE       File "/home/svetzal/Work/Projects/Personal/zk-chat/.venv/lib/python3.13/site-packages/chromadb/api/rust.py", line 324, in delete_collection[0m
+[1m[31mE         self.bindings.delete_collection(name, tenant, database)[0m
+[1m[31mE         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1m[31mE     chromadb.errors.NotFoundError: Collection [excerpts] does not exist[0m
+[1m[31mE     [0m
+[1m[31mE   assert False[0m
+[1m[31mE    +  where False = ExecutionResult(success=False, output='Performing full reindex...\n⠋ Scanning vault for markdown files...             ...^^^^^^^^^^^^^^^^^^\nchromadb.errors.NotFoundError: Collection [excerpts] does not exist\n', duration=6.858455181121826).success[0m
+[1m[31mE    +    where ExecutionResult(success=False, output='Performing full reindex...\n⠋ Scanning vault for markdown files...             ...^^^^^^^^^^^^^^^^^^\nchromadb.errors.NotFoundError: Collection [excerpts] does not exist\n', duration=6.858455181121826) = ScenarioResult(scenario_name='analyze_architecture_diagram', execution_result=ExecutionResult(success=False, output='P...IL: Analysis describes components\n3. ✗ FAIL: Analysis describes relationships\n4. ✗ FAIL: Analysis is substantive\n')).execution_result[0m
+        result     = ScenarioResult(scenario_name='analyze_architecture_diagram', execution_result=ExecutionResult(success=False, output='P...IL: Analysis describes components\n3. ✗ FAIL: Analysis describes relationships\n4. ✗ FAIL: Analysis is substantive\n'))
+        scenario   = IntegrationScenario(name='analyze_architecture_diagram', description='Agent should analyze an architecture diagram and...ence of actually examining the image?\n", success_keywords=['detailed', 'specific', 'shows'])], custom_validation=None)
+        scenario_runner = <integration_tests.scenario_harness.ScenarioRunner object at 0x7dc90548e270>
+        self       = <integration_tests.image_operations_integration.DescribeImageAnalysis object at 0x7dc905504cd0>
+        tmp_path   = PosixPath('/tmp/pytest-of-svetzal/pytest-229/should_analyze_architecture_di0')
+[36m[1m=========================== short test summary info ============================[0m
+[31mFAILED[0m integration_tests/image_operations_integration.py::[1mDescribeImageAnalysis::should_analyze_architecture_diagram[0m - AssertionError: Execution failed: Traceback (most recent call last):
+[31m[31m[1m1 failed[0m[31m in 32.57s[0m[0m

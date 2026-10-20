@@ -1,0 +1,8 @@
+Resolved 190 packages in 2ms
+Uninstalled 1 package in 4ms
+warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+         If the cache and target directories are on different filesystems, hardlinking may not be supported.
+         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+Installed 1 package in 49ms
+ - aiohttp==3.14.3
+ + aiohttp==3.14.5
