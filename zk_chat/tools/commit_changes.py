@@ -2,6 +2,7 @@ from mojentic.llm import LLMBroker
 from mojentic.llm.gateways.models import LLMMessage
 from mojentic.llm.tools.llm_tool import LLMTool
 
+from zk_chat.completion_defaults import ZK_CHAT_COMPLETION_CONFIG
 from zk_chat.console_gateway import ConsoleGateway
 from zk_chat.text_processing import strip_thinking
 from zk_chat.tools.git_gateway import GitGateway
@@ -72,7 +73,8 @@ Output only the commit message, no other text, do not put it in code fences.
 ```
 """.strip()
                 )
-            ]
+            ],
+            config=ZK_CHAT_COMPLETION_CONFIG,
         )
         return strip_thinking(message)
 

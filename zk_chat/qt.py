@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (
 )
 
 import zk_chat.bootstrap  # noqa: F401  # Sets CHROMA_TELEMETRY and logging before chromadb imports
+from zk_chat.completion_defaults import ZK_CHAT_COMPLETION_CONFIG
 from zk_chat.config import Config, ModelGateway
 from zk_chat.config_gateway import ConfigGateway
 from zk_chat.gateway_defaults import create_default_config_gateway, create_default_global_config_gateway
@@ -322,6 +323,7 @@ def build_chat_session(config: "Config") -> ChatSession:
         components.llm_broker,
         system_prompt=components.system_prompt,
         tools=components.tools,
+        config=ZK_CHAT_COMPLETION_CONFIG,
     )
 
 

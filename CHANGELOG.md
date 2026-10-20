@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Upgraded `mojentic` from 2.1.0 to 3.0.0. mojentic 3.0 no longer sends default temperature,
+  context window or output limit, so zk-chat now passes a shared `CompletionConfig`
+  (`temperature=1.0`, `num_ctx=32768`, `max_tokens=16384`) to its chat sessions and direct LLM calls.
+  This keeps the earlier behaviour, and Ollama does not fall back to a smaller server context window.
 - Upgraded `mojentic` from 1.5.0 to 2.1.0. Test doubles for LLM gateways now return
   `LLMGatewayResponse` (the gateway's declared return type) instead of `LLMMessage`.
 - Upgraded dev dependency `ruff` from 0.16.10 to 0.17.0 (no code changes required).

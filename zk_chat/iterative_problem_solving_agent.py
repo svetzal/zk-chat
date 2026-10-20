@@ -2,6 +2,7 @@ import structlog
 from mojentic.llm import ChatSession, LLMBroker
 from mojentic.llm.tools.llm_tool import LLMTool
 
+from zk_chat.completion_defaults import ZK_CHAT_COMPLETION_CONFIG
 from zk_chat.text_processing import strip_thinking
 
 logger = structlog.get_logger()
@@ -55,6 +56,7 @@ class IterativeProblemSolvingAgent:
             "If you cannot solve a problem completely in one step, you make progress "
             "and identify what to do next.",
             tools=self.available_tools,
+            config=ZK_CHAT_COMPLETION_CONFIG,
         )
 
     def solve(self, problem: str) -> str:

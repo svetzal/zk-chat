@@ -2203,7 +2203,7 @@ wheels = [
 
 [[package]]
 name = "mojentic"
-version = "2.1.0"
+version = "3.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anthropic" },
@@ -2223,9 +2223,9 @@ dependencies = [
     { name = "urllib3" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3e/c7/eb2715dd7cd06ea48cb8d803252b5caadf50ef368d157b3c3c811afee724/mojentic-2.1.0.tar.gz", hash = "sha256:3707f207c5c284414788d54c93c1039fc3664d06cf29cf0c932157b27334ad23", size = 190379, upload-time = "2026-09-30T23:28:20.735Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/67/01/5b9221f7f87641e5acbbb65d45433927b177f547fcda72c064ad6fc6273c/mojentic-3.0.0.tar.gz", hash = "sha256:fe04e5fb509d2fd13db4c284178b6394bfd922696caf06d3f2c1a1dc784b941c", size = 311244, upload-time = "2026-10-18T12:35:34.204Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6d/19/810aa00663e5174b3a8c1e6c8885a2d3e2b2eab2e2fdc745ffd72ac9a4f1/mojentic-2.1.0-py3-none-any.whl", hash = "sha256:47acb529505268abe95f9e3c97c76472aa08d3d081f54aaddaaa31f3709e4712", size = 269090, upload-time = "2026-09-30T23:28:19.38Z" },
+    { url = "https://files.pythonhosted.org/packages/2c/b6/556a09048e52fbc258c88c4ffb63f6ee44ef28e4c63aa2623848e48d1863/mojentic-3.0.0-py3-none-any.whl", hash = "sha256:5cb698de2b071da904e0602fdc8faf75f2154e84f5dad243546a062b7f0ea2b8", size = 411772, upload-time = "2026-10-18T12:35:32.566Z" },
 ]
 
 [[package]]
@@ -5012,7 +5012,7 @@ requires-dist = [
     { name = "fastmcp", specifier = ">=4.0.8,<5.0.0" },
     { name = "mkdocs", marker = "extra == 'dev'" },
     { name = "mkdocs-material", marker = "extra == 'dev'" },
-    { name = "mojentic", specifier = ">=2.1.0" },
+    { name = "mojentic", specifier = ">=3.0.0" },
     { name = "pymdown-extensions", marker = "extra == 'dev'" },
     { name = "pyside6", specifier = ">=6.11.2" },
     { name = "pytest", marker = "extra == 'dev'" },
