@@ -8,6 +8,7 @@ import pytest
 from mojentic.llm import LLMBroker
 from mojentic.llm.gateways.models import LLMGatewayResponse, LLMMessage, MessageRole
 
+from zk_chat.completion_defaults import ZK_CHAT_COMPLETION_CONFIG
 from zk_chat.tools.analyze_image import AnalyzeImage
 
 
@@ -55,6 +56,20 @@ class DescribeAnalyzeImage:
 
         assert result == "A cat sitting on a desk"
         mock_gateway.complete.assert_called_once()
+
+    def should_request_analysis_with_zk_chat_completion_config(self, mock_filesystem, mock_gateway):
+        mock_filesystem.path_exists.return_value = True
+        mock_filesystem.get_absolute_path_for_tool_access.return_value = "/abs/path/img.png"
+        mock_gateway.complete.return_value = _response("A cat sitting on a desk")
+        mock_message = LLMMessage(role=MessageRole.User, content="describe image")
+        mock_builder = Mock()  # Intentionally unspec'd: used as a factory callable, not a class instance
+        mock_builder.return_value.add_image.return_value.build.return_value = mock_message
+        llm = LLMBroker(model="test-vision", gateway=mock_gateway)
+        tool = AnalyzeImage(mock_filesystem, llm, _message_builder_factory=mock_builder)
+
+        tool.run("img/photo.png")
+
+        assert mock_gateway.complete.call_args.kwargs["config"] == ZK_CHAT_COMPLETION_CONFIG
 
     def should_have_correct_descriptor_name(self, analyze_tool):
         assert analyze_tool.descriptor["function"]["name"] == "analyze_image"

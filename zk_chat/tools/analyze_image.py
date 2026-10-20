@@ -2,6 +2,7 @@ import structlog
 from mojentic.llm import LLMBroker, MessageBuilder
 from mojentic.llm.tools.llm_tool import LLMTool
 
+from zk_chat.completion_defaults import ZK_CHAT_COMPLETION_CONFIG
 from zk_chat.markdown.markdown_filesystem_gateway import MarkdownFilesystemGateway
 from zk_chat.tools.tool_helpers import build_descriptor, tool_boundary
 
@@ -29,7 +30,7 @@ class AnalyzeImage(LLMTool):
             .add_image(self.fs.get_absolute_path_for_tool_access(relative_path))
             .build()
         )
-        return self.llm.generate([message])
+        return self.llm.generate([message], config=ZK_CHAT_COMPLETION_CONFIG)
 
     @property
     def descriptor(self) -> dict:

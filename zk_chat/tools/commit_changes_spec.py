@@ -5,6 +5,7 @@ import structlog.testing
 from mojentic.llm import LLMBroker
 from mojentic.llm.gateways.models import LLMGatewayResponse
 
+from zk_chat.completion_defaults import ZK_CHAT_COMPLETION_CONFIG
 from zk_chat.tools.commit_changes import CommitChanges
 from zk_chat.tools.git_gateway import GitGateway
 
@@ -120,6 +121,19 @@ class DescribeCommitChanges:
         mock_ollama_gateway.complete.assert_called_once()
         mock_git_gateway.commit.assert_called_once_with("Test commit message")
         assert result == "Successfully committed changes: 'Test commit message'"
+
+    def should_request_commit_message_with_zk_chat_completion_config(
+        self, commit_changes, mock_git_gateway, mock_ollama_gateway
+    ):
+        mock_git_gateway.add_all_files.return_value = (True, "Files added")
+        mock_git_gateway.get_status.return_value = (True, "M file.txt")
+        mock_git_gateway.get_diff.return_value = (True, "diff --git a/file.txt b/file.txt")
+        mock_ollama_gateway.complete.return_value = _response("Test commit message")
+        mock_git_gateway.commit.return_value = (True, "1 file changed")
+
+        commit_changes.run()
+
+        assert mock_ollama_gateway.complete.call_args.kwargs["config"] == ZK_CHAT_COMPLETION_CONFIG
 
     def should_handle_os_errors(self, commit_changes, mock_git_gateway):
         """Test that run handles OSError exceptions from git operations."""

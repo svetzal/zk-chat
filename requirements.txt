@@ -202,7 +202,7 @@ mdurl==0.1.2
     # via markdown-it-py
 mmh3==5.3.0
     # via chromadb
-mojentic==2.1.0
+mojentic==3.0.0
     # via zk-chat
 more-itertools==11.1.0
     # via

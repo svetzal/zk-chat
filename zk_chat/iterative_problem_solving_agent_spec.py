@@ -8,6 +8,7 @@ import pytest
 from mojentic.llm import LLMBroker
 from mojentic.llm.gateways.models import LLMGatewayResponse
 
+from zk_chat.completion_defaults import ZK_CHAT_COMPLETION_CONFIG
 from zk_chat.iterative_problem_solving_agent import IterativeProblemSolvingAgent
 
 
@@ -28,6 +29,16 @@ class DescribeIterativeProblemSolvingAgent:
 
     def should_use_default_max_iterations_of_three(self, agent):
         assert agent.max_iterations == 3
+
+    def should_send_requests_with_zk_chat_completion_config(self, agent, mock_gateway):
+        mock_gateway.complete.side_effect = [
+            _response("Task is DONE"),
+            _response("Summary result"),
+        ]
+
+        agent.solve("solve this problem")
+
+        assert mock_gateway.complete.call_args.kwargs["config"] == ZK_CHAT_COMPLETION_CONFIG
 
     def should_stop_when_response_contains_done(self, agent, mock_gateway):
         mock_gateway.complete.side_effect = [
