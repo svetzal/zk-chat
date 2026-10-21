@@ -1,0 +1,4 @@
+No known vulnerabilities found, 5 ignored
+Name    Skip Reason
+------- ----------------------------------------------------------------------
+zk-chat Dependency not found on PyPI and could not be audited: zk-chat (3.6.0)
