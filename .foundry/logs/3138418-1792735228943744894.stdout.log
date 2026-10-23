@@ -1,0 +1,7 @@
+Name              Version ID              Fix Versions
+----------------- ------- --------------- ------------
+opentelemetry-api 1.44.0  CVE-2026-114603 1.45.1
+
+Name    Skip Reason
+------- ----------------------------------------------------------------------
+zk-chat Dependency not found on PyPI and could not be audited: zk-chat (3.6.0)
