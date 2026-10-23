@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **CVE-2026-114603 — fixed**: upgraded transitive dependency `opentelemetry-api` (via `chromadb`,
+  `mcp` and `fastmcp`) from 1.44.0 to 1.45.1, the fixed release. The rest of the OpenTelemetry family
+  moved with it to keep versions matched: `opentelemetry-sdk`, `opentelemetry-proto`,
+  `opentelemetry-exporter-otlp-proto-common` and `opentelemetry-exporter-otlp-proto-grpc` to 1.45.1,
+  and `opentelemetry-semantic-conventions` to 0.66b1. This also adds `opentelemetry-exporter-otlp-common`
+  0.66b1. Also regenerated the stale `requirements.txt` export so it matches `uv.lock`.
 - **CVE-2026-111064, CVE-2026-111063, GHSA-2g87-pp6c-29x5 — fixed**: upgraded transitive dependency
   `aiohttp` from 3.14.3 to 3.14.5 (fixed in 3.14.4). Also regenerated the stale `requirements.txt`
   export so it matches `uv.lock`.
