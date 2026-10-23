@@ -68,6 +68,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Full reindex no longer crashes on a new vault**: `ChromaGateway.reset_indexes` caught `ValueError`
+  when it deleted a collection that did not exist yet, but chromadb 1.5.x raises
+  `chromadb.errors.NotFoundError`. The first index of a new vault therefore failed with
+  `Collection [excerpts] does not exist`. The gateway now catches `NotFoundError`, and its specs raise
+  the real chromadb error instead of a `ValueError`.
 - Standardized vault path normalization: bookmarks, vault config lookup, and vault
   resolution now all canonicalize to the symlink-resolved absolute path via a single
   helper (`normalize_vault_path`), so a vault reached through a symlink is no longer
