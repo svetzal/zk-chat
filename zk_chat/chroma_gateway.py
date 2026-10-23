@@ -4,6 +4,7 @@ import chromadb
 import structlog
 from chromadb import Settings
 from chromadb.api.models.Collection import Collection
+from chromadb.errors import NotFoundError
 
 from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.config import ModelGateway
@@ -78,7 +79,7 @@ class ChromaGateway:
         if collection_name:
             try:
                 self.chroma_client.delete_collection(collection_name.value)
-            except ValueError:
+            except NotFoundError:
                 logger.debug("Collection did not exist during reset", collection=collection_name.value)
             self._collections.pop(collection_name, None)
             self.get_collection(collection_name)

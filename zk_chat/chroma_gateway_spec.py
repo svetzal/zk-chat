@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 import structlog.testing
 from chromadb.api.models.Collection import Collection
+from chromadb.errors import NotFoundError
 
 from zk_chat.chroma_collections import ZkCollectionName
 from zk_chat.chroma_gateway import ChromaGateway
@@ -131,10 +132,10 @@ class DescribeChromaGateway:
                 metadata={"hsnw:space": "cosine"},
             )
 
-        def should_ignore_value_error_when_collection_does_not_exist(
+        def should_ignore_not_found_error_when_collection_does_not_exist(
             self, chroma_gateway, mock_chroma_client, mock_collection
         ):
-            mock_chroma_client.delete_collection.side_effect = ValueError("not found")
+            mock_chroma_client.delete_collection.side_effect = NotFoundError("Collection [excerpts] does not exist")
             mock_chroma_client.get_or_create_collection.return_value = mock_collection
 
             chroma_gateway.reset_indexes(ZkCollectionName.EXCERPTS)
@@ -199,7 +200,7 @@ class DescribeChromaGateway:
         def should_log_debug_when_collection_missing_during_reset(
             self, chroma_gateway, mock_chroma_client, mock_collection
         ):
-            mock_chroma_client.delete_collection.side_effect = ValueError("not found")
+            mock_chroma_client.delete_collection.side_effect = NotFoundError("Collection [excerpts] does not exist")
             mock_chroma_client.get_or_create_collection.return_value = mock_collection
 
             with structlog.testing.capture_logs() as cap_logs:
