@@ -1,0 +1,5 @@
+
+  Describe Reset:
+[32m    ✓ Should delegate reset to chroma gateway[0m
+
+[32m============================= [32m[1m838 passed[0m[32m in 4.76s[0m[32m ==============================[0m
