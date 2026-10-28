@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **CVE-2026-114605 — fixed**: upgraded transitive dependency `dnspython` (via `email-validator` →
+  `pydantic[email]` → `fastmcp-slim`) from 2.8.0 to 2.9.0, the fixed release. No code changes were
+  required. `requirements.txt` was regenerated from `uv.lock`.
 - **CVE-2026-96760 — fixed**: upgraded transitive dependency `authlib` (via `fastmcp-slim`) from 1.8.0
   to 1.9.1. The fixed release for CVE-2026-96760 is 1.9.0; 1.9.1 also fixes CVE-2026-114615,
   CVE-2026-114616, CVE-2026-114617, CVE-2026-114618 and CVE-2026-114620. No code changes were required.
