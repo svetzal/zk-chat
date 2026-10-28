@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **CVE-2026-96760 — fixed**: upgraded transitive dependency `authlib` (via `fastmcp-slim`) from 1.8.0
+  to 1.9.1. The fixed release for CVE-2026-96760 is 1.9.0; 1.9.1 also fixes CVE-2026-114615,
+  CVE-2026-114616, CVE-2026-114617, CVE-2026-114618 and CVE-2026-114620. No code changes were required.
+  `requirements.txt` was regenerated from `uv.lock`, which also brings it in line with the
+  already-locked `fastmcp` 4.1.4.
 - **CVE-2026-114603 — fixed**: upgraded transitive dependency `opentelemetry-api` (via `chromadb`,
   `mcp` and `fastmcp`) from 1.44.0 to 1.45.1, the fixed release. The rest of the OpenTelemetry family
   moved with it to keep versions matched: `opentelemetry-sdk`, `opentelemetry-proto`,
