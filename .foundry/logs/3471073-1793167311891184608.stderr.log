@@ -1,0 +1,14 @@
+Uninstalled 8 packages in 32ms
+warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+         If the cache and target directories are on different filesystems, hardlinking may not be supported.
+         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+Installed 1 package in 81ms
+ - authlib==1.8.0
+ + authlib==1.9.1
+ - jaraco-classes==3.4.0
+ - jaraco-context==6.1.2
+ - jaraco-functools==4.6.0
+ - jeepney==0.9.0
+ - keyring==25.7.0
+ - more-itertools==11.1.0
+ - secretstorage==3.5.0

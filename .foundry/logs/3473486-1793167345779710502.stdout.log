@@ -1,0 +1,3 @@
+[36m[1m=========================== short test summary info ============================[0m
+[31mFAILED[0m integration_tests/image_operations_integration.py::[1mDescribeImageAnalysis::should_analyze_architecture_diagram[0m - AssertionError: Execution failed: Traceback (most recent call last):
+[31m[31m[1m1 failed[0m[31m in 39.46s[0m[0m

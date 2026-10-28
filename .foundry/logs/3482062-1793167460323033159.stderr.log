@@ -1,0 +1,850 @@
+Building source distribution...
+/home/svetzal/.cache/uv/builds-v0/.tmpG6bgOb/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:61: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+!!
+
+        ********************************************************************************
+        Please consider removing the following classifiers in favor of a SPDX license expression:
+
+        License :: OSI Approved :: MIT License
+
+        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+        ********************************************************************************
+
+!!
+  dist._finalize_license_expression()
+running egg_info
+/home/svetzal/.cache/uv/builds-v0/.tmpG6bgOb/lib/python3.13/site-packages/setuptools/dist.py:765: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+!!
+
+        ********************************************************************************
+        Please consider removing the following classifiers in favor of a SPDX license expression:
+
+        License :: OSI Approved :: MIT License
+
+        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+        ********************************************************************************
+
+!!
+  self._finalize_license_expression()
+writing zk_chat.egg-info/PKG-INFO
+writing dependency_links to zk_chat.egg-info/dependency_links.txt
+writing entry points to zk_chat.egg-info/entry_points.txt
+writing requirements to zk_chat.egg-info/requires.txt
+writing top-level names to zk_chat.egg-info/top_level.txt
+reading manifest file 'zk_chat.egg-info/SOURCES.txt'
+writing manifest file 'zk_chat.egg-info/SOURCES.txt'
+/home/svetzal/.cache/uv/builds-v0/.tmpG6bgOb/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:61: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+!!
+
+        ********************************************************************************
+        Please consider removing the following classifiers in favor of a SPDX license expression:
+
+        License :: OSI Approved :: MIT License
+
+        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+        ********************************************************************************
+
+!!
+  dist._finalize_license_expression()
+running sdist
+/home/svetzal/.cache/uv/builds-v0/.tmpG6bgOb/lib/python3.13/site-packages/setuptools/dist.py:765: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+!!
+
+        ********************************************************************************
+        Please consider removing the following classifiers in favor of a SPDX license expression:
+
+        License :: OSI Approved :: MIT License
+
+        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+        ********************************************************************************
+
+!!
+  self._finalize_license_expression()
+running egg_info
+writing zk_chat.egg-info/PKG-INFO
+writing dependency_links to zk_chat.egg-info/dependency_links.txt
+writing entry points to zk_chat.egg-info/entry_points.txt
+writing requirements to zk_chat.egg-info/requires.txt
+writing top-level names to zk_chat.egg-info/top_level.txt
+reading manifest file 'zk_chat.egg-info/SOURCES.txt'
+writing manifest file 'zk_chat.egg-info/SOURCES.txt'
+running check
+creating zk_chat-3.6.0
+creating zk_chat-3.6.0/zk_chat
+creating zk_chat-3.6.0/zk_chat.egg-info
+creating zk_chat-3.6.0/zk_chat/commands
+creating zk_chat-3.6.0/zk_chat/markdown
+creating zk_chat-3.6.0/zk_chat/memory
+creating zk_chat-3.6.0/zk_chat/rag
+creating zk_chat-3.6.0/zk_chat/services
+creating zk_chat-3.6.0/zk_chat/tools
+creating zk_chat-3.6.0/zk_chat/upgraders
+copying files to zk_chat-3.6.0...
+copying README.md -> zk_chat-3.6.0
+copying pyproject.toml -> zk_chat-3.6.0
+copying zk_chat/__init__.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/agent.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/agent_prompt.txt -> zk_chat-3.6.0/zk_chat
+copying zk_chat/agent_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/bootstrap.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/chroma_collections.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/chroma_collections_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/chroma_gateway.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/chroma_gateway_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/cli.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/cli_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/completion_defaults.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/completion_defaults_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/config.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/config_gateway.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/config_gateway_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/config_resolution.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/config_resolution_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/config_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/conftest.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/console_gateway.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/console_gateway_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/diagnostics.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/diagnostics_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/filename_utils.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/filename_utils_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/filesystem_gateway.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/filesystem_gateway_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/formatting.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/formatting_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/gateway_defaults.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/gateway_defaults_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/gateway_factory.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/gateway_factory_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/global_config.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/global_config_gateway.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/global_config_gateway_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/global_config_mcp_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/global_config_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/index.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/index_resolution.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/index_resolution_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/index_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/init_options.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/init_options_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/iterative_problem_solving_agent.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/iterative_problem_solving_agent_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/main.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/main_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/mcp.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/mcp_client.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/mcp_client_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/mcp_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/mcp_tool_wrapper.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/mcp_tool_wrapper_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/model_selection.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/model_selection_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/models.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/models_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/progress_tracker.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/progress_tracker_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/qt.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/qt_config_resolution.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/qt_config_resolution_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/qt_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/service_factory.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/service_factory_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/text_processing.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/text_processing_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/tool_assembly.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/tool_assembly_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/vault_path.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/vault_path_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/vault_resolution.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/vault_resolution_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/vector_database.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat/vector_database_spec.py -> zk_chat-3.6.0/zk_chat
+copying zk_chat.egg-info/PKG-INFO -> zk_chat-3.6.0/zk_chat.egg-info
+copying zk_chat.egg-info/SOURCES.txt -> zk_chat-3.6.0/zk_chat.egg-info
+copying zk_chat.egg-info/dependency_links.txt -> zk_chat-3.6.0/zk_chat.egg-info
+copying zk_chat.egg-info/entry_points.txt -> zk_chat-3.6.0/zk_chat.egg-info
+copying zk_chat.egg-info/requires.txt -> zk_chat-3.6.0/zk_chat.egg-info
+copying zk_chat.egg-info/top_level.txt -> zk_chat-3.6.0/zk_chat.egg-info
+copying zk_chat/commands/__init__.py -> zk_chat-3.6.0/zk_chat/commands
+copying zk_chat/commands/bookmarks.py -> zk_chat-3.6.0/zk_chat/commands
+copying zk_chat/commands/bookmarks_spec.py -> zk_chat-3.6.0/zk_chat/commands
+copying zk_chat/commands/config_helpers.py -> zk_chat-3.6.0/zk_chat/commands
+copying zk_chat/commands/config_helpers_spec.py -> zk_chat-3.6.0/zk_chat/commands
+copying zk_chat/commands/diagnose.py -> zk_chat-3.6.0/zk_chat/commands
+copying zk_chat/commands/diagnose_spec.py -> zk_chat-3.6.0/zk_chat/commands
+copying zk_chat/commands/gui.py -> zk_chat-3.6.0/zk_chat/commands
+copying zk_chat/commands/gui_spec.py -> zk_chat-3.6.0/zk_chat/commands
+copying zk_chat/commands/index.py -> zk_chat-3.6.0/zk_chat/commands
+copying zk_chat/commands/index_spec.py -> zk_chat-3.6.0/zk_chat/commands
+copying zk_chat/commands/mcp.py -> zk_chat-3.6.0/zk_chat/commands
+copying zk_chat/commands/mcp_spec.py -> zk_chat-3.6.0/zk_chat/commands
+copying zk_chat/markdown/__init__.py -> zk_chat-3.6.0/zk_chat/markdown
+copying zk_chat/markdown/markdown_filesystem_gateway.py -> zk_chat-3.6.0/zk_chat/markdown
+copying zk_chat/markdown/markdown_filesystem_gateway_spec.py -> zk_chat-3.6.0/zk_chat/markdown
+copying zk_chat/markdown/markdown_utilities.py -> zk_chat-3.6.0/zk_chat/markdown
+copying zk_chat/markdown/markdown_utilities_spec.py -> zk_chat-3.6.0/zk_chat/markdown
+copying zk_chat/memory/smart_memory.py -> zk_chat-3.6.0/zk_chat/memory
+copying zk_chat/memory/smart_memory_spec.py -> zk_chat-3.6.0/zk_chat/memory
+copying zk_chat/rag/__init__.py -> zk_chat-3.6.0/zk_chat/rag
+copying zk_chat/rag/splitter.py -> zk_chat-3.6.0/zk_chat/rag
+copying zk_chat/rag/splitter_spec.py -> zk_chat-3.6.0/zk_chat/rag
+copying zk_chat/services/__init__.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/diagnostic_service.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/diagnostic_service_spec.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/document_service.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/document_service_spec.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/index_service.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/index_service_spec.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/link_traversal_service.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/link_traversal_service_spec.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/mcp_service.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/mcp_service_spec.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/plugin_base.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/plugin_base_spec.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/service_provider.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/service_provider_spec.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/service_registry.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/service_registry_spec.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/vault_status_service.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/services/vault_status_service_spec.py -> zk_chat-3.6.0/zk_chat/services
+copying zk_chat/tools/__init__.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/analyze_image.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/analyze_image_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/commit_changes.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/commit_changes_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/conftest.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/create_or_overwrite_zk_document.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/create_or_overwrite_zk_document_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/delete_zk_document.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/delete_zk_document_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/find_backlinks.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/find_backlinks_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/find_excerpts_related_to.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/find_excerpts_related_to_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/find_forward_links.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/find_forward_links_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/find_zk_documents_related_to.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/find_zk_documents_related_to_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/git_gateway.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/git_gateway_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/list_zk_documents.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/list_zk_documents_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/list_zk_images.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/list_zk_images_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/query_tool.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/query_tool_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/read_zk_document.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/read_zk_document_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/rename_zk_document.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/rename_zk_document_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/resolve_wikilink.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/resolve_wikilink_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/retrieve_from_smart_memory.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/retrieve_from_smart_memory_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/store_in_smart_memory.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/store_in_smart_memory_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/tool_helpers.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/tool_helpers_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/uncommitted_changes.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/tools/uncommitted_changes_spec.py -> zk_chat-3.6.0/zk_chat/tools
+copying zk_chat/upgraders/gateway_specific_index_folder.py -> zk_chat-3.6.0/zk_chat/upgraders
+copying zk_chat/upgraders/gateway_specific_index_folder_spec.py -> zk_chat-3.6.0/zk_chat/upgraders
+copying zk_chat/upgraders/gateway_specific_last_indexed.py -> zk_chat-3.6.0/zk_chat/upgraders
+copying zk_chat/upgraders/gateway_specific_last_indexed_spec.py -> zk_chat-3.6.0/zk_chat/upgraders
+Writing zk_chat-3.6.0/setup.cfg
+Creating tar archive
+removing 'zk_chat-3.6.0' (and everything under it)
+Building wheel from source distribution...
+/home/svetzal/.cache/uv/builds-v0/.tmp5AIo2d/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:61: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+!!
+
+        ********************************************************************************
+        Please consider removing the following classifiers in favor of a SPDX license expression:
+
+        License :: OSI Approved :: MIT License
+
+        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+        ********************************************************************************
+
+!!
+  dist._finalize_license_expression()
+/home/svetzal/.cache/uv/builds-v0/.tmp5AIo2d/lib/python3.13/site-packages/setuptools/dist.py:765: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+!!
+
+        ********************************************************************************
+        Please consider removing the following classifiers in favor of a SPDX license expression:
+
+        License :: OSI Approved :: MIT License
+
+        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+        ********************************************************************************
+
+!!
+  self._finalize_license_expression()
+running egg_info
+writing zk_chat.egg-info/PKG-INFO
+writing dependency_links to zk_chat.egg-info/dependency_links.txt
+writing entry points to zk_chat.egg-info/entry_points.txt
+writing requirements to zk_chat.egg-info/requires.txt
+writing top-level names to zk_chat.egg-info/top_level.txt
+reading manifest file 'zk_chat.egg-info/SOURCES.txt'
+writing manifest file 'zk_chat.egg-info/SOURCES.txt'
+/home/svetzal/.cache/uv/builds-v0/.tmp5AIo2d/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:61: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+!!
+
+        ********************************************************************************
+        Please consider removing the following classifiers in favor of a SPDX license expression:
+
+        License :: OSI Approved :: MIT License
+
+        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+        ********************************************************************************
+
+!!
+  dist._finalize_license_expression()
+running bdist_wheel
+/home/svetzal/.cache/uv/builds-v0/.tmp5AIo2d/lib/python3.13/site-packages/setuptools/dist.py:765: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+!!
+
+        ********************************************************************************
+        Please consider removing the following classifiers in favor of a SPDX license expression:
+
+        License :: OSI Approved :: MIT License
+
+        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+        ********************************************************************************
+
+!!
+  self._finalize_license_expression()
+running build
+running build_py
+creating build/lib/zk_chat
+copying zk_chat/global_config_gateway_spec.py -> build/lib/zk_chat
+copying zk_chat/global_config.py -> build/lib/zk_chat
+copying zk_chat/cli_spec.py -> build/lib/zk_chat
+copying zk_chat/completion_defaults.py -> build/lib/zk_chat
+copying zk_chat/bootstrap.py -> build/lib/zk_chat
+copying zk_chat/formatting_spec.py -> build/lib/zk_chat
+copying zk_chat/global_config_gateway.py -> build/lib/zk_chat
+copying zk_chat/mcp_client.py -> build/lib/zk_chat
+copying zk_chat/chroma_collections.py -> build/lib/zk_chat
+copying zk_chat/vault_resolution.py -> build/lib/zk_chat
+copying zk_chat/vault_path.py -> build/lib/zk_chat
+copying zk_chat/config.py -> build/lib/zk_chat
+copying zk_chat/console_gateway_spec.py -> build/lib/zk_chat
+copying zk_chat/vector_database_spec.py -> build/lib/zk_chat
+copying zk_chat/agent.py -> build/lib/zk_chat
+copying zk_chat/conftest.py -> build/lib/zk_chat
+copying zk_chat/cli.py -> build/lib/zk_chat
+copying zk_chat/mcp.py -> build/lib/zk_chat
+copying zk_chat/tool_assembly.py -> build/lib/zk_chat
+copying zk_chat/model_selection_spec.py -> build/lib/zk_chat
+copying zk_chat/config_gateway_spec.py -> build/lib/zk_chat
+copying zk_chat/service_factory.py -> build/lib/zk_chat
+copying zk_chat/mcp_tool_wrapper.py -> build/lib/zk_chat
+copying zk_chat/gateway_factory_spec.py -> build/lib/zk_chat
+copying zk_chat/mcp_tool_wrapper_spec.py -> build/lib/zk_chat
+copying zk_chat/filesystem_gateway_spec.py -> build/lib/zk_chat
+copying zk_chat/config_gateway.py -> build/lib/zk_chat
+copying zk_chat/text_processing.py -> build/lib/zk_chat
+copying zk_chat/global_config_mcp_spec.py -> build/lib/zk_chat
+copying zk_chat/gateway_factory.py -> build/lib/zk_chat
+copying zk_chat/vector_database.py -> build/lib/zk_chat
+copying zk_chat/chroma_gateway_spec.py -> build/lib/zk_chat
+copying zk_chat/global_config_spec.py -> build/lib/zk_chat
+copying zk_chat/init_options_spec.py -> build/lib/zk_chat
+copying zk_chat/main_spec.py -> build/lib/zk_chat
+copying zk_chat/mcp_client_spec.py -> build/lib/zk_chat
+copying zk_chat/mcp_spec.py -> build/lib/zk_chat
+copying zk_chat/formatting.py -> build/lib/zk_chat
+copying zk_chat/filename_utils_spec.py -> build/lib/zk_chat
+copying zk_chat/diagnostics_spec.py -> build/lib/zk_chat
+copying zk_chat/index_resolution_spec.py -> build/lib/zk_chat
+copying zk_chat/qt.py -> build/lib/zk_chat
+copying zk_chat/vault_resolution_spec.py -> build/lib/zk_chat
+copying zk_chat/index_spec.py -> build/lib/zk_chat
+copying zk_chat/index.py -> build/lib/zk_chat
+copying zk_chat/service_factory_spec.py -> build/lib/zk_chat
+copying zk_chat/config_spec.py -> build/lib/zk_chat
+copying zk_chat/console_gateway.py -> build/lib/zk_chat
+copying zk_chat/diagnostics.py -> build/lib/zk_chat
+copying zk_chat/filename_utils.py -> build/lib/zk_chat
+copying zk_chat/model_selection.py -> build/lib/zk_chat
+copying zk_chat/qt_config_resolution_spec.py -> build/lib/zk_chat
+copying zk_chat/iterative_problem_solving_agent.py -> build/lib/zk_chat
+copying zk_chat/iterative_problem_solving_agent_spec.py -> build/lib/zk_chat
+copying zk_chat/__init__.py -> build/lib/zk_chat
+copying zk_chat/qt_spec.py -> build/lib/zk_chat
+copying zk_chat/gateway_defaults.py -> build/lib/zk_chat
+copying zk_chat/qt_config_resolution.py -> build/lib/zk_chat
+copying zk_chat/index_resolution.py -> build/lib/zk_chat
+copying zk_chat/progress_tracker.py -> build/lib/zk_chat
+copying zk_chat/gateway_defaults_spec.py -> build/lib/zk_chat
+copying zk_chat/filesystem_gateway.py -> build/lib/zk_chat
+copying zk_chat/models.py -> build/lib/zk_chat
+copying zk_chat/text_processing_spec.py -> build/lib/zk_chat
+copying zk_chat/tool_assembly_spec.py -> build/lib/zk_chat
+copying zk_chat/chroma_gateway.py -> build/lib/zk_chat
+copying zk_chat/config_resolution.py -> build/lib/zk_chat
+copying zk_chat/agent_spec.py -> build/lib/zk_chat
+copying zk_chat/models_spec.py -> build/lib/zk_chat
+copying zk_chat/init_options.py -> build/lib/zk_chat
+copying zk_chat/completion_defaults_spec.py -> build/lib/zk_chat
+copying zk_chat/vault_path_spec.py -> build/lib/zk_chat
+copying zk_chat/main.py -> build/lib/zk_chat
+copying zk_chat/progress_tracker_spec.py -> build/lib/zk_chat
+copying zk_chat/config_resolution_spec.py -> build/lib/zk_chat
+copying zk_chat/chroma_collections_spec.py -> build/lib/zk_chat
+creating build/lib/zk_chat/markdown
+copying zk_chat/markdown/markdown_utilities_spec.py -> build/lib/zk_chat/markdown
+copying zk_chat/markdown/markdown_filesystem_gateway.py -> build/lib/zk_chat/markdown
+copying zk_chat/markdown/markdown_filesystem_gateway_spec.py -> build/lib/zk_chat/markdown
+copying zk_chat/markdown/__init__.py -> build/lib/zk_chat/markdown
+copying zk_chat/markdown/markdown_utilities.py -> build/lib/zk_chat/markdown
+creating build/lib/zk_chat/upgraders
+copying zk_chat/upgraders/gateway_specific_last_indexed_spec.py -> build/lib/zk_chat/upgraders
+copying zk_chat/upgraders/gateway_specific_index_folder_spec.py -> build/lib/zk_chat/upgraders
+copying zk_chat/upgraders/gateway_specific_last_indexed.py -> build/lib/zk_chat/upgraders
+copying zk_chat/upgraders/gateway_specific_index_folder.py -> build/lib/zk_chat/upgraders
+creating build/lib/zk_chat/memory
+copying zk_chat/memory/smart_memory.py -> build/lib/zk_chat/memory
+copying zk_chat/memory/smart_memory_spec.py -> build/lib/zk_chat/memory
+creating build/lib/zk_chat/rag
+copying zk_chat/rag/splitter_spec.py -> build/lib/zk_chat/rag
+copying zk_chat/rag/__init__.py -> build/lib/zk_chat/rag
+copying zk_chat/rag/splitter.py -> build/lib/zk_chat/rag
+creating build/lib/zk_chat/tools
+copying zk_chat/tools/resolve_wikilink_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/find_forward_links_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/delete_zk_document.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/find_excerpts_related_to_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/rename_zk_document_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/retrieve_from_smart_memory.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/find_zk_documents_related_to_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/find_excerpts_related_to.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/find_forward_links.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/analyze_image.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/conftest.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/read_zk_document_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/commit_changes_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/find_backlinks_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/tool_helpers_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/list_zk_images_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/list_zk_documents.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/query_tool_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/analyze_image_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/find_zk_documents_related_to.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/resolve_wikilink.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/uncommitted_changes_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/create_or_overwrite_zk_document_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/commit_changes.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/store_in_smart_memory_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/rename_zk_document.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/read_zk_document.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/retrieve_from_smart_memory_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/query_tool.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/find_backlinks.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/__init__.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/uncommitted_changes.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/create_or_overwrite_zk_document.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/tool_helpers.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/list_zk_images.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/git_gateway.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/store_in_smart_memory.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/list_zk_documents_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/delete_zk_document_spec.py -> build/lib/zk_chat/tools
+copying zk_chat/tools/git_gateway_spec.py -> build/lib/zk_chat/tools
+creating build/lib/zk_chat/services
+copying zk_chat/services/index_service_spec.py -> build/lib/zk_chat/services
+copying zk_chat/services/document_service_spec.py -> build/lib/zk_chat/services
+copying zk_chat/services/service_provider.py -> build/lib/zk_chat/services
+copying zk_chat/services/vault_status_service.py -> build/lib/zk_chat/services
+copying zk_chat/services/mcp_service_spec.py -> build/lib/zk_chat/services
+copying zk_chat/services/plugin_base.py -> build/lib/zk_chat/services
+copying zk_chat/services/service_provider_spec.py -> build/lib/zk_chat/services
+copying zk_chat/services/diagnostic_service.py -> build/lib/zk_chat/services
+copying zk_chat/services/link_traversal_service.py -> build/lib/zk_chat/services
+copying zk_chat/services/document_service.py -> build/lib/zk_chat/services
+copying zk_chat/services/link_traversal_service_spec.py -> build/lib/zk_chat/services
+copying zk_chat/services/diagnostic_service_spec.py -> build/lib/zk_chat/services
+copying zk_chat/services/__init__.py -> build/lib/zk_chat/services
+copying zk_chat/services/service_registry.py -> build/lib/zk_chat/services
+copying zk_chat/services/index_service.py -> build/lib/zk_chat/services
+copying zk_chat/services/service_registry_spec.py -> build/lib/zk_chat/services
+copying zk_chat/services/vault_status_service_spec.py -> build/lib/zk_chat/services
+copying zk_chat/services/mcp_service.py -> build/lib/zk_chat/services
+copying zk_chat/services/plugin_base_spec.py -> build/lib/zk_chat/services
+creating build/lib/zk_chat/commands
+copying zk_chat/commands/config_helpers_spec.py -> build/lib/zk_chat/commands
+copying zk_chat/commands/gui_spec.py -> build/lib/zk_chat/commands
+copying zk_chat/commands/gui.py -> build/lib/zk_chat/commands
+copying zk_chat/commands/config_helpers.py -> build/lib/zk_chat/commands
+copying zk_chat/commands/mcp.py -> build/lib/zk_chat/commands
+copying zk_chat/commands/diagnose_spec.py -> build/lib/zk_chat/commands
+copying zk_chat/commands/bookmarks_spec.py -> build/lib/zk_chat/commands
+copying zk_chat/commands/mcp_spec.py -> build/lib/zk_chat/commands
+copying zk_chat/commands/index_spec.py -> build/lib/zk_chat/commands
+copying zk_chat/commands/index.py -> build/lib/zk_chat/commands
+copying zk_chat/commands/__init__.py -> build/lib/zk_chat/commands
+copying zk_chat/commands/diagnose.py -> build/lib/zk_chat/commands
+copying zk_chat/commands/bookmarks.py -> build/lib/zk_chat/commands
+running egg_info
+writing zk_chat.egg-info/PKG-INFO
+writing dependency_links to zk_chat.egg-info/dependency_links.txt
+writing entry points to zk_chat.egg-info/entry_points.txt
+writing requirements to zk_chat.egg-info/requires.txt
+writing top-level names to zk_chat.egg-info/top_level.txt
+reading manifest file 'zk_chat.egg-info/SOURCES.txt'
+writing manifest file 'zk_chat.egg-info/SOURCES.txt'
+copying zk_chat/agent_prompt.txt -> build/lib/zk_chat
+installing to build/bdist.linux-x86_64/wheel
+running install
+running install_lib
+creating build/bdist.linux-x86_64/wheel
+creating build/bdist.linux-x86_64/wheel/zk_chat
+copying build/lib/zk_chat/global_config_gateway_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/global_config.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/cli_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+creating build/bdist.linux-x86_64/wheel/zk_chat/markdown
+copying build/lib/zk_chat/markdown/markdown_utilities_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/markdown
+copying build/lib/zk_chat/markdown/markdown_filesystem_gateway.py -> build/bdist.linux-x86_64/wheel/./zk_chat/markdown
+copying build/lib/zk_chat/markdown/markdown_filesystem_gateway_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/markdown
+copying build/lib/zk_chat/markdown/__init__.py -> build/bdist.linux-x86_64/wheel/./zk_chat/markdown
+copying build/lib/zk_chat/markdown/markdown_utilities.py -> build/bdist.linux-x86_64/wheel/./zk_chat/markdown
+copying build/lib/zk_chat/completion_defaults.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/bootstrap.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/formatting_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/global_config_gateway.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+creating build/bdist.linux-x86_64/wheel/zk_chat/upgraders
+copying build/lib/zk_chat/upgraders/gateway_specific_last_indexed_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/upgraders
+copying build/lib/zk_chat/upgraders/gateway_specific_index_folder_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/upgraders
+copying build/lib/zk_chat/upgraders/gateway_specific_last_indexed.py -> build/bdist.linux-x86_64/wheel/./zk_chat/upgraders
+copying build/lib/zk_chat/upgraders/gateway_specific_index_folder.py -> build/bdist.linux-x86_64/wheel/./zk_chat/upgraders
+creating build/bdist.linux-x86_64/wheel/zk_chat/memory
+copying build/lib/zk_chat/memory/smart_memory.py -> build/bdist.linux-x86_64/wheel/./zk_chat/memory
+copying build/lib/zk_chat/memory/smart_memory_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/memory
+creating build/bdist.linux-x86_64/wheel/zk_chat/rag
+copying build/lib/zk_chat/rag/splitter_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/rag
+copying build/lib/zk_chat/rag/__init__.py -> build/bdist.linux-x86_64/wheel/./zk_chat/rag
+copying build/lib/zk_chat/rag/splitter.py -> build/bdist.linux-x86_64/wheel/./zk_chat/rag
+copying build/lib/zk_chat/mcp_client.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/chroma_collections.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+creating build/bdist.linux-x86_64/wheel/zk_chat/tools
+copying build/lib/zk_chat/tools/resolve_wikilink_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/find_forward_links_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/delete_zk_document.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/find_excerpts_related_to_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/rename_zk_document_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/retrieve_from_smart_memory.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/find_zk_documents_related_to_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/find_excerpts_related_to.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/find_forward_links.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/analyze_image.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/conftest.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/read_zk_document_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/commit_changes_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/find_backlinks_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/tool_helpers_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/list_zk_images_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/list_zk_documents.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/query_tool_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/analyze_image_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/find_zk_documents_related_to.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/resolve_wikilink.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/uncommitted_changes_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/create_or_overwrite_zk_document_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/commit_changes.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/store_in_smart_memory_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/rename_zk_document.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/read_zk_document.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/retrieve_from_smart_memory_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/query_tool.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/find_backlinks.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/__init__.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/uncommitted_changes.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/create_or_overwrite_zk_document.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/tool_helpers.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/list_zk_images.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/git_gateway.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/store_in_smart_memory.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/list_zk_documents_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/delete_zk_document_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/tools/git_gateway_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/tools
+copying build/lib/zk_chat/vault_resolution.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/vault_path.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/config.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/console_gateway_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/vector_database_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/agent.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/conftest.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/cli.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/mcp.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/tool_assembly.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/model_selection_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/config_gateway_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/service_factory.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/mcp_tool_wrapper.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/agent_prompt.txt -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/gateway_factory_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/mcp_tool_wrapper_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/filesystem_gateway_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/config_gateway.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/text_processing.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/global_config_mcp_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/gateway_factory.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/vector_database.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/chroma_gateway_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/global_config_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/init_options_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/main_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/mcp_client_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/mcp_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/formatting.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/filename_utils_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+creating build/bdist.linux-x86_64/wheel/zk_chat/services
+copying build/lib/zk_chat/services/index_service_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/document_service_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/service_provider.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/vault_status_service.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/mcp_service_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/plugin_base.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/service_provider_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/diagnostic_service.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/link_traversal_service.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/document_service.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/link_traversal_service_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/diagnostic_service_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/__init__.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/service_registry.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/index_service.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/service_registry_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/vault_status_service_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/mcp_service.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/services/plugin_base_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/services
+copying build/lib/zk_chat/diagnostics_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/index_resolution_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/qt.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/vault_resolution_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/index_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/index.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/service_factory_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/config_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/console_gateway.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/diagnostics.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+creating build/bdist.linux-x86_64/wheel/zk_chat/commands
+copying build/lib/zk_chat/commands/config_helpers_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/commands
+copying build/lib/zk_chat/commands/gui_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/commands
+copying build/lib/zk_chat/commands/gui.py -> build/bdist.linux-x86_64/wheel/./zk_chat/commands
+copying build/lib/zk_chat/commands/config_helpers.py -> build/bdist.linux-x86_64/wheel/./zk_chat/commands
+copying build/lib/zk_chat/commands/mcp.py -> build/bdist.linux-x86_64/wheel/./zk_chat/commands
+copying build/lib/zk_chat/commands/diagnose_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/commands
+copying build/lib/zk_chat/commands/bookmarks_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/commands
+copying build/lib/zk_chat/commands/mcp_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/commands
+copying build/lib/zk_chat/commands/index_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat/commands
+copying build/lib/zk_chat/commands/index.py -> build/bdist.linux-x86_64/wheel/./zk_chat/commands
+copying build/lib/zk_chat/commands/__init__.py -> build/bdist.linux-x86_64/wheel/./zk_chat/commands
+copying build/lib/zk_chat/commands/diagnose.py -> build/bdist.linux-x86_64/wheel/./zk_chat/commands
+copying build/lib/zk_chat/commands/bookmarks.py -> build/bdist.linux-x86_64/wheel/./zk_chat/commands
+copying build/lib/zk_chat/filename_utils.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/model_selection.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/qt_config_resolution_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/iterative_problem_solving_agent.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/iterative_problem_solving_agent_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/__init__.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/qt_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/gateway_defaults.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/qt_config_resolution.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/index_resolution.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/progress_tracker.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/gateway_defaults_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/filesystem_gateway.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/models.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/text_processing_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/tool_assembly_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/chroma_gateway.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/config_resolution.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/agent_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/models_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/init_options.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/completion_defaults_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/vault_path_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/main.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/progress_tracker_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/config_resolution_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+copying build/lib/zk_chat/chroma_collections_spec.py -> build/bdist.linux-x86_64/wheel/./zk_chat
+running install_egg_info
+Copying zk_chat.egg-info to build/bdist.linux-x86_64/wheel/./zk_chat-3.6.0-py3.13.egg-info
+running install_scripts
+creating build/bdist.linux-x86_64/wheel/zk_chat-3.6.0.dist-info/WHEEL
+creating '/tmp/zk-build/.tmp-dpn6apdw/zk_chat-3.6.0-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+adding 'zk_chat/__init__.py'
+adding 'zk_chat/agent.py'
+adding 'zk_chat/agent_prompt.txt'
+adding 'zk_chat/agent_spec.py'
+adding 'zk_chat/bootstrap.py'
+adding 'zk_chat/chroma_collections.py'
+adding 'zk_chat/chroma_collections_spec.py'
+adding 'zk_chat/chroma_gateway.py'
+adding 'zk_chat/chroma_gateway_spec.py'
+adding 'zk_chat/cli.py'
+adding 'zk_chat/cli_spec.py'
+adding 'zk_chat/completion_defaults.py'
+adding 'zk_chat/completion_defaults_spec.py'
+adding 'zk_chat/config.py'
+adding 'zk_chat/config_gateway.py'
+adding 'zk_chat/config_gateway_spec.py'
+adding 'zk_chat/config_resolution.py'
+adding 'zk_chat/config_resolution_spec.py'
+adding 'zk_chat/config_spec.py'
+adding 'zk_chat/conftest.py'
+adding 'zk_chat/console_gateway.py'
+adding 'zk_chat/console_gateway_spec.py'
+adding 'zk_chat/diagnostics.py'
+adding 'zk_chat/diagnostics_spec.py'
+adding 'zk_chat/filename_utils.py'
+adding 'zk_chat/filename_utils_spec.py'
+adding 'zk_chat/filesystem_gateway.py'
+adding 'zk_chat/filesystem_gateway_spec.py'
+adding 'zk_chat/formatting.py'
+adding 'zk_chat/formatting_spec.py'
+adding 'zk_chat/gateway_defaults.py'
+adding 'zk_chat/gateway_defaults_spec.py'
+adding 'zk_chat/gateway_factory.py'
+adding 'zk_chat/gateway_factory_spec.py'
+adding 'zk_chat/global_config.py'
+adding 'zk_chat/global_config_gateway.py'
+adding 'zk_chat/global_config_gateway_spec.py'
+adding 'zk_chat/global_config_mcp_spec.py'
+adding 'zk_chat/global_config_spec.py'
+adding 'zk_chat/index.py'
+adding 'zk_chat/index_resolution.py'
+adding 'zk_chat/index_resolution_spec.py'
+adding 'zk_chat/index_spec.py'
+adding 'zk_chat/init_options.py'
+adding 'zk_chat/init_options_spec.py'
+adding 'zk_chat/iterative_problem_solving_agent.py'
+adding 'zk_chat/iterative_problem_solving_agent_spec.py'
+adding 'zk_chat/main.py'
+adding 'zk_chat/main_spec.py'
+adding 'zk_chat/mcp.py'
+adding 'zk_chat/mcp_client.py'
+adding 'zk_chat/mcp_client_spec.py'
+adding 'zk_chat/mcp_spec.py'
+adding 'zk_chat/mcp_tool_wrapper.py'
+adding 'zk_chat/mcp_tool_wrapper_spec.py'
+adding 'zk_chat/model_selection.py'
+adding 'zk_chat/model_selection_spec.py'
+adding 'zk_chat/models.py'
+adding 'zk_chat/models_spec.py'
+adding 'zk_chat/progress_tracker.py'
+adding 'zk_chat/progress_tracker_spec.py'
+adding 'zk_chat/qt.py'
+adding 'zk_chat/qt_config_resolution.py'
+adding 'zk_chat/qt_config_resolution_spec.py'
+adding 'zk_chat/qt_spec.py'
+adding 'zk_chat/service_factory.py'
+adding 'zk_chat/service_factory_spec.py'
+adding 'zk_chat/text_processing.py'
+adding 'zk_chat/text_processing_spec.py'
+adding 'zk_chat/tool_assembly.py'
+adding 'zk_chat/tool_assembly_spec.py'
+adding 'zk_chat/vault_path.py'
+adding 'zk_chat/vault_path_spec.py'
+adding 'zk_chat/vault_resolution.py'
+adding 'zk_chat/vault_resolution_spec.py'
+adding 'zk_chat/vector_database.py'
+adding 'zk_chat/vector_database_spec.py'
+adding 'zk_chat/commands/__init__.py'
+adding 'zk_chat/commands/bookmarks.py'
+adding 'zk_chat/commands/bookmarks_spec.py'
+adding 'zk_chat/commands/config_helpers.py'
+adding 'zk_chat/commands/config_helpers_spec.py'
+adding 'zk_chat/commands/diagnose.py'
+adding 'zk_chat/commands/diagnose_spec.py'
+adding 'zk_chat/commands/gui.py'
+adding 'zk_chat/commands/gui_spec.py'
+adding 'zk_chat/commands/index.py'
+adding 'zk_chat/commands/index_spec.py'
+adding 'zk_chat/commands/mcp.py'
+adding 'zk_chat/commands/mcp_spec.py'
+adding 'zk_chat/markdown/__init__.py'
+adding 'zk_chat/markdown/markdown_filesystem_gateway.py'
+adding 'zk_chat/markdown/markdown_filesystem_gateway_spec.py'
+adding 'zk_chat/markdown/markdown_utilities.py'
+adding 'zk_chat/markdown/markdown_utilities_spec.py'
+adding 'zk_chat/memory/smart_memory.py'
+adding 'zk_chat/memory/smart_memory_spec.py'
+adding 'zk_chat/rag/__init__.py'
+adding 'zk_chat/rag/splitter.py'
+adding 'zk_chat/rag/splitter_spec.py'
+adding 'zk_chat/services/__init__.py'
+adding 'zk_chat/services/diagnostic_service.py'
+adding 'zk_chat/services/diagnostic_service_spec.py'
+adding 'zk_chat/services/document_service.py'
+adding 'zk_chat/services/document_service_spec.py'
+adding 'zk_chat/services/index_service.py'
+adding 'zk_chat/services/index_service_spec.py'
+adding 'zk_chat/services/link_traversal_service.py'
+adding 'zk_chat/services/link_traversal_service_spec.py'
+adding 'zk_chat/services/mcp_service.py'
+adding 'zk_chat/services/mcp_service_spec.py'
+adding 'zk_chat/services/plugin_base.py'
+adding 'zk_chat/services/plugin_base_spec.py'
+adding 'zk_chat/services/service_provider.py'
+adding 'zk_chat/services/service_provider_spec.py'
+adding 'zk_chat/services/service_registry.py'
+adding 'zk_chat/services/service_registry_spec.py'
+adding 'zk_chat/services/vault_status_service.py'
+adding 'zk_chat/services/vault_status_service_spec.py'
+adding 'zk_chat/tools/__init__.py'
+adding 'zk_chat/tools/analyze_image.py'
+adding 'zk_chat/tools/analyze_image_spec.py'
+adding 'zk_chat/tools/commit_changes.py'
+adding 'zk_chat/tools/commit_changes_spec.py'
+adding 'zk_chat/tools/conftest.py'
+adding 'zk_chat/tools/create_or_overwrite_zk_document.py'
+adding 'zk_chat/tools/create_or_overwrite_zk_document_spec.py'
+adding 'zk_chat/tools/delete_zk_document.py'
+adding 'zk_chat/tools/delete_zk_document_spec.py'
+adding 'zk_chat/tools/find_backlinks.py'
+adding 'zk_chat/tools/find_backlinks_spec.py'
+adding 'zk_chat/tools/find_excerpts_related_to.py'
+adding 'zk_chat/tools/find_excerpts_related_to_spec.py'
+adding 'zk_chat/tools/find_forward_links.py'
+adding 'zk_chat/tools/find_forward_links_spec.py'
+adding 'zk_chat/tools/find_zk_documents_related_to.py'
+adding 'zk_chat/tools/find_zk_documents_related_to_spec.py'
+adding 'zk_chat/tools/git_gateway.py'
+adding 'zk_chat/tools/git_gateway_spec.py'
+adding 'zk_chat/tools/list_zk_documents.py'
+adding 'zk_chat/tools/list_zk_documents_spec.py'
+adding 'zk_chat/tools/list_zk_images.py'
+adding 'zk_chat/tools/list_zk_images_spec.py'
+adding 'zk_chat/tools/query_tool.py'
+adding 'zk_chat/tools/query_tool_spec.py'
+adding 'zk_chat/tools/read_zk_document.py'
+adding 'zk_chat/tools/read_zk_document_spec.py'
+adding 'zk_chat/tools/rename_zk_document.py'
+adding 'zk_chat/tools/rename_zk_document_spec.py'
+adding 'zk_chat/tools/resolve_wikilink.py'
+adding 'zk_chat/tools/resolve_wikilink_spec.py'
+adding 'zk_chat/tools/retrieve_from_smart_memory.py'
+adding 'zk_chat/tools/retrieve_from_smart_memory_spec.py'
+adding 'zk_chat/tools/store_in_smart_memory.py'
+adding 'zk_chat/tools/store_in_smart_memory_spec.py'
+adding 'zk_chat/tools/tool_helpers.py'
+adding 'zk_chat/tools/tool_helpers_spec.py'
+adding 'zk_chat/tools/uncommitted_changes.py'
+adding 'zk_chat/tools/uncommitted_changes_spec.py'
+adding 'zk_chat/upgraders/gateway_specific_index_folder.py'
+adding 'zk_chat/upgraders/gateway_specific_index_folder_spec.py'
+adding 'zk_chat/upgraders/gateway_specific_last_indexed.py'
+adding 'zk_chat/upgraders/gateway_specific_last_indexed_spec.py'
+adding 'zk_chat-3.6.0.dist-info/METADATA'
+adding 'zk_chat-3.6.0.dist-info/WHEEL'
+adding 'zk_chat-3.6.0.dist-info/entry_points.txt'
+adding 'zk_chat-3.6.0.dist-info/top_level.txt'
+adding 'zk_chat-3.6.0.dist-info/RECORD'
+removing build/bdist.linux-x86_64/wheel
+Successfully built /tmp/zk-build/zk_chat-3.6.0.tar.gz
+Successfully built /tmp/zk-build/zk_chat-3.6.0-py3-none-any.whl

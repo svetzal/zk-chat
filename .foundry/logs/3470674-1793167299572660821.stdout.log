@@ -1,0 +1,15 @@
+Name      Version ID              Fix Versions
+--------- ------- --------------- ------------
+authlib   1.8.0   CVE-2026-96760  1.9.0
+authlib   1.8.0   CVE-2026-114618 1.9.0
+authlib   1.8.0   CVE-2026-114615 1.9.0
+authlib   1.8.0   CVE-2026-114617 1.9.0
+authlib   1.8.0   CVE-2026-114620 1.9.0
+authlib   1.8.0   CVE-2026-114616 1.9.1
+chromadb  1.5.9   PYSEC-2026-311
+chromadb  1.5.9   PYSEC-2026-311
+chromadb  1.5.9   PYSEC-2026-3814
+chromadb  1.5.9   PYSEC-2026-3815
+chromadb  1.5.9   PYSEC-2026-3813
+dnspython 2.8.0   CVE-2026-114605 2.9.0
+msgpack   1.2.2   CVE-2026-114613 1.2.3
