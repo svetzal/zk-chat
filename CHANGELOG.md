@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **CVE-2026-114613 (GHSA-j586-36cw-2gc2) — fixed**: upgraded transitive dev dependency `msgpack`
+  (via `cachecontrol` ← `pip-audit[filecache]`, `dev` dependency group) from 1.2.2 to 1.2.4 (fixed in
+  1.2.3). No code changes were required. `requirements.txt` is unchanged because it excludes dev
+  dependencies.
 - **CVE-2026-114605 — fixed**: upgraded transitive dependency `dnspython` (via `email-validator` →
   `pydantic[email]` → `fastmcp-slim`) from 2.8.0 to 2.9.0, the fixed release. No code changes were
   required. `requirements.txt` was regenerated from `uv.lock`.
