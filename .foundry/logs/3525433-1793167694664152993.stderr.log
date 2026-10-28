@@ -1,0 +1,7 @@
+Uninstalled 1 package in 20ms
+warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+         If the cache and target directories are on different filesystems, hardlinking may not be supported.
+         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+Installed 1 package in 17ms
+ - msgpack==1.2.2
+ + msgpack==1.2.4
