@@ -1,0 +1,1391 @@
+[1m============================= test session starts ==============================[0m
+platform linux -- Python 3.13.15, pytest-9.2.0, pluggy-1.6.0
+PySide6 6.12.0 -- Qt runtime 6.12.0 -- Qt compiled 6.12.0
+rootdir: /home/svetzal/Work/Projects/Personal/zk-chat
+configfile: pyproject.toml
+plugins: qt-4.5.0, anyio-4.15.1, spec-6.1.0, mock-3.17.0, cov-7.1.0
+collected 838 items
+
+zk_chat/agent_spec.py:
+
+Describe Agent:
+[32m  ✓ Should print mcp warning when servers unavailable[0m
+[32m  ✓ Should exit loop on empty input[0m
+
+Describe Agent Single Query:
+[32m  ✓ Should return result of solver solve[0m
+[32m  ✓ Should call solve with the provided query[0m
+
+Describe Create Agent:
+[32m  ✓ Should yield an iterative problem solving agent[0m
+[32m  ✓ Should extend tools with mcp tools[0m
+[32m  ✓ Should pass agent prompt text to agent[0m
+
+zk_chat/chroma_collections_spec.py:
+
+Describe Zk Collection Name:
+[32m  ✓ Should have excerpts member[0m
+[32m  ✓ Should have documents member[0m
+[32m  ✓ Should have zettelkasten member[0m
+[32m  ✓ Should have smart memory member[0m
+[32m  ✓ Should have exactly four members[0m
+
+  Describe Str:
+[32m    ✓ Should convert excerpts to string[0m
+[32m    ✓ Should convert documents to string[0m
+[32m    ✓ Should convert zettelkasten to string[0m
+[32m    ✓ Should convert smart memory to string[0m
+
+zk_chat/chroma_gateway_spec.py:
+
+Describe Chroma Gateway:
+[32m  ✓ Should initialize persistent client at gateway subdirectory[0m
+[32m  ✓ Should initialize with empty collections cache[0m
+
+  Describe Add Items:
+[32m    ✓ Should upsert items into collection[0m
+
+  Describe Delete Items:
+[32m    ✓ Should delete items by ids[0m
+[32m    ✓ Should delete items by where filter[0m
+
+  Describe Get Collection:
+[32m    ✓ Should create collection on first access[0m
+[32m    ✓ Should cache collection after first access[0m
+[32m    ✓ Should cache collections independently per name[0m
+
+  Describe Logging:
+[32m    ✓ Should log debug when adding items[0m
+[32m    ✓ Should log debug when collection missing during reset[0m
+[32m    ✓ Should log debug when querying[0m
+
+  Describe Query:
+[32m    ✓ Should query collection with embeddings and result count[0m
+
+  Describe Reset Indexes:
+[32m    ✓ Should reset specific collection and recreate it[0m
+[32m    ✓ Should ignore not found error when collection does not exist[0m
+[32m    ✓ Should remove collection from cache before recreating[0m
+[32m    ✓ Should reset all collections when no name given[0m
+
+zk_chat/cli_spec.py:
+
+Describe Common Init:
+
+  Describe With Existing Config:
+[32m    ✓ Should return config when vault exists with config[0m
+[32m    ✓ Should return none when reset memory is true[0m
+[32m    ✓ Should trigger reindex when reindex is true[0m
+
+  Describe With New Vault:
+[32m    ✓ Should return none when config init fails[0m
+[32m    ✓ Should return config after initial reindex[0m
+
+  Describe With No Vault Available:
+[32m    ✓ Should return none when no vault and no bookmarks[0m
+
+  Describe With Save Option:
+[32m    ✓ Should return none when save set without vault[0m
+[32m    ✓ Should print error when save set without vault[0m
+[32m    ✓ Should return none when save set with nonexistent vault[0m
+[32m    ✓ Should return none and save bookmark when vault exists[0m
+
+Describe Symlinked Vault Equivalence:
+[32m  ✓ Should store resolved path when saving bookmark via symlink[0m
+[32m  ✓ Should find existing bookmark when resolving via symlink[0m
+[32m  ✓ Should keep one bookmark for same vault added twice via different paths[0m
+[32m  ✓ Should treat two distinct vaults as different bookmarks[0m
+
+zk_chat/commands/bookmarks_spec.py:
+
+Describe List Bookmarks:
+[32m  ✓ Should load config from gateway[0m
+[32m  ✓ Should handle empty bookmarks[0m
+
+Describe Remove Bookmark:
+[32m  ✓ Should return true when bookmark exists[0m
+[32m  ✓ Should return false when bookmark not found[0m
+[32m  ✓ Should use gateway to save after removal[0m
+[32m  ✓ Should treat symlinked path as same bookmark[0m
+
+zk_chat/commands/config_helpers_spec.py:
+
+Describe Load Config Or Exit:
+[32m  ✓ Should return config when config is present[0m
+[32m  ✓ Should raise exit when config is none[0m
+
+Describe Resolve Vault And Load Config:
+[32m  ✓ Should return vault path and config on success[0m
+[32m  ✓ Should raise exit when vault resolution fails[0m
+[32m  ✓ Should raise exit when config load fails[0m
+
+Describe Resolve Vault Or Exit:
+[32m  ✓ Should return vault path when vault arg is provided[0m
+[32m  ✓ Should raise exit when no vault and no bookmark[0m
+[32m  ✓ Should print command hint on error[0m
+
+Describe Show Help If No Subcommand:
+[32m  ✓ Should print help and tips when no subcommand[0m
+[32m  ✓ Should not print when subcommand is invoked[0m
+
+zk_chat/commands/gui_spec.py:
+
+Describe Gui Default:
+[32m  ✓ Should invoke launch when launch subcommand given[0m
+
+Describe Launch:
+[32m  ✓ Should print warning when vault argument provided[0m
+[32m  ✓ Should call run gui when launch succeeds[0m
+[32m  ✓ Should exit with code 1 when import error occurs[0m
+[32m  ✓ Should print dependency instructions on import error[0m
+[32m  ✓ Should exit with code 1 on os error[0m
+[32m  ✓ Should exit with code 1 on runtime error[0m
+[32m  ✓ Should print error message on os error[0m
+
+zk_chat/commands/index_spec.py:
+
+Describe Print Basic Config:
+[32m  ✓ Should print without error[0m
+
+Describe Print Last Indexed:
+[32m  ✓ Should print last indexed when previously indexed[0m
+[32m  ✓ Should print never indexed when not indexed[0m
+
+zk_chat/completion_defaults_spec.py:
+
+Describe Zk Chat Completion Config:
+[32m  ✓ Should request a context window large enough for retrieved notes[0m
+[32m  ✓ Should cap generated output[0m
+[32m  ✓ Should use default sampling temperature[0m
+
+zk_chat/config_gateway_spec.py:
+
+Describe Config Gateway:
+[32m  ✓ Should return none when no config file exists[0m
+[32m  ✓ Should load config from existing file[0m
+[32m  ✓ Should save config to file[0m
+[32m  ✓ Should round trip config through save and load[0m
+[32m  ✓ Should overwrite existing config on save[0m
+[32m  ✓ Should return none when config file is corrupt[0m
+[32m  ✓ Should return none when config file has wrong types[0m
+[32m  ✓ Should log warning when config file is corrupt[0m
+
+zk_chat/config_resolution_spec.py:
+
+Describe Determine Init Config Action:
+[32m  ✓ Should default to ollama when no gateway arg[0m
+[32m  ✓ Should use specified gateway when provided[0m
+[32m  ✓ Should return error when openai requested without api key[0m
+[32m  ✓ Should require chat model selection when model arg is none[0m
+[32m  ✓ Should require chat model selection when model arg is choose[0m
+[32m  ✓ Should use specific model when model arg is a name[0m
+[32m  ✓ Should require visual model selection when visual model arg is choose[0m
+[32m  ✓ Should use specific visual model when visual model arg is a name[0m
+[32m  ✓ Should default visual to chat model when specific model without visual[0m
+[32m  ✓ Should prompt for visual model when model is interactive[0m
+[32m  ✓ Should return correct type[0m
+
+Describe Determine Model Action:
+[32m  ✓ Should require interactive selection when model arg is none[0m
+[32m  ✓ Should require interactive selection when model arg is choose[0m
+[32m  ✓ Should return model name when found in available[0m
+[32m  ✓ Should require interactive when model not in available[0m
+[32m  ✓ Should handle empty available models list[0m
+[32m  ✓ Should return correct type[0m
+
+Describe Determine Model Update Action:
+[32m  ✓ Should not update chat model when model arg is none[0m
+[32m  ✓ Should update chat model interactively when model arg is choose[0m
+[32m  ✓ Should update chat model to specific name when model arg is a name[0m
+[32m  ✓ Should prompt for visual when choosing chat model and no existing visual[0m
+[32m  ✓ Should not prompt for visual when choosing chat model and visual arg present[0m
+[32m  ✓ Should not prompt for visual when choosing chat model and existing visual present[0m
+[32m  ✓ Should update visual model interactively when visual model arg is choose[0m
+[32m  ✓ Should update visual model to specific name when visual model arg is a name[0m
+[32m  ✓ Should not update visual model when visual model arg is none[0m
+[32m  ✓ Should return correct type[0m
+
+Describe Resolve Vault From Args:
+[32m  ✓ Should return argument path when arg vault provided[0m
+[32m  ✓ Should return argument path even when not in bookmarks[0m
+[32m  ✓ Should return last opened when no arg and bookmark exists[0m
+[32m  ✓ Should return none and error when no arg and no bookmarks[0m
+[32m  ✓ Should return none when last opened not in bookmarks[0m
+[32m  ✓ Should return none when last opened is none and bookmarks exist[0m
+[32m  ✓ Should prefer arg vault over last opened[0m
+[32m  ✓ Should return correct type[0m
+
+Describe Resolve Visual Model Selection:
+[32m  ✓ Should return none when sentinel selected[0m
+[32m  ✓ Should return model name when not sentinel[0m
+[32m  ✓ Should use custom sentinel[0m
+[32m  ✓ Should return model name with custom sentinel when different[0m
+[32m  ✓ Should return empty string when empty string and not sentinel[0m
+
+Describe Validate Gateway Selection:
+[32m  ✓ Should return current gateway unchanged when requested is none[0m
+[32m  ✓ Should return current gateway unchanged when requested is empty string[0m
+[32m  ✓ Should return error when openai requested without api key[0m
+[32m  ✓ Should return openai gateway when key is present[0m
+[32m  ✓ Should indicate no change when requested matches current[0m
+[32m  ✓ Should return error for invalid gateway name[0m
+[32m  ✓ Should return changed true when switching from openai to ollama[0m
+[32m  ✓ Should return correct type[0m
+
+zk_chat/config_spec.py:
+
+Describe Config:
+[32m  ✓ Should instantiate with required fields[0m
+[32m  ✓ Should default gateway to ollama[0m
+[32m  ✓ Should default visual model to none[0m
+[32m  ✓ Should default chunk size to 500[0m
+[32m  ✓ Should default chunk overlap to 100[0m
+
+  Describe Get Last Indexed:
+[32m    ✓ Should return none when no last indexed[0m
+[32m    ✓ Should get last indexed for current gateway[0m
+[32m    ✓ Should fall back to deprecated last indexed field[0m
+[32m    ✓ Should prefer gateway specific over deprecated field[0m
+[32m    ✓ Should get last indexed for specified gateway[0m
+
+  Describe Set Last Indexed:
+[32m    ✓ Should set last indexed for current gateway[0m
+[32m    ✓ Should set last indexed for specified gateway[0m
+[32m    ✓ Should overwrite existing gateway last indexed[0m
+
+zk_chat/console_gateway_spec.py:
+
+Describe Console Gateway:
+[32m  ✓ Should be instantiated with theme and console[0m
+[32m  ✓ Should include chat theme colors[0m
+[32m  ✓ Should include banner theme colors[0m
+[32m  ✓ Should provide print method[0m
+[32m  ✓ Should provide tool info method[0m
+[32m  ✓ Should provide access to console instance[0m
+
+zk_chat/diagnostics_spec.py:
+
+Describe Generate Recommendations:
+[32m  ✓ Should recommend full reindex when both collections empty[0m
+[32m  ✓ Should recommend reindex when only documents empty[0m
+[32m  ✓ Should recommend reindex when only excerpts empty[0m
+[32m  ✓ Should report collections have data when both populated[0m
+[32m  ✓ Should warn about distance threshold when query returns no results[0m
+[32m  ✓ Should include detail in distance threshold warning[0m
+[32m  ✓ Should not warn about query when no query provided[0m
+[32m  ✓ Should not warn about query when results exist[0m
+[32m  ✓ Should return recommendation models[0m
+
+zk_chat/filename_utils_spec.py:
+
+Describe Ensure Md Extension:
+[32m  ✓ Should add md extension when missing[0m
+[32m  ✓ Should not add md extension when already present[0m
+[32m  ✓ Should handle path with subdirectory[0m
+[32m  ✓ Should not double add md when already present with path[0m
+[32m  ✓ Should handle empty string[0m
+[32m  ✓ Should add md extension when other extension present[.txt][0m
+[32m  ✓ Should add md extension when other extension present[.rst][0m
+[32m  ✓ Should add md extension when other extension present[.html][0m
+
+Describe Sanitize Filename:
+[32m  ✓ Should return plain name unchanged[0m
+[32m  ✓ Should strip leading and trailing whitespace[0m
+[32m  ✓ Should remove backslash[0m
+[32m  ✓ Should remove forward slash[0m
+[32m  ✓ Should remove asterisk[0m
+[32m  ✓ Should remove question mark[0m
+[32m  ✓ Should remove colon[0m
+[32m  ✓ Should remove double quote[0m
+[32m  ✓ Should remove less than[0m
+[32m  ✓ Should remove greater than[0m
+[32m  ✓ Should remove pipe[0m
+[32m  ✓ Should remove multiple illegal characters[0m
+[32m  ✓ Should preserve spaces within name[0m
+[32m  ✓ Should preserve hyphens and underscores[0m
+[32m  ✓ Should handle empty string[0m
+
+zk_chat/filesystem_gateway_spec.py:
+
+Describe Filesystem Gateway:
+[32m  ✓ Should be instantiated with root path[0m
+[32m  ✓ Should join paths[0m
+[32m  ✓ Should check if path exists[0m
+[32m  ✓ Should get modified time[0m
+[32m  ✓ Should get directory path[0m
+[32m  ✓ Should create directory[0m
+[32m  ✓ Should log warning when deleting nonexistent file[0m
+[32m  ✓ Should log debug when writing file[0m
+
+zk_chat/formatting_spec.py:
+
+Describe Assess Vault Health:
+[32m  ✓ Should return healthy when indexed and has files[0m
+[32m  ✓ Should return no files when markdown count is zero[0m
+[32m  ✓ Should return needs update when never indexed but has files[0m
+[32m  ✓ Should return vault health model[0m
+[32m  ✓ Should prioritize no files over never indexed[0m
+
+Describe Calculate Advance:
+[32m  ✓ Should return difference between current and last[0m
+[32m  ✓ Should return zero when counts equal[0m
+[32m  ✓ Should return one for single increment[0m
+
+Describe Categorize Index Age:
+[32m  ✓ Should return stale when days old[0m
+[32m  ✓ Should include day count in description[0m
+[32m  ✓ Should return hours old when over one hour[0m
+[32m  ✓ Should include hour count in description[0m
+[32m  ✓ Should return fresh when under one hour[0m
+[32m  ✓ Should return index age model[0m
+
+Describe Extract Display Name:
+[32m  ✓ Should extract filename from path with slashes[0m
+[32m  ✓ Should return filename when no slashes[0m
+[32m  ✓ Should handle empty string[0m
+[32m  ✓ Should handle trailing slash[0m
+
+Describe Format File Size:
+[32m  ✓ Should format bytes below 1 mb as kb[0m
+[32m  ✓ Should format bytes below 1 gb as mb[0m
+[32m  ✓ Should format bytes above 1 gb as gb[0m
+[32m  ✓ Should handle zero bytes[0m
+[32m  ✓ Should handle exact 1 mb boundary[0m
+[32m  ✓ Should handle exact 1 gb boundary[0m
+
+Describe Truncate For Display:
+[32m  ✓ Should return text unchanged when within limit[0m
+[32m  ✓ Should truncate with ellipsis when exceeding limit[0m
+[32m  ✓ Should handle empty string[0m
+[32m  ✓ Should handle text exactly at limit[0m
+[32m  ✓ Should respect custom max length[0m
+
+Describe Validate Progress Params:
+[32m  ✓ Should raise value error when both advance and completed provided[0m
+[32m  ✓ Should default to advance 1 when neither provided[0m
+[32m  ✓ Should pass through advance when only advance provided[0m
+[32m  ✓ Should pass through completed when only completed provided[0m
+
+zk_chat/gateway_defaults_spec.py:
+
+Describe Create Default Config Gateway:
+[32m  ✓ Should return config gateway instance[0m
+
+Describe Create Default Global Config Gateway:
+[32m  ✓ Should return global config gateway instance[0m
+
+zk_chat/gateway_factory_spec.py:
+
+Describe Create Model Gateway:
+[32m  ✓ Should create ollama gateway when gateway is ollama[0m
+[32m  ✓ Should create openai gateway when gateway is openai[0m
+[32m  ✓ Should pass api key from environment to openai gateway[0m
+[32m  ✓ Should raise value error for unrecognized gateway[0m
+
+zk_chat/global_config_gateway_spec.py:
+
+Describe Global Config Gateway:
+[32m  ✓ Should return default config when no file exists[0m
+[32m  ✓ Should load config from existing file[0m
+[32m  ✓ Should save config to file[0m
+[32m  ✓ Should return default config when file is corrupt[0m
+[32m  ✓ Should log warning when file contains malformed json[0m
+[32m  ✓ Should log warning when file has wrong types[0m
+[32m  ✓ Should round trip config through save and load[0m
+[32m  ✓ Should overwrite existing config on save[0m
+
+zk_chat/global_config_mcp_spec.py:
+
+Describe Global Config MCP Servers:
+[32m  ✓ Should add stdio mcp server[0m
+[32m  ✓ Should add http mcp server[0m
+[32m  ✓ Should remove mcp server[0m
+[32m  ✓ Should return false when removing nonexistent server[0m
+[32m  ✓ Should get mcp server by name[0m
+[32m  ✓ Should return none for nonexistent server[0m
+[32m  ✓ Should list all mcp servers[0m
+[32m  ✓ Should update existing server[0m
+
+Describe MCP Server Config:
+[32m  ✓ Should validate stdio server requires command[0m
+[32m  ✓ Should validate http server requires url[0m
+[32m  ✓ Should create stdio server with command[0m
+[32m  ✓ Should create http server with url[0m
+[32m  ✓ Should create stdio server with args[0m
+
+zk_chat/global_config_spec.py:
+
+Describe Global Config:
+[32m  ✓ Should instantiate with empty defaults[0m
+
+  Describe Add Bookmark:
+[32m    ✓ Should add bookmark[0m
+[32m    ✓ Should store path as given[0m
+[32m    ✓ Should add multiple bookmarks[0m
+
+  Describe Get Last Opened Bookmark Path:
+[32m    ✓ Should return last opened path[0m
+[32m    ✓ Should return none when no last opened[0m
+[32m    ✓ Should return none when last opened not in bookmarks[0m
+
+  Describe Remove Bookmark:
+[32m    ✓ Should remove existing bookmark[0m
+[32m    ✓ Should return false when removing nonexistent bookmark[0m
+[32m    ✓ Should clear last opened when removing its bookmark[0m
+[32m    ✓ Should not clear last opened when removing different bookmark[0m
+
+  Describe Set Last Opened Bookmark:
+[32m    ✓ Should set last opened bookmark[0m
+[32m    ✓ Should return false when setting last opened to non bookmark[0m
+
+zk_chat/index_resolution_spec.py:
+
+Describe Determine Reindex Strategy:
+[32m  ✓ Should return full when force full is true[0m
+[32m  ✓ Should return full when last indexed is none[0m
+[32m  ✓ Should return full when both force and no last indexed[0m
+[32m  ✓ Should return incremental when not forced and has last indexed[0m
+[32m  ✓ Should pass through last indexed for incremental[0m
+[32m  ✓ Should have none last indexed for full strategy[0m
+[32m  ✓ Should return correct type[0m
+
+zk_chat/index_spec.py:
+
+Describe Full Reindex:
+[32m  ✓ Should call reindex all with config params[0m
+[32m  ✓ Should return zero counts when no callback invoked[0m
+[32m  ✓ Should return correct counts after callback invocations[0m
+[32m  ✓ Should invoke progress callback for each file[0m
+[32m  ✓ Should print status message[0m
+
+Describe Incremental Reindex:
+[32m  ✓ Should call update index with config params[0m
+[32m  ✓ Should return zero counts when no callback invoked[0m
+[32m  ✓ Should return correct counts after callbacks[0m
+[32m  ✓ Should print status message[0m
+
+Describe Reindex:
+[32m  ✓ Should save config after processing[0m
+[32m  ✓ Should call set last indexed after processing[0m
+[32m  ✓ Should dispatch to full reindex when strategy is full[0m
+[32m  ✓ Should dispatch to incremental reindex when strategy is incremental[0m
+[32m  ✓ Should log info at start of reindex[0m
+[32m  ✓ Should log info on reindex complete[0m
+
+zk_chat/init_options_spec.py:
+
+Describe Init Options:
+[32m  ✓ Should have sensible defaults[0m
+[32m  ✓ Should be frozen[0m
+[32m  ✓ Should accept partial construction[0m
+[32m  ✓ Should accept all fields[0m
+
+zk_chat/iterative_problem_solving_agent_spec.py:
+
+Describe Iterative Problem Solving Agent:
+[32m  ✓ Should use default max iterations of three[0m
+[32m  ✓ Should send requests with zk chat completion config[0m
+[32m  ✓ Should stop when response contains done[0m
+[32m  ✓ Should stop when response contains fail[0m
+[32m  ✓ Should stop after max iterations when no done or fail[0m
+[32m  ✓ Should strip thinking blocks before evaluating done[0m
+[32m  ✓ Should strip thinking blocks before evaluating fail[0m
+[32m  ✓ Should evaluate done case insensitively[0m
+[32m  ✓ Should request summary after solving[0m
+
+zk_chat/main_spec.py:
+
+Describe Interactive Command:
+[32m  ✓ Should construct init options with vault argument[0m
+[32m  ✓ Should construct init options with unsafe flag[0m
+[32m  ✓ Should construct init options with git flag[0m
+[32m  ✓ Should construct init options with no index flag[0m
+[32m  ✓ Should invoke run agent when config is returned[0m
+[32m  ✓ Should not invoke run agent when config is none[0m
+
+Describe Main:
+[32m  ✓ Should show version info when version flag given[0m
+[32m  ✓ Should include version number in output[0m
+[32m  ✓ Should register gui subcommand[0m
+[32m  ✓ Should register index subcommand[0m
+[32m  ✓ Should register mcp subcommand[0m
+[32m  ✓ Should register diagnose subcommand[0m
+[32m  ✓ Should register bookmarks subcommand[0m
+
+Describe Mcp Client Manager Wiring:
+[32m  ✓ Should build mcp manager once in composition root[0m
+[32m  ✓ Should inject mcp manager into interactive from ctx[0m
+[32m  ✓ Should inject mcp manager into query from ctx[0m
+
+Describe Query Command:
+[32m  ✓ Should exit with code 1 when no prompt and stdin is tty[0m
+
+zk_chat/markdown/markdown_filesystem_gateway_spec.py:
+
+Describe Markdown Filesystem Gateway:
+[32m  ✓ Should be instantiated with root path[0m
+[32m  ✓ Should iterate markdown files[0m
+
+Describe Wiki Link:
+[32m  ✓ Should parse wikilink with title only[0m
+[32m  ✓ Should parse wikilink with title and caption[0m
+[32m  ✓ Should raise error for invalid wikilink format[0m
+[32m  ✓ Should render wikilink with title only[0m
+[32m  ✓ Should render wikilink with title and caption[0m
+
+zk_chat/markdown/markdown_utilities_spec.py:
+
+Describe Markdown Utilities:
+[32m  ✓ Should parse json metadata correctly[0m
+[32m  ✓ Should parse yaml metadata correctly[0m
+[32m  ✓ Should return empty dict for invalid metadata[0m
+[32m  ✓ Should return empty dict for empty metadata[0m
+[32m  ✓ Should extract json metadata and content correctly[0m
+[32m  ✓ Should extract yaml metadata and content correctly[0m
+[32m  ✓ Should treat incorrect start marker as content[0m
+[32m  ✓ Should treat incorrect end marker as content[0m
+[32m  ✓ Should handle content without metadata[0m
+[32m  ✓ Should handle metadata without content[0m
+[32m  ✓ Should handle empty file[0m
+[32m  ✓ Should preserve separators in content when no metadata[0m
+
+zk_chat/mcp_client_spec.py:
+
+Describe Verify All Mcp Servers:
+[32m  ✓ Should use injected gateway to load config[0m
+[32m  ✓ Should return empty list when no servers registered[0m
+[32m  ✓ Should return unavailable server names[0m
+
+Describe Verify Http Server:
+[32m  ✓ Should return true when server reachable[0m
+[32m  ✓ Should return false when non 200 status[0m
+[32m  ✓ Should return false when request exception raised[0m
+[32m  ✓ Should return false when os error raised[0m
+[32m  ✓ Should return false for non http server[0m
+
+Describe Verify Mcp Server:
+[32m  ✓ Should verify stdio server[0m
+[32m  ✓ Should verify http server[0m
+
+Describe Verify Stdio Server:
+[32m  ✓ Should return true when command exists[0m
+[32m  ✓ Should return false when command not found[0m
+[32m  ✓ Should return false for non stdio server[0m
+[32m  ✓ Should handle os errors gracefully[0m
+
+zk_chat/mcp_spec.py:
+
+Describe Create Mcp Server:
+[32m  ✓ Should return mcp server instance[0m
+[32m  ✓ Should create server with unsafe operations disabled by default[0m
+
+Describe MCP Server:
+
+  Describe Execute Tool:
+[32m    ✓ Should return error for unknown tool[0m
+[32m    ✓ Should return success when tool executes[0m
+[32m    ✓ Should return error when tool raises exception[0m
+
+  Describe Get Available Tools:
+[32m    ✓ Should return list of tool descriptors[0m
+[32m    ✓ Should return dicts with function key[0m
+[32m    ✓ Should return six tools when unsafe enabled[0m
+
+  Describe Handle Mcp Request:
+[32m    ✓ Should parse json and return json response[0m
+[32m    ✓ Should return error json for invalid json[0m
+[32m    ✓ Should return string response[0m
+
+  Describe Init:
+[32m    ✓ Should be instantiated with required dependencies[0m
+[32m    ✓ Should register five read only tools by default[0m
+[32m    ✓ Should register six tools when unsafe operations enabled[0m
+[32m    ✓ Should include read document tool[0m
+[32m    ✓ Should include find excerpts tool[0m
+[32m    ✓ Should include find documents tool[0m
+[32m    ✓ Should include retrieve from memory tool[0m
+[32m    ✓ Should include store in memory tool[0m
+[32m    ✓ Should not include create document tool when safe mode[0m
+[32m    ✓ Should include create document tool when unsafe enabled[0m
+
+  Describe Process Request:
+[32m    ✓ Should return error when type missing from request[0m
+[32m    ✓ Should return tool list for list tools request[0m
+[32m    ✓ Should return error for unsupported request type[0m
+[32m    ✓ Should return error for tool call missing tool key[0m
+[32m    ✓ Should return error for tool call missing parameters key[0m
+[32m    ✓ Should execute tool for valid tool call request[0m
+
+zk_chat/mcp_tool_wrapper_spec.py:
+
+Describe Coerce Types:
+[32m  ✓ Should coerce string to float for number type[0m
+[32m  ✓ Should coerce string to int for integer type[0m
+[32m  ✓ Should coerce string to boolean true[0m
+[32m  ✓ Should coerce string to boolean false[0m
+[32m  ✓ Should pass through unknown properties[0m
+[32m  ✓ Should handle empty schema[0m
+[32m  ✓ Should pass through invalid number string unchanged[0m
+[32m  ✓ Should coerce non string value to boolean[0m
+
+Describe MCP Client Manager:
+[32m  ✓ Should accept injected global config gateway[0m
+[32m  ✓ Should use injected gateway when loading servers[0m
+
+Describe MCP Client Manager Connection Timeout:
+[32m  ✓ Should skip server that hangs past connection timeout and still initialize others[0m
+[32m  ✓ Should initialize reachable server normally[0m
+[32m  ✓ Should define shared mcp timeout constant[0m
+
+Describe MCP Tool Wrapper:
+[32m  ✓ Should create wrapper with client[0m
+[32m  ✓ Should generate mojentic compatible descriptor[0m
+[32m  ✓ Should handle missing description[0m
+
+Describe MCP Tool Wrapper Run:
+[32m  ✓ Should execute tool and return result[0m
+[32m  ✓ Should use 60 second timeout[0m
+[32m  ✓ Should return error message on timeout[0m
+[32m  ✓ Should return error message on connection error[0m
+[32m  ✓ Should return error message on unexpected tool error[0m
+[32m  ✓ Should coerce integer types before execution[0m
+
+zk_chat/memory/smart_memory_spec.py:
+
+Describe Smart Memory:
+[32m  ✓ Should be instantiated with chroma gateway[0m
+[32m  ✓ Should store information in chroma db[0m
+[32m  ✓ Should retrieve information from chroma db with default results[0m
+[32m  ✓ Should retrieve information from chroma db with custom results[0m
+[32m  ✓ Should reset smart memory[0m
+
+zk_chat/model_selection_spec.py:
+
+Describe Get Available Models:
+[32m  ✓ Should return empty list and print error when openai key missing[0m
+[32m  ✓ Should return empty list and print error when gateway raises value error[0m
+[32m  ✓ Should return model list on success[0m
+
+Describe Select Model:
+[32m  ✓ Should return chosen model on valid numeric input[0m
+[32m  ✓ Should reprompt on non numeric input then succeed[0m
+[32m  ✓ Should reprompt on out of bounds low then succeed[0m
+[32m  ✓ Should reprompt on out of bounds high then succeed[0m
+[32m  ✓ Should prompt manual entry with ollama wording when no models[0m
+[32m  ✓ Should prompt manual entry with generic wording for openai no models[0m
+
+zk_chat/models_spec.py:
+
+Describe Zk Document:
+
+  Describe Id:
+[32m    ✓ Should return relative path[0m
+[32m    ✓ Should preserve nested path structure[0m
+
+  Describe Title:
+[32m    ✓ Should return filename without extension[0m
+[32m    ✓ Should strip at prefix with space[0m
+[32m    ✓ Should strip exclamation prefix with space[0m
+[32m    ✓ Should strip at prefix without space[0m
+[32m    ✓ Should strip exclamation prefix without space[0m
+[32m    ✓ Should handle nested paths[0m
+[32m    ✓ Should use only basename not directory components[0m
+[32m    ✓ Should not strip at in middle of name[0m
+[32m    ✓ Should not strip exclamation in middle of name[0m
+
+zk_chat/progress_tracker_spec.py:
+
+Describe Indexing Progress Tracker:
+[32m  ✓ Should initialize with zero last processed count[0m
+[32m  ✓ Should start scanning with indeterminate total[0m
+[32m  ✓ Should transition from scanning to processing[0m
+[32m  ✓ Should reset last processed count on finish scanning[0m
+[32m  ✓ Should update file processing with correct advance[0m
+[32m  ✓ Should track last processed count[0m
+
+Describe Progress Tracker:
+[32m  ✓ Should initialize with no active progress[0m
+[32m  ✓ Should accept optional console[0m
+[32m  ✓ Should create default console when none provided[0m
+[32m  ✓ Should start progress and return task id[0m
+[32m  ✓ Should stop previous session when starting new one[0m
+[32m  ✓ Should warn and return when updating without starting[0m
+[32m  ✓ Should update progress with advance[0m
+[32m  ✓ Should update progress with completed[0m
+[32m  ✓ Should set total on active progress[0m
+[32m  ✓ Should warn when setting total without starting[0m
+[32m  ✓ Should stop progress and reset state[0m
+[32m  ✓ Should work as context manager[0m
+
+Describe Progress Tracker Create Callback:
+[32m  ✓ Should return callable[0m
+[32m  ✓ Should set total on first file[0m
+[32m  ✓ Should not set total after first file[0m
+[32m  ✓ Should advance by one for processed files[0m
+
+zk_chat/qt_config_resolution_spec.py:
+
+Describe Resolve Config For Vault:
+[32m  ✓ Should return loaded config when not none[0m
+[32m  ✓ Should create default config when loaded is none[0m
+[32m  ✓ Should set was created true when creating default[0m
+[32m  ✓ Should set was created false when using loaded[0m
+
+Describe Resolve Gui Vault Init:
+[32m  ✓ Should return last opened when bookmark path exists[0m
+[32m  ✓ Should return user selected when no bookmark but user selected[0m
+[32m  ✓ Should return none when both are none[0m
+[32m  ✓ Should set needs bookmark update for user selected path[0m
+[32m  ✓ Should not need bookmark update for last opened[0m
+[32m  ✓ Should prefer last opened over user selected[0m
+
+Describe Resolve Model List Update:
+[32m  ✓ Should return error state when openai gateway and no api key[0m
+[32m  ✓ Should not return error state for ollama gateway[0m
+[32m  ✓ Should not return error state when openai gateway and api key present[0m
+[32m  ✓ Should populate chat models from available models[0m
+[32m  ✓ Should select current chat model when available[0m
+[32m  ✓ Should select first chat model when current not available[0m
+[32m  ✓ Should select first chat model when list not empty and no current[0m
+[32m  ✓ Should include none sentinel as first visual model item[0m
+[32m  ✓ Should select current visual model when available[0m
+[32m  ✓ Should select first model after none when current visual not available[0m
+[32m  ✓ Should select none when no visual model configured[0m
+[32m  ✓ Should handle empty available models list[0m
+
+Describe Resolve Settings Change:
+[32m  ✓ Should return vault changed false when vault path unchanged[0m
+[32m  ✓ Should return vault changed true when vault path differs[0m
+[32m  ✓ Should use loaded config when vault changes and config exists[0m
+[32m  ✓ Should create new config when vault changes and no existing config[0m
+[32m  ✓ Should update gateway on existing config[0m
+[32m  ✓ Should update chat model on existing config[0m
+[32m  ✓ Should resolve visual model to none when sentinel selected[0m
+[32m  ✓ Should resolve visual model to name when model selected[0m
+[32m  ✓ Should set new bookmark path when vault changed[0m
+[32m  ✓ Should not set new bookmark path when vault unchanged[0m
+[32m  ✓ Should set updated global config needed when vault changes[0m
+[32m  ✓ Should not need global config update when vault unchanged[0m
+[32m  ✓ Should preserve chunk settings from loaded config when vault changes[0m
+
+zk_chat/qt_spec.py:
+
+Describe Chat Worker:
+[32m  ✓ Should call chat session send with query[0m
+[32m  ✓ Should emit response ready with session response[0m
+[32m  ✓ Should emit error occurred when send raises[0m
+
+Describe Main Window:
+[32m  ✓ Should be constructible with resolved inputs[0m
+[32m  ✓ Should return early when message is empty[0m
+[32m  ✓ Should clear input after sending non empty message[0m
+[32m  ✓ Should start worker when message is non empty[0m
+[32m  ✓ Should connect error occurred signal on worker[0m
+[32m  ✓ Should stop spinner and show error on show assistant error[0m
+
+Describe Resolve Startup Config:
+[32m  ✓ Should return config from last opened bookmark[0m
+[32m  ✓ Should not save global config when bookmark already exists[0m
+[32m  ✓ Should prompt for vault when no bookmark exists[0m
+[32m  ✓ Should save global config when vault selected by user[0m
+[32m  ✓ Should return none when user cancels vault prompt[0m
+[32m  ✓ Should save vault config when config is new[0m
+[32m  ✓ Should not save vault config when config already exists[0m
+
+Describe Settings Dialog:
+[32m  ✓ Should update global config when vault changes[0m
+[32m  ✓ Should not update global config when vault unchanged[0m
+
+zk_chat/rag/splitter_spec.py:
+
+Describe Splitter:
+[32m  ✓ Should keep tokens as single chunk when equal to chunk size[0m
+[32m  ✓ Should split tokens with specified overlap[0m
+[32m  ✓ Should split tokens without overlap[0m
+[32m  ✓ Should keep tokens as single chunk when smaller than chunk size[0m
+[32m  ✓ Should handle remainder tokens in last chunk[0m
+[32m  ✓ Should return empty list for empty input[0m
+
+zk_chat/service_factory_spec.py:
+
+Describe Build Service Registry:
+[32m  ✓ Should register config[0m
+[32m  ✓ Should register model gateway[0m
+[32m  ✓ Should register chroma gateway[0m
+[32m  ✓ Should register filesystem gateway[0m
+[32m  ✓ Should register tokenizer gateway[0m
+[32m  ✓ Should register document service[0m
+[32m  ✓ Should register index service[0m
+[32m  ✓ Should register link traversal service[0m
+[32m  ✓ Should register llm broker[0m
+[32m  ✓ Should register smart memory[0m
+[32m  ✓ Should register git gateway[0m
+[32m  ✓ Should register the provided model gateway[0m
+
+zk_chat/services/diagnostic_service_spec.py:
+
+Describe Diagnostic Service:
+[32m  ✓ Should be instantiated with chroma gateway[0m
+
+  Describe Get Collection Statuses:
+[32m    ✓ Should return ok status for non empty collection[0m
+[32m    ✓ Should return empty status for empty collection[0m
+[32m    ✓ Should return error status on collection failure[0m
+
+  Describe Get Sample Documents:
+[32m    ✓ Should return samples for non empty collections[0m
+[32m    ✓ Should return empty entries for empty collection[0m
+[32m    ✓ Should truncate content preview to 100 chars[0m
+
+  Describe Test Embedding:
+[32m    ✓ Should return successful result when embedding generated[0m
+[32m    ✓ Should return failure result on connection error[0m
+[32m    ✓ Should return failure result on value error[0m
+
+zk_chat/services/document_service_spec.py:
+
+Describe Document Service:
+[32m  ✓ Should be instantiated with filesystem gateway[0m
+[32m  ✓ Should read document from filesystem[0m
+[32m  ✓ Should write document to filesystem[0m
+[32m  ✓ Should create directory when writing document to new path[0m
+[32m  ✓ Should delete existing document[0m
+[32m  ✓ Should raise error when deleting nonexistent document[0m
+[32m  ✓ Should rename existing document[0m
+[32m  ✓ Should raise error when renaming nonexistent document[0m
+[32m  ✓ Should list all document paths[0m
+[32m  ✓ Should iterate through all documents[0m
+[32m  ✓ Should check document exists[0m
+[32m  ✓ Should check document not exists[0m
+
+zk_chat/services/index_service_spec.py:
+
+Describe Index Service:
+[32m  ✓ Should be instantiated with required dependencies[0m
+[32m  ✓ Should reindex all documents[0m
+[32m  ✓ Should call progress callback during reindex[0m
+[32m  ✓ Should update index for modified documents[0m
+[32m  ✓ Should index single document[0m
+[32m  ✓ Should skip empty documents during indexing[0m
+[32m  ✓ Should remove prior excerpts when reindexing a document[0m
+[32m  ✓ Should remove document and excerpts from index[0m
+
+Describe Index Service Document Splitting:
+[32m  ✓ Should split large documents into excerpts[0m
+[32m  ✓ Should use custom excerpt size and overlap[0m
+
+Describe Index Service Excerpt Ids:
+[32m  ✓ Should assign distinct ids to identical passages in different documents[0m
+[32m  ✓ Should assign distinct ids to identical passages at different positions[0m
+
+Describe Index Service Queries:
+[32m  ✓ Should query excerpts with distance filter[0m
+[32m  ✓ Should filter excerpts by max distance[0m
+[32m  ✓ Should query documents and read full content[0m
+[32m  ✓ Should skip missing documents in query results[0m
+[32m  ✓ Should skip excerpt whose backing file is missing[0m
+[32m  ✓ Should filter documents by max distance[0m
+[32m  ✓ Should not filter excerpts when max distance is none[0m
+[32m  ✓ Should not filter documents when max distance is none[0m
+
+zk_chat/services/link_traversal_service_spec.py:
+
+Describe Link Graph Index:
+[32m  ✓ Should be instantiated with empty collections[0m
+[32m  ✓ Should add document links correctly[0m
+[32m  ✓ Should handle broken links[0m
+[32m  ✓ Should update existing document links[0m
+
+Describe Link Traversal Service:
+[32m  ✓ Should be instantiated with filesystem gateway[0m
+[32m  ✓ Should extract wikilinks from content with context[0m
+[32m  ✓ Should extract wikilinks from document file[0m
+[32m  ✓ Should return empty list for nonexistent document[0m
+[32m  ✓ Should handle content with no wikilinks[0m
+[32m  ✓ Should skip malformed wikilinks[0m
+[32m  ✓ Should find backlinks using index when available[0m
+[32m  ✓ Should find backlinks by scanning when index unavailable[0m
+[32m  ✓ Should find forward links from document[0m
+[32m  ✓ Should handle broken forward links[0m
+[32m  ✓ Should build link index from all documents[0m
+[32m  ✓ Should create proper context snippets[0m
+[32m  ✓ Should truncate long context with ellipses[0m
+
+zk_chat/services/mcp_service_spec.py:
+
+Describe MCP Service:
+[32m  ✓ Should be instantiated with global config gateway[0m
+
+  Describe Get Server:
+[32m    ✓ Should return server config by name[0m
+[32m    ✓ Should return none when server not found[0m
+
+  Describe List Servers:
+[32m    ✓ Should return all registered servers[0m
+[32m    ✓ Should return empty list when no servers[0m
+
+  Describe Register Server:
+[32m    ✓ Should register valid stdio server[0m
+[32m    ✓ Should register valid http server[0m
+[32m    ✓ Should register server with args[0m
+[32m    ✓ Should raise on invalid server type[0m
+[32m    ✓ Should raise when stdio missing command[0m
+[32m    ✓ Should raise when http missing url[0m
+
+  Describe Remove Server:
+[32m    ✓ Should remove existing server and return true[0m
+[32m    ✓ Should return false when server not found[0m
+
+zk_chat/services/plugin_base_spec.py:
+
+Describe Zk Chat Plugin:
+[32m  ✓ Should be instantiated with service provider[0m
+[32m  ✓ Should expose service provider[0m
+
+  Describe Has Service:
+[32m    ✓ Should return true when service is available[0m
+[32m    ✓ Should return false when service is not available[0m
+
+  Describe Require Service:
+[32m    ✓ Should raise when service not registered[0m
+[32m    ✓ Should return service when registered[0m
+
+  Describe Service Properties:
+[32m    ✓ Should return filesystem gateway when registered[0m
+[32m    ✓ Should return none for filesystem gateway when not registered[0m
+[32m    ✓ Should return document service when registered[0m
+[32m    ✓ Should return index service when registered[0m
+[32m    ✓ Should return link traversal service when registered[0m
+[32m    ✓ Should return smart memory when registered[0m
+[32m    ✓ Should return chroma gateway when registered[0m
+[32m    ✓ Should return git gateway when registered[0m
+[32m    ✓ Should return config when registered[0m
+
+  Describe Vault Path:
+[32m    ✓ Should return vault from config when config exists[0m
+[32m    ✓ Should return none when config is none[0m
+
+zk_chat/services/service_provider_spec.py:
+
+Describe Service Provider:
+[32m  ✓ Should be instantiated with registry[0m
+[32m  ✓ Should get service from registry[0m
+[32m  ✓ Should check service availability[0m
+[32m  ✓ Should require service successfully[0m
+[32m  ✓ Should raise error for required unavailable service[0m
+
+  Describe Typed Getters:
+[32m    ✓ Should get filesystem gateway by type[0m
+[32m    ✓ Should get llm broker by type[0m
+[32m    ✓ Should get config by type[0m
+[32m    ✓ Should return none when typed service not registered[0m
+
+zk_chat/services/service_registry_spec.py:
+
+Describe Service Registry:
+[32m  ✓ Should be instantiated[0m
+[32m  ✓ Should register and retrieve service[0m
+[32m  ✓ Should return none for unregistered service[0m
+[32m  ✓ Should check service availability[0m
+
+zk_chat/services/vault_status_service_spec.py:
+
+Describe Vault Status Service:
+[32m  ✓ Should be instantiated with filesystem gateway[0m
+
+  Describe Count Markdown Files:
+[32m    ✓ Should return count of markdown files[0m
+[32m    ✓ Should return zero when no markdown files[0m
+
+  Describe Get Db Info:
+[32m    ✓ Should return none when db directory missing[0m
+[32m    ✓ Should return db info when directory exists[0m
+[32m    ✓ Should aggregate size across multiple files[0m
+[32m    ✓ Should aggregate size across subdirectories[0m
+
+zk_chat/text_processing_spec.py:
+
+Describe Strip Thinking:
+[32m  ✓ Should return empty string for empty input[0m
+[32m  ✓ Should return text unchanged when no think blocks[0m
+[32m  ✓ Should remove single think block[0m
+[32m  ✓ Should remove multiple think blocks[0m
+[32m  ✓ Should remove multiline think blocks[0m
+[32m  ✓ Should strip leading and trailing whitespace[0m
+[32m  ✓ Should preserve text before and after think blocks[0m
+[32m  ✓ Should handle text that is only a think block[0m
+[32m  ✓ Should handle closing tag only without opening tag[0m
+[32m    strip_thinking correctly ignores a lone closing tag.[0m
+
+zk_chat/tool_assembly_spec.py:
+
+Describe Build Agent Tools:
+[32m  ✓ Should return a list[0m
+[32m  ✓ Should return expected number of tools[0m
+
+  Describe Context Tools:
+[32m    ✓ Should include current datetime tool[0m
+[32m    ✓ Should include resolve date tool[0m
+
+  Describe Document Tools:
+[32m    ✓ Should include read zk document[0m
+[32m    ✓ Should include list zk documents[0m
+[32m    ✓ Should include list zk images[0m
+[32m    ✓ Should include resolve wikilink[0m
+[32m    ✓ Should include find excerpts related to[0m
+[32m    ✓ Should include find zk documents related to[0m
+[32m    ✓ Should include create or overwrite zk document[0m
+[32m    ✓ Should include rename zk document[0m
+[32m    ✓ Should include delete zk document[0m
+
+  Describe Git Tools:
+[32m    ✓ Should include uncommitted changes[0m
+[32m    ✓ Should include commit changes[0m
+
+  Describe Graph Tools:
+[32m    ✓ Should include find backlinks[0m
+[32m    ✓ Should include find forward links[0m
+
+  Describe Memory Tools:
+[32m    ✓ Should include store in smart memory[0m
+[32m    ✓ Should include retrieve from smart memory[0m
+
+  Describe Visual Tools:
+[32m    ✓ Should include analyze image[0m
+[32m    ✓ Should exclude analyze image when visual model is none[0m
+
+Describe Build Tools From Config:
+[32m  ✓ Should return chat session components[0m
+[32m  ✓ Should use injected system prompt[0m
+[32m  ✓ Should include llm broker from provider[0m
+[32m  ✓ Should use injected registry factory[0m
+[32m  ✓ Should use injected provider factory[0m
+
+zk_chat/tools/analyze_image_spec.py:
+
+Describe Analyze Image:
+[32m  ✓ Should return not found message when image missing[0m
+[32m  ✓ Should not call gateway when image missing[0m
+[32m  ✓ Should return llm analysis when image exists[0m
+[32m  ✓ Should request analysis with zk chat completion config[0m
+[32m  ✓ Should have correct descriptor name[0m
+[32m  ✓ Should require relative path parameter in descriptor[0m
+[32m  ✓ Should return error message when analysis fails[0m
+
+zk_chat/tools/commit_changes_spec.py:
+
+Describe Commit Changes:
+[32m  ✓ Should be instantiated with base path llm and git[0m
+[32m    and GitGateway.[0m
+[32m  ✓ Should return error message when adding files fails[0m
+[32m  ✓ Should return error message when checking status fails[0m
+[32m  ✓ Should return no changes message when status is empty[0m
+[32m  ✓ Should return error message when getting diff fails[0m
+[32m  ✓ Should return error message when committing fails[0m
+[32m  ✓ Should successfully commit changes[0m
+[32m  ✓ Should request commit message with zk chat completion config[0m
+[32m  ✓ Should handle os errors[0m
+[32m  ✓ Should have correct descriptor[0m
+
+zk_chat/tools/create_or_overwrite_zk_document_spec.py:
+
+Describe Create Or Overwrite Zk Document:
+[32m  ✓ Should write document with dict metadata[0m
+[32m  ✓ Should write document with default metadata when none provided[0m
+[32m  ✓ Should write document with default metadata when non dict provided[0m
+[32m  ✓ Should return error message when filesystem raises os error[0m
+[32m  ✓ Should return error message when yaml serialization fails[0m
+
+Describe Prepare Document:
+[32m  ✓ Should sanitize title for filename[0m
+[32m  ✓ Should add md extension to title[0m
+[32m  ✓ Should not double add md extension when already present[0m
+[32m  ✓ Should add reviewed false to empty metadata[0m
+[32m  ✓ Should handle none metadata[0m
+[32m  ✓ Should handle non dict metadata[0m
+[32m  ✓ Should merge provided metadata with reviewed flag[0m
+[32m  ✓ Should always reset reviewed to false even when true provided[0m
+[32m  ✓ Should return zk document instance[0m
+[32m  ✓ Should set content on document[0m
+
+zk_chat/tools/delete_zk_document_spec.py:
+
+Describe Delete Zk Document:
+[32m  ✓ Should be instantiated with document service[0m
+[32m  ✓ Should delete document and confirm when exists[0m
+[32m  ✓ Should return not found message when document missing[0m
+[32m  ✓ Should return error message when deletion raises os error[0m
+[32m  ✓ Should remove document from index after deleting file[0m
+[32m  ✓ Should have correct descriptor[0m
+
+zk_chat/tools/find_backlinks_spec.py:
+
+Describe Find Backlinks:
+[32m  ✓ Should be instantiated with link service and console gateway[0m
+[32m  ✓ Should find backlinks to target document[0m
+[32m  ✓ Should handle target with no backlinks[0m
+[32m  ✓ Should return json formatted backlink results[0m
+[32m  ✓ Should print console feedback about results found[0m
+[32m  ✓ Should handle backlinks with context snippets[0m
+[32m  ✓ Should return error message when traversal fails[0m
+[32m  ✓ Should have correct descriptor for llm integration[0m
+
+Describe Format Backlink Results:
+[32m  ✓ Should return empty list string for no results[0m
+[32m  ✓ Should serialize single backlink result[0m
+[32m  ✓ Should serialize multiple backlink results[0m
+
+zk_chat/tools/find_excerpts_related_to_spec.py:
+
+Describe Find Excerpts Related To:
+[32m  ✓ Should return json list of excerpt results[0m
+
+zk_chat/tools/find_forward_links_spec.py:
+
+Describe Find Forward Links:
+[32m  ✓ Should be instantiated with services and console gateway[0m
+[32m  ✓ Should return error message when document does not exist[0m
+[32m  ✓ Should find forward links from source document[0m
+[32m  ✓ Should handle source with no forward links[0m
+[32m  ✓ Should return json formatted forward link results[0m
+[32m  ✓ Should print console feedback about results found[0m
+[32m  ✓ Should return error message when traversal fails[0m
+[32m  ✓ Should have correct descriptor for llm integration[0m
+
+Describe Format Forward Link Results:
+[32m  ✓ Should return empty list string for no results[0m
+[32m  ✓ Should serialize single forward link result[0m
+[32m  ✓ Should serialize multiple forward link results[0m
+
+zk_chat/tools/find_zk_documents_related_to_spec.py:
+
+Describe Find Zk Documents Related To:
+[32m  ✓ Should return json list of document results with distances[0m
+
+zk_chat/tools/git_gateway_spec.py:
+
+Describe Git Gateway:
+[32m  ✓ Should store base path on init[0m
+
+  Describe Add All Files:
+[32m    ✓ Should run git add all[0m
+[32m    ✓ Should return result from git command[0m
+
+  Describe Commit:
+[32m    ✓ Should run git commit with message[0m
+[32m    ✓ Should return result from git command[0m
+
+  Describe Get Diff:
+[32m    ✓ Should run git diff head[0m
+[32m    ✓ Should return result from git command[0m
+
+  Describe Get Status:
+[32m    ✓ Should run git status porcelain[0m
+[32m    ✓ Should return result from git command[0m
+
+  Describe Run Git Command:
+[32m    ✓ Should return true and stdout on success[0m
+[32m    ✓ Should return false and stderr on called process error[0m
+[32m    ✓ Should return false and error message on os error[0m
+
+  Describe Setup:
+[32m    ✓ Should create gitignore when absent[0m
+[32m    ✓ Should not overwrite existing gitignore[0m
+[32m    ✓ Should initialize git repo when dot git absent[0m
+[32m    ✓ Should not initialize git repo when dot git exists[0m
+
+zk_chat/tools/list_zk_documents_spec.py:
+
+Describe List Zk Documents:
+[32m  ✓ Should return newline separated document paths[0m
+[32m  ✓ Should return error message when iteration fails[0m
+
+zk_chat/tools/list_zk_images_spec.py:
+
+Describe List Zk Images:
+[32m  ✓ Should be instantiated with filesystem gateway[0m
+[32m  ✓ Should return list of image paths[0m
+[32m  ✓ Should return no images message when vault has no images[0m
+[32m  ✓ Should have correct descriptor[0m
+
+zk_chat/tools/query_tool_spec.py:
+
+Describe Query Tool:
+[32m  ✓ Should call report with query results[0m
+[32m  ✓ Should return json serialized results[0m
+[32m  ✓ Should store injected dependencies[0m
+[32m  ✓ Should return error message when query fails[0m
+
+zk_chat/tools/read_zk_document_spec.py:
+
+Describe Read Zk Document:
+[32m  ✓ Should return document json when exists[0m
+[32m  ✓ Should return not found message when document missing[0m
+[32m  ✓ Should return error message when read fails[0m
+
+zk_chat/tools/rename_zk_document_spec.py:
+
+Describe Rename Zk Document:
+[32m  ✓ Should be instantiated with document service[0m
+[32m  ✓ Should rename document successfully[0m
+[32m  ✓ Should handle file not found error[0m
+[32m  ✓ Should handle os error[0m
+[32m  ✓ Should purge old index entries and reindex under new path[0m
+[32m  ✓ Should make renamed document findable under new path[0m
+
+zk_chat/tools/resolve_wikilink_spec.py:
+
+Describe Resolve Wiki Link:
+[32m  ✓ Should return relative path when wikilink resolves[0m
+[32m  ✓ Should return error message when wikilink not found[0m
+[32m  ✓ Should have correct descriptor name[0m
+[32m  ✓ Should require wikilink parameter in descriptor[0m
+
+zk_chat/tools/retrieve_from_smart_memory_spec.py:
+
+Describe Format Memory Results:
+[32m  ✓ Should return no results message when all distances empty[0m
+[32m  ✓ Should return no results message when distance lists are empty[0m
+[32m  ✓ Should convert distance to relevance percentage[0m
+[32m  ✓ Should handle zero distance as 100 percent relevance[0m
+[32m  ✓ Should format single result as numbered item[0m
+[32m  ✓ Should format multiple results as numbered list[0m
+
+Describe Retrieve From Smart Memory:
+[32m  ✓ Should be instantiated with smart memory[0m
+[32m  ✓ Should return formatted results when information found[0m
+[32m  ✓ Should return no results message when nothing found[0m
+[32m  ✓ Should return error message when retrieve fails[0m
+
+zk_chat/tools/store_in_smart_memory_spec.py:
+
+Describe Store In Smart Memory:
+[32m  ✓ Should store information in memory and return confirmation[0m
+[32m  ✓ Should return error message when store fails[0m
+
+zk_chat/tools/tool_helpers_spec.py:
+
+Describe Build Descriptor:
+[32m  ✓ Should build parameterless descriptor[0m
+[32m  ✓ Should build descriptor with properties and required[0m
+[32m  ✓ Should include additional properties when specified[0m
+[32m  ✓ Should omit additional properties when not specified[0m
+
+Describe Check Document Exists:
+[32m  ✓ Should return none when document exists[0m
+[32m  ✓ Should return error message when document not found[0m
+
+Describe Checked:
+[32m  ✓ Should return payload on success[0m
+[32m  ✓ Should raise git tool error on failure[0m
+
+Describe Format Model Results:
+[32m  ✓ Should return empty json array for empty list[0m
+[32m  ✓ Should serialize single item to json array[0m
+[32m  ✓ Should serialize multiple items preserving order[0m
+
+Describe Log And Return Error:
+[32m  ✓ Should call logger error and return message[0m
+
+Describe Tool Boundary:
+[32m  ✓ Should pass through return value on success[0m
+[32m  ✓ Should return error string when exception raised[0m
+[32m  ✓ Should use callable prefix with runtime args[0m
+[32m  ✓ Should not catch unspecified exception types[0m
+[32m  ✓ Should support mapping form with passthrough for specific exception[0m
+[32m  ✓ Should support mapping form with prefix for other exception[0m
+
+zk_chat/tools/uncommitted_changes_spec.py:
+
+Describe Uncommitted Changes:
+[32m  ✓ Should be instantiated with base path and git[0m
+[32m  ✓ Should return error message when adding files fails[0m
+[32m  ✓ Should return error message when getting diff fails[0m
+[32m  ✓ Should return no changes message when diff is empty[0m
+[32m  ✓ Should return diff output when changes exist[0m
+[32m  ✓ Should handle os errors[0m
+[32m  ✓ Should have correct descriptor[0m
+
+zk_chat/upgraders/gateway_specific_index_folder_spec.py:
+
+Describe Gateway Specific Index Folder:
+[32m  ✓ Should store config on init[0m
+
+  Describe Db Dir:
+[32m    ✓ Should return zk chat db inside vault[0m
+
+  Describe Index Dir:
+[32m    ✓ Should return gateway value subdirectory of db dir[0m
+
+  Describe Run:
+[32m    ✓ Should create index dir[0m
+[32m    ✓ Should move non gateway files into index dir[0m
+[32m    ✓ Should not move gateway named directories[0m
+[32m    ✓ Should create index dir when sqlite file present and index dir absent[0m
+[32m    ✓ Should log info when migration runs[0m
+
+  Describe Should Run:
+[32m    ✓ Should return true when db dir exists and index dir absent[0m
+[32m    ✓ Should return false when db dir does not exist[0m
+[32m    ✓ Should return false when both db dir and index dir exist[0m
+
+Describe Upgrader:
+[32m  ✓ Should not run by default[0m
+[32m  ✓ Should run without error[0m
+
+zk_chat/upgraders/gateway_specific_last_indexed_spec.py:
+
+Describe Gateway Specific Last Indexed:
+[32m  ✓ Should store config and gateway on init[0m
+
+  Describe Run:
+[32m    ✓ Should migrate last indexed to gateway specific storage[0m
+[32m    ✓ Should save config via gateway after migration[0m
+[32m    ✓ Should not save config when last indexed is none[0m
+
+  Describe Should Run:
+[32m    ✓ Should return true when last indexed set and no gateway last indexed[0m
+[32m    ✓ Should return false when last indexed is none[0m
+[32m    ✓ Should return false when gateway last indexed already populated[0m
+[32m    ✓ Should return false when both last indexed none and gateway last indexed empty[0m
+
+zk_chat/vault_path_spec.py:
+
+Describe Normalize Vault Path:
+[32m  ✓ Should resolve symlink to its target[0m
+[32m  ✓ Should return absolute path for relative input[0m
+[32m  ✓ Should expand user home[0m
+[32m  ✓ Should treat distinct directories as different[0m
+
+zk_chat/vault_resolution_spec.py:
+
+Describe Resolve Vault Path:
+[32m  ✓ Should return resolved path when vault explicitly provided[0m
+[32m  ✓ Should not call gateway when vault explicitly provided[0m
+[32m  ✓ Should resolve path from bookmarks when no vault provided[0m
+[32m  ✓ Should raise error when no vault and no bookmarks[0m
+[32m  ✓ Should raise error when explicit path does not exist[0m
+[32m  ✓ Should raise error when bookmarked path does not exist[0m
+[32m  ✓ Should resolve symlinked vault path to real target[0m
+
+zk_chat/vector_database_spec.py:
+
+Describe Vector Database:
+
+  Describe Add Documents:
+[32m    ✓ Should calculate embeddings for each document[0m
+[32m    ✓ Should pass documents with embeddings to chroma[0m
+
+  Describe Delete By Metadata:
+[32m    ✓ Should delegate to chroma gateway with where filter[0m
+
+  Describe Query:
+[32m    ✓ Should build query results from chroma response[0m
+[32m    ✓ Should return empty list when no results[0m
+[32m    ✓ Should pass calculated embeddings to chroma[0m
+[32m    ✓ Should pass correct collection name to chroma[0m
+
+  Describe Reset:
+[32m    ✓ Should delegate reset to chroma gateway[0m
+
+[32m============================= [32m[1m838 passed[0m[32m in 8.04s[0m[32m ==============================[0m
