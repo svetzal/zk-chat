@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **CVE-2026-49272 (GHSA-3jp2-3mrg-2vxc) — fixed**: upgraded transitive dependency `oauthlib` (via
+  `requests-oauthlib` ← `kubernetes` ← `chromadb`) from 4.0.0 to 4.0.1, the fixed release. No code changes
+  were required. `requirements.txt` was regenerated from `uv.lock`, which also brings it in line with the
+  already-locked `fastmcp` and `fastmcp-slim` 4.1.6 and `joserfc` 1.7.6.
 - **CVE-2026-114613 (GHSA-j586-36cw-2gc2) — fixed**: upgraded transitive dev dependency `msgpack`
   (via `cachecontrol` ← `pip-audit[filecache]`, `dev` dependency group) from 1.2.2 to 1.2.4 (fixed in
   1.2.3). No code changes were required. `requirements.txt` is unchanged because it excludes dev
