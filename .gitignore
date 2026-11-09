@@ -13,3 +13,6 @@ RICH_INTEGRATION.md
 demo_tools_update.py
 site
 .worktrees
+
+# Claude Code local settings can hold approved commands verbatim, secrets included
+**/.claude/settings.local.json
