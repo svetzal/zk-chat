@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `LLMGatewayResponse` (the gateway's declared return type) instead of `LLMMessage`.
 - Upgraded dev dependency `ruff` from 0.16.10 to 0.17.0 (no code changes required).
 - Upgraded `typer` from 0.27.3 to 0.28.0 (no code changes required).
+- Upgraded dev dependency `pymdown-extensions` from 12.3 to 13.0 (no code or `mkdocs.yml` changes required).
+  13.0 requires Python >= 3.11.5, so `uv.lock` keeps 12.3 for Python 3.11.0–3.11.4.
 
 ### Security
 
