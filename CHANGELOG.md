@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **CVE-2026-128089 — fixed**: upgraded transitive dependency `dnspython` (via `email-validator` ←
+  `pydantic`) from 2.9.0 to 2.9.2, the fixed release. No code changes were required. `requirements.txt` was
+  regenerated from `uv.lock`, which also brings it in line with the already-locked `fastmcp`/`fastmcp-slim`
+  4.2.0, `authlib` 1.9.5, `typer` 0.29.1 and `uncalled-for` 0.6.1.
 - **CVE-2026-49272 (GHSA-3jp2-3mrg-2vxc) — fixed**: upgraded transitive dependency `oauthlib` (via
   `requests-oauthlib` ← `kubernetes` ← `chromadb`) from 4.0.0 to 4.0.1, the fixed release. No code changes
   were required. `requirements.txt` was regenerated from `uv.lock`, which also brings it in line with the
