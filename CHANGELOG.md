@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **CVE-2026-126360 — fixed**: upgraded transitive dependency `opentelemetry-api` (via `chromadb`,
+  `mcp` and `fastmcp`) from 1.45.1 to 1.45.2, the fixed release. The rest of the OpenTelemetry family
+  moved with it to keep versions matched: `opentelemetry-sdk`, `opentelemetry-proto`,
+  `opentelemetry-exporter-otlp-proto-common` and `opentelemetry-exporter-otlp-proto-grpc` to 1.45.2,
+  and `opentelemetry-semantic-conventions` and `opentelemetry-exporter-otlp-common` to 0.66b2. No code
+  changes were required. `requirements.txt` was regenerated from `uv.lock`.
 - **CVE-2026-128089 — fixed**: upgraded transitive dependency `dnspython` (via `email-validator` ←
   `pydantic`) from 2.9.0 to 2.9.2, the fixed release. No code changes were required. `requirements.txt` was
   regenerated from `uv.lock`, which also brings it in line with the already-locked `fastmcp`/`fastmcp-slim`
