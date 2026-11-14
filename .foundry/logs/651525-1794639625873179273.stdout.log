@@ -1,0 +1,8 @@
+Name              Version ID              Fix Versions
+----------------- ------- --------------- ------------
+dnspython         2.9.0   CVE-2026-128089 2.9.2
+opentelemetry-api 1.45.1  CVE-2026-126360 1.45.2
+
+Name    Skip Reason
+------- ----------------------------------------------------------------------
+zk-chat Dependency not found on PyPI and could not be audited: zk-chat (3.6.0)
