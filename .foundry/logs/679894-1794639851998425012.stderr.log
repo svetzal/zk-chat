@@ -1,0 +1,20 @@
+Resolved 181 packages in 2ms
+Uninstalled 7 packages in 77ms
+warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+         If the cache and target directories are on different filesystems, hardlinking may not be supported.
+         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+Installed 7 packages in 76ms
+ - opentelemetry-api==1.45.1
+ + opentelemetry-api==1.45.2
+ - opentelemetry-exporter-otlp-common==0.66b1
+ + opentelemetry-exporter-otlp-common==0.66b2
+ - opentelemetry-exporter-otlp-proto-common==1.45.1
+ + opentelemetry-exporter-otlp-proto-common==1.45.2
+ - opentelemetry-exporter-otlp-proto-grpc==1.45.1
+ + opentelemetry-exporter-otlp-proto-grpc==1.45.2
+ - opentelemetry-proto==1.45.1
+ + opentelemetry-proto==1.45.2
+ - opentelemetry-sdk==1.45.1
+ + opentelemetry-sdk==1.45.2
+ - opentelemetry-semantic-conventions==0.66b1
+ + opentelemetry-semantic-conventions==0.66b2

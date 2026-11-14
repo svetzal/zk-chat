@@ -1,0 +1,11 @@
+Name     Version ID              Fix Versions
+-------- ------- --------------- ------------
+chromadb 1.5.9   PYSEC-2026-311
+chromadb 1.5.9   PYSEC-2026-311
+chromadb 1.5.9   PYSEC-2026-3814
+chromadb 1.5.9   PYSEC-2026-3815
+chromadb 1.5.9   PYSEC-2026-3813
+
+Name    Skip Reason
+------- ----------------------------------------------------------------------
+zk-chat Dependency not found on PyPI and could not be audited: zk-chat (3.6.0)

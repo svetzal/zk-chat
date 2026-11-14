@@ -1,0 +1,8 @@
+Resolved 181 packages in 480ms
+Updated opentelemetry-api v1.45.1 -> v1.45.2
+Updated opentelemetry-exporter-otlp-common v0.66b1 -> v0.66b2
+Updated opentelemetry-exporter-otlp-proto-common v1.45.1 -> v1.45.2
+Updated opentelemetry-exporter-otlp-proto-grpc v1.45.1 -> v1.45.2
+Updated opentelemetry-proto v1.45.1 -> v1.45.2
+Updated opentelemetry-sdk v1.45.1 -> v1.45.2
+Updated opentelemetry-semantic-conventions v0.66b1 -> v0.66b2
