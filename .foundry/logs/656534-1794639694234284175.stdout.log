@@ -1,0 +1,12 @@
+Name              Version ID              Fix Versions
+----------------- ------- --------------- ------------
+chromadb          1.5.9   PYSEC-2026-311
+chromadb          1.5.9   PYSEC-2026-311
+chromadb          1.5.9   PYSEC-2026-3814
+chromadb          1.5.9   PYSEC-2026-3815
+chromadb          1.5.9   PYSEC-2026-3813
+opentelemetry-api 1.45.1  CVE-2026-126360 1.45.2
+
+Name    Skip Reason
+------- ----------------------------------------------------------------------
+zk-chat Dependency not found on PyPI and could not be audited: zk-chat (3.6.0)
