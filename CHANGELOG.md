@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Installed Qt system libraries and configured `QT_QPA_PLATFORM=offscreen` in the CI validation job
+  so the full pytest suite, including Qt tests, runs headless on GitHub's Ubuntu runners.
+
 ### Changed
 
 - Upgraded `mojentic` from 2.1.0 to 3.0.0. mojentic 3.0 no longer sends default temperature,
